@@ -8,8 +8,8 @@ Runs ioflo plan from command line shell
 
 example:
 
-ioflo -v verbose -n raet -p 0.0625 -f shrub/shrub.flo -b shrub.raet
-ioflo -v concise -n raet -p 0.0625 -f shrub/shrub.flo -b shrub.raet.packeting shrub.raet.stacking
+ioflo -v verbose -n raet -p 0.0625 -f road/raet.flo -b road.raet
+ioflo -v concise -n raet -p 0.0625 -f road/raet.flo -b road.raet.packeting road.raet.stacking
 
 
     
