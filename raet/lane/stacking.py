@@ -357,8 +357,6 @@ class StackUxd(object):
             return
         self.txMsgs.append((msg, name))
 
-    txMsg = transmit # alias
-
     def message(self, body, name):
         '''
         Sends message body to yard name and manages paging of long messages

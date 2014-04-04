@@ -90,128 +90,34 @@ class RoadStack(stacking.Stack):
                                         server=server,
                                         **kwa)
 
-        self.uids = odict() # remote ids indexed by name
         self.transactions = odict() #transactions
 
         self.dumpLocal() # save local data
         self.dumpRemotes() # save remote data
 
-    def addRemote(self, remote, uid=None):
-        '''
-        Add a remote  to .remotes
-        '''
-        if uid is None:
-            uid = remote.uid
-        if uid in self.remotes:
-            emsg = "Cannot add remote at uid '{0}', alreadys exists".format(uid)
-            raise raeting.StackError(emsg)
-        remote.stack = self
-        self.remotes[uid] = remote
-        if remote.name in self.uids:
-            emsg = "Cannot add remote with name '{0}', alreadys exists".format(remote.name)
-            raise raeting.StackError(emsg)
-        self.uids[remote.name] = remote.uid
-
-    def moveRemote(self, old, new):
-        '''
-        Move remote at key old uid to key new uid but keep same index
-        '''
-        if new in self.remotes:
-            emsg = "Cannot move, remote to '{0}', already exists".format(new)
-            raise raeting.StackError(emsg)
-
-        if old not in self.remotes:
-            emsg = "Cannot move remote '{0}', does not exist".format(old)
-            raise raeting.StackError(emsg)
-
-        remote = self.remotes[old]
-        index = self.remotes.keys().index(old)
-        remote.uid = new
-        self.uids[remote.name] = new
-        del self.remotes[old]
-        self.remotes.insert(index, remote.uid, remote)
-
-    def renameRemote(self, old, new):
-        '''
-        rename remote with old name to new name but keep same index
-        '''
-        if new in self.uids:
-            emsg = "Cannot rename remote to '{0}', already exists".format(new)
-            raise raeting.StackError(emsg)
-
-        if old not in self.uids:
-            emsg = "Cannot rename remote '{0}', does not exist".format(old)
-            raise raeting.StackError(emsg)
-
-        uid = self.uids[old]
-        remote = self.remotes[uid]
-        remote.name = new
-        index = self.uids.keys().index(old)
-        del self.uids[old]
-        self.uids.insert(index, remote.name, remote.uid)
-
-    def removeRemote(self, uid):
-        '''
-        Remove remote at key uid
-        '''
-        if uid not in self.remotes:
-            emsg = "Cannot remove remote '{0}', does not exist".format(uid)
-            raise raeting.StackError(emsg)
-
-        remote = self.remotes[uid]
-        del self.remotes[uid]
-        del self.uids[remote.name]
-
-    def fetchRemoteByName(self, name):
-        '''
-        Search for remote with matching name
-        Return remote if found Otherwise return None
-        '''
-        return self.remotes.get(self.uids.get(name))
-
     def fetchRemoteByHostPort(self, host, port):
         '''
-        Search for remote estate with matching (host, port)
-        Return estate if found Otherwise return None
+        Search for remote with matching (host, port)
+        Return remote if found Otherwise return None
         '''
-        for estate in self.remotes.values():
-            if estate.host == host and estate.port == port:
-                return estate
+        for remote in self.remotes.values():
+            if remote.host == host and remote.port == port:
+                return remote
 
         return None
 
     def fetchRemoteByKeys(self, sighex, prihex):
         '''
-        Search for remote estate with matching (name, sighex, prihex)
-        Return estate if found Otherwise return None
+        Search for remote with matching (name, sighex, prihex)
+        Return remote if found Otherwise return None
         '''
-        for estate in self.remotes.values():
-            if (estate.signer.keyhex == sighex or
-                estate.priver.keyhex == prihex):
-                return estate
+        for remote in self.remotes.values():
+            if (remote.signer.keyhex == sighex or
+                remote.priver.keyhex == prihex):
+                return remote
 
         return None
 
-    def clearLocal(self):
-        '''
-        Clear local keeps
-        '''
-        super(RoadStack, self).clearLocal()
-        self.safe.clearLocalData()
-
-    def clearRemote(self, remote):
-        '''
-        Clear remote keeps of remote estate
-        '''
-        super(RoadStack, self).clearRemote(remote)
-        self.safe.clearRemoteData(remote)
-
-    def clearRemoteKeeps(self):
-        '''
-        Clear all remote keeps
-        '''
-        self.keep.clearAllRemoteData()
-        self.safe.clearAllRemoteData()
 
     def dumpLocal(self):
         '''
@@ -256,6 +162,13 @@ class RoadStack(stacking.Stack):
                                       sigkey=safe['sighex'],
                                       prikey=safe['prihex'],)
         return estate
+
+    def clearLocal(self):
+        '''
+        Clear local keeps
+        '''
+        super(RoadStack, self).clearLocal()
+        self.safe.clearLocalData()
 
     def dumpRemote(self, remote):
         '''
@@ -321,6 +234,20 @@ class RoadStack(stacking.Stack):
             estates.append(estate)
         return estates
 
+    def clearRemote(self, remote):
+        '''
+        Clear remote keeps of remote estate
+        '''
+        super(RoadStack, self).clearRemote(remote)
+        self.safe.clearRemoteData(remote)
+
+    def clearRemoteKeeps(self):
+        '''
+        Clear all remote keeps
+        '''
+        super(RoadStack, self).clearRemoteKeeps()
+        self.safe.clearAllRemoteData()
+
     def addTransaction(self, index, transaction):
         '''
         Safely add transaction at index If not already there
@@ -341,156 +268,15 @@ class RoadStack(stacking.Stack):
             else:
                 del self.transactions[index]
 
-    def clearStats(self):
-        '''
-        Set all the stat counters to zero and reset the timer
-        '''
-        for key, value in self.stats.items():
-            self.stats[key] = 0
-        self.statTimer.restart()
-
-    def clearStat(self, key):
-        '''
-        Set the specified state counter to zero
-        '''
-        if key in self.stats:
-            self.stats[key] = 0
-
-    def incStat(self, key, delta=1):
-        '''
-        Increment stat key counter by delta
-        '''
-        if key in self.stats:
-            self.stats[key] += delta
-        else:
-            self.stats[key] = delta
-
-    def updateStat(self, key, value):
-        '''
-        Set stat key to value
-        '''
-        self.stats[key] = value
-
-    def serviceUdpRx(self):
-        '''
-        Service the UDP receive and fill the rxes deque
-        '''
-        if self.server:
-            while True:
-                rx, ra = self.server.receive()  # if no data the duple is ('',None)
-                if not rx:  # no received data so break
-                    break
-                # triple = ( packet, source address, destination address)
-                self.rxes.append((rx, ra, self.server.ha))
-
-        return None
-
     def serviceRxes(self):
         '''
         Process all messages in .rxes deque
         '''
         while self.rxes:
-            self.processUdpRx()
+            self.processRx()
 
-    def serviceTxMsgs(self):
-        '''
-        Service .txMsgs queue of outgoing  messages and start message transactions
-        '''
-        while self.txMsgs:
-            body, deid = self.txMsgs.popleft() # duple (body dict, destination eid)
-            self.message(body, deid)
-            console.verbose("{0} sending\n{1}\n".format(self.name, body))
 
-    def serviceTxes(self):
-        '''
-        Service the .txes deque to send Udp messages
-        '''
-        if self.server:
-            laters = deque()
-            while self.txes:
-                tx, ta = self.txes.popleft()  # duple = (packet, destination address)
-                try:
-                    self.server.send(tx, ta)
-                except socket.error as ex:
-                    if ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
-                        #busy with last message save it for later
-                        laters.append((tx, ta))
-                    else:
-                        #console.verbose("socket.error = {0}\n".format(ex))
-                        raise
-            while laters:
-                self.txes.append(laters.popleft())
-
-    def serviceUdp(self):
-        '''
-        Service the UDP receive and transmit queues
-        '''
-        self.serviceUdpRx()
-        self.serviceTxes()
-
-    def serviceRx(self):
-        '''
-        Service:
-           UDP Socket receive
-           rxes queue
-           process
-        '''
-        self.serviceUdpRx()
-        self.serviceRxes()
-        self.process()
-
-    def serviceTx(self):
-        '''
-        Service:
-           txMsgs queue
-           txes queue and UDP Socket send
-        '''
-        self.serviceTxMsgs()
-        self.serviceTxes()
-
-    def serviceAll(self):
-        '''
-        Service or Process:
-           UDP Socket receive
-           rxes queue
-           process
-           txMsgs queue
-           txes queue and UDP Socket send
-        '''
-        self.serviceUdpRx()
-        self.serviceRxes()
-        self.process()
-
-        self.serviceTxMsgs()
-        self.serviceTxes()
-
-    def transmit(self, msg, deid=None):
-        '''
-        Append duple (msg,deid) to .txMsgs deque
-        If msg is not mapping then raises exception
-        If deid is None then it will default to the first entry in .estates
-        '''
-        if not isinstance(msg, Mapping):
-            emsg = "Invalid msg, not a mapping {0}\n".format(msg)
-            console.terse(emsg)
-            self.incStat("invalid_transmit_body")
-            return
-        self.txMsgs.append((msg, deid))
-
-    txMsg = transmit
-
-    def txUdp(self, packed, deid):
-        '''
-        Queue duple of (packed, da) on stack transmit queue
-        Where da is the ip destination (host,port) address associated with
-        the estate with deid
-        '''
-        if deid not in self.remotes:
-            msg = "Invalid destination estate id '{0}'".format(deid)
-            raise raeting.StackError(msg)
-        self.txes.append((packed, self.remotes[deid].ha))
-
-    def processUdpRx(self):
+    def processRx(self):
         '''
         Retrieve next packet from stack receive queue if any and parse
         Process associated transaction or reply with new correspondent transaction
@@ -546,6 +332,16 @@ class RoadStack(stacking.Stack):
         packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
 
         return packet # outer only has been parsed
+
+    def serviceTxMsgs(self):
+        '''
+        Service .txMsgs queue of outgoing  messages and start message transactions
+        '''
+        while self.txMsgs:
+            body, deid = self.txMsgs.popleft() # duple (body dict, destination eid)
+            self.message(body, deid)
+            console.verbose("{0} sending\n{1}\n".format(self.name, body))
+
 
     def reply(self, packet):
         '''

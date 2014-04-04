@@ -294,20 +294,28 @@ class Stack(object):
         '''
         while self.rxes:
             raw, sa, da = self.rxes.popleft()
-            #parse and add to .rxMsgs
+            console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
 
-    def serviceOneRx(self):
-        '''
-        Retrieve next from .rxes deque if any and process
-        '''
-        try:
-            raw, sa, da = self.rxes.popleft()
-        except IndexError:
-            return None
+            processOneRx(raww, sa, da)
 
-        #parse and return message
-        msg = ""
-        return msg
+    def processOneRx(self, raw, sa, da):
+        '''
+        Process raw, sa, da
+        '''
+        pass
+
+    def transmit(self, msg, deid=None):
+        '''
+        Append duple (msg, deid) to .txMsgs deque
+        If msg is not mapping then raises exception
+        If deid is None then it will default to the first entry in .estates
+        '''
+        if not isinstance(msg, Mapping):
+            emsg = "Invalid msg, not a mapping {0}\n".format(msg)
+            console.terse(emsg)
+            self.incStat("invalid_transmit_body")
+            return
+        self.txMsgs.append((msg, deid))
 
     def serviceTxMsgs(self):
         '''
@@ -352,7 +360,7 @@ class Stack(object):
     def serviceAllRx(self):
         '''
         Service:
-           UDP Socket receive
+           server receive
            rxes queue
            process
         '''
@@ -364,7 +372,7 @@ class Stack(object):
         '''
         Service:
            txMsgs queue
-           txes queue and UDP Socket send
+           txes queue to server send
         '''
         self.serviceTxMsgs()
         self.serviceTxes()
@@ -372,11 +380,11 @@ class Stack(object):
     def serviceAll(self):
         '''
         Service or Process:
-           UDP Socket receive
+           server receive
            rxes queue
            process
            txMsgs queue
-           txes queue and UDP Socket send
+           txes queue to server send
         '''
         serviceAllRx()
         serviceAllTx()

@@ -93,7 +93,7 @@ class Transaction(object):
         Queue tx duple on stack transmit queue
         '''
         try:
-            self.stack.txUdp(packet.packed, self.reid)
+            self.stack.tx(packet.packed, self.reid)
         except raeting.StackError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat(self.statKey())
