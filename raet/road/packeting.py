@@ -548,7 +548,7 @@ class TxPacket(Packet):
         '''
         Return signature resulting from signing msg
         '''
-        return (self.stack.estate.signer.signature(msg))
+        return (self.stack.local.signer.signature(msg))
 
     def sign(self):
         '''
@@ -564,7 +564,7 @@ class TxPacket(Packet):
         Return (cipher, nonce) duple resulting from encrypting message
         with short term keys
         '''
-        remote = self.stack.estates[self.data['de']]
+        remote = self.stack.remotes[self.data['de']]
         return (remote.privee.encrypt(msg, remote.publee.key))
 
     def prepack(self):
@@ -626,14 +626,14 @@ class RxPacket(Packet):
         '''
         Return result of verifying msg with signature
         '''
-        return (self.stack.estates[self.data['se']].verfer.verify(signature, msg))
+        return (self.stack.remotes[self.data['se']].verfer.verify(signature, msg))
 
     def decrypt(self, cipher, nonce):
         '''
         Return msg resulting from decrypting cipher and nonce
         with short term keys
         '''
-        remote = self.stack.estates[self.data['se']]
+        remote = self.stack.remotes[self.data['se']]
         return (remote.privee.decrypt(cipher, nonce, remote.publee.key))
 
     def parse(self, packed=None):

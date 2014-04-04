@@ -137,10 +137,10 @@ def test():
             print msg
     print
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
 
@@ -234,10 +234,10 @@ def test():
     stack0.transmit(odict(house="Yeah Baby3", queue="Fast"))
     stack0.transmit(odict(house="Yeah Baby4", queue="Slow"))
 
-    stack0.transmit(odict(house="Yeah Momma 1", queue="host"), stack2.estate.eid)
-    stack0.transmit(odict(house="Yeah Momma 1", queue="cold"),  stack2.estate.eid)
-    stack0.transmit(odict(house="Yeah Momma 1", queue="boiling"),  stack2.estate.eid)
-    stack0.transmit(odict(house="Yeah Momma 1", queue="tepid"),  stack2.estate.eid)
+    stack0.transmit(odict(house="Yeah Momma 1", queue="host"), stack2.estate.uid)
+    stack0.transmit(odict(house="Yeah Momma 1", queue="cold"),  stack2.estate.uid)
+    stack0.transmit(odict(house="Yeah Momma 1", queue="boiling"),  stack2.estate.uid)
+    stack0.transmit(odict(house="Yeah Momma 1", queue="tepid"),  stack2.estate.uid)
 
     # segmented packets
     stuff = []
@@ -248,7 +248,7 @@ def test():
     stack1.transmit(odict(house="Snake eyes", queue="near stuff", stuff=stuff))
     stack0.transmit(odict(house="Craps", queue="far stuff", stuff=stuff))
     stack2.transmit(odict(house="Lucky duck", queue="medium stuff", stuff=stuff))
-    stack0.transmit(odict(house="Boogle", queue="hight stuff", stuff=stuff), stack2.estate.eid)
+    stack0.transmit(odict(house="Boogle", queue="hight stuff", stuff=stuff), stack2.estate.uid)
 
     timer.restart(duration=4)
     while not timer.expired:
@@ -283,13 +283,13 @@ def test():
     print
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    print "{0} eid={1}".format(stack2.name, stack2.estate.eid)
+    print "{0} eid={1}".format(stack2.name, stack2.estate.uid)
     print "{0} estates=\n{1}".format(stack2.name, stack2.estates)
     print "{0} transactions=\n{1}".format(stack2.name, stack2.transactions)
 

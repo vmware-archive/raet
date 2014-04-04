@@ -132,10 +132,10 @@ def test():
         print "   {0}={1}".format(key, val)
     print
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
 

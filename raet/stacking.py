@@ -27,13 +27,8 @@ from ioflo.base import aiding
 from ioflo.base import storing
 
 from . import raeting
-from . import nacling
-from . import packeting
-from . import paging
-from . import estating
-from . import yarding
 from . import keeping
-from . import transacting
+from . import lotting
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
@@ -47,12 +42,12 @@ class Stack(object):
 
     def __init__(self,
                  name='',
-                 main=False,
                  version=raeting.VERSION,
                  store=None,
-                 local=None,
                  keep=None,
                  dirpath=None,
+                 local=None,
+                 server=None,
                  rxMsgs=None,
                  txMsgs=None,
                  rxes=None,
@@ -68,16 +63,17 @@ class Stack(object):
         self.name = name
         self.version = version
         self.store = store or storing.Store(stamp=0.0)
-        self.keep = keep or keeping.Keep(dirpath=dirpath, stackname=self.name)
-        kept = self.loadLocal() # load local data from saved data
-        self.local = kept or local
-        if self.local:
-            self.local.stack = self
-        self.remotes = odict() # remotes indexed by id
-        self.rids = odict() # remote ids indexed by name
-        kepts = self.loadAllRemote() # load remotes from saved data
-        for kept in kepts:
-            self.addRemote(kept)
+
+        self.keep = keep or keeping.LotKeep(dirpath=dirpath, stackname=self.name)
+        self.loadLocal(local) # load local data from saved data else passed in local
+        self.remotes = odict() # remotes indexed by uid
+        self.uids = odict() # remote uids indexed by name
+        self.loadRemotes() # load remotes from saved data
+        self.server = server
+        if self.server:
+            self.server.reopen()  # open socket
+            if self.local:
+                self.local.ha = self.server.ha  # update local host address after open
 
         self.rxMsgs = rxMsgs if rxMsgs is not None else deque() # messages received
         self.txMsgs = txMsgs if txMsgs is not None else deque() # messages to transmit
@@ -85,30 +81,29 @@ class Stack(object):
         self.txes = txes if txes is not None else deque() # udp packet to transmit
         self.stats = stats if stats is not None else odict() # udp statistics
         self.statTimer = aiding.StoreTimer(self.store)
-        self.server = None
 
         self.dumpLocal() # save local data
-        self.dumpAllRemote() # save remote data
+        self.dumpRemotes() # save remote data
 
-    def addRemote(self, remote, rid=None):
+    def addRemote(self, remote, uid=None):
         '''
         Add a remote  to .remotes
         '''
-        if rid is None:
-            rid = remote.rid
-        if rid in self.remotes:
-            emsg = "Cannot add remote at rid '{0}', alreadys exists".format(rid)
+        if uid is None:
+            uid = remote.uid
+        if uid in self.remotes:
+            emsg = "Cannot add remote at uid '{0}', alreadys exists".format(uid)
             raise raeting.StackError(emsg)
         remote.stack = self
-        self.remotes[rid] = remote
-        if remote.name in self.rids:
+        self.remotes[uid] = remote
+        if remote.name in self.uids:
             emsg = "Cannot add remote with name '{0}', alreadys exists".format(remote.name)
             raise raeting.StackError(emsg)
-        self.rids[remote.name] = remote.rid
+        self.uids[remote.name] = remote.uid
 
     def moveRemote(self, old, new):
         '''
-        Move remote at key old rid to key new rid but keep same index
+        Move remote at key old uid to key new uid but keep same index
         '''
         if new in self.remotes:
             emsg = "Cannot move, remote to '{0}', already exists".format(new)
@@ -120,48 +115,78 @@ class Stack(object):
 
         remote = self.remotes[old]
         index = self.remotes.keys().index(old)
-        remote.rid = new
-        self.rids[remote.name] = new
+        remote.uid = new
+        self.uids[remote.name] = new
         del self.remotes[old]
-        self.remotes.insert(index, remote.rid, remote)
+        self.remotes.insert(index, remote.uid, remote)
 
     def renameRemote(self, old, new):
         '''
         rename remote with old name to new name but keep same index
         '''
-        if new in self.rids:
+        if new in self.uids:
             emsg = "Cannot rename remote to '{0}', already exists".format(new)
             raise raeting.StackError(emsg)
 
-        if old not in self.rids:
+        if old not in self.uids:
             emsg = "Cannot rename remote '{0}', does not exist".format(old)
             raise raeting.StackError(emsg)
 
-        rid = self.rids[old]
-        remote = self.remotes[rid]
+        uid = self.uids[old]
+        remote = self.remotes[uid]
         remote.name = new
-        index = self.rids.keys().index(old)
-        del self.rids[old]
-        self.rids.insert(index, remote.name, remote.rid)
+        index = self.uids.keys().index(old)
+        del self.uids[old]
+        self.uids.insert(index, remote.name, remote.uid)
 
-    def removeRemote(self, rid):
+    def removeRemote(self, uid):
         '''
-        Remove remote at key rid
+        Remove remote at key uid
         '''
-        if rid not in self.remotes:
-            emsg = "Cannot remove remote '{0}', does not exist".format(rid)
+        if uid not in self.remotes:
+            emsg = "Cannot remove remote '{0}', does not exist".format(uid)
             raise raeting.StackError(emsg)
 
-        remote = self.remotes[rid]
-        del self.remotes[rid]
-        del self.rids[remote.name]
+        remote = self.remotes[uid]
+        del self.remotes[uid]
+        del self.uids[remote.name]
 
     def fetchRemoteByName(self, name):
         '''
         Search for remote with matching name
         Return remote if found Otherwise return None
         '''
-        return self.remotes.get(self.rids.get(name))
+        return self.remotes.get(self.uids.get(name))
+
+    def dumpLocal(self):
+        '''
+        Dump keeps of local
+        '''
+        data = odict([
+                        ('uid', self.local.uid),
+                        ('name', self.local.name),
+                        ('ha', self.local.ha)
+                    ])
+        if self.keep.verify(data):
+            self.keep.dumpLocalData(data)
+
+    def loadLocal(self, local=None):
+        '''
+        Load self.local from keep file else local or new
+        '''
+        data = self.keep.loadLocalData()
+        if data and self.keep.verify(data):
+            self.local = lotting.Lot(stack=self,
+                                     uid=data['uid'],
+                                     name=data['name'],
+                                     ha=data['ha'])
+
+        elif local:
+            local.stack = self
+            self.local = local
+
+        else:
+            self.local = lotting.Lot(stack=self)
 
     def clearLocal(self):
         '''
@@ -169,67 +194,57 @@ class Stack(object):
         '''
         self.keep.clearLocalData()
 
-    def clearRemote(self, remote):
-        '''
-        Clear remote keep of remote
-        '''
-        self.keep.clearRemoteData(remote.rid)
-
-    def clearAllRemote(self):
-        '''
-        Clear all remote keeps
-        '''
-        self.keep.clearAllRemoteData()
-
-    def dumpLocal(self):
-        '''
-        Dump keeps of local
-        '''
-        self.keep.dumpLocalData()
-
     def dumpRemote(self, remote):
         '''
         Dump keeps of remote
         '''
-        self.keep.dumpRemoteData(remote.rid)
+        data = odict([
+                        ('uid', remote.uid),
+                        ('name', remote.name),
+                        ('ha', remote.ha)
+                    ])
+        if self.keep.verify(data):
+            self.dumpRemoteData(data, remote.uid)
 
-    def dumpAllRemote(self):
+    def dumpRemotes(self):
         '''
-        Dump all remotes estates to keeps'''
-        self.keep.dumpAllRemoteData(self.remotes)
+        Dump all remotes data to files
+        '''
+        datadict = odict()
+        for remote in self.remotes.values():
+            self.dumpRemote(remote)
 
-    def loadLocal(self):
+    def loadRemotes(self):
         '''
-        Load and Return local if keeps found
+        Load and add remote for each remote file
         '''
-        localdata = self.keep.loadLocalData()
-        return None
+        datadict = self.keep.loadAllRemoteData()
+        for data in datadict.values():
+            if self.keep.verify(data):
+                lot = lotting.Lot(stack=self,
+                                  uid=data['uid'],
+                                  name=data['name'],
+                                  ha=data['ha'])
+                self.addRemote(remote)
 
-    def loadAllRemote(self):
+    def clearRemote(self, remote):
         '''
-        Load and Return list of remotes
+        Clear remote keep of remote
         '''
-        data = self.keep.loadAllRemoteData()
+        self.clearRemoteData(remote.uid)
 
-        for key, road in data.items():
-            '''
-            '''
-        return data
+    def clearRemotes(self):
+        '''
+        Clear remote keeps of .remotes
+        '''
+        for remote in self.remotes.values():
+            self.clearRemote(remote)
 
-    def clearStats(self):
+    def clearRemoteKeeps(self):
         '''
-        Set all the stat counters to zero and reset the timer
+        Clear all remote keeps
         '''
-        for key, value in self.stats.items():
-            self.stats[key] = 0
-        self.statTimer.restart()
-
-    def clearStat(self, key):
-        '''
-        Set the specified state counter to zero
-        '''
-        if key in self.stats:
-            self.stats[key] = 0
+        self.keep.clearAllRemoteData()
 
     def incStat(self, key, delta=1):
         '''
@@ -246,9 +261,24 @@ class Stack(object):
         '''
         self.stats[key] = value
 
-    def serviceRx(self):
+    def clearStat(self, key):
         '''
-        Service the server receive and fill the rxes deque
+        Set the specified state counter to zero
+        '''
+        if key in self.stats:
+            self.stats[key] = 0
+
+    def clearStats(self):
+        '''
+        Set all the stat counters to zero and reset the timer
+        '''
+        for key, value in self.stats.items():
+            self.stats[key] = 0
+        self.statTimer.restart()
+
+    def serviceReceives(self):
+        '''
+        Retrieve from server all recieved and put on the rxes deque
         '''
         if self.server:
             while True:
@@ -258,24 +288,26 @@ class Stack(object):
                 # triple = ( packet, source address, destination address)
                 self.rxes.append((rx, ra, self.server.ha))
 
-        return None
-
     def serviceRxes(self):
         '''
         Process all messages in .rxes deque
         '''
         while self.rxes:
-            self.processRx()
+            raw, sa, da = self.rxes.popleft()
+            #parse and add to .rxMsgs
 
-    def processRx(self):
+    def serviceOneRx(self):
         '''
-        Retrieve next packet from stack receive queue if any and parse
-        Process associated transaction or reply with new correspondent transaction
+        Retrieve next from .rxes deque if any and process
         '''
         try:
             raw, sa, da = self.rxes.popleft()
         except IndexError:
             return None
+
+        #parse and return message
+        msg = ""
+        return msg
 
     def serviceTxMsgs(self):
         '''
@@ -284,10 +316,11 @@ class Stack(object):
         while self.txMsgs:
             body, drid = self.txMsgs.popleft() # duple (body dict, destination eid)
 
+            #need to pack body here and tx
 
     def tx(self, packed, drid):
         '''
-        Queue duple of (packed, da) on stack transmit queue
+        Queue duple of (packed, da) on stack .txes queue
         Where da is the ip destination (host,port) address associated with
         the estate with deid
         '''
@@ -323,7 +356,7 @@ class Stack(object):
            rxes queue
            process
         '''
-        self.serviceRx()
+        self.serviceReceives()
         self.serviceRxes()
         self.process()
 
@@ -352,9 +385,8 @@ class Stack(object):
         '''
         Service the server's receive and transmit queues
         '''
-        self.serviceRx()
+        self.serviceReceives()
         self.serviceTxes()
-
 
     def process(self):
         '''

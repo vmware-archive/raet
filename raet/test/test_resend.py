@@ -83,7 +83,7 @@ def test():
         if store.stamp >= 0.3:
             for estate in stack0.estates.values():
                 if estate.acceptance == raeting.acceptances.pending:
-                    stack0.safe.acceptRemoteEstate(estate)
+                    stack0.safe.acceptRemote(estate)
         store.advanceStamp(0.1)
         time.sleep(0.1)
 
@@ -93,10 +93,10 @@ def test():
         print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
 
@@ -135,10 +135,10 @@ def test():
         print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
 
@@ -185,7 +185,7 @@ def test():
         time.sleep(0.1)
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages".format(stack0.name)
@@ -195,7 +195,7 @@ def test():
     for key, val in stack0.stats.items():
         print "   {0}={1}".format(key, val)
     print
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
     print "{0} Received Messages".format(stack1.name)

@@ -27,8 +27,11 @@ console = getConsole()
 
 class Keep(object):
     '''
-    RAET protocol base class for data persistence
+    RAET protocol base class for data persistence of objects that follow the Lot
+    protocol
     '''
+    Fields = ['uid', 'name', 'ha']
+
     def __init__(self, dirpath='', stackname='stack', prefix='data', ext='json', **kwa):
         '''
         Setup Keep instance
@@ -89,15 +92,30 @@ class Keep(object):
             return it
         return None
 
+    def verify(self, data):
+        '''
+        Returns True if the fields in .Fields match the fields in data
+        '''
+        return (set(self.Fields) == set(data.keys()))
+
+    def defaults(self):
+        '''
+        Return odict with items preloaded with defaults
+        '''
+        data = odict()
+        for field in fields:
+            data[field] = None
+        return data
+
     def dumpLocalData(self, data):
         '''
-        Dump the data from the local
+        Dump the local data to file
         '''
         self.dump(data, self.localfilepath)
 
     def loadLocalData(self):
         '''
-        Load and Return the data from the local
+        Load and Return the data from the local file
         '''
         if not os.path.exists(self.localfilepath):
             return None
@@ -105,14 +123,14 @@ class Keep(object):
 
     def clearLocalData(self):
         '''
-        Load and Return the data from the local
+        Clear the local file
         '''
         if os.path.exists(self.localfilepath):
             os.remove(self.localfilepath)
 
     def dumpRemoteData(self, data, uid):
         '''
-        Dump the data from the remote to file named with uid
+        Dump the remote data to file named with uid
         '''
         filepath = os.path.join(self.remotedirpath,
                 "{0}.{1}.{2}".format(self.prefix, uid, self.ext))
@@ -121,7 +139,7 @@ class Keep(object):
 
     def dumpAllRemoteData(self, datadict):
         '''
-        Dump the data for each remote in the datadict keyed by uid
+        Dump the data in the datadict keyed by uid to remote data files
         '''
         for uid, data in datadict.items():
             self.dumpRemoteData(data, uid)
@@ -147,9 +165,10 @@ class Keep(object):
 
     def loadAllRemoteData(self):
         '''
-        Load and Return the data from the all the remote data files
+        Load and Return the datadict from the all the remote data files
+        indexed by uid in filenames
         '''
-        data = odict()
+        datadict = odict()
         for filename in os.listdir(self.remotedirpath):
             root, ext = os.path.splitext(filename)
             if ext != '.json' or not root.startswith(self.prefix):
@@ -158,8 +177,8 @@ class Keep(object):
             if not uid or prefix != self.prefix:
                 continue
             filepath = os.path.join(self.remotedirpath, filename)
-            data[uid] = self.load(filepath)
-        return data
+            datadict[uid] = self.load(filepath)
+        return datadict
 
     def clearAllRemoteData(self):
         '''
@@ -177,259 +196,15 @@ class Keep(object):
             if os.path.exists(filepath):
                 os.remove(filepath)
 
-class EstateKeep(Keep):
+class LotKeep(keeping.Keep):
     '''
-    RAET protocol estate on road data persistence
-    Convenience wrappers around Keep to accept an estate instead of data dict
+    RAET protocol endpoint lot persistence
+
     '''
-    def __init__(self, prefix='estate', **kwa):
+    Fields = ['uid', 'name', 'ha']
+
+    def __init__(self, prefix='lot', **kwa):
         '''
-        Setup EstateKeep instance
+        Setup LotKeep instance
         '''
-        super(EstateKeep, self).__init__(prefix=prefix, **kwa)
-
-    def dumpAllRemoteEstates(self, estates):
-        '''
-        Dump the data from all the remote estates
-        '''
-        for estate in estates:
-            self.dumpRemoteEstate(estate)
-
-    def dumpLocalEstate(self, estate):
-        '''
-        Dump the key data from the local estate
-        Override this in sub class to change data
-        '''
-        data = odict(
-                eid=estate.eid,
-                name=estate.name,)
-
-        self.dumpLocalData(data)
-
-    def dumpRemoteEstate(self, estate):
-        '''
-        Dump the data from the remote estate
-        Override this in sub class to change data and uid
-        '''
-        uid = estate.eid
-        data = odict(
-                eid=estate.eid,
-                name=estate.name,)
-
-        self.dumpRemoteData(data, uid)
-
-    def loadRemoteEstate(self, estate):
-        '''
-        Load and Return the data from the remote estate file
-        Override this in sub class to change uid
-        '''
-        uid = estate.eid
-        return (self.loadRemoteData(uid))
-
-    def clearRemoteEstate(self, estate):
-        '''
-        Clear the remote estate file
-        '''
-        uid = estate.eid
-        self.clearRemoteData(uid)
-
-class RoadKeep(EstateKeep):
-    '''
-    RAET protocol estate road (channel) data persistence or road specific info
-    not key stuff
-
-    keep/
-        stackname/
-            local/
-                estate.eid.ext
-            remote/
-                estate.eid.ext
-                estate.eid.ext
-    '''
-    def __init__(self, **kwa):
-        '''
-        Setup RoadKeep instance
-        '''
-        super(RoadKeep, self).__init__(**kwa)
-
-    def dumpLocalEstate(self, estate):
-        '''
-        Dump the data from the local estate
-        '''
-        data = odict([
-                ('eid', estate.eid),
-                ('name', estate.name),
-                ('main', estate.main),
-                ('host', estate.host),
-                ('port', estate.port),
-                ('sid', estate.sid)
-                ])
-
-        self.dumpLocalData(data)
-
-    def dumpRemoteEstate(self, estate):
-        '''
-        Dump the data from the remote estate
-        '''
-        uid = estate.eid
-        data = odict([
-                ('eid', estate.eid),
-                ('name', estate.name),
-                ('host', estate.host),
-                ('port', estate.port),
-                ('sid', estate.sid),
-                ('rsid', estate.rsid),
-                ])
-
-        self.dumpRemoteData(data, uid)
-
-class SafeKeep(EstateKeep):
-    '''
-    RAET protocol estate safe (key) data persistence and status
-    '''
-    Auto = False #auto accept
-
-    def __init__(self, prefix='key', auto=None, **kwa):
-        '''
-        Setup SafeKeep instance
-
-        keep/
-            local/
-                key.eid.ext
-            remote/
-                key.eid.ext
-                key.eid.ext
-
-                pended/
-                    key.eid.ext
-                rejected/
-                    key.eid.ext
-        '''
-        super(SafeKeep, self).__init__(prefix=prefix, **kwa)
-        self.auto = auto if auto is not None else self.Auto
-
-    def dumpLocalEstate(self, estate):
-        '''
-        Dump the key data from the local estate
-        '''
-        data = odict([
-                ('eid', estate.eid),
-                ('name', estate.name),
-                ('sighex', estate.signer.keyhex),
-                ('prihex', estate.priver.keyhex),
-                ])
-
-        self.dumpLocalData(data)
-
-    def dumpRemoteEstate(self, estate):
-        '''
-        Dump the data from the remote estate
-        '''
-        uid = estate.eid
-        data = odict([
-                ('eid', estate.eid),
-                ('name', estate.name),
-                ('acceptance', estate.acceptance),
-                ('verhex', estate.verfer.keyhex),
-                ('pubhex', estate.pubber.keyhex),
-                ])
-
-        self.dumpRemoteData(data, uid)
-
-    def loadRemoteEstate(self, estate):
-        '''
-        Load and Return the data from the remote estate file
-        Override this in sub class to change uid
-        '''
-        uid = estate.eid
-        return (self.loadRemoteData(uid))
-
-    def statusRemoteEstate(self, estate, verhex, pubhex, main=True):
-        '''
-        Evaluate acceptance status of estate per its keys
-        persist key data differentially based on status
-        '''
-        data = self.loadRemoteEstate(estate)
-        status = data.get('acceptance') if data else None # pre-existing status
-
-        if main: #main estate logic
-            if self.auto:
-                status = raeting.acceptances.accepted
-            else:
-                if status is None:
-                    status = raeting.acceptances.pending
-
-                elif status == raeting.acceptances.accepted:
-                    if (data and (
-                            (verhex != data.get('verhex')) or
-                            (pubhex != data.get('pubhex')) )):
-                        status = raeting.acceptances.rejected
-
-                elif status == raeting.acceptances.rejected:
-                    if (data and (
-                            (verhex != data.get('verhex')) or
-                            (pubhex != data.get('pubhex')) )):
-                        status = raeting.acceptances.pending
-
-                else: # pre-existing was pending
-                    # waiting for external acceptance
-                    pass
-
-        else: #other estate logic
-            if status is None:
-                status = raeting.acceptances.accepted
-
-            elif status == raeting.acceptances.accepted:
-                if (  data and (
-                        (verhex != data.get('verhex')) or
-                        (pubhex != data.get('pubhex')) )):
-                    status = raeting.acceptances.rejected
-
-            elif status == raeting.acceptances.rejected:
-                if (  data and (
-                        (verhex != data.get('verhex')) or
-                        (pubhex != data.get('pubhex')) )):
-                    status = raeting.acceptances.accepted
-            else: # pre-existing was pending
-                status = raeting.acceptances.accepted
-
-        if status != raeting.acceptances.rejected:
-            if (verhex and verhex != estate.verfer.keyhex):
-                estate.verfer = nacling.Verifier(verhex)
-            if (pubhex and pubhex != estate.pubber.keyhex):
-                estate.pubber = nacling.Publican(pubhex)
-        estate.acceptance = status
-        self.dumpRemoteEstate(estate)
-        return status
-
-    def rejectRemoteEstate(self, estate):
-        '''
-        Set acceptance status to rejected
-        '''
-        estate.acceptance = raeting.acceptances.rejected
-        self.dumpRemoteEstate(estate)
-
-    def pendRemoteEstate(self, estate):
-        '''
-        Set acceptance status to pending
-        '''
-        estate.acceptance = raeting.acceptances.pending
-        self.dumpRemoteEstate(estate)
-
-    def acceptRemoteEstate(self, estate):
-        '''
-        Set acceptance status to accepted
-        '''
-        estate.acceptance = raeting.acceptances.accepted
-        self.dumpRemoteEstate(estate)
-
-def clearAllRoadSafe(dirpath):
-    '''
-    Convenience function to clear all road and safe keep data in dirpath
-    '''
-    road = RoadKeep(dirpath=dirpath)
-    road.clearLocalData()
-    road.clearAllRemoteData()
-    safe = SafeKeep(dirpath=dirpath)
-    safe.clearLocalData()
-    safe.clearAllRemoteData()
+        super(LotKeep, self).__init__(prefix=prefix, **kwa)

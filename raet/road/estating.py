@@ -17,10 +17,10 @@ from . import nacling
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-
 class Estate(object):
     '''
     RAET protocol endpoint estate object
+    Implements Lot protocol but does not subclass Lot
     '''
     Eid = 2 # class attribute
 
@@ -32,13 +32,13 @@ class Estate(object):
         self.stack = stack  # Stack object that manages this estate
         if eid is None:
             if self.stack:
-                while Estate.Eid in self.stack.estates:
+                while Estate.Eid in self.stack.remotes:
                     Estate.Eid += 1
                 eid = Estate.Eid
             else:
                 eid = 0
         self.eid = eid # estate ID
-        self.name = name or "estate{0}".format(self.eid)
+        self.name = name or "estate{0}".format(self.uid)
 
         self.sid = sid # current session ID
         self.tid = tid # current transaction ID
@@ -52,6 +52,20 @@ class Estate(object):
         else:
             host = self.host
         self.fqdn = socket.getfqdn(host)
+
+    @property
+    def uid(self):
+        '''
+        property that returns unique identifier
+        '''
+        return self.eid
+
+    @uid.setter
+    def uid(self, value):
+        '''
+        setter for uid property
+        '''
+        self.eid = value
 
     @property
     def ha(self):

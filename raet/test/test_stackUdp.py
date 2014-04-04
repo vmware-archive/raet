@@ -88,14 +88,14 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     stack1.serviceRxes()
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     for estate in stack0.estates.values():
         print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
@@ -134,14 +134,14 @@ def testStackUdp(bk=raeting.bodyKinds.json):
 
     stack1.serviceRxes()
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     for estate in stack0.estates.values():
         print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
@@ -167,13 +167,13 @@ def testStackUdp(bk=raeting.bodyKinds.json):
 
     stack1.serviceRxes()
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages =\n{1}".format(stack0.name, stack0.rxMsgs)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
@@ -197,13 +197,13 @@ def testStackUdp(bk=raeting.bodyKinds.json):
 
     stack0.serviceRxes()
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages =\n{1}".format(stack0.name, stack0.rxMsgs)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
@@ -266,14 +266,14 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     stack0.serviceRxes()
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages".format(stack0.name)
     for msg in stack0.rxMsgs:
         print msg
     print
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
     print "{0} Received Messages".format(stack1.name)
@@ -310,7 +310,7 @@ def testStackUdp(bk=raeting.bodyKinds.json):
         time.sleep(0.1)
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages".format(stack0.name)
@@ -320,7 +320,7 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     for key, val in stack0.stats.items():
         print "   {0}={1}".format(key, val)
     print
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
     print "{0} Received Messages".format(stack1.name)

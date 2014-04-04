@@ -84,7 +84,7 @@ def test(preClearMaster=False, preClearMinion=False, postClearMaster=False, post
         if store.stamp >= 0.3:
             for estate in stack0.estates.values():
                 if estate.acceptance == raeting.acceptances.pending:
-                    stack0.safe.acceptRemoteEstate(estate)
+                    stack0.safe.acceptRemote(estate)
         store.advanceStamp(0.1)
 
     for estate in stack0.estates.values():
@@ -93,10 +93,10 @@ def test(preClearMaster=False, preClearMinion=False, postClearMaster=False, post
         print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.eid)
+    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
     print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} eid={1}".format(stack1.name, stack1.estate.eid)
+    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
     print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
 

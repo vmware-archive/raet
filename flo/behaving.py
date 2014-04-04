@@ -80,7 +80,7 @@ class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         main = self.local.data.main
         ha = (self.local.data.host, self.local.data.port)
 
-        eid = self.local.data.eid
+        eid = self.local.data.uid
         estate = estating.LocalEstate(  eid=eid,
                                         name=name,
                                         ha=ha,
@@ -153,8 +153,8 @@ class JoinedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         stack = self.stack.value
         joined = False
         if stack and isinstance(stack, stacking.StackUdp):
-            if stack.estates:
-                joined = stack.estates.values()[0].joined
+            if stack.remotes:
+                joined = stack.remotes.values()[0].joined
         self.status.update(joined=joined)
 
 class AllowerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
@@ -193,8 +193,8 @@ class AllowedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         stack = self.stack.value
         allowed = False
         if stack and isinstance(stack, stacking.StackUdp):
-            if stack.estates:
-                allowed = stack.estates.values()[0].allowed
+            if stack.remotes:
+                allowed = stack.remotes.values()[0].allowed
         self.status.update(allowed=allowed)
 
 class IdledStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
