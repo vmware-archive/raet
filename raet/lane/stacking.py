@@ -26,15 +26,13 @@ from ioflo.base.odicting import odict
 from ioflo.base import aiding
 from ioflo.base import storing
 
-from .. import raeting
-from .. import nacling
-from . import paging
-from . import yarding
+from .. import raeting, nacling, stacking
+from . import paging, yarding
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-class StackUxd(object):
+class LaneStack(stacking.Stack):
     '''
     RAET protocol UXD (unix domain) socket stack object
     '''
@@ -64,8 +62,8 @@ class StackUxd(object):
         Setup StackUxd instance
         '''
         if not name:
-            name = "stackUxd{0}".format(StackUxd.Count)
-            StackUxd.Count += 1
+            name = "stackUxd{0}".format(LaneStack.Count)
+            LaneStack.Count += 1
         self.name = name
         self.version = version
         self.store = store or storing.Store(stamp=0.0)

@@ -45,7 +45,11 @@ from ioflo.base import deeding
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from . import raeting, packeting, estating, yarding, stacking
+from ..raet import raeting
+from ..raet.road.stacking import  RoadStack
+from ..raet.lane.stacking import  LaneStack
+from ..raet.road import packeting, estating
+from ..raet.lane import paging, yarding
 
 
 class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
@@ -285,7 +289,7 @@ class StackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
-        self.stack.value = stacking.StackUxd(
+        self.stack.value = stacking.LaneStack(
                                        store=self.store,
                                        name=name,
                                        yardname=yardname,
@@ -311,7 +315,7 @@ class CloserStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         Close uxd socket
         '''
-        if self.stack.value and isinstance(self.stack.value, stacking.StackUxd):
+        if self.stack.value and isinstance(self.stack.value, stacking.LaneStack):
             self.stack.value.server.close()
 
 class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
@@ -329,7 +333,7 @@ class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         Adds new yard to stack on lane with yid
         '''
         stack = self.stack.value
-        if stack and isinstance(stack, stacking.StackUxd):
+        if stack and isinstance(stack, stacking.LaneStack):
             yard = yarding.RemoteYard(stack=stack, prefix=lane, name=name)
             stack.addRemoteYard(yard)
             self.yard.value = yard
@@ -352,7 +356,7 @@ class TransmitStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         if kwa:
             msg = odict(kwa)
             stack = self.stack.value
-            if stack and isinstance(stack, stacking.StackUxd):
+            if stack and isinstance(stack, stacking.LaneStack):
                 name = self.dest.value #destination yard name
                 stack.transmit(msg=msg, name=name)
 
