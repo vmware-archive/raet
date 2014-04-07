@@ -268,22 +268,48 @@ class RoadStack(stacking.Stack):
             else:
                 del self.transactions[index]
 
+    #def serviceRxes(self):
+        #'''
+        #Process all messages in .rxes deque
+        #'''
+        #while self.rxes:
+            #self.processRx()
+
     def serviceRxes(self):
         '''
         Process all messages in .rxes deque
         '''
         while self.rxes:
-            self.processRx()
+            raw, sa, da = self.rxes.popleft()
+            console.verbose("{0} received packet\n{1}\n".format(self.name, raw))
 
+            packet = packeting.RxPacket(stack=self, packed=raw)
+            try:
+                packet.parseOuter()
+            except raeting.PacketError as ex:
+                console.terse(str(ex) + '\n')
+                self.incStat('parsing_outer_error')
 
-    def processRx(self):
+            deid = packet.data['de']
+            if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
+                emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
+                console.concise( emsg)
+                self.incStat('invalid_destination')
+
+            sh, sp = sa
+            dh, dp = da
+            packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
+
+            self.processRx(packet)
+
+    def processRx(self, packet):
         '''
-        Retrieve next packet from stack receive queue if any and parse
-        Process associated transaction or reply with new correspondent transaction
+        Process packet via associated transaction or
+        reply with new correspondent transaction
         '''
-        packet = self.fetchParseUdpRx()
-        if not packet:
-            return
+        #packet = self.fetchParseUdpRx()
+        #if not packet:
+            #return
 
         console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
         console.verbose("{0} received packet index = '{1}'\n".format(self.name, packet.index))
@@ -299,39 +325,39 @@ class RoadStack(stacking.Stack):
 
         self.reply(packet)
 
-    def fetchParseUdpRx(self):
-        '''
-        Fetch from UDP deque next packet tuple
-        Parse packet
-        Return packet if verified and destination eid matches
-        Otherwise return None
-        '''
-        try:
-            raw, sa, da = self.rxes.popleft()
-        except IndexError:
-            return None
+    #def fetchParseUdpRx(self):
+        #'''
+        #Fetch from UDP deque next packet tuple
+        #Parse packet
+        #Return packet if verified and destination eid matches
+        #Otherwise return None
+        #'''
+        #try:
+            #raw, sa, da = self.rxes.popleft()
+        #except IndexError:
+            #return None
 
-        console.verbose("{0} received packet\n{1}\n".format(self.name, raw))
+        #console.verbose("{0} received packet\n{1}\n".format(self.name, raw))
 
-        packet = packeting.RxPacket(stack=self, packed=raw)
-        try:
-            packet.parseOuter()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.incStat('parsing_outer_error')
-            return None
+        #packet = packeting.RxPacket(stack=self, packed=raw)
+        #try:
+            #packet.parseOuter()
+        #except raeting.PacketError as ex:
+            #console.terse(str(ex) + '\n')
+            #self.incStat('parsing_outer_error')
+            #return None
 
-        deid = packet.data['de']
-        if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
-            emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
-            console.concise( emsg)
-            return None
+        #deid = packet.data['de']
+        #if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
+            #emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
+            #console.concise( emsg)
+            #return None
 
-        sh, sp = sa
-        dh, dp = da
-        packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
+        #sh, sp = sa
+        #dh, dp = da
+        #packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
 
-        return packet # outer only has been parsed
+        #return packet # outer only has been parsed
 
     def serviceTxMsgs(self):
         '''
