@@ -45,11 +45,11 @@ from ioflo.base import deeding
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from ..raet import raeting
-from ..raet.road.stacking import  RoadStack
-from ..raet.lane.stacking import  LaneStack
-from ..raet.road import packeting, estating
-from ..raet.lane import paging, yarding
+from raet import raeting
+from raet.road.stacking import  RoadStack
+from raet.lane.stacking import  LaneStack
+from raet.road import packeting, estating
+from raet.lane import paging, yarding
 
 
 class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
@@ -84,8 +84,8 @@ class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         main = self.local.data.main
         ha = (self.local.data.host, self.local.data.port)
 
-        eid = self.local.data.uid
-        estate = estating.LocalEstate(  eid=eid,
+        eid = self.local.data.eid
+        local = estating.LocalEstate(  eid=eid,
                                         name=name,
                                         ha=ha,
                                         sigkey=sigkey,
@@ -93,7 +93,7 @@ class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
-        self.stack.value = stacking.RoadStack(estate=estate,
+        self.stack.value = RoadStack(  local=local,
                                        store=self.store,
                                        name=name,
                                        auto=auto,
@@ -120,7 +120,7 @@ class CloserStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         Close udp socket
         '''
-        if self.stack.value and isinstance(self.stack.value, stacking.RoadStack):
+        if self.stack.value and isinstance(self.stack.value, RoadStack):
             self.stack.value.server.close()
 
 class JoinerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
@@ -136,7 +136,7 @@ class JoinerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
 
         '''
         stack = self.stack.value
-        if stack and isinstance(stack, stacking.RoadStack):
+        if stack and isinstance(stack, RoadStack):
             stack.join()
 
 class JoinedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
@@ -156,7 +156,7 @@ class JoinedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         stack = self.stack.value
         joined = False
-        if stack and isinstance(stack, stacking.RoadStack):
+        if stack and isinstance(stack, RoadStack):
             if stack.remotes:
                 joined = stack.remotes.values()[0].joined
         self.status.update(joined=joined)
@@ -175,7 +175,7 @@ class AllowerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         Send any packets in txes
         '''
         stack = self.stack.value
-        if stack and isinstance(stack, stacking.RoadStack):
+        if stack and isinstance(stack, RoadStack):
             stack.allow()
         return None
 
@@ -196,7 +196,7 @@ class AllowedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         stack = self.stack.value
         allowed = False
-        if stack and isinstance(stack, stacking.RoadStack):
+        if stack and isinstance(stack, RoadStack):
             if stack.remotes:
                 allowed = stack.remotes.values()[0].allowed
         self.status.update(allowed=allowed)
@@ -218,7 +218,7 @@ class IdledStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         stack = self.stack.value
         idled = False
-        if stack and isinstance(stack, stacking.RoadStack):
+        if stack and isinstance(stack, RoadStack):
             if not stack.transactions:
                 idled = True
         self.status.update(idled=idled)
@@ -241,7 +241,7 @@ class MessengerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         if kwa:
             msg = odict(kwa)
             stack = self.stack.value
-            if stack and isinstance(stack, stacking.RoadStack):
+            if stack and isinstance(stack, RoadStack):
                 deid = self.destination.value
                 stack.transmit(msg=msg, deid=deid)
 
@@ -289,7 +289,7 @@ class StackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
-        self.stack.value = stacking.LaneStack(
+        self.stack.value = LaneStack(
                                        store=self.store,
                                        name=name,
                                        yardname=yardname,
@@ -315,7 +315,7 @@ class CloserStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         Close uxd socket
         '''
-        if self.stack.value and isinstance(self.stack.value, stacking.LaneStack):
+        if self.stack.value and isinstance(self.stack.value, LaneStack):
             self.stack.value.server.close()
 
 class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
@@ -333,7 +333,7 @@ class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         Adds new yard to stack on lane with yid
         '''
         stack = self.stack.value
-        if stack and isinstance(stack, stacking.LaneStack):
+        if stack and isinstance(stack, LaneStack):
             yard = yarding.RemoteYard(stack=stack, prefix=lane, name=name)
             stack.addRemoteYard(yard)
             self.yard.value = yard
@@ -356,7 +356,7 @@ class TransmitStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         if kwa:
             msg = odict(kwa)
             stack = self.stack.value
-            if stack and isinstance(stack, stacking.LaneStack):
+            if stack and isinstance(stack, LaneStack):
                 name = self.dest.value #destination yard name
                 stack.transmit(msg=msg, name=name)
 
