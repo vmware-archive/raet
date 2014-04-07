@@ -24,7 +24,7 @@ from ioflo.base.aiding import packByte, unpackByte
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from . import raeting
+from .. import raeting
 
 class Part(object):
     '''

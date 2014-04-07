@@ -1,0 +1,15 @@
+*.pyc
+*.DS_Store
+*~
+*/log/*
+*/*/log/*
+*/*/*/log/*
+dist/*/*
+dist
+dist/
+raet.egg-info
+raet.egg-info/
+raet.egg-info/*
+raet.egg-info/*.*
+raet.egg-info*
+raet.egg-info/PKG-INFO

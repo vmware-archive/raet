@@ -47,7 +47,7 @@ class RoadKeep(keeping.Keep):
         super(RoadKeep, self).__init__(prefix=prefix, **kwa)
 
 
-class SafeKeep(EstateKeep):
+class SafeKeep(keeping.Keep):
     '''
     RAET protocol estate safe (key) data persistence and status
     '''

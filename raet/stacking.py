@@ -386,8 +386,8 @@ class Stack(object):
            txMsgs queue
            txes queue to server send
         '''
-        serviceAllRx()
-        serviceAllTx()
+        self.serviceAllRx()
+        self.serviceAllTx()
 
     def serviceServer(self):
         '''

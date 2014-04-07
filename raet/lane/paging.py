@@ -23,7 +23,7 @@ from ioflo.base.odicting import odict
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from . import raeting
+from .. import raeting
 
 
 class Page(object):

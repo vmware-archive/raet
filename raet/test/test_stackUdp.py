@@ -14,9 +14,8 @@ from ioflo.base import storing
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from salt.transport.road.raet import (raeting, nacling, packeting, keeping,
-                                     estating, yarding, transacting, stacking)
-
+from raet import raeting, nacling
+from raet.road import keeping, estating, stacking
 
 def testStackUdp(bk=raeting.bodyKinds.json):
     '''
@@ -31,7 +30,7 @@ def testStackUdp(bk=raeting.bodyKinds.json):
 
     store = storing.Store(stamp=0.0)
 
-    stacking.StackUdp.Bk = bk  #set class body kind for serialization
+    stacking.RoadStack.Bk = bk  #set class body kind for serialization
 
     #master stack
     masterName = "master"
@@ -52,54 +51,43 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     keeping.clearAllRoadSafe(dirpathMaster)
     keeping.clearAllRoadSafe(dirpathMinion)
 
-    estate = estating.LocalEstate(   eid=1,
+    local = estating.LocalEstate(   eid=1,
                                      name=masterName,
                                      sigkey=masterSignKeyHex,
                                      prikey=masterPriKeyHex,)
-    stack0 = stacking.StackUdp(estate=estate,
+    stack0 = stacking.RoadStack(local=local,
                                auto=True,
                                main=True,
                                dirpath=dirpathMaster,
                                store=store)
 
-    estate = estating.LocalEstate(   eid=0,
+    local = estating.LocalEstate(   eid=0,
                                      name=minionName,
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=minionSignKeyHex,
                                      prikey=minionPriKeyHex,)
-    stack1 = stacking.StackUdp(estate=estate,  dirpath=dirpathMinion, store=store)
+    stack1 = stacking.RoadStack(local=local,  dirpath=dirpathMinion, store=store)
 
     print "\n********* Join Transaction **********"
     stack1.join()
 
-    timer = Timer(duration=0.5)
+    timer = Timer(duration=1.0)
     while not timer.expired:
-        stack1.serviceUdp()
-        stack0.serviceUdp()
+        stack1.serviceAll()
+        stack0.serviceAll()
 
-    stack0.serviceRxes()
-    stack0.process()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack1.serviceRxes()
-
-
-    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
-    print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
+    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
+    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
+    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    for estate in stack0.estates.values():
+    for estate in stack0.remotes.values():
         print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
-    print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
+    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
+    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
+    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    for estate in stack1.estates.values():
+    for estate in stack1.remotes.values():
             print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
 
 
@@ -108,44 +96,21 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     stack1.allow()
     timer.restart()
     while not timer.expired:
-        stack1.serviceUdp()
-        stack0.serviceUdp()
+        stack1.serviceAll()
+        stack0.serviceAll()
 
-    stack0.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack1.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack0.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack1.serviceRxes()
-
-    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
-    print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
+    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
+    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
+    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    for estate in stack0.estates.values():
+    for estate in stack0.remotes.values():
         print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
-    print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
+    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
+    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
+    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    for estate in stack1.estates.values():
+    for estate in stack1.remotes.values():
             print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
 
 
@@ -155,27 +120,18 @@ def testStackUdp(bk=raeting.bodyKinds.json):
 
     timer.restart()
     while not timer.expired:
-        stack1.serviceUdp()
-        stack0.serviceUdp()
+        stack1.serviceAll()
+        stack0.serviceAll()
 
-    stack0.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack1.serviceRxes()
-
-    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
-    print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
+    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
+    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
+    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages =\n{1}".format(stack0.name, stack0.rxMsgs)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
-    print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
+    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
+    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
+    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
     print "{0} Received Messages =\n{1}".format(stack1.name, stack1.rxMsgs)
 
@@ -185,27 +141,18 @@ def testStackUdp(bk=raeting.bodyKinds.json):
 
     timer.restart()
     while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
+        stack1.serviceAll()
+        stack0.serviceAll()
 
-    stack1.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack1.serviceUdp()
-        stack0.serviceUdp()
-
-    stack0.serviceRxes()
-
-    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
-    print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.eids)
+    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
+    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
+    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages =\n{1}".format(stack0.name, stack0.rxMsgs)
 
-    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
-    print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.eids)
+    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
+    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
+    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
     print "{0} Received Messages =\n{1}".format(stack1.name, stack1.rxMsgs)
 
@@ -230,51 +177,20 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     stack1.txMsgs.append((odict(house="Mama mia1", queue="big stuff", stuff=stuff), None))
     stack0.txMsgs.append((odict(house="Papa pia4", queue="gig stuff", stuff=stuff), None))
 
-    stack1.serviceTxMsgs()
-    stack0.serviceTxMsgs()
-
     timer.restart()
     while not timer.expired:
-        stack1.serviceUdp()
-        stack0.serviceUdp()
+        stack1.serviceAll()
+        stack0.serviceAll()
 
-    stack0.serviceRxes()
-    stack1.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack1.serviceRxes()
-    stack0.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack1.serviceRxes()
-    stack0.serviceRxes()
-
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceUdp()
-        stack1.serviceUdp()
-
-    stack1.serviceRxes()
-    stack0.serviceRxes()
-
-
-    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
-    print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
+    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
+    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages".format(stack0.name)
     for msg in stack0.rxMsgs:
         print msg
     print
-    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
-    print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
+    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
+    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
     print "{0} Received Messages".format(stack1.name)
     for msg in stack1.rxMsgs:
@@ -310,8 +226,8 @@ def testStackUdp(bk=raeting.bodyKinds.json):
         time.sleep(0.1)
 
 
-    print "{0} eid={1}".format(stack0.name, stack0.estate.uid)
-    print "{0} estates=\n{1}".format(stack0.name, stack0.estates)
+    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
+    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
     print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
     print "{0} Received Messages".format(stack0.name)
     for msg in stack0.rxMsgs:
@@ -320,8 +236,8 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     for key, val in stack0.stats.items():
         print "   {0}={1}".format(key, val)
     print
-    print "{0} eid={1}".format(stack1.name, stack1.estate.uid)
-    print "{0} estates=\n{1}".format(stack1.name, stack1.estates)
+    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
+    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
     print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
     print "{0} Received Messages".format(stack1.name)
     for msg in stack1.rxMsgs:
@@ -336,9 +252,9 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     stack1.server.close()
 
     stack0.clearLocal()
-    stack0.clearAllRemote()
+    stack0.clearRemoteKeeps()
     stack1.clearLocal()
-    stack1.clearAllRemote()
+    stack1.clearRemoteKeeps()
 
 
 

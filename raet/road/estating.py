@@ -11,8 +11,8 @@ import socket
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
 
-from . import raeting
-from . import nacling
+from .. import raeting
+from .. import nacling
 
 from ioflo.base.consoling import getConsole
 console = getConsole()

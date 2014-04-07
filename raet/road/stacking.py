@@ -34,7 +34,6 @@ from . import packeting
 from . import estating
 from . import transacting
 
-
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
@@ -78,6 +77,7 @@ class RoadStack(stacking.Stack):
                                             auto=auto)
 
         if not local:
+            self.remotes = odict()
             local = estating.LocalEstate(stack=self, eid=eid, main=main, ha=ha)
 
         server = aiding.SocketUdpNb(ha=local.ha,
@@ -143,25 +143,30 @@ class RoadStack(stacking.Stack):
         if self.safe.verify(data):
             self.safe.dumpLocalData(data)
 
-    def loadLocal(self):
+    def loadLocal(self, local=None):
         '''
-        Load and Return local estate if keeps found
+        Load and Return local estate if keeps found otherwise use local
         '''
-        road = self.road.loadLocalData()
-        safe = self.safe.loadLocalData()
-        if (not road or not self.road.verify(road) or
-                not safe or not self.safe.verify(safe)):
-            return None
-        estate = estating.LocalEstate(stack=self,
-                                      eid=road['eid'],
-                                      name=road['name'],
-                                      main=road['main'],
-                                      host=road['host'],
-                                      port=road['port'],
-                                      sid=road['sid'],
-                                      sigkey=safe['sighex'],
-                                      prikey=safe['prihex'],)
-        return estate
+        keepData = self.keep.loadLocalData()
+        safeData = self.safe.loadLocalData()
+        if (keepData and self.keep.verify(keepData) and
+                safeData and self.safe.verify(safeData)):
+            estate = estating.LocalEstate(stack=self,
+                                          eid=keepData['eid'],
+                                          name=keepData['name'],
+                                          main=keepData['main'],
+                                          host=keepData['host'],
+                                          port=keepData['port'],
+                                          sid=keepData['sid'],
+                                          sigkey=safeData['sighex'],
+                                          prikey=safeData['prihex'],)
+
+        elif local:
+            local.stack = self
+            self.local = local
+
+        else:
+             self.local = estating.LocalEstate(stack=self)
 
     def clearLocal(self):
         '''
@@ -180,7 +185,7 @@ class RoadStack(stacking.Stack):
                         ('host', remote.host),
                         ('port', remote.port),
                         ('sid', remote.sid),
-                        ('rsid', estate.rsid),
+                        ('rsid', remote.rsid),
                     ])
         if self.keep.verify(data):
             self.keep.dumpRemoteData(data, remote.uid)
@@ -211,15 +216,15 @@ class RoadStack(stacking.Stack):
         self.stack.addRemoteEstate(remote)
         '''
         estates = []
-        roads = self.road.loadAllRemoteData()
+        keeps = self.keep.loadAllRemoteData()
         safes = self.safe.loadAllRemoteData()
-        if not roads or not safes:
+        if not keeps or not safes:
             return []
-        for key, road in roads.items():
+        for key, road in keeps.items():
             if key not in safes:
                 continue
             safe = safes[key]
-            if not self.road.verify(road) or not self.safe.verify(safe):
+            if not self.keep.verify(road) or not self.safe.verify(safe):
                 continue
             estate = estating.RemoteEstate( stack=self,
                                             eid=road['eid'],

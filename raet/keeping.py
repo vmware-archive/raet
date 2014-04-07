@@ -45,7 +45,7 @@ class Keep(object):
                         prefix.uid.ext
         '''
         if not dirpath:
-            dirpath = os.path.join("/tmp/raet/keep", stackname)
+            dirpath = os.path.join("/var/raet/keep", stackname)
         self.dirpath = os.path.abspath(dirpath)
         if not os.path.exists(self.dirpath):
             os.makedirs(self.dirpath)
@@ -196,7 +196,7 @@ class Keep(object):
             if os.path.exists(filepath):
                 os.remove(filepath)
 
-class LotKeep(keeping.Keep):
+class LotKeep(Keep):
     '''
     RAET protocol endpoint lot persistence
 

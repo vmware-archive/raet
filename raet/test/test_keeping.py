@@ -57,7 +57,7 @@ def test():
                                     name='master',
                                     sigkey=masterSignKeyHex,
                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.StackUdp(estate=estate, dirpath=masterDirpath)
+    stack0 = stacking.RoadStack(estate=estate, dirpath=masterDirpath)
 
     stack0.addRemote(estating.RemoteEstate(eid=2,
                                     ha=('127.0.0.1', 7532),
@@ -76,7 +76,7 @@ def test():
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=m1SignKeyHex,
                                      prikey=m1PriKeyHex,)
-    stack1 = stacking.StackUdp(estate=estate, dirpath=m1Dirpath)
+    stack1 = stacking.RoadStack(estate=estate, dirpath=m1Dirpath)
 
 
     stack1.addRemote(estating.RemoteEstate(eid=1,
@@ -124,7 +124,7 @@ def test():
                                     name='master',
                                     sigkey=masterSignKeyHex,
                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.StackUdp(estate=estate, dirpath=masterDirpath)
+    stack0 = stacking.RoadStack(estate=estate, dirpath=masterDirpath)
 
     #minion stack
     dirpath = os.path.join(os.getcwd(), 'keep', 'minion1')
@@ -133,7 +133,7 @@ def test():
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=m1SignKeyHex,
                                      prikey=m1PriKeyHex,)
-    stack1 = stacking.StackUdp(estate=estate, dirpath=m1Dirpath)
+    stack1 = stacking.RoadStack(estate=estate, dirpath=m1Dirpath)
 
 
     estate0 = stack0.loadLocal()

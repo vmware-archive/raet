@@ -4,20 +4,20 @@ raet modules
 
 __init__.py file for raet package
 '''
+__version__ = "0.0.01"
+__author__ = "Samuel M. Smith"
+__license__ =  "MIT"
+
 
 # Import raet modules
 from . import raeting
 from . import nacling
-from . import estating
-from . import yarding
 from . import keeping
-from . import packeting
+from . import lotting
 from . import stacking
-from . import transacting
-from . import behaving
-from . import salting
 
+from . import road
+from . import lane
 
-__all__ = ['raeting', 'nacling', 'estating', 'yarding', 'keeping', 'packeting',
-           'stacking', 'transacting', 'behaving', 'salting']
+__all__ = ['raeting', 'nacling', 'keeping', 'lotting', 'stacking', 'road', 'lane']
 

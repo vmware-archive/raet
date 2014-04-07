@@ -65,7 +65,7 @@ class JoinerStackUdpRaetSalt(deeding.Deed):  # pylint: disable=W0232
         Send any packets in txes
         '''
         stack = self.stack.value
-        if stack and isinstance(stack, stacking.StackUdp):
+        if stack and isinstance(stack, stacking.RoadStack):
             stack.join(mha=self.mha)
 
 

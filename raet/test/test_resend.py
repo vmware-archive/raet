@@ -56,7 +56,7 @@ def test():
                                     name=masterName,
                                     sigkey=masterSignKeyHex,
                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.StackUdp(name=masterName,
+    stack0 = stacking.RoadStack(name=masterName,
                                estate=estate,
                                store=store,
                                main=True,
@@ -68,7 +68,7 @@ def test():
                                     ha=("", raeting.RAET_TEST_PORT),
                                     sigkey=minionSignKeyHex,
                                     prikey=minionPriKeyHex,)
-    stack1 = stacking.StackUdp(name=minionName0,
+    stack1 = stacking.RoadStack(name=minionName0,
                                estate=estate,
                                store=store,
                                dirpath=m0Dirpath)

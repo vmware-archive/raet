@@ -144,7 +144,7 @@ def test():
                                     name=masterName,
                                     sigkey=masterSignKeyHex,
                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.StackUdp(estate=estate,
+    stack0 = stacking.RoadStack(estate=estate,
                                dirpath=masterDirpath,
                                safe=masterSafe)
 
@@ -166,7 +166,7 @@ def test():
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=m1SignKeyHex,
                                      prikey=m1PriKeyHex,)
-    stack1 = stacking.StackUdp(estate=estate,
+    stack1 = stacking.RoadStack(estate=estate,
                                dirpath=m1Dirpath,
                                safe=minionSafe)
 
@@ -218,7 +218,7 @@ def test():
                                     name='master',
                                     sigkey=masterSignKeyHex,
                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.StackUdp(estate=estate,
+    stack0 = stacking.RoadStack(estate=estate,
                                dirpath=masterDirpath,
                                safe=masterSafe)
 
@@ -229,7 +229,7 @@ def test():
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=m1SignKeyHex,
                                      prikey=m1PriKeyHex,)
-    stack1 = stacking.StackUdp(estate=estate,
+    stack1 = stacking.RoadStack(estate=estate,
                                dirpath=m1Dirpath,
                                safe=minionSafe)
 
