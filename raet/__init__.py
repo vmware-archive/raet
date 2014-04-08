@@ -9,15 +9,8 @@ __author__ = "Samuel M. Smith"
 __license__ =  "MIT"
 
 
-# Import raet modules
-from . import raeting
-from . import nacling
-from . import keeping
-from . import lotting
-from . import stacking
-
-from . import road
-from . import lane
-
 __all__ = ['raeting', 'nacling', 'keeping', 'lotting', 'stacking', 'road', 'lane']
 
+import  importlib
+for m in __all__:
+    importlib.import_module(".{0}".format(m), package='raet')
