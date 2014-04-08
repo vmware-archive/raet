@@ -3,7 +3,7 @@
 house master
 
 init .raet.udp.stack.local to eid 1 name "master" host "" port 7530 \
-    dirpath "raet/test/keep/" main True auto True
+    dirpath "/tmp/raet/test/keep/" main True auto True
 
 
 framer masterudpstack be active first start
@@ -25,7 +25,7 @@ framer receiver be active first start
 house minion1
 
 init .raet.udp.stack.local to eid 0 name "minion1" host "" port 7531 \
-    dirpath "raet/test/keep/" main False auto True
+    dirpath "/tmp/raet/test/keep/" main False auto True
 
 
 framer minionudpstack be active first start
@@ -81,7 +81,8 @@ framer bootstrap be active first join
 
 house minion2
 
-init .raet.udp.stack.local to eid 0 name "minion2" host "" port 7532
+init .raet.udp.stack.local to eid 0 name "minion2" host "" port 7532 \
+    dirpath "/tmp/raet/test/keep/" main False auto True
 
 
 framer minionudpstack be active first start

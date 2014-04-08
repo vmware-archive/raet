@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 '''
-ioflo CLI
+raet floscript runner CLI
 
-Runs ioflo plan from command line shell
+Runs floscript plan from command line shell
 
 example:
+raetflo -v concise -n raet -r -f ../raet/flo/plan/raet.flo -b raet.flo.behaving
+raetflo -v verbose -n raet -r -p 0.0625 ../raet/flo/plan/raet.flo -b raet.flo
 
-ioflo -v verbose -n raet -p 0.0625 -f raet.flo -b raet
-ioflo -v concise -n raet -p 0.0625 -f road/raet.flo -b road.raet.packeting road.raet.stacking
 '''
 
 # Import python libs

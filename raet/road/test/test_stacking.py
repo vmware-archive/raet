@@ -38,7 +38,8 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     masterSignKeyHex = signer.keyhex
     privateer = nacling.Privateer()
     masterPriKeyHex = privateer.keyhex
-    dirpathMaster = os.path.join(os.getcwd(), 'keep', masterName)
+    #dirpathMaster = os.path.join(os.getcwd(), 'keep', masterName)
+    dirpathMaster = os.path.join('/tmp/raet/road', 'keep', masterName)
 
     #minion stack
     minionName = "minion1"
@@ -46,7 +47,8 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     minionSignKeyHex = signer.keyhex
     privateer = nacling.Privateer()
     minionPriKeyHex = privateer.keyhex
-    dirpathMinion = os.path.join(os.getcwd(), 'keep', minionName)
+    #dirpathMinion = os.path.join(os.getcwd(), 'keep', minionName)
+    dirpathMinion = os.path.join('/tmp/raet/road', 'keep', minionName)
 
     keeping.clearAllRoadSafe(dirpathMaster)
     keeping.clearAllRoadSafe(dirpathMinion)

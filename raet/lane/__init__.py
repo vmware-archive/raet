@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-kane raet modules UXD related communications modules
-
-__init__.py file for raet.lane package
+raet.lane package
+modules associated with unix domain socket (UXD) communications
 '''
 
 # Import raet modules

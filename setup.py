@@ -36,8 +36,9 @@ setup(
     package_data={
         '':       ['*.txt',  '*.md', '*.rst', '*.json', '*.conf', '*.html',
                    '*.css', '*.ico', '*.png', 'LICENSE', 'LEGAL'],
-        'raet': [],},
+        'raet': ['flo/plan/*.flo', 'flo/plan/*/*.flo',
+                  'flo/plan/*.txt', 'flo/plan/*/*.txt',],},
     install_requires=([] + PYTHON26_REQUIRES),
     extras_require={},
-    scripts=[],)
+    scripts=['scripts/raetflo'],)
 

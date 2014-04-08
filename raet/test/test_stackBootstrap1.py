@@ -160,9 +160,9 @@ def test():
     stack1.server.close()
 
     #stack0.clearLocal()
-    #stack0.clearAllRemote()
+    #stack0.clearRemoteKeeps()
     #stack1.clearLocal()
-    #stack1.clearAllRemote()
+    #stack1.clearRemoteKeeps()
 
 
 if __name__ == "__main__":

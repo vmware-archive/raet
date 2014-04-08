@@ -25,11 +25,11 @@ def testStackUxd(kind=raeting.packKinds.json):
 
     #lord stack
     #yard0 = yarding.Yard(name='lord')
-    stack0 = stacking.LaneStack()
+    stack0 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking')
 
     #serf stack
     #yard1 = yarding.Yard(name='serf', yid=1)
-    stack1 = stacking.LaneStack()
+    stack1 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking')
 
     stack0.addRemote(yarding.RemoteYard(ha=stack1.local.ha))
     stack1.addRemote(yarding.RemoteYard(ha=stack0.local.ha))
@@ -127,16 +127,22 @@ def testStackUxd(kind=raeting.packKinds.json):
 
     estate = 'minion1'
     #lord stack yard0
-    stack0 = stacking.LaneStack(name='lord', lanename='cherry')
+    stack0 = stacking.LaneStack(name='lord',
+                                lanename='cherry',
+                                dirpath='/tmp/raet/test_stacking')
 
     #serf stack yard1
-    stack1 = stacking.LaneStack(name='serf', lanename='cherry')
+    stack1 = stacking.LaneStack(name='serf',
+                                lanename='cherry',
+                                dirpath='/tmp/raet/test_stacking')
 
     print "Yid", yarding.Yard.Yid
 
     print "\n********* Attempt Auto Accept ************"
     #stack0.addRemoteYard(stack1.local)
-    yard = yarding.RemoteYard(name=stack0.local.name, prefix='cherry')
+    yard = yarding.RemoteYard(name=stack0.local.name,
+                            prefix='cherry',
+                            dirpath='/tmp/raet/test_stacking')
     stack1.addRemote(yard)
 
     print "{0} yard name={1} ha={2}".format(stack0.name, stack0.local.name, stack0.local.ha)
@@ -208,4 +214,4 @@ def testStackUxd(kind=raeting.packKinds.json):
 
 if __name__ == "__main__":
     testStackUxd(raeting.packKinds.json)
-    #testStackUxd(raeting.packKinds.pack)
+    testStackUxd(raeting.packKinds.pack)

@@ -1,8 +1,0 @@
-{
-  "eid": 3,
-  "name": "minion2",
-  "main": false,
-  "host": "0.0.0.0",
-  "port": 7532,
-  "sid": 0
-}

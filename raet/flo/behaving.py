@@ -45,11 +45,11 @@ from ioflo.base import deeding
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from raet import raeting
-from raet.road.stacking import  RoadStack
-from raet.lane.stacking import  LaneStack
-from raet.road import packeting, estating
-from raet.lane import paging, yarding
+from .. import raeting
+from ..road.stacking import  RoadStack
+from ..lane.stacking import  LaneStack
+from ..road import packeting, estating
+from ..lane import paging, yarding
 
 
 class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
@@ -63,7 +63,7 @@ class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         txmsgs=odict(ipath='txmsgs', ival=deque()),
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
         local=odict(ipath='local', ival=odict(   name='master',
-                                                 dirpath='raet/test/keep',
+                                                 dirpath='~/raet/keep',
                                                  main=False,
                                                  auto=True,
                                                  eid=0,
@@ -79,7 +79,8 @@ class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         sigkey = self.local.data.sigkey
         prikey = self.local.data.prikey
         name = self.local.data.name
-        dirpath = os.path.abspath(os.path.join(self.local.data.dirpath, name))
+        dirpath = os.path.abspath(os.path.expanduser(
+                                     os.path.join(self.local.data.dirpath, name)))
         auto = self.local.data.auto
         main = self.local.data.main
         ha = (self.local.data.host, self.local.data.port)
@@ -326,7 +327,7 @@ class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         inode=".raet.uxd.stack.",
         stack='stack',
         local='yard',
-        local=odict(ipath='local', ival=odict(name=None, lane="maple")),)
+        yard=odict(ipath='local', ival=odict(name=None, lane="maple")),)
 
     def action(self, lane="lane", name=None, **kwa):
         '''
@@ -358,7 +359,7 @@ class TransmitStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
             stack = self.stack.value
             if stack and isinstance(stack, LaneStack):
                 name = self.dest.value #destination yard name
-                stack.transmit(msg=msg, name=name)
+                stack.transmit(msg=msg, duid=stack.uids.get(name))
 
 
 class PrinterStackUxdRaet(deeding.Deed):  # pylint: disable=W0232

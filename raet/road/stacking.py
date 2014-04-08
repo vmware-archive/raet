@@ -148,13 +148,13 @@ class RoadStack(stacking.Stack):
 
     def loadLocal(self, local=None):
         '''
-        Load and Return local estate if keeps found otherwise use local
+        Load local estate if keeps found otherwise use local
         '''
         keepData = self.keep.loadLocalData()
         safeData = self.safe.loadLocalData()
         if (keepData and self.keep.verifyLocal(keepData) and
                 safeData and self.safe.verifyLocal(safeData)):
-            estate = estating.LocalEstate(stack=self,
+            self.local = estating.LocalEstate(stack=self,
                                           eid=keepData['eid'],
                                           name=keepData['name'],
                                           main=keepData['main'],

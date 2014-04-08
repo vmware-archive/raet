@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-road raet modules UDP related communications modules
-
-__init__.py file for raet.road package
+road.raet package
+modules associated with UDP socket communications
 '''
 
 # Import raet modules

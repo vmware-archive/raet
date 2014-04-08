@@ -9,7 +9,8 @@ import os
 
 from ioflo.base.odicting import odict
 
-from salt.transport.road.raet import (raeting, nacling, estating, keeping, stacking)
+from raet import raeting, nacling
+from raet.road import estating, keeping, stacking
 
 
 def test():
@@ -18,7 +19,7 @@ def test():
     '''
 
 
-    masterDirpath = os.path.join(os.getcwd(), 'keep', 'master')
+    masterDirpath = os.path.join('/tmp/raet/test_keeping', 'keep', 'master')
     signer = nacling.Signer()
     masterSignKeyHex = signer.keyhex
     masterVerKeyHex = signer.verhex
@@ -26,7 +27,7 @@ def test():
     masterPriKeyHex = privateer.keyhex
     masterPubKeyHex = privateer.pubhex
 
-    m1Dirpath = os.path.join(os.getcwd(), 'keep', 'minion1')
+    m1Dirpath = os.path.join('/tmp/raet/test_keeping', 'keep', 'minion1')
     signer = nacling.Signer()
     m1SignKeyHex = signer.keyhex
     m1VerKeyHex = signer.verhex
@@ -52,12 +53,12 @@ def test():
     keeping.clearAllRoadSafe(m1Dirpath)
 
     #master stack
-    dirpath = os.path.join(os.getcwd(), 'keep', 'master')
-    estate = estating.LocalEstate(  eid=1,
+    dirpath = os.path.join('/tmp/raet/test_keeping', 'keep', 'master')
+    local = estating.LocalEstate(  eid=1,
                                     name='master',
                                     sigkey=masterSignKeyHex,
                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.RoadStack(estate=estate, dirpath=masterDirpath)
+    stack0 = stacking.RoadStack(local=local, dirpath=masterDirpath)
 
     stack0.addRemote(estating.RemoteEstate(eid=2,
                                     ha=('127.0.0.1', 7532),
@@ -70,13 +71,13 @@ def test():
                                     pubkey=m2PubKeyHex,))
 
     #minion stack
-    dirpath = os.path.join(os.getcwd(), 'keep', 'minion1')
-    estate = estating.LocalEstate(   eid=2,
+    dirpath = os.path.join('/tmp/raet/test_keeping', 'keep', 'minion1')
+    local = estating.LocalEstate(   eid=2,
                                      name='minion1',
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=m1SignKeyHex,
                                      prikey=m1PriKeyHex,)
-    stack1 = stacking.RoadStack(estate=estate, dirpath=m1Dirpath)
+    stack1 = stacking.RoadStack(local=local, dirpath=m1Dirpath)
 
 
     stack1.addRemote(estating.RemoteEstate(eid=1,
@@ -90,27 +91,27 @@ def test():
                                     pubkey=m3PubKeyHex,))
 
     stack0.clearLocal()
-    stack0.clearAllRemote()
+    stack0.clearRemoteKeeps()
     stack1.clearLocal()
-    stack1.clearAllRemote()
+    stack1.clearRemoteKeeps()
 
     stack0.dumpLocal()
-    stack0.dumpAllRemote()
+    stack0.dumpRemotes()
 
     stack1.dumpLocal()
-    stack1.dumpAllRemote()
+    stack1.dumpRemotes()
 
     print "Road {0}".format(stack0.name)
-    print stack0.road.loadLocalData()
-    print stack0.road.loadAllRemoteData()
+    print stack0.keep.loadLocalData()
+    print stack0.keep.loadAllRemoteData()
     print "Safe {0}".format(stack0.name)
     print stack0.safe.loadLocalData()
     print stack0.safe.loadAllRemoteData()
     print
 
     print "Road {0}".format(stack1.name)
-    print stack1.road.loadLocalData()
-    print stack1.road.loadAllRemoteData()
+    print stack1.keep.loadLocalData()
+    print stack1.keep.loadAllRemoteData()
     print "Safe {0}".format(stack1.name)
     print stack1.safe.loadLocalData()
     print stack1.safe.loadAllRemoteData()
@@ -119,32 +120,32 @@ def test():
     stack1.server.close()
 
     #master stack
-    dirpath = os.path.join(os.getcwd(), 'keep', 'master')
-    estate = estating.LocalEstate(  eid=1,
+    dirpath = os.path.join('/tmp/raet/test_keeping', 'keep', 'master')
+    local = estating.LocalEstate(  eid=1,
                                     name='master',
                                     sigkey=masterSignKeyHex,
                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.RoadStack(estate=estate, dirpath=masterDirpath)
+    stack0 = stacking.RoadStack(local=local, dirpath=masterDirpath)
 
     #minion stack
-    dirpath = os.path.join(os.getcwd(), 'keep', 'minion1')
-    estate = estating.LocalEstate(   eid=2,
+    dirpath = os.path.join('/tmp/raet/test_keeping', 'keep', 'minion1')
+    local = estating.LocalEstate(   eid=2,
                                      name='minion1',
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=m1SignKeyHex,
                                      prikey=m1PriKeyHex,)
-    stack1 = stacking.RoadStack(estate=estate, dirpath=m1Dirpath)
+    stack1 = stacking.RoadStack(local=local, dirpath=m1Dirpath)
 
 
-    estate0 = stack0.loadLocal()
-    print estate0.name, estate0.eid, estate0.sid, estate0.ha, estate0.signer, estate0.priver
-    estate1 = stack1.loadLocal()
-    print estate1.name, estate1.eid, estate1.sid, estate1.ha, estate1.signer, estate1.priver
+    stack0.loadLocal()
+    print stack0.local.name, stack0.local.eid, stack0.local.sid, stack0.local.ha, stack0.local.signer, stack0.local.priver
+    stack1.loadLocal()
+    print stack1.local.name, stack1.local.eid, stack1.local.sid, stack1.local.ha, stack1.local.signer, stack1.local.priver
 
     stack0.clearLocal()
-    stack0.clearAllRemote()
+    stack0.clearRemoteKeeps()
     stack1.clearLocal()
-    stack1.clearAllRemote()
+    stack1.clearRemoteKeeps()
 
 
 if __name__ == "__main__":

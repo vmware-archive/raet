@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
 '''
-raet unit test package
-
+raet.flo unit test package
 '''

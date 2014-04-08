@@ -184,15 +184,15 @@ def test():
                                     pubkey=m3PubKeyHex,))
 
     #stack0.clearLocal()
-    stack0.clearAllRemote()
+    stack0.clearRemoteKeeps()
     #stack1.clearLocal()
-    stack1.clearAllRemote()
+    stack1.clearRemoteKeeps()
 
     stack0.dumpLocal()
-    stack0.dumpAllRemote()
+    stack0.dumpRemotes()
 
     stack1.dumpLocal()
-    stack1.dumpAllRemote()
+    stack1.dumpRemotes()
 
     print "Road {0}".format(stack0.name)
     print stack0.road.loadLocalData()
@@ -240,9 +240,9 @@ def test():
     print estate1.name, estate1.eid, estate1.sid, estate1.ha, estate1.signer, estate1.priver
 
     stack0.clearLocal()
-    stack0.clearAllRemote()
+    stack0.clearRemoteKeeps()
     stack1.clearLocal()
-    stack1.clearAllRemote()
+    stack1.clearRemoteKeeps()
 
 
 if __name__ == "__main__":

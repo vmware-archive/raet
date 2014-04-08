@@ -24,6 +24,7 @@ from . import nacling
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
+KEEP_DIR = os.path.join('/tmp', 'raet', 'keep')
 
 class Keep(object):
     '''
@@ -46,8 +47,8 @@ class Keep(object):
                         prefix.uid.ext
         '''
         if not dirpath:
-            dirpath = os.path.join("~/raet/keep", stackname)
-        self.dirpath = os.path.abspath(dirpath)
+            dirpath = os.path.join(KEEP_DIR, stackname)
+        self.dirpath = os.path.abspath(os.path.expanduser(dirpath))
         if not os.path.exists(self.dirpath):
             os.makedirs(self.dirpath)
 

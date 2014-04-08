@@ -32,7 +32,7 @@ class Yard(object):
                   name='',
                   mid=0,
                   ha='',
-                  dirpath=None,
+                  dirpath='',
                   prefix='lane'):
         '''
         Initialize instance
@@ -54,9 +54,9 @@ class Yard(object):
 
         self.mid = mid #current message id
 
-        if dirpath is None:
+        if not dirpath:
             dirpath = YARD_UXD_DIR
-        self.dirpath = dirpath
+        self.dirpath = os.path.abspath(os.path.expanduser(dirpath))
 
         if " " in prefix:
             emsg = "Invalid prefix '{0}'".format(prefix)
