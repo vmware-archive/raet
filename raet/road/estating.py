@@ -24,8 +24,15 @@ class Estate(object):
     '''
     Eid = 2 # class attribute
 
-    def __init__(self, stack=None, eid=None, name="", sid=0, tid=0,
-                 host="", port=raeting.RAET_PORT, ha=None, ):
+    def __init__(self,
+                 stack=None,
+                 eid=None,
+                 name="",
+                 sid=0,
+                 tid=0,
+                 host="",
+                 port=raeting.RAET_PORT,
+                 ha=None, ):
         '''
         Setup Estate instance
         '''

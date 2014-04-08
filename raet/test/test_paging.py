@@ -65,17 +65,17 @@ def test( pk=raeting.packKinds.json):
 
     print body == book1.body
 
-    stacking.StackUxd.Pk = pk
+    stacking.LaneStack.Pk = pk
     store = storing.Store(stamp=0.0)
 
     #lord stack
-    stack0 = stacking.StackUxd(store=store)
+    stack0 = stacking.LaneStack(store=store)
 
     #serf stack
-    stack1 = stacking.StackUxd(store=store)
+    stack1 = stacking.LaneStack(store=store)
 
-    stack0.addRemoteYard(yarding.RemoteYard(ha=stack1.yard.ha))
-    stack1.addRemoteYard(yarding.RemoteYard(ha=stack0.yard.ha))
+    stack0.addRemote(yarding.RemoteYard(ha=stack1.yard.ha))
+    stack1.addRemote(yarding.RemoteYard(ha=stack0.yard.ha))
 
     print "{0} yard name={1} ha={2}".format(stack0.name, stack0.yard.name, stack0.yard.ha)
     print "{0} yards=\n{1}".format(stack0.name, stack0.yards)

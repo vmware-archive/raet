@@ -91,12 +91,12 @@ class Stack(object):
         '''
         if uid is None:
             uid = remote.uid
-        if uid in self.remotes:
+        if uid and (uid in self.remotes or uid == self.local.uid):
             emsg = "Cannot add remote at uid '{0}', alreadys exists".format(uid)
             raise raeting.StackError(emsg)
         remote.stack = self
         self.remotes[uid] = remote
-        if remote.name in self.uids:
+        if remote.name in self.uids or remote.name == self.local.name:
             emsg = "Cannot add remote with name '{0}', alreadys exists".format(remote.name)
             raise raeting.StackError(emsg)
         self.uids[remote.name] = remote.uid
@@ -167,7 +167,7 @@ class Stack(object):
                         ('name', self.local.name),
                         ('ha', self.local.ha)
                     ])
-        if self.keep.verify(data):
+        if self.keep.verifyLocal(data):
             self.keep.dumpLocalData(data)
 
     def loadLocal(self, local=None):
@@ -175,7 +175,7 @@ class Stack(object):
         Load self.local from keep file else local or new
         '''
         data = self.keep.loadLocalData()
-        if data and self.keep.verify(data):
+        if data and self.keep.verifyLocal(data):
             self.local = lotting.Lot(stack=self,
                                      uid=data['uid'],
                                      name=data['name'],
@@ -203,7 +203,7 @@ class Stack(object):
                         ('name', remote.name),
                         ('ha', remote.ha)
                     ])
-        if self.keep.verify(data):
+        if self.keep.verifyRemote(data):
             self.dumpRemoteData(data, remote.uid)
 
     def dumpRemotes(self):
@@ -220,7 +220,7 @@ class Stack(object):
         '''
         datadict = self.keep.loadAllRemoteData()
         for data in datadict.values():
-            if self.keep.verify(data):
+            if self.keep.verifyRemote(data):
                 lot = lotting.Lot(stack=self,
                                   uid=data['uid'],
                                   name=data['name'],
@@ -295,18 +295,17 @@ class Stack(object):
         while self.rxes:
             raw, sa, da = self.rxes.popleft()
             console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
+            processRx(received=raw)
 
-            processOneRx(raww, sa, da)
-
-    def processOneRx(self, raw, sa, da):
+    def processRx(self, received):
         '''
-        Process raw, sa, da
+        Process
         '''
         pass
 
-    def transmit(self, msg, deid=None):
+    def transmit(self, msg, duid=None):
         '''
-        Append duple (msg, deid) to .txMsgs deque
+        Append duple (msg, duid) to .txMsgs deque
         If msg is not mapping then raises exception
         If deid is None then it will default to the first entry in .estates
         '''
@@ -315,7 +314,14 @@ class Stack(object):
             console.terse(emsg)
             self.incStat("invalid_transmit_body")
             return
-        self.txMsgs.append((msg, deid))
+        if duid is None:
+            if not self.remotes:
+                emsg = "No remote to send to\n"
+                console.terse(emsg)
+                self.incStat("invalid_destination")
+                return
+            duid = self.remotes.values()[0].uid
+        self.txMsgs.append((msg, duid))
 
     def serviceTxMsgs(self):
         '''
@@ -326,16 +332,16 @@ class Stack(object):
 
             #need to pack body here and tx
 
-    def tx(self, packed, drid):
+    def tx(self, packed, duid):
         '''
         Queue duple of (packed, da) on stack .txes queue
         Where da is the ip destination (host,port) address associated with
-        the estate with deid
+        the remote identified by duid
         '''
-        if drid not in self.remotes:
-            msg = "Invalid destination remote id '{0}'".format(drid)
+        if duid not in self.remotes:
+            msg = "Invalid destination remote id '{0}'".format(duid)
             raise raeting.StackError(msg)
-        self.txes.append((packed, self.remotes[drid].ha))
+        self.txes.append((packed, self.remotes[duid].ha))
 
     def serviceTxes(self):
         '''

@@ -38,7 +38,8 @@ class RoadKeep(keeping.Keep):
                 estate.eid.ext
                 estate.eid.ext
     '''
-    Fields = ['eid', 'name', 'main', 'host', 'port', 'sid']
+    LocalFields = ['eid', 'name', 'main', 'host', 'port', 'sid']
+    RemoteFields = ['eid', 'name', 'host', 'port', 'sid', 'rsid']
 
     def __init__(self, prefix='estate', **kwa):
         '''
@@ -51,7 +52,8 @@ class SafeKeep(keeping.Keep):
     '''
     RAET protocol estate safe (key) data persistence and status
     '''
-    Fields = ['eid', 'name', 'sighex', 'prihex']
+    LocalFields = ['eid', 'name', 'sighex', 'prihex']
+    RemoteFields = ['eid', 'name', 'acceptance', 'verhex', 'pubhex']
     Auto = False #auto accept
 
     def __init__(self, prefix='key', auto=None, **kwa):
@@ -85,7 +87,8 @@ class SafeKeep(keeping.Keep):
                 ('pubhex', remote.pubber.keyhex),
                 ])
 
-        self.dumpRemoteData(data, remote.uid)
+        if self.verifyRemote(data):
+            self.dumpRemoteData(data, remote.uid)
 
     def statusRemote(self, estate, verhex, pubhex, main=True):
         '''

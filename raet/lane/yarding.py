@@ -69,6 +69,20 @@ class Yard(object):
 
         self.ha = ha or os.path.join(dirpath, "{0}.{1}.uxd".format(prefix, self.name))
 
+    @property
+    def uid(self):
+        '''
+        property that returns unique identifier
+        '''
+        return self.ha
+
+    @uid.setter
+    def uid(self, value):
+        '''
+        setter for uid property
+        '''
+        self.ha = value
+
     @staticmethod
     def nameFromHa(ha):
         '''

@@ -243,7 +243,7 @@ class MessengerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
             stack = self.stack.value
             if stack and isinstance(stack, RoadStack):
                 deid = self.destination.value
-                stack.transmit(msg=msg, deid=deid)
+                stack.transmit(msg=msg, duid=deid)
 
 
 class PrinterStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
@@ -325,7 +325,7 @@ class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
     Ioinits = odict(
         inode=".raet.uxd.stack.",
         stack='stack',
-        yard='yard',
+        local='yard',
         local=odict(ipath='local', ival=odict(name=None, lane="maple")),)
 
     def action(self, lane="lane", name=None, **kwa):
@@ -335,8 +335,8 @@ class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         stack = self.stack.value
         if stack and isinstance(stack, LaneStack):
             yard = yarding.RemoteYard(stack=stack, prefix=lane, name=name)
-            stack.addRemoteYard(yard)
-            self.yard.value = yard
+            stack.addRemote(yard)
+            self.local.value = yard
 
 class TransmitStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
     '''

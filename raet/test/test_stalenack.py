@@ -102,7 +102,7 @@ def test():
 
     timer.restart(duration=1)
     while not timer.expired:
-        stack0.serviceTx()
+        stack0.serviceAllTx()
 
     timer.restart(duration=1)
     while not timer.expired:
@@ -117,7 +117,7 @@ def test():
 
     timer.restart(duration=2)
     while not timer.expired:
-        stack1.serviceTx()
+        stack1.serviceAllTx()
         stack0.serviceRx()
 
     print "{0} Received Messages".format(stack0.name)

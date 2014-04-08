@@ -78,7 +78,10 @@ class RoadStack(stacking.Stack):
 
         if not local:
             self.remotes = odict()
-            local = estating.LocalEstate(stack=self, eid=eid, main=main, ha=ha)
+            local = estating.LocalEstate(stack=self,
+                                         eid=eid,
+                                         main=main,
+                                         ha=ha)
 
         server = aiding.SocketUdpNb(ha=local.ha,
                                     bufsize=raeting.UDP_MAX_PACKET_SIZE * bufcnt)
@@ -131,7 +134,7 @@ class RoadStack(stacking.Stack):
                         ('port', self.local.port),
                         ('sid', self.local.sid)
                     ])
-        if self.keep.verify(data):
+        if self.keep.verifyLocal(data):
             self.keep.dumpLocalData(data)
 
         data = odict([
@@ -140,7 +143,7 @@ class RoadStack(stacking.Stack):
                         ('sighex', self.local.signer.keyhex),
                         ('prihex', self.local.priver.keyhex),
                     ])
-        if self.safe.verify(data):
+        if self.safe.verifyLocal(data):
             self.safe.dumpLocalData(data)
 
     def loadLocal(self, local=None):
@@ -149,8 +152,8 @@ class RoadStack(stacking.Stack):
         '''
         keepData = self.keep.loadLocalData()
         safeData = self.safe.loadLocalData()
-        if (keepData and self.keep.verify(keepData) and
-                safeData and self.safe.verify(safeData)):
+        if (keepData and self.keep.verifyLocal(keepData) and
+                safeData and self.safe.verifyLocal(safeData)):
             estate = estating.LocalEstate(stack=self,
                                           eid=keepData['eid'],
                                           name=keepData['name'],
@@ -180,14 +183,14 @@ class RoadStack(stacking.Stack):
         Dump keeps of estate
         '''
         data = odict([
-                        ('uid', remote.eid),
+                        ('eid', remote.eid),
                         ('name', remote.name),
                         ('host', remote.host),
                         ('port', remote.port),
                         ('sid', remote.sid),
                         ('rsid', remote.rsid),
                     ])
-        if self.keep.verify(data):
+        if self.keep.verifyRemote(data):
             self.keep.dumpRemoteData(data, remote.uid)
 
         data = odict([
@@ -198,7 +201,7 @@ class RoadStack(stacking.Stack):
                 ('pubhex', remote.pubber.keyhex),
                 ])
 
-        if self.safe.verify(data):
+        if self.safe.verifyRemote(data):
             self.safe.dumpRemoteData(data, remote.uid)
 
     def loadRemotes(self):
@@ -220,22 +223,23 @@ class RoadStack(stacking.Stack):
         safes = self.safe.loadAllRemoteData()
         if not keeps or not safes:
             return []
-        for key, road in keeps.items():
+        for key, keepData in keeps.items():
             if key not in safes:
                 continue
-            safe = safes[key]
-            if not self.keep.verify(road) or not self.safe.verify(safe):
+            safeData = safes[key]
+            if (not self.keep.verifyRemote(keepData) or not
+                    self.safe.verifyRemote(safeData)):
                 continue
             estate = estating.RemoteEstate( stack=self,
-                                            eid=road['eid'],
-                                            name=road['name'],
-                                            host=road['host'],
-                                            port=road['port'],
-                                            sid=road['sid'],
-                                            rsid=road['rsid'],
-                                            acceptance=safe['acceptance'],
-                                            verkey=safe['verhex'],
-                                            pubkey=safe['pubhex'],)
+                                            eid=keepData['eid'],
+                                            name=keepData['name'],
+                                            host=keepData['host'],
+                                            port=keepData['port'],
+                                            sid=keepData['sid'],
+                                            rsid=keepData['rsid'],
+                                            acceptance=safeData['acceptance'],
+                                            verkey=safeData['verhex'],
+                                            pubkey=safeData['pubhex'],)
             estates.append(estate)
         return estates
 
@@ -273,13 +277,6 @@ class RoadStack(stacking.Stack):
             else:
                 del self.transactions[index]
 
-    #def serviceRxes(self):
-        #'''
-        #Process all messages in .rxes deque
-        #'''
-        #while self.rxes:
-            #self.processRx()
-
     def serviceRxes(self):
         '''
         Process all messages in .rxes deque
@@ -307,62 +304,24 @@ class RoadStack(stacking.Stack):
 
             self.processRx(packet)
 
-    def processRx(self, packet):
+    def processRx(self, received):
         '''
         Process packet via associated transaction or
         reply with new correspondent transaction
         '''
-        #packet = self.fetchParseUdpRx()
-        #if not packet:
-            #return
+        console.verbose("{0} received packet data\n{1}\n".format(self.name, received.data))
+        console.verbose("{0} received packet index = '{1}'\n".format(self.name, received.index))
 
-        console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
-        console.verbose("{0} received packet index = '{1}'\n".format(self.name, packet.index))
-
-        trans = self.transactions.get(packet.index, None)
+        trans = self.transactions.get(received.index, None)
         if trans:
-            trans.receive(packet)
+            trans.receive(received)
             return
 
-        if packet.data['cf']: #correspondent to stale transaction
-            self.stale(packet)
+        if received.data['cf']: #correspondent to stale transaction
+            self.stale(received)
             return
 
-        self.reply(packet)
-
-    #def fetchParseUdpRx(self):
-        #'''
-        #Fetch from UDP deque next packet tuple
-        #Parse packet
-        #Return packet if verified and destination eid matches
-        #Otherwise return None
-        #'''
-        #try:
-            #raw, sa, da = self.rxes.popleft()
-        #except IndexError:
-            #return None
-
-        #console.verbose("{0} received packet\n{1}\n".format(self.name, raw))
-
-        #packet = packeting.RxPacket(stack=self, packed=raw)
-        #try:
-            #packet.parseOuter()
-        #except raeting.PacketError as ex:
-            #console.terse(str(ex) + '\n')
-            #self.incStat('parsing_outer_error')
-            #return None
-
-        #deid = packet.data['de']
-        #if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
-            #emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
-            #console.concise( emsg)
-            #return None
-
-        #sh, sp = sa
-        #dh, dp = da
-        #packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
-
-        #return packet # outer only has been parsed
+        self.reply(received)
 
     def serviceTxMsgs(self):
         '''
@@ -372,7 +331,6 @@ class RoadStack(stacking.Stack):
             body, deid = self.txMsgs.popleft() # duple (body dict, destination eid)
             self.message(body, deid)
             console.verbose("{0} sending\n{1}\n".format(self.name, body))
-
 
     def reply(self, packet):
         '''

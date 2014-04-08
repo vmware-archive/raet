@@ -30,7 +30,8 @@ class Keep(object):
     RAET protocol base class for data persistence of objects that follow the Lot
     protocol
     '''
-    Fields = ['uid', 'name', 'ha']
+    LocalFields = ['uid', 'name', 'ha']
+    RemoteFields = ['uid', 'name', 'ha']
 
     def __init__(self, dirpath='', stackname='stack', prefix='data', ext='json', **kwa):
         '''
@@ -45,7 +46,7 @@ class Keep(object):
                         prefix.uid.ext
         '''
         if not dirpath:
-            dirpath = os.path.join("/var/raet/keep", stackname)
+            dirpath = os.path.join("~/raet/keep", stackname)
         self.dirpath = os.path.abspath(dirpath)
         if not os.path.exists(self.dirpath):
             os.makedirs(self.dirpath)
@@ -92,11 +93,17 @@ class Keep(object):
             return it
         return None
 
-    def verify(self, data):
+    def verifyLocal(self, data):
         '''
-        Returns True if the fields in .Fields match the fields in data
+        Returns True if the fields in .LocalFields match the fields in data
         '''
-        return (set(self.Fields) == set(data.keys()))
+        return (set(self.LocalFields) == set(data.keys()))
+
+    def verifyRemote(self, data):
+        '''
+        Returns True if the fields in .RemoteFields match the fields in data
+        '''
+        return (set(self.RemoteFields) == set(data.keys()))
 
     def defaults(self):
         '''
