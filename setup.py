@@ -12,7 +12,7 @@ python setup.py register sdist upload
 import  sys
 from setuptools import setup, find_packages
 
-import ioflo
+import raet
 
 PYTHON26_REQUIRES = []
 if sys.version_info < (2, 7): #tuple comparison element by element
