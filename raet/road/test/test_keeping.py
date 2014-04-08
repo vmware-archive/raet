@@ -160,4 +160,4 @@ def test(dirpath='/tmp/raet/test_keeping'):
 
 if __name__ == "__main__":
     test()
-    test(dirpath='/var/cache/raet')
+    #test(dirpath='/var/cache/raet')
