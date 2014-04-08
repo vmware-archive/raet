@@ -24,7 +24,8 @@ from . import nacling
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-KEEP_DIR = os.path.join('/tmp', 'raet', 'keep')
+KEEP_DIR = os.path.join('/var', 'cache', 'raet', 'keep')
+KEEP_DIR_ALT = os.path.join('~', '.raet', 'keep')
 
 class Keep(object):
     '''
@@ -48,9 +49,25 @@ class Keep(object):
         '''
         if not dirpath:
             dirpath = os.path.join(KEEP_DIR, stackname)
-        self.dirpath = os.path.abspath(os.path.expanduser(dirpath))
-        if not os.path.exists(self.dirpath):
-            os.makedirs(self.dirpath)
+        dirpath = os.path.abspath(os.path.expanduser(dirpath))
+
+        if not os.path.exists(dirpath):
+            try:
+                os.makedirs(dirpath)
+            except OSError as ex:
+                dirpath = os.path.join(KEEP_DIR_ALT, stackname)
+                dirpath = os.path.abspath(os.path.expanduser(dirpath))
+                if not os.path.exists(dirpath):
+                    os.makedirs(dirpath)
+
+        else:
+            if not os.access(dirpath, os.R_OK | os.W_OK):
+                dirpath = os.path.join(KEEP_DIR_ALT, stackname)
+                dirpath = os.path.abspath(os.path.expanduser(dirpath))
+                if not os.path.exists(dirpath):
+                    os.makedirs(dirpath)
+
+        self.dirpath = dirpath
 
         self.localdirpath = os.path.join(self.dirpath, 'local')
         if not os.path.exists(self.localdirpath):
