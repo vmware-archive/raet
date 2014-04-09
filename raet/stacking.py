@@ -45,7 +45,7 @@ class Stack(object):
                  version=raeting.VERSION,
                  store=None,
                  keep=None,
-                 dirpath=None,
+                 dirpath='',
                  local=None,
                  server=None,
                  rxMsgs=None,

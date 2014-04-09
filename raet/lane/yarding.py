@@ -18,7 +18,9 @@ from .. import nacling
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-YARD_UXD_DIR = os.path.join('/tmp', 'raet')
+YARD_UXD_DIR = os.path.join('/var', 'cache', 'raet')
+ALT_YARD_UXD_DIR = os.path.join('~', '.raet', 'uxd')
+
 
 class Yard(object):
     '''
@@ -57,6 +59,18 @@ class Yard(object):
         if not dirpath:
             dirpath = YARD_UXD_DIR
         self.dirpath = os.path.abspath(os.path.expanduser(dirpath))
+        if not os.path.exists(dirpath):
+            try:
+                os.makedirs(dirpath)
+            except OSError as ex:
+                dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
+                if not os.path.exists(dirpath):
+                    os.makedirs(dirpath)
+        else:
+            if not os.access(dirpath, os.R_OK | os.W_OK):
+                dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
+                if not os.path.exists(dirpath):
+                    os.makedirs(dirpath)
 
         if " " in prefix:
             emsg = "Invalid prefix '{0}'".format(prefix)

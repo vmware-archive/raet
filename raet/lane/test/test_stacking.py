@@ -25,11 +25,13 @@ def testStackUxd(kind=raeting.packKinds.json):
 
     #lord stack
     #yard0 = yarding.Yard(name='lord')
-    stack0 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking')
+    stack0 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking',
+                                hadirpath='/tmp/raet/test_stacking')
 
     #serf stack
     #yard1 = yarding.Yard(name='serf', yid=1)
-    stack1 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking')
+    stack1 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking',
+                                hadirpath='/tmp/raet/test_stacking')
 
     stack0.addRemote(yarding.RemoteYard(ha=stack1.local.ha))
     stack1.addRemote(yarding.RemoteYard(ha=stack0.local.ha))
@@ -129,12 +131,14 @@ def testStackUxd(kind=raeting.packKinds.json):
     #lord stack yard0
     stack0 = stacking.LaneStack(name='lord',
                                 lanename='cherry',
-                                dirpath='/tmp/raet/test_stacking')
+                                dirpath='/tmp/raet/test_stacking',
+                                hadirpath='/tmp/raet/test_stacking')
 
     #serf stack yard1
     stack1 = stacking.LaneStack(name='serf',
                                 lanename='cherry',
-                                dirpath='/tmp/raet/test_stacking')
+                                dirpath='/tmp/raet/test_stacking',
+                                hadirpath='/tmp/raet/test_stacking')
 
     print "Yid", yarding.Yard.Yid
 

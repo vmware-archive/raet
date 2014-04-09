@@ -44,11 +44,12 @@ class LaneStack(stacking.Stack):
                  name='',
                  main=False,
                  keep=None,
-                 dirpath=None,
+                 dirpath='',
                  local=None,
                  lanename='lane',
                  yid=None,
                  yardname='',
+                 hadirpath='',
                  ha='',
                  bufcnt=10,
                  accept=None,
@@ -71,7 +72,7 @@ class LaneStack(stacking.Stack):
                                         name=yardname,
                                         main=main,
                                         ha=ha,
-                                        dirpath=dirpath,
+                                        dirpath=hadirpath,
                                         prefix=lanename)
 
 
