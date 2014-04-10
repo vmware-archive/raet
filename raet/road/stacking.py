@@ -125,28 +125,7 @@ class RoadStack(stacking.Stack):
         '''
         Dump keeps of local estate
         '''
-        #data = odict([
-                        #('eid', self.local.eid),
-                        #('name', self.local.name),
-                        #('main', self.local.main),
-                        #('host', self.local.host),
-                        #('port', self.local.port),
-                        #('sid', self.local.sid)
-                    #])
-        #if self.keep.verifyLocalData(data):
-            #self.keep.dumpLocalData(data)
-
         self.keep.dumpLocal(self.local)
-
-        #data = odict([
-                        #('eid', self.local.eid),
-                        #('name', self.local.name),
-                        #('sighex', self.local.signer.keyhex),
-                        #('prihex', self.local.priver.keyhex),
-                    #])
-        #if self.safe.verifyLocalData(data):
-            #self.safe.dumpLocalData(data)
-
         self.safe.dumpLocal(self.local)
 
     def loadLocal(self, local=None):
@@ -183,29 +162,9 @@ class RoadStack(stacking.Stack):
 
     def dumpRemote(self, remote):
         '''
-        Dump keeps of estate
+        Dump keeps of remote estate
         '''
-        data = odict([
-                        ('eid', remote.eid),
-                        ('name', remote.name),
-                        ('host', remote.host),
-                        ('port', remote.port),
-                        ('sid', remote.sid),
-                        ('rsid', remote.rsid),
-                    ])
-        if self.keep.verifyRemoteData(data):
-            self.keep.dumpRemoteData(data, remote.uid)
-
-        #data = odict([
-                #('eid', remote.eid),
-                #('name', remote.name),
-                #('acceptance', remote.acceptance),
-                #('verhex', remote.verfer.keyhex),
-                #('pubhex', remote.pubber.keyhex),
-                #])
-
-        #if self.safe.verifyRemoteData(data):
-            #self.safe.dumpRemoteData(data, remote.uid)
+        self.keep.dumpRemote(remote)
         self.safe.dumpRemote(remote)
 
     def loadRemotes(self):
