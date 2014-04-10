@@ -49,7 +49,7 @@ class LaneStack(stacking.Stack):
                  lanename='lane',
                  yid=None,
                  yardname='',
-                 hadirpath='',
+                 sockdirpath='',
                  ha='',
                  bufcnt=10,
                  accept=None,
@@ -72,7 +72,7 @@ class LaneStack(stacking.Stack):
                                         name=yardname,
                                         main=main,
                                         ha=ha,
-                                        dirpath=hadirpath,
+                                        dirpath=sockdirpath,
                                         prefix=lanename)
 
 

@@ -167,7 +167,7 @@ class Stack(object):
                         ('name', self.local.name),
                         ('ha', self.local.ha)
                     ])
-        if self.keep.verifyLocal(data):
+        if self.keep.verifyLocalData(data):
             self.keep.dumpLocalData(data)
 
     def loadLocal(self, local=None):
@@ -175,7 +175,7 @@ class Stack(object):
         Load self.local from keep file else local or new
         '''
         data = self.keep.loadLocalData()
-        if data and self.keep.verifyLocal(data):
+        if data and self.keep.verifyLocalData(data):
             self.local = lotting.Lot(stack=self,
                                      uid=data['uid'],
                                      name=data['name'],
@@ -203,7 +203,7 @@ class Stack(object):
                         ('name', remote.name),
                         ('ha', remote.ha)
                     ])
-        if self.keep.verifyRemote(data):
+        if self.keep.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.uid)
 
     def dumpRemotes(self):
@@ -220,7 +220,7 @@ class Stack(object):
         '''
         datadict = self.keep.loadAllRemoteData()
         for data in datadict.values():
-            if self.keep.verifyRemote(data):
+            if self.keep.verifyRemoteData(data):
                 lot = lotting.Lot(stack=self,
                                   uid=data['uid'],
                                   name=data['name'],

@@ -63,7 +63,7 @@ class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         txmsgs=odict(ipath='txmsgs', ival=deque()),
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
         local=odict(ipath='local', ival=odict(   name='master',
-                                                 dirpath='~/raet/keep',
+                                                 dirpath='/tmp/raet/keep',
                                                  main=False,
                                                  auto=True,
                                                  eid=0,

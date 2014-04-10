@@ -111,13 +111,13 @@ class Keep(object):
             return it
         return None
 
-    def verifyLocal(self, data):
+    def verifyLocalData(self, data):
         '''
         Returns True if the fields in .LocalFields match the fields in data
         '''
         return (set(self.LocalFields) == set(data.keys()))
 
-    def verifyRemote(self, data):
+    def verifyRemoteData(self, data):
         '''
         Returns True if the fields in .RemoteFields match the fields in data
         '''

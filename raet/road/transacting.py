@@ -596,7 +596,7 @@ class Joinent(Correspondent):
             else: #check to see if status has changed to accept
                 remote = self.stack.remotes[self.reid]
                 if remote:
-                    data = self.stack.safe.loadRemoteData(remote.uid)
+                    data = self.stack.safe.loadRemote(remote)
                     if data:
                         status = self.stack.safe.statusRemote(remote,
                                                                     data['verhex'],

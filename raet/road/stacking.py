@@ -134,7 +134,7 @@ class RoadStack(stacking.Stack):
                         ('port', self.local.port),
                         ('sid', self.local.sid)
                     ])
-        if self.keep.verifyLocal(data):
+        if self.keep.verifyLocalData(data):
             self.keep.dumpLocalData(data)
 
         data = odict([
@@ -143,7 +143,7 @@ class RoadStack(stacking.Stack):
                         ('sighex', self.local.signer.keyhex),
                         ('prihex', self.local.priver.keyhex),
                     ])
-        if self.safe.verifyLocal(data):
+        if self.safe.verifyLocalData(data):
             self.safe.dumpLocalData(data)
 
     def loadLocal(self, local=None):
@@ -152,8 +152,8 @@ class RoadStack(stacking.Stack):
         '''
         keepData = self.keep.loadLocalData()
         safeData = self.safe.loadLocalData()
-        if (keepData and self.keep.verifyLocal(keepData) and
-                safeData and self.safe.verifyLocal(safeData)):
+        if (keepData and self.keep.verifyLocalData(keepData) and
+                safeData and self.safe.verifyLocalData(safeData)):
             self.local = estating.LocalEstate(stack=self,
                                           eid=keepData['eid'],
                                           name=keepData['name'],
@@ -190,7 +190,7 @@ class RoadStack(stacking.Stack):
                         ('sid', remote.sid),
                         ('rsid', remote.rsid),
                     ])
-        if self.keep.verifyRemote(data):
+        if self.keep.verifyRemoteData(data):
             self.keep.dumpRemoteData(data, remote.uid)
 
         data = odict([
@@ -201,7 +201,7 @@ class RoadStack(stacking.Stack):
                 ('pubhex', remote.pubber.keyhex),
                 ])
 
-        if self.safe.verifyRemote(data):
+        if self.safe.verifyRemoteData(data):
             self.safe.dumpRemoteData(data, remote.uid)
 
     def loadRemotes(self):
@@ -227,8 +227,8 @@ class RoadStack(stacking.Stack):
             if key not in safes:
                 continue
             safeData = safes[key]
-            if (not self.keep.verifyRemote(keepData) or not
-                    self.safe.verifyRemote(safeData)):
+            if (not self.keep.verifyRemoteData(keepData) or not
+                    self.safe.verifyRemoteData(safeData)):
                 continue
             estate = estating.RemoteEstate( stack=self,
                                             eid=keepData['eid'],
@@ -248,7 +248,7 @@ class RoadStack(stacking.Stack):
         Clear remote keeps of remote estate
         '''
         super(RoadStack, self).clearRemote(remote)
-        self.safe.clearRemoteData(remote)
+        self.safe.clearRemote(remote)
 
     def clearRemoteKeeps(self):
         '''

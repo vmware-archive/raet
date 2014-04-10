@@ -87,15 +87,28 @@ class SafeKeep(keeping.Keep):
                 ('pubhex', remote.pubber.keyhex),
                 ])
 
-        if self.verifyRemote(data):
+        if self.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.uid)
 
-    def statusRemote(self, estate, verhex, pubhex, main=True):
+    def loadRemote(self, remote):
+        '''
+        Load the data from file given by remote.uid
+        '''
+        return (self.loadRemoteData(remote.uid))
+
+    def clearRemote(self, remote):
+        '''
+        Clear the remote estate file
+        Override this in sub class to change uid
+        '''
+        self.clearRemoteData(remote.uid)
+
+    def statusRemote(self, remote, verhex, pubhex, main=True):
         '''
         Evaluate acceptance status of estate per its keys
         persist key data differentially based on status
         '''
-        data = self.loadRemoteData(estate.uid)
+        data = self.loadRemoteData(remote.uid)
         status = data.get('acceptance') if data else None # pre-existing status
 
         if main: #main estate logic
@@ -140,34 +153,34 @@ class SafeKeep(keeping.Keep):
                 status = raeting.acceptances.accepted
 
         if status != raeting.acceptances.rejected:
-            if (verhex and verhex != estate.verfer.keyhex):
-                estate.verfer = nacling.Verifier(verhex)
-            if (pubhex and pubhex != estate.pubber.keyhex):
-                estate.pubber = nacling.Publican(pubhex)
-        estate.acceptance = status
-        self.dumpRemote(estate)
+            if (verhex and verhex != remote.verfer.keyhex):
+                remote.verfer = nacling.Verifier(verhex)
+            if (pubhex and pubhex != remote.pubber.keyhex):
+                remote.pubber = nacling.Publican(pubhex)
+        remote.acceptance = status
+        self.dumpRemote(remote)
         return status
 
-    def rejectRemote(self, estate):
+    def rejectRemote(self, remote):
         '''
         Set acceptance status to rejected
         '''
-        estate.acceptance = raeting.acceptances.rejected
-        self.dumpRemote(estate)
+        remote.acceptance = raeting.acceptances.rejected
+        self.dumpRemote(remote)
 
-    def pendRemote(self, estate):
+    def pendRemote(self, remote):
         '''
         Set acceptance status to pending
         '''
-        estate.acceptance = raeting.acceptances.pending
-        self.dumpRemote(estate)
+        remote.acceptance = raeting.acceptances.pending
+        self.dumpRemote(remote)
 
-    def acceptRemote(self, estate):
+    def acceptRemote(self, remote):
         '''
         Set acceptance status to accepted
         '''
-        estate.acceptance = raeting.acceptances.accepted
-        self.dumpRemote(estate)
+        remote.acceptance = raeting.acceptances.accepted
+        self.dumpRemote(remote)
 
 def clearAllRoadSafe(dirpath):
     '''
