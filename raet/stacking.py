@@ -162,13 +162,14 @@ class Stack(object):
         '''
         Dump keeps of local
         '''
-        data = odict([
-                        ('uid', self.local.uid),
-                        ('name', self.local.name),
-                        ('ha', self.local.ha)
-                    ])
-        if self.keep.verifyLocalData(data):
-            self.keep.dumpLocalData(data)
+        #data = odict([
+                        #('uid', self.local.uid),
+                        #('name', self.local.name),
+                        #('ha', self.local.ha)
+                    #])
+        #if self.keep.verifyLocalData(data):
+            #self.keep.dumpLocalData(data)
+        self.keep.dumpLocal(self.local)
 
     def loadLocal(self, local=None):
         '''
@@ -198,13 +199,14 @@ class Stack(object):
         '''
         Dump keeps of remote
         '''
-        data = odict([
-                        ('uid', remote.uid),
-                        ('name', remote.name),
-                        ('ha', remote.ha)
-                    ])
-        if self.keep.verifyRemoteData(data):
-            self.dumpRemoteData(data, remote.uid)
+        #data = odict([
+                        #('uid', remote.uid),
+                        #('name', remote.name),
+                        #('ha', remote.ha)
+                    #])
+        #if self.keep.verifyRemoteData(data):
+            #self.keep.dumpRemoteData(data, remote.uid)
+        self.keep.dumpRemote(remote)
 
     def dumpRemotes(self):
         '''

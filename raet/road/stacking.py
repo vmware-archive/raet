@@ -121,30 +121,33 @@ class RoadStack(stacking.Stack):
 
         return None
 
-
     def dumpLocal(self):
         '''
         Dump keeps of local estate
         '''
-        data = odict([
-                        ('eid', self.local.eid),
-                        ('name', self.local.name),
-                        ('main', self.local.main),
-                        ('host', self.local.host),
-                        ('port', self.local.port),
-                        ('sid', self.local.sid)
-                    ])
-        if self.keep.verifyLocalData(data):
-            self.keep.dumpLocalData(data)
+        #data = odict([
+                        #('eid', self.local.eid),
+                        #('name', self.local.name),
+                        #('main', self.local.main),
+                        #('host', self.local.host),
+                        #('port', self.local.port),
+                        #('sid', self.local.sid)
+                    #])
+        #if self.keep.verifyLocalData(data):
+            #self.keep.dumpLocalData(data)
 
-        data = odict([
-                        ('eid', self.local.eid),
-                        ('name', self.local.name),
-                        ('sighex', self.local.signer.keyhex),
-                        ('prihex', self.local.priver.keyhex),
-                    ])
-        if self.safe.verifyLocalData(data):
-            self.safe.dumpLocalData(data)
+        self.keep.dumpLocal(self.local)
+
+        #data = odict([
+                        #('eid', self.local.eid),
+                        #('name', self.local.name),
+                        #('sighex', self.local.signer.keyhex),
+                        #('prihex', self.local.priver.keyhex),
+                    #])
+        #if self.safe.verifyLocalData(data):
+            #self.safe.dumpLocalData(data)
+
+        self.safe.dumpLocal(self.local)
 
     def loadLocal(self, local=None):
         '''
@@ -193,16 +196,17 @@ class RoadStack(stacking.Stack):
         if self.keep.verifyRemoteData(data):
             self.keep.dumpRemoteData(data, remote.uid)
 
-        data = odict([
-                ('eid', remote.eid),
-                ('name', remote.name),
-                ('acceptance', remote.acceptance),
-                ('verhex', remote.verfer.keyhex),
-                ('pubhex', remote.pubber.keyhex),
-                ])
+        #data = odict([
+                #('eid', remote.eid),
+                #('name', remote.name),
+                #('acceptance', remote.acceptance),
+                #('verhex', remote.verfer.keyhex),
+                #('pubhex', remote.pubber.keyhex),
+                #])
 
-        if self.safe.verifyRemoteData(data):
-            self.safe.dumpRemoteData(data, remote.uid)
+        #if self.safe.verifyRemoteData(data):
+            #self.safe.dumpRemoteData(data, remote.uid)
+        self.safe.dumpRemote(remote)
 
     def loadRemotes(self):
         '''

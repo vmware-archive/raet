@@ -111,18 +111,6 @@ class Keep(object):
             return it
         return None
 
-    def verifyLocalData(self, data):
-        '''
-        Returns True if the fields in .LocalFields match the fields in data
-        '''
-        return (set(self.LocalFields) == set(data.keys()))
-
-    def verifyRemoteData(self, data):
-        '''
-        Returns True if the fields in .RemoteFields match the fields in data
-        '''
-        return (set(self.RemoteFields) == set(data.keys()))
-
     def defaults(self):
         '''
         Return odict with items preloaded with defaults
@@ -131,6 +119,12 @@ class Keep(object):
         for field in fields:
             data[field] = None
         return data
+
+    def verifyLocalData(self, data):
+        '''
+        Returns True if the fields in .LocalFields match the fields in data
+        '''
+        return (set(self.LocalFields) == set(data.keys()))
 
     def dumpLocalData(self, data):
         '''
@@ -152,6 +146,12 @@ class Keep(object):
         '''
         if os.path.exists(self.localfilepath):
             os.remove(self.localfilepath)
+
+    def verifyRemoteData(self, data):
+        '''
+        Returns True if the fields in .RemoteFields match the fields in data
+        '''
+        return (set(self.RemoteFields) == set(data.keys()))
 
     def dumpRemoteData(self, data, uid):
         '''
@@ -220,6 +220,31 @@ class Keep(object):
             filepath = os.path.join(self.remotedirpath, filename)
             if os.path.exists(filepath):
                 os.remove(filepath)
+
+    def dumpLocal(self, local):
+        '''
+        Dump local
+        '''
+        data = odict([
+                        ('uid', local.uid),
+                        ('name', local.name),
+                        ('ha', local.ha)
+                    ])
+        if self.verifyLocalData(data):
+            self.dumpLocalData(data)
+
+    def dumpRemote(self, remote):
+        '''
+        Dump remote
+        '''
+        data = odict([
+                        ('uid', remote.uid),
+                        ('name', remote.name),
+                        ('ha', remote.ha)
+                    ])
+
+        if self.verifyRemoteData(data):
+            self.dumpRemoteData(data, remote.uid)
 
 class LotKeep(Keep):
     '''

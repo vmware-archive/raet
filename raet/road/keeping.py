@@ -47,6 +47,35 @@ class RoadKeep(keeping.Keep):
         '''
         super(RoadKeep, self).__init__(prefix=prefix, **kwa)
 
+    def dumpLocal(self, local):
+        '''
+        Dump local estate
+        '''
+        data = odict([
+                        ('eid', local.eid),
+                        ('name', local.name),
+                        ('main', local.main),
+                        ('host', local.host),
+                        ('port', local.port),
+                        ('sid', local.sid)
+                    ])
+        if self.verifyLocalData(data):
+            self.dumpLocalData(data)
+
+    def dumpRemote(self, remote):
+        '''
+        Dump remote estate
+        '''
+        data = odict([
+                        ('eid', remote.eid),
+                        ('name', remote.name),
+                        ('host', remote.host),
+                        ('port', remote.port),
+                        ('sid', remote.sid),
+                        ('rsid', remote.rsid),
+                    ])
+        if self.verifyRemoteData(data):
+            self.dumpRemoteData(data, remote.uid)
 
 class SafeKeep(keeping.Keep):
     '''
@@ -74,6 +103,19 @@ class SafeKeep(keeping.Keep):
         '''
         super(SafeKeep, self).__init__(prefix=prefix, **kwa)
         self.auto = auto if auto is not None else self.Auto
+
+    def dumpLocal(self, local):
+        '''
+        Dump the local estate
+        '''
+        data = odict([
+                        ('eid', local.eid),
+                        ('name', local.name),
+                        ('sighex', local.signer.keyhex),
+                        ('prihex', local.priver.keyhex),
+                    ])
+        if self.verifyLocalData(data):
+            self.dumpLocalData(data)
 
     def dumpRemote(self, remote):
         '''
