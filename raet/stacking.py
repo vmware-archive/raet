@@ -71,7 +71,9 @@ class Stack(object):
         self.loadRemotes() # load remotes from saved data
         self.server = server
         if self.server:
-            self.server.reopen()  # open socket
+            if not self.server.reopen():  # open socket
+                raise raeting.StackError("Stack {0}: Can't open server at"
+                            " {1}\n".format(self.name, self.server.ha))
             if self.local:
                 self.local.ha = self.server.ha  # update local host address after open
 
