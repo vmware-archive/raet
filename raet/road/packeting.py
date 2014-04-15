@@ -74,7 +74,7 @@ class TxHead(Head):
         self.packed = ''
         data = self.packet.data  # for speed
         data['fl'] = self.packet.foot.size
-        data['fg'] = "{:02x}".format(self.packFlags())
+        data['fg'] = "{0:02x}".format(self.packFlags())
 
         # kit always includes raet id, packet length, and header kind fields
         kit = odict([('ri', 'RAET'), ('pl', 0), ('hl', 0)])
@@ -144,8 +144,6 @@ class TxHead(Head):
             #substitute true length converted to 2 byte hex string
             packed = packed.replace('"pl":"0000000"', '"pl":"{0}"'.format("{0:07x}".format(pl)[-7:]), 1)
             self.packed = packed.replace('"hl":"00"', '"hl":"{0}"'.format("{0:02x}".format(hl)[-2:]), 1)
-
-
 
     def packFlags(self):
         '''
