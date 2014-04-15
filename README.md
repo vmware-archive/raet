@@ -30,15 +30,17 @@ The more complicated MQ services like AMQP tend to be unreliable under load.
 Separating the asynchrounous event over network transport function from the message
 queue management allows independant tuning at scale of each function.
 
-Moreover most of not all of the MQ services that we are familiar with are based on TCP/IP
-which due to its streaming nature and also the way it which it handles connection
-setup and teardown as well as failed connections tends to add high latency to
+Moreover most if not all of the MQ services that we are familiar with are based on TCP/IP
+which due to the way it handles connection setup and teardown as well as failed
+connections in order to support streams tends to add high latency to the
 network communications and is not well suited for the asynchronous nature
 of distibuted event driven application communications.
 
 Whereas UDP/IP has low latency and is connectionless so it scales better, its drawback
 is lack of reliability. So a tuned transport protocol would add reliability without
-sacrificing latency and scalability.
+sacrificing latency and scalability. A transactioned protocol, is much more appropriate
+for providing reliablity to asynchronous event transport than a streaming protocol.
+So adding transactions to UDP appears to advantageous vis a vis TCP/IP.
 
 In addition, because most MQ services are based on TCP/IP they tend to also use
 HTTP and therefore TLS/SSL for secure communications. While using HTTP provides
