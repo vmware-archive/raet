@@ -29,14 +29,15 @@ def main():
         print 'ioflo version {0}'.format(ioflo.__version__)
         sys.exit(0)
 
-    ioflo.app.run.run(name=args.name,
-                      filename=args.filename,
-                      period=float(args.period),
-                      verbose=args.verbose,
-                      realtime=args.realtime,
-                      behaviors=args.behaviors,
-                      username=args.username,
-                      password=args.password,)
+    ioflo.app.run.run(  name=args.name,
+                        period = float(args.period),
+                        real = args.realtime,
+                        filepath = args.filename,
+                        behaviors=args.behaviors,
+                        username=args.username,
+                        password=args.password,
+                        verbose = args.verbose,
+                        statistics=args.statistics)
 
 if __name__ == '__main__':
     main()

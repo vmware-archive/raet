@@ -228,8 +228,6 @@ class LaneStack(stacking.Stack):
             self.incStat("packing_error")
             return
 
-        print "Pages {0}".format(len(book.pages))
-
         for page in book.pages:
             self.txes.append((page.packed, remote.ha))
 
