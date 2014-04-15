@@ -17,6 +17,7 @@ import raet
 PYTHON26_REQUIRES = []
 if sys.version_info < (2, 7): #tuple comparison element by element
     PYTHON26_REQUIRES.append('importlib>=1.0.3')
+    PYTHON26_REQUIRES.append('argparse>=1.2.1')
 
 setup(
     name='raet',
