@@ -7,17 +7,17 @@ See raeting.py for data format and packet field details.
 Layout in DataStore
 
 
-raet.udp.stack.stack
+raet.road.stack.stack
     value StackUdp
-raet.udp.stack.txmsgs
+raet.road.stack.txmsgs
     value deque()
-raet.udp.stack.rxmsgs
+raet.road.stack.rxmsgs
     value deque()
-raet.udp.stack.local
+raet.road.stack.local
     name host port sigkey prikey
-raet.udp.stack.status
+raet.road.stack.status
     joined allowed idle
-raet.udp.stack.destination
+raet.road.stack.destination
     value deid
 
 
@@ -61,7 +61,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
 
     '''
     Ioinits = odict(
-        inode="raet.udp.stack.",
+        inode="raet.road.stack.",
         stack='stack',
         txmsgs=odict(ipath='txmsgs', ival=deque()),
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
@@ -302,15 +302,16 @@ class RaetRoadStackPrinter(deeding.Deed):  # pylint: disable=W0232
             msg = rxMsgs.popleft()
             console.terse("\nReceived....\n{0}\n".format(msg))
 
-
-
-class StackUxdRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
     '''
-    StackUxdRaet initialize and run raet uxd stack
+    Initialize and run raet lane stack
+    FloScript:
+
+    do raet lane stack
 
     '''
     Ioinits = odict(
-        inode="raet.uxd.stack.",
+        inode="raet.lane.stack.",
         stack='stack',
         txmsgs=odict(ipath='txmsgs', ival=deque()),
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
@@ -342,12 +343,16 @@ class StackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         self.stack.value.serviceAll()
 
-class CloserStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackCloser(deeding.Deed):  # pylint: disable=W0232
     '''
-    CloserStackUxdRaet closes stack server socket connection
+    Closes lane stack server socket connection
+    FloScript:
+
+    do raet lane stack closer at exit
+
     '''
     Ioinits = odict(
-        inode=".raet.uxd.stack.",
+        inode=".raet.lane.stack.",
         stack='stack',)
 
     def action(self, **kwa):
@@ -357,12 +362,17 @@ class CloserStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
         if self.stack.value and isinstance(self.stack.value, LaneStack):
             self.stack.value.server.close()
 
-class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackYardAdd(deeding.Deed):  # pylint: disable=W0232
     '''
-    AddYardStackUxdRaet
+    Adds yard to lane stack.
+    Where lane is the lane name and name is the yard name in the parameters
+    FloScript:
+
+    do raet lane stack yard add to lane "ash" name "lord" at enter
+
     '''
     Ioinits = odict(
-        inode=".raet.uxd.stack.",
+        inode=".raet.lane.stack.",
         stack='stack',
         local='yard',
         yard=odict(ipath='local', ival=odict(name=None, lane="maple")),)
@@ -377,14 +387,17 @@ class AddYardStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
             stack.addRemote(yard)
             self.local.value = yard
 
-class TransmitStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackTransmit(deeding.Deed):  # pylint: disable=W0232
     '''
-    Puts message on txMsgs deque sent to deid
-    Message is composed fields that are parameters to action method
-    and is sent to remote estate deid
+    Message is composed of fields that are parameters to action method
+    and is sent to remote estate deid by putting on txMsgs deque
+    FloScript:
+
+    do raet lane stack transmit to content "Hello World" at enter
+
     '''
     Ioinits = odict(
-        inode=".raet.uxd.stack.",
+        inode=".raet.lane.stack.",
         stack="stack",
         dest="dest",)
 
@@ -400,12 +413,16 @@ class TransmitStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
                 stack.transmit(msg=msg, duid=stack.uids.get(name))
 
 
-class PrinterStackUxdRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackPrinter(deeding.Deed):  # pylint: disable=W0232
     '''
     Prints out messages on rxMsgs queue
+    FloScript:
+
+    do raet lane stack printer
+
     '''
     Ioinits = odict(
-        inode=".raet.uxd.stack.",
+        inode=".raet.lane.stack.",
         stack="stack",
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),)
 
