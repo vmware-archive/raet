@@ -96,6 +96,17 @@ html_logo = None # specfied in the theme layout.html
 html_favicon = 'favicon.ico'
 html_use_smartypants = False
 
+html_default_sidebars = [
+    'localtoc.html',
+    'relations.html',
+    'sourcelink.html',
+    'searchbox.html',
+]
+
+html_context = {
+    'html_default_sidebars': html_default_sidebars,
+}
+
 
 ### Latex options
 latex_logo = '_static/salt-logo.pdf'
