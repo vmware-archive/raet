@@ -7,13 +7,13 @@ init .raet.road.stack.local to eid 1 name "master" host "" port 7530
 
 framer masterudpstack be active first start
    frame start
-      do raet udp stack per inode ".raet.road.stack"
+      do raet road stack per inode ".raet.road.stack"
       exit
-         do raet udp stack closer per inode ".raet.road.stack."
+         do raet road stack closer per inode ".raet.road.stack."
 
 framer receiver be active first start
    frame start
-      do raet udp stack printer per inode ".raet.road.stack."
+      do raet road stack printer per inode ".raet.road.stack."
       timeout 5
 
    frame abort

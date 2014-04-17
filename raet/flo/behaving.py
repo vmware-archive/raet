@@ -52,7 +52,7 @@ from ..road import packeting, estating
 from ..lane import paging, yarding
 
 
-class RaetStackRoad(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
     '''
     Initialize and run raet road stack
     FloScript:
@@ -233,7 +233,7 @@ class RaetRoadStackIdled(deeding.Deed):  # pylint: disable=W0232
 
     FloScript:
 
-    do raet udp stack idled
+    do raet road stack idled
     go next if idled in .raet.road.stack.status
 
     '''

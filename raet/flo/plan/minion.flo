@@ -7,17 +7,17 @@ init .raet.road.stack.local to eid 0 name "minion" host "" port 7531
 
 framer minionudpstack be active first start
    frame start
-      do raet udp stack per inode ".raet.road.stack"
+      do raet road stack per inode ".raet.road.stack"
       exit
-         do raet udp stack closer per inode ".raet.road.stack."
+         do raet road stack closer per inode ".raet.road.stack."
 
 framer bootstrap be active first join
    frame join
       print Joining...
       enter
-         do raet udp stack joiner per inode ".raet.road.stack."
+         do raet road stack joiner per inode ".raet.road.stack."
       recur
-         do raet udp stack joined per inode ".raet.road.stack."
+         do raet road stack joined per inode ".raet.road.stack."
 
       go next if joined in .raet.road.stack.status
       go abort if elapsed >= 5
@@ -29,9 +29,9 @@ framer bootstrap be active first join
    frame allow
       print Allowing...
       enter
-         do raet udp stack allower per inode ".raet.road.stack."
+         do raet road stack allower per inode ".raet.road.stack."
       recur
-         do raet udp stack allowed per inode ".raet.road.stack."
+         do raet road stack allowed per inode ".raet.road.stack."
 
       go next if allowed in .raet.road.stack.status
       go abort if elapsed >= 5
@@ -44,13 +44,13 @@ framer bootstrap be active first join
    frame message
       print Messaging...
       enter
-         do raet udp stack messenger to contents "Minion 1 Hello" code 15 \
+         do raet road stack messenger to contents "Minion 1 Hello" code 15 \
             per inode ".raet.road.stack."
       go next
 
    frame idle
       print Idling...
-      do raet udp stack idled per inode ".raet.road.stack."
+      do raet road stack idled per inode ".raet.road.stack."
       go abort if idled in .raet.road.stack.status
 
    frame abort
