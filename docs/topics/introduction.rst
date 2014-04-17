@@ -2,7 +2,7 @@
 Introduction
 ============
 
-Currently RAET supports to types of communication.
+Currently RAET supports two types of communication.
 
 - Host to host communication over UDP/IP sockets
 - Same host interprocess communication over Unix Domain (UXD) Sockets
