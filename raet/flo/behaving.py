@@ -52,9 +52,12 @@ from ..road import packeting, estating
 from ..lane import paging, yarding
 
 
-class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetStackRoad(deeding.Deed):  # pylint: disable=W0232
     '''
-    StackUdpRaet initialize and run raet udp stack
+    Initialize and run raet road stack
+    FloScript:
+
+    do raet road stack
 
     '''
     Ioinits = odict(
@@ -109,12 +112,16 @@ class StackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         '''
         self.stack.value.serviceAll()
 
-class CloserStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackCloser(deeding.Deed):  # pylint: disable=W0232
     '''
-    CloserStackUdpRaet closes stack server socket connection
+    Closes road stack server socket connection
+    FloScript:
+
+    do raet road stack closer at exit
+
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         stack='stack', )
 
     def action(self, **kwa):
@@ -124,12 +131,16 @@ class CloserStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         if self.stack.value and isinstance(self.stack.value, RoadStack):
             self.stack.value.server.close()
 
-class JoinerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackJoiner(deeding.Deed):  # pylint: disable=W0232
     '''
-    Initiates join transaction with master
+    Initiates join transaction with zeroth remote estate (main)
+    FloScript:
+
+    do raet road stack joiner at enter
+
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         stack='stack',)
 
     def action(self, **kwa):
@@ -140,12 +151,16 @@ class JoinerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
         if stack and isinstance(stack, RoadStack):
             stack.join()
 
-class JoinedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackJoined(deeding.Deed):  # pylint: disable=W0232
     '''
-    Updates status with .joined of zeroth remote estate (master)
+    Updates status field in share with .joined of zeroth remote estate (main)
+    FloScript:
+
+    do raet road stack joined
+    go next if joined in .raet.road.stack.status
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         stack='stack',
         status=odict(ipath='status', ival=odict(joined=False,
                                                 allowed=False,
@@ -162,12 +177,16 @@ class JoinedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
                 joined = stack.remotes.values()[0].joined
         self.status.update(joined=joined)
 
-class AllowerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackAllower(deeding.Deed):  # pylint: disable=W0232
     '''
-    Initiates allow (CurveCP handshake) transaction with master
+    Initiates allow (CurveCP handshake) transaction with zeroth remote estate (main)
+    FloScript:
+
+    do raet road stack allower at enter
+
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         stack='stack', )
 
     def action(self, **kwa):
@@ -180,12 +199,17 @@ class AllowerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
             stack.allow()
         return None
 
-class AllowedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackAllowed(deeding.Deed):  # pylint: disable=W0232
     '''
-    Updates status with .allowed of zeroth remote estate (master)
+    Updates status field in share with .allowed of zeroth remote estate (main)
+    FloScript:
+
+    do raet road stack allowed
+    go next if allowed in .raet.road.stack.status
+
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         stack='stack',
         status=odict(ipath='status', ival=odict(joined=False,
                                                 allowed=False,
@@ -202,12 +226,19 @@ class AllowedStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
                 allowed = stack.remotes.values()[0].allowed
         self.status.update(allowed=allowed)
 
-class IdledStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackIdled(deeding.Deed):  # pylint: disable=W0232
     '''
-    Updates idle status to true if there are no outstanding transactions in stack
+    Updates idle status field in shate to true if there are no outstanding
+    transactions in the associated stack
+
+    FloScript:
+
+    do raet udp stack idled
+    go next if idled in .raet.road.stack.status
+
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         stack='stack',
         status=odict(ipath='status', ival=odict(joined=False,
                                                 allowed=False,
@@ -224,14 +255,17 @@ class IdledStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
                 idled = True
         self.status.update(idled=idled)
 
-class MessengerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackMessenger(deeding.Deed):  # pylint: disable=W0232
     '''
-    Puts message on txMsgs deque sent to deid
-    Message is composed fields that are parameters to action method
-    and is sent to remote estate deid
+    Message is composed of fields that are parameters to action method
+    and is sent to remote estate deid by putting message on txMsgs deque
+
+    FloScript:
+    do raet road stack messenger to contents "Hello World" at enter
+
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         stack="stack",
         destination="destination",)
 
@@ -247,12 +281,16 @@ class MessengerStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
                 stack.transmit(msg=msg, duid=deid)
 
 
-class PrinterStackUdpRaet(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackPrinter(deeding.Deed):  # pylint: disable=W0232
     '''
-    Prints out messages on rxMsgs queue
+    Prints out messages on rxMsgs queue for associated stack
+    FloScript:
+
+    do raet road stack printer
+
     '''
     Ioinits = odict(
-        inode=".raet.udp.stack.",
+        inode=".raet.road.stack.",
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),)
 
     def action(self, **kwa):
