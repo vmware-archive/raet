@@ -13,3 +13,4 @@ raet.egg-info/*
 raet.egg-info/*.*
 raet.egg-info*
 raet.egg-info/PKG-INFO
+doc/_build
