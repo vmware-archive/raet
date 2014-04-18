@@ -75,7 +75,7 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
                                dirpath=m0Dirpath)
 
 
-    print "\n********* Join Transaction **********"
+    print "\n********* Join Forever Transaction **********"
     #transacting.Joiner.Timeout = 0 # make join go on forever
     stack1.join(timeout=0.0) # make join go on forever
     timer = StoreTimer(store=store, duration=30.0)
@@ -86,34 +86,13 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
         store.advanceStamp(0.1)
 
     for remote in stack0.remotes.values():
-        print "Remote Estate {0} joined= {1}".format(remote.eid, remote.joined)
+        print "{0} Remote Estate {1} joined= {2}".format(stack0.name,
+                                                         remote.eid,
+                                                         remote.joined)
     for remote in stack1.remotes.values():
-        print "Remote Estate {0} joined= {1}".format(remote.eid, remote.joined)
-
-
-    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
-    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
-    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-
-
-    print "Keep {0}".format(stack0.name)
-    print stack0.keep.loadLocalData()
-    print stack0.keep.loadAllRemoteData()
-    print "Safe {0}".format(stack0.name)
-    print stack0.safe.loadLocalData()
-    print stack0.safe.loadAllRemoteData()
-    print
-
-    print "Keep {0}".format(stack1.name)
-    print stack1.keep.loadLocalData()
-    print stack1.keep.loadAllRemoteData()
-    print "Safe {0}".format(stack1.name)
-    print stack1.safe.loadLocalData()
-    print stack1.safe.loadAllRemoteData()
-    print
+        print "{0} Remote Estate {1} joined= {2}".format(stack1.name,
+                                                         remote.eid,
+                                                         remote.joined)
 
     print "{0} Stats".format(stack0.name)
     for key, val in stack0.stats.items():
@@ -123,6 +102,113 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
     for key, val in stack1.stats.items():
         print "   {0}={1}".format(key, val)
     print
+
+    print "\n********* Join Default Timeout Transaction **********"
+    stack1.join(timeout=None)
+    timer.restart()
+    while (stack1.transactions or stack0.transactions) and not timer.expired:
+        stack1.serviceAll()
+        if timer.elapsed > 20.0:
+            stack0.serviceAll()
+        store.advanceStamp(0.1)
+
+    for remote in stack0.remotes.values():
+        print "{0} Remote Estate {1} joined= {2}".format(stack0.name,
+                                                         remote.eid,
+                                                         remote.joined)
+    for remote in stack1.remotes.values():
+        print "{0} Remote Estate {1} joined= {2}".format(stack1.name,
+                                                         remote.eid,
+                                                         remote.joined)
+    print "{0} Stats".format(stack0.name)
+    for key, val in stack0.stats.items():
+        print "   {0}={1}".format(key, val)
+    print
+    print "{0} Stats".format(stack1.name)
+    for key, val in stack1.stats.items():
+        print "   {0}={1}".format(key, val)
+    print
+
+    for uid in stack0.remotes:
+        stack0.removeRemote(uid)
+    for uid in stack1.remotes:
+        stack1.removeRemote(uid)
+
+    if postClearMaster:
+        keeping.clearAllRoadSafe(masterDirpath)
+    if postClearMinion:
+        keeping.clearAllRoadSafe(m0Dirpath)
+
+    print "Road {0}".format(stack0.name)
+    print stack0.keep.loadLocalData()
+    print stack0.keep.loadAllRemoteData()
+    print "Safe {0}".format(stack0.name)
+    print stack0.safe.loadLocalData()
+    print stack0.safe.loadAllRemoteData()
+    print
+
+    print "Road {0}".format(stack1.name)
+    print stack1.keep.loadLocalData()
+    print stack1.keep.loadAllRemoteData()
+    print "Safe {0}".format(stack1.name)
+    print stack1.safe.loadLocalData()
+    print stack1.safe.loadAllRemoteData()
+    print
+
+    print "\n********* Join Default Timeout Transaction After Clear Keeps **********"
+    stack1.join(timeout=None)
+    timer.restart()
+    while (stack1.transactions or stack0.transactions) and not timer.expired:
+        stack1.serviceAll()
+        if timer.elapsed > 20.0:
+            stack0.serviceAll()
+        store.advanceStamp(0.1)
+
+    for remote in stack0.remotes.values():
+        print "{0} Remote Estate {1} joined= {2}".format(stack0.name,
+                                                         remote.eid,
+                                                         remote.joined)
+    for remote in stack1.remotes.values():
+        print "{0} Remote Estate {1} joined= {2}".format(stack1.name,
+                                                         remote.eid,
+                                                         remote.joined)
+
+    print "{0} Stats".format(stack0.name)
+    for key, val in stack0.stats.items():
+        print "   {0}={1}".format(key, val)
+    print
+    print "{0} Stats".format(stack1.name)
+    for key, val in stack1.stats.items():
+        print "   {0}={1}".format(key, val)
+    print
+
+    print "\n********* Join Forever Timeout Transaction After Clear Keeps**********"
+    stack1.join(timeout=0.0)
+    timer.restart()
+    while (stack1.transactions or stack0.transactions) and not timer.expired:
+        stack1.serviceAll()
+        if timer.elapsed > 20.0:
+            stack0.serviceAll()
+        store.advanceStamp(0.1)
+
+    for remote in stack0.remotes.values():
+        print "{0} Remote Estate {1} joined= {2}".format(stack0.name,
+                                                         remote.eid,
+                                                         remote.joined)
+    for remote in stack1.remotes.values():
+        print "{0} Remote Estate {1} joined= {2}".format(stack1.name,
+                                                         remote.eid,
+                                                         remote.joined)
+
+    print "{0} Stats".format(stack0.name)
+    for key, val in stack0.stats.items():
+        print "   {0}={1}".format(key, val)
+    print
+    print "{0} Stats".format(stack1.name)
+    for key, val in stack1.stats.items():
+        print "   {0}={1}".format(key, val)
+    print
+
 
     stack0.server.close()
     stack1.server.close()
