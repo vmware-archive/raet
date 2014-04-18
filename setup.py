@@ -23,9 +23,10 @@ setup(
     name='raet',
     version=raet.__version__,
     description='Reliable Asynchronous Event Transport protocol',
-    long_description='Asynchronous transaction (not stream) based protocols. http://ioflo.com  ',
-    url='https://github.com/RaetProtocol/raet',
-    download_url='https://github.com/RaetProtocol/raet/archive/master.zip',
+    long_description='Asynchronous transaction based protocol'
+                     ' using Ioflo. http://ioflo.com',
+    url='https://github.com/saltstack/raet',
+    download_url='https://github.com/saltstack/raet/archive/master.zip',
     author=raet.__author__,
     author_email='info@ioflo.com',
     license=raet.__license__,
