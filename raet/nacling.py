@@ -7,10 +7,16 @@ nacling.py raet protocol nacl (crypto) management classes
 import time
 
 # Import Cryptographic libs
-import nacl.public
-import nacl.signing
-import nacl.encoding
-import nacl.utils
+import warnings
+with warnings.catch_warnings():
+    '''Filter to ignore the following warning:
+    UserWarning: reimporting '_cffi__x332a1fa9xefb54d7c' might overwrite older definitions
+    '''
+    warnings.simplefilter('ignore')
+    import nacl.public
+    import nacl.signing
+    import nacl.encoding
+    import nacl.utils
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
