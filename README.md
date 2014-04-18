@@ -2,8 +2,8 @@
 
 ## Motivation
 
-Modern large scale distributed application architectures where components are
-distributed across the internet on multiple hosts and multiple CPU cores are often
+Modern large scale distributed application architectures, wherein components are
+distributed across the internet on multiple hosts and multiple CPU cores, are often
 based on a messaging or event bus that allows the various distributed components
 to communicate asynchronously with each other. Typically the messaging bus is
 some form of messaging queue service such as AMQP or ZeroMQ. The message bus supports
@@ -20,64 +20,74 @@ A message queuing service performs two distinct but complementary functions.
 storage, and distribution of messages between publishers and subscribers via queues.
 
 One of the advantages of a message queuing service for many applications is that
-the service hides the complexities of queue management from the clients
-behind an API. The disadvantage is that at scale where the volume of messages, the
-timing of messages, and the associated demands on  memory, network, and cpu capacity
+the service hides behind and API, the complexities of queue management from the clients.
+The disadvantage is that at scale, where the volume of messages, the
+timing of messages, and the associated demands on memory, network, and cpu capacity
 become critical, the client has little ability to tune the service for performance.
 Often MQ services become bottlenecks for the distributed application.
-The more complicated MQ services like AMQP tend to be unreliable under load.
+The more complicated MQ services, like AMQP, tend to be unreliable under load.
 
-Separating the asynchrounous event over network transport function from the message
-queue management allows independant tuning at scale of each function.
+Separating the function of network transport of asynchrounous event from the
+function of message queue management allows independant tuning at scale of each function.
 
-Moreover, most if not all of the MQ services that we are familiar with are based on TCP/IP
-which due to the way it handles connection setup and teardown as well as failed
-connections in order to support streams tends to add high latency to the
-network communications and is not therefore not well suited for the asynchronous nature
-of distibuted event driven application communications.
+Most if not all of the MQ services are based on TCP/IP for transport.
+TCP/IP adds significant latency to the network communications and is not therefore
+not well suited for the asynchronous nature of distibuted event driven application
+communications. This is primarily due to the way TCP/IP handles connection setup
+and teardown as well as failed connections in order to support streams. Fundamentally
+TCP/IP is optomized for sending large contiguous data streams not manay small
+aynchronous events or messages. While not a problem for small scale systems,
+the differences in the associated traffic characteristics can become problematic
+at scale.
 
-Because UDP/IP has lower latency and is connectionless, it scales better, but it
-has the serious drawback that it is not reliable. What it needed is a tuned transport
-protocol adds reliability to UDP/IP without sacrificing latency and scalability.
+Because UDP/IP has lower latency and is connectionless, it is much better suited
+to many small asynchronous messages and scales better. The drawback of bare UDP/IP
+is that it is not reliable. What is needed, therefore, is a tuned transport
+protocol that adds reliability to UDP/IP without sacrificing latency and scalability.
 A transactioned protocol, is much more appropriate for providing reliablity to
 asynchronous event transport than a streaming protocol.
 
-In addition, because most MQ services are based on TCP/IP they tend to also use
+Morover, because most MQ services are based on TCP/IP they tend to also use
 HTTP and therefore TLS/SSL for secure communications. While using HTTP provides
-easy integration with web based systems, it is problematic for high performant systems
-and TLS is also problematic as a security system both from performance and vulnerabilty
-aspects. Elliptic Curve Cryptography provides increases in security
-with lower performance requires over other approaches. LibSodium provides an open
-source Elliptic Curve Cryptographic library with support for both authentication
-and encryption. The CurveCP protocol is based on LibSodium and provides a handshake
-protocol for bootstrapping secure network exchanges of information.
+easy integration with web based systems, it can become problematic for high performant systems
+Furthermore, TLS is also problematic as a security system both from performance
+and vulnerabilty aspects.
+
+Elliptic Curve Cryptography, on the other hand, provides increases in security
+with lower performance requirements relative to over other approaches.
+LibSodium provides an open source Elliptic Curve Cryptographic library with support
+for both authentication and encryption. The CurveCP protocol is based on LibSodium
+and provides a handshake protocol for bootstrapping secure network exchanges of information.
 
 Finally, one of the best ways to manage and fine tune processor resources
 (cpu, memory, network) in distrubted concurrent event driven applications is to use
-something called micro-threads. A microthread is typically and in-language feature
+something called micro-threads. A microthread is typically an in-language feature
 that allows logical concurrency with no more overhead than a function call.
 Micro threading uses cooperative multi-tasking instead of threads and/or processes
 and avoids many of the complexities of resource contention, context switching,
 and interprocess communications while providing much higher total performance.
 
-The main limitation of a micro-threaded application is that it is constrained to
-one CPU core because it runs in one process. To enable full utilization of all CPU
+Because all the cooperative micro-threads run in one process, a simple micro-threaded
+application is limited to one CPU core. To enable full utilization of all CPU
 cores, the application needs to be able to run at least one process per CPU core.
-This requires on host inter-process communications. But instead of one process per
-logical concurrent function which is the conventional approach to multi-processing,
-A micro-threaded multi-process application has one micro-thread per logical concurrent
-function and the total number of micro-threads is distributed amoungst the minimum
-number of processes, no more than the number of cpu cores. This optimizes the use
-of the cpu power while minimizes the overhead of process context switching.
+This requires same host inter-process communications. But unlike the conventional
+approach to multi-processing  where there is of one process per logical concurrent
+function, a micro-threaded multi-process application has instead one micro-thread
+per logical concurrent function and the total number of micro-threads
+is distributed amoungst a minimal number of processes, no more than the number of
+cpu cores. This optimizes the use of the cpu power while minimizes the overhead of
+process context switching.
 
 An example of a framework that uses this type of micro-threaded but multi-process
-architecture is Erlang. Indeed, Erlang provided confirmation that the approach to
-RAET could be viable. Unfortunately, the Erlang ecosystem is somewhat limited
-and the language itself uses what one might describe as a very unfortunate syntax.
-Since we have extensive background in Python we wanted to leverage the richness of
-the Python ecosystem but still be able to develop distributed applications on a
-micro-threaded multi-process capable framework.
-
+architecture is Erlang. Indeed, the success of the Erlang model provided
+support for the viability of the RAET approach.
+Indeed, one might ask, why not use Erlang, unfortunately, the Erlang ecosystem is
+somewhat limited in comparison to Python's and the language itself uses what one
+might describe as a very unfortunate syntax.
+One of the design objectives behine RAET was to leverage existing Python expertise
+and the richness of the Python ecosystem but still be able to develop distributed
+applications using a micro-threaded multi-process architectural model. The goal was
+to combine the best of both worlds.
 
 RAET is designed to provide secure reliable scalable asynchronous message/event
 transport over the internet in a micro-threaded multi-process application framework
@@ -127,9 +137,13 @@ The archtecture of a RAET based application is shown in the figure below:
 ![Diagram 1](docs/images/RaetMetaphor.png?raw=true)
 
 
-## Details
+## Details of UDP/IP Raet Protocol
 
-### Production UDP/IP Ports for Raet
+The UDP Raet protocol is based on a coding metaphor naming convention, that is, of
+estates attached to a road. The core objects are provided in the following package:
+raet.road
+
+### Road Raet Production UDP/IP Ports
 
 Manor Estate 4505
 Other Estates 4510
