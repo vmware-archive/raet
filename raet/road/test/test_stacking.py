@@ -15,7 +15,7 @@ from ioflo.base.consoling import getConsole
 console = getConsole()
 
 from raet import raeting, nacling
-from raet.road import keeping, estating, stacking
+from raet.road import keeping, estating, stacking, transacting
 
 def testStackUdp(bk=raeting.bodyKinds.json):
     '''
@@ -38,8 +38,7 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     masterSignKeyHex = signer.keyhex
     privateer = nacling.Privateer()
     masterPriKeyHex = privateer.keyhex
-    #dirpathMaster = os.path.join(os.getcwd(), 'keep', masterName)
-    dirpathMaster = os.path.join('/tmp/raet/road', 'keep', masterName)
+    masterDirpath = os.path.join('/tmp/raet/road', 'keep', masterName)
 
     #minion stack
     minionName = "minion1"
@@ -47,11 +46,10 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     minionSignKeyHex = signer.keyhex
     privateer = nacling.Privateer()
     minionPriKeyHex = privateer.keyhex
-    #dirpathMinion = os.path.join(os.getcwd(), 'keep', minionName)
-    dirpathMinion = os.path.join('/tmp/raet/road', 'keep', minionName)
+    minionDirpath = os.path.join('/tmp/raet/road', 'keep', minionName)
 
-    keeping.clearAllRoadSafe(dirpathMaster)
-    keeping.clearAllRoadSafe(dirpathMinion)
+    keeping.clearAllRoadSafe(masterDirpath)
+    keeping.clearAllRoadSafe(minionDirpath)
 
     local = estating.LocalEstate(   eid=1,
                                      name=masterName,
@@ -60,7 +58,7 @@ def testStackUdp(bk=raeting.bodyKinds.json):
     stack0 = stacking.RoadStack(local=local,
                                auto=True,
                                main=True,
-                               dirpath=dirpathMaster,
+                               dirpath=masterDirpath,
                                store=store)
 
     local = estating.LocalEstate(   eid=0,
@@ -68,7 +66,7 @@ def testStackUdp(bk=raeting.bodyKinds.json):
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=minionSignKeyHex,
                                      prikey=minionPriKeyHex,)
-    stack1 = stacking.RoadStack(local=local,  dirpath=dirpathMinion, store=store)
+    stack1 = stacking.RoadStack(local=local,  dirpath=minionDirpath, store=store)
 
     print "\n********* Join Transaction **********"
     stack1.join()

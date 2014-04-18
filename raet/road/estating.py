@@ -155,6 +155,8 @@ class RemoteEstate(Estate):
         self.rsid = rsid # last sid received from remote when RmtFlag is True
         self.rtid = rtid # last tid received from remote when RmtFlag is True
 
+        self.transactions = odict() # outstanding transactions with this remote
+
     def refresh(self):
         '''
         Refresh short term keys

@@ -179,7 +179,6 @@ class Staler(Initiator):
 
         self.prep()
 
-
     def prep(self):
         '''
         Prepare .txData for nack to stale
@@ -311,8 +310,6 @@ class Joiner(Initiator):
                 self.transmit(self.txPacket) #redo
                 console.concise("Joiner Redo Join at {0}\n".format(self.stack.store.stamp))
                 self.stack.incStat('redo_join')
-
-
 
     def prep(self):
         '''
@@ -527,7 +524,6 @@ class Joiner(Initiator):
         console.terse("Joiner Do Reject at {0}\n".format(self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
-
 class Joinent(Correspondent):
     '''
     RAET protocol Joinent transaction class, dual of Joiner
@@ -604,7 +600,6 @@ class Joinent(Correspondent):
                         if status == raeting.acceptances.accepted:
                             self.accept()
 
-
     def prep(self):
         '''
         Prepare .txData
@@ -627,8 +622,6 @@ class Joinent(Correspondent):
         '''
         Process join packet
         Respond based on acceptance status of remote estate.
-
-
 
         Rules for Colliding Estates
         Apply the rules to ensure no colliding estates on (host, port)
@@ -877,7 +870,6 @@ class Joinent(Correspondent):
         self.remove(self.rxPacket.index)
         console.terse("Joinent Reject at {0}\n".format(self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-
 
 class Allower(Initiator):
     '''
