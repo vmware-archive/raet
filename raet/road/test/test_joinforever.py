@@ -28,8 +28,6 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
     '''
     console.reinit(verbosity=console.Wordage.concise)
 
-    transacting.Joiner.Timeout = 0 # make join go on forever
-
     store = storing.Store(stamp=0.0)
 
     #master stack
@@ -78,7 +76,8 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
 
 
     print "\n********* Join Transaction **********"
-    stack1.join()
+    #transacting.Joiner.Timeout = 0 # make join go on forever
+    stack1.join(timeout=0.0) # make join go on forever
     timer = StoreTimer(store=store, duration=30.0)
     while (stack1.transactions or stack0.transactions) and not timer.expired:
         stack1.serviceAll()
