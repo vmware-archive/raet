@@ -144,6 +144,7 @@ class Privateer(object):
         Return duple of (cyphertext, nonce) resulting from encrypting the message
         using shared key generated from the .key and the pubkey
         If pubkey is hex encoded it is converted first
+        If enhex is True then use HexEncoder otherwise use RawEncoder
 
         Intended for the owner of the passed in public key
 
@@ -166,6 +167,7 @@ class Privateer(object):
         Return decrypted msg contained in cypher using nonce and shared key
         generated from .key and pubkey.
         If pubkey is hex encoded it is converted first
+        If dehex is True then use HexEncoder otherwise use RawEncoder
 
         Intended for the owner of .key
 
@@ -180,4 +182,6 @@ class Privateer(object):
                 pubkey = nacl.public.PublicKey(pubkey, nacl.encoding.HexEncoder)
         box = nacl.public.Box(self.key, pubkey)
         decoder = nacl.encoding.HexEncoder if dehex else nacl.encoding.RawEncoder
+        if dehex and len(nonce) != box.NONCE_SIZE:
+            nonce = decoder.decode(nonce)
         return box.decrypt(cipher, nonce, decoder)

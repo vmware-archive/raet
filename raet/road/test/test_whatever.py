@@ -39,7 +39,7 @@ class WhateverTestCase(unittest.TestCase):
         pass
 
 
-def testSome():
+def runSome():
     """ Unittest runner """
 
     tests = []
@@ -48,7 +48,7 @@ def testSome():
     suite = unittest.TestSuite(map(WhateverTestCase, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
-def testAll():
+def runAll():
     """ Unittest runner """
     suite = unittest.TestLoader().loadTestsFromTestCase(WhateverTestCase)
     unittest.TextTestRunner(verbosity=2).run(suite)
@@ -57,7 +57,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    testAll() #run all unittests
+    runAll() #run all unittests
 
-    #testSome()#only run some
+    #runSome()#only run some
 
