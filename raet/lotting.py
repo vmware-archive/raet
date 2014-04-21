@@ -25,20 +25,19 @@ class Lot(object):
     '''
     RAET protocol stack endpoint
     '''
-    Uid = 0
+    Count = 0
 
     def __init__(self, stack=None, uid=None, name="", ha=None):
         '''
         Setup Lot instance
         '''
-        Lot.Uid += 1
-        self._uid = 0
+        self.stack = stack
+        Lot.Count += 1
         if uid is None:
-            uid = Lot.Uid
-        self.uid = uid
-        self.stack = stack  # Stack object that manages this estate
-        self.name = name or "lot{0}".format(self.uid)
-        self.ha = self.ha
+            uid = Lot.Count
+        self._uid = uid
+        self.name = name or "lot{0}".format(self._uid)
+        self._ha = ha
 
     @property
     def uid(self):
@@ -53,3 +52,14 @@ class Lot(object):
         setter for uid property
         '''
         self._uid = value
+
+    @property
+    def ha(self):
+        '''
+        property that returns host address
+        '''
+        return self._ha
+
+    @ha.setter
+    def ha(self, value):
+        self._ha = value

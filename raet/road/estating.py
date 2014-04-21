@@ -13,14 +13,14 @@ from ioflo.base import aiding
 
 from .. import raeting
 from .. import nacling
+from .. import lotting
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-class Estate(object):
+class Estate(lotting.Lot):
     '''
     RAET protocol endpoint estate object
-    Implements Lot protocol but does not subclass Lot
     '''
     Eid = 2 # class attribute
 
@@ -32,11 +32,12 @@ class Estate(object):
                  tid=0,
                  host="",
                  port=raeting.RAET_PORT,
-                 ha=None, ):
+                 ha=None,
+                 **kwa):
         '''
         Setup Estate instance
         '''
-        self.stack = stack  # Stack object that manages this estate
+        super(Estate, self).__init__(stack=stack, name=name, ha=ha, **kwa)
         if eid is None:
             if self.stack:
                 while Estate.Eid in self.stack.remotes:
@@ -82,8 +83,11 @@ class Estate(object):
         return (self.host, self.port)
 
     @ha.setter
-    def ha(self, ha):
-        self.host, self.port = ha
+    def ha(self, value):
+        '''
+        Expects value is tuple of (host, port)
+        '''
+        self.host, self.port = value
 
     def nextSid(self):
         '''

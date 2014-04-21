@@ -14,6 +14,7 @@ from ioflo.base import aiding
 
 from .. import raeting
 from .. import nacling
+from .. import lotting
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
@@ -22,7 +23,7 @@ YARD_UXD_DIR = os.path.join('/var', 'cache', 'raet')
 ALT_YARD_UXD_DIR = os.path.join('~', '.raet', 'uxd')
 
 
-class Yard(object):
+class Yard(lotting.Lot):
     '''
     RAET protocol Yard
     '''
@@ -35,11 +36,12 @@ class Yard(object):
                   mid=0,
                   ha='',
                   dirpath='',
-                  prefix='lane'):
+                  prefix='lane',
+                  **kwa):
         '''
         Initialize instance
         '''
-        self.stack = stack
+        super(Yard, self).__init__(stack=stack, name=name, ha=ha, **kwa)
         if yid is None:
             yid = Yard.Yid
             Yard.Yid += 1
