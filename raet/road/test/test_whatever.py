@@ -5,15 +5,14 @@
 # pylint: skip-file
 # pylint: disable=C0103
 import sys
-import os
-
 if sys.version_info < (2, 7):
     import unittest2 as unittest
 else:
     import unittest
 
-from ioflo.base.odicting import odict
+import os
 
+from ioflo.base.odicting import odict
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
@@ -26,7 +25,7 @@ def setUpModule():
 def tearDownModule():
     pass
 
-class WhateverTestCase(unittest.TestCase):
+class BasicTestCase(unittest.TestCase):
     """"""
 
     def setUp(self):
@@ -36,21 +35,27 @@ class WhateverTestCase(unittest.TestCase):
         pass
 
     def testBasic(self):
-        pass
+        '''
+        Basic unit tests
+        '''
+        console.terse("{0}\n".format(self.testBasic.__doc__))
 
 
 def runSome():
     """ Unittest runner """
+    tests =  []
+    names = []
+    names.append('testBasic')
+    tests.extend(map(BasicTestCase, names))
 
-    tests = []
-    tests.append('testBasic')
-
-    suite = unittest.TestSuite(map(WhateverTestCase, tests))
+    suite = unittest.TestSuite(tests)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 def runAll():
     """ Unittest runner """
-    suite = unittest.TestLoader().loadTestsFromTestCase(WhateverTestCase)
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(BasicTestCase))
+
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 if __name__ == '__main__' and __package__ is None:
