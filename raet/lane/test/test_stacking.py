@@ -145,7 +145,7 @@ def testStackUxd(kind=raeting.packKinds.json):
     print "\n********* Attempt Auto Accept ************"
     #stack0.addRemoteYard(stack1.local)
     yard = yarding.RemoteYard(name=stack0.local.name,
-                            prefix='cherry',
+                            lanename='cherry',
                             dirpath='/tmp/raet/test_stacking')
     stack1.addRemote(yard)
 

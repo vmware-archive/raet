@@ -383,7 +383,7 @@ class RaetLaneStackYardAdd(deeding.Deed):  # pylint: disable=W0232
         '''
         stack = self.stack.value
         if stack and isinstance(stack, LaneStack):
-            yard = yarding.RemoteYard(stack=stack, prefix=lane, name=name)
+            yard = yarding.RemoteYard(stack=stack, lanename=lane, name=name)
             stack.addRemote(yard)
             self.local.value = yard
 

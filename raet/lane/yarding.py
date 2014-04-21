@@ -36,7 +36,7 @@ class Yard(lotting.Lot):
                   mid=0,
                   ha='',
                   dirpath='',
-                  prefix='lane',
+                  lanename='lane',
                   **kwa):
         '''
         Initialize instance
@@ -74,16 +74,16 @@ class Yard(lotting.Lot):
                 if not os.path.exists(dirpath):
                     os.makedirs(dirpath)
 
-        if " " in prefix:
-            emsg = "Invalid prefix '{0}'".format(prefix)
+        if " " in lanename:
+            emsg = "Invalid lanename '{0}'".format(lanename)
             raise raeting.YardError(emsg)
-        self.prefix = prefix
+        #self.prefix = lanename
 
         if ha and Yard.nameFromHa(ha) != self.name:
             emsg =  "Incompatible Yard name '{0}' and ha '{1}'".format(self.name, ha)
             raise raeting.YardError(emsg)
 
-        self.ha = ha or os.path.join(dirpath, "{0}.{1}.uxd".format(prefix, self.name))
+        self.ha = ha or os.path.join(dirpath, "{0}.{1}.uxd".format(lanename, self.name))
 
     @property
     def uid(self):

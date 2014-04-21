@@ -73,7 +73,7 @@ class LaneStack(stacking.Stack):
                                         main=main,
                                         ha=ha,
                                         dirpath=sockdirpath,
-                                        prefix=lanename)
+                                        lanename=lanename)
 
 
         server = aiding.SocketUxdNb(ha=local.ha,
