@@ -47,8 +47,8 @@ def test():
     minionPriKeyHex = privateer.keyhex
     dirpathMinion0 = os.path.join(os.getcwd(), 'keep', minionName0)
 
-    keeping.clearAllRoadSafe(dirpathMaster)
-    keeping.clearAllRoadSafe(dirpathMinion0)
+    keeping.clearAllKeepSafe(dirpathMaster)
+    keeping.clearAllKeepSafe(dirpathMinion0)
 
     estate = estating.LocalEstate(   eid=1,
                                      name=masterName,

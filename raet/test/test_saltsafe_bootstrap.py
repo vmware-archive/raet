@@ -128,9 +128,9 @@ def test(preClearMaster=False, preClearMinion=False, postClearMaster=False, post
     m0Dirpath = os.path.join(os.getcwd(), 'keep', minionName0)
 
     if preClearMaster:
-        salting.clearAllRoadSafe(masterDirpath, masterOpts)
+        salting.clearAllKeepSafe(masterDirpath, masterOpts)
     if preClearMinion:
-        salting.clearAllRoadSafe(m0Dirpath, minionOpts)
+        salting.clearAllKeepSafe(m0Dirpath, minionOpts)
 
 
     estate = estating.LocalEstate(  eid=1,
@@ -207,9 +207,9 @@ def test(preClearMaster=False, preClearMinion=False, postClearMaster=False, post
     stack1.server.close()
 
     if postClearMaster:
-        salting.clearAllRoadSafe(masterDirpath, masterOpts)
+        salting.clearAllKeepSafe(masterDirpath, masterOpts)
     if postClearMinion:
-        salting.clearAllRoadSafe(m0Dirpath, minionOpts)
+        salting.clearAllKeepSafe(m0Dirpath, minionOpts)
 
 
 

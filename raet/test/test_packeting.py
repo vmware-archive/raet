@@ -75,8 +75,8 @@ def test( hk = raeting.headKinds.json,  bk = raeting.bodyKinds.json):
     minionPubKeyHex = privateer.pubhex
     dirpathMinion = os.path.join(os.getcwd(), 'keep', minionName)
 
-    keeping.clearAllRoadSafe(dirpathMaster)
-    keeping.clearAllRoadSafe(dirpathMinion)
+    keeping.clearAllKeepSafe(dirpathMaster)
+    keeping.clearAllKeepSafe(dirpathMinion)
 
     estate = estating.LocalEstate(  eid=1,
                                     name=masterName,

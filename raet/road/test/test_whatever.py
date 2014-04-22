@@ -13,6 +13,8 @@ else:
 import os
 
 from ioflo.base.odicting import odict
+from ioflo.base.aiding import Timer, StoreTimer
+from ioflo.base import storing
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
@@ -29,7 +31,8 @@ class BasicTestCase(unittest.TestCase):
     """"""
 
     def setUp(self):
-        pass
+        self.store = storing.Store(stamp=0.0)
+        self.timer = StoreTimer(store=self.store, duration=1.0)
 
     def tearDown(self):
         pass

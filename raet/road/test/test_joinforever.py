@@ -47,9 +47,9 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
     m0Dirpath = os.path.join('/tmp/raet/road', 'keep', minionName0)
 
     if preClearMaster:
-        keeping.clearAllRoadSafe(masterDirpath)
+        keeping.clearAllKeepSafe(masterDirpath)
     if preClearMinion:
-        keeping.clearAllRoadSafe(m0Dirpath)
+        keeping.clearAllKeepSafe(m0Dirpath)
 
 
     local = estating.LocalEstate(  eid=1,
@@ -135,9 +135,9 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
         stack1.removeRemote(uid)
 
     if postClearMaster:
-        keeping.clearAllRoadSafe(masterDirpath)
+        keeping.clearAllKeepSafe(masterDirpath)
     if postClearMinion:
-        keeping.clearAllRoadSafe(m0Dirpath)
+        keeping.clearAllKeepSafe(m0Dirpath)
 
     print "Road {0}".format(stack0.name)
     print stack0.keep.loadLocalData()
@@ -214,9 +214,9 @@ def test(preClearMaster=True, preClearMinion=True, postClearMaster=True, postCle
     stack1.server.close()
 
     if postClearMaster:
-        keeping.clearAllRoadSafe(masterDirpath)
+        keeping.clearAllKeepSafe(masterDirpath)
     if postClearMinion:
-        keeping.clearAllRoadSafe(m0Dirpath)
+        keeping.clearAllKeepSafe(m0Dirpath)
 
 
 

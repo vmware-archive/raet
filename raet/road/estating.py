@@ -120,7 +120,7 @@ class LocalEstate(Estate):
     RAET protocol endpoint local estate object
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
-    def __init__(self, main=False, sigkey=None, prikey=None, **kwa):
+    def __init__(self, main=None, sigkey=None, prikey=None, **kwa):
         '''
         Setup Estate instance
 

@@ -35,24 +35,28 @@ class BasicTestCase(unittest.TestCase):
     def setUp(self):
         self.store = storing.Store(stamp=0.0)
 
+        dirpathBase='/tmp/raet/'
+
         #main stack
         mainName = "main"
+        mainDirpath = os.path.join(dirpathBase, 'road', 'keep', mainName)
         signer = nacling.Signer()
         mainSignKeyHex = signer.keyhex
         privateer = nacling.Privateer()
         mainPriKeyHex = privateer.keyhex
-        mainDirpath = os.path.join('/tmp/raet/road', 'keep', mainName)
+
 
         #other stack
         otherName = "other"
+        otherDirpath = os.path.join(dirpathBase, 'road', 'keep', otherName)
         signer = nacling.Signer()
         otherSignKeyHex = signer.keyhex
         privateer = nacling.Privateer()
         otherPriKeyHex = privateer.keyhex
-        otherDirpath = os.path.join('/tmp/raet/road', 'keep', otherName)
 
-        keeping.clearAllRoadSafe(mainDirpath)
-        keeping.clearAllRoadSafe(otherDirpath)
+
+        keeping.clearAllKeepSafe(mainDirpath)
+        keeping.clearAllKeepSafe(otherDirpath)
 
         local = estating.LocalEstate(eid=1,
                                      name=mainName,

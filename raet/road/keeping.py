@@ -224,7 +224,7 @@ class SafeKeep(keeping.Keep):
         remote.acceptance = raeting.acceptances.accepted
         self.dumpRemote(remote)
 
-def clearAllRoadSafe(dirpath):
+def clearAllKeepSafe(dirpath):
     '''
     Convenience function to clear all road and safe keep data in dirpath
     '''

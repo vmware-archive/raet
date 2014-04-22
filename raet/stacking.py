@@ -153,6 +153,14 @@ class Stack(object):
         del self.remotes[uid]
         del self.uids[remote.name]
 
+    def removeAllRemotes(self):
+        '''
+        Remove all the remotes
+        '''
+        uids = self.remotes.keys() #make copy since changing .remotes in-place
+        for uid in uids:
+            self.removeRemote(uid)
+
     def fetchRemoteByName(self, name):
         '''
         Search for remote with matching name

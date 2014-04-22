@@ -51,7 +51,7 @@ class RoadStack(stacking.Stack):
 
     def __init__(self,
                  name='',
-                 main=False,
+                 main=None,
                  keep=None,
                  dirpath=None,
                  local=None,
@@ -72,9 +72,14 @@ class RoadStack(stacking.Stack):
         if not keep:
             keep = keeping.RoadKeep(dirpath=dirpath, stackname=name)
 
-        self.safe = safe or keeping.SafeKeep(dirpath=dirpath,
-                                            stackname=name,
-                                            auto=auto)
+        if not safe:
+            safe = keeping.SafeKeep(dirpath=dirpath,
+                                    stackname=name,
+                                    auto=auto)
+        else:
+            if auto is not None:
+                safe.auto = True if auto else False
+        self.safe = safe
 
         if not local:
             self.remotes = odict()
@@ -82,6 +87,9 @@ class RoadStack(stacking.Stack):
                                          eid=eid,
                                          main=main,
                                          ha=ha)
+        else:
+            if main is not None:
+                local.main = True if main else False
 
         server = aiding.SocketUdpNb(ha=local.ha,
                                     bufsize=raeting.UDP_MAX_PACKET_SIZE * bufcnt)
@@ -130,7 +138,9 @@ class RoadStack(stacking.Stack):
 
     def loadLocal(self, local=None):
         '''
-        Load local estate if keeps found otherwise use local
+        Load local estate if keeps found and verified
+        otherwise use local if provided
+        otherwise create default local
         '''
         keepData = self.keep.loadLocalData()
         safeData = self.safe.loadLocalData()
@@ -151,7 +161,7 @@ class RoadStack(stacking.Stack):
             self.local = local
 
         else:
-             self.local = estating.LocalEstate(stack=self)
+            self.local = estating.LocalEstate(stack=self)
 
     def clearLocal(self):
         '''
@@ -169,23 +179,12 @@ class RoadStack(stacking.Stack):
 
     def loadRemotes(self):
         '''
-        Load and Return list of remote estates
-        remote = estating.RemoteEstate( stack=self.stack,
-                                        name=name,
-                                        host=data['sh'],
-                                        port=data['sp'],
-                                        acceptance=acceptance,
-                                        verkey=verhex,
-                                        pubkey=pubhex,
-                                        rsid=self.sid,
-                                        rtid=self.tid, )
-        self.stack.addRemoteEstate(remote)
+        Load .remotes from valid keep and safe data if any
         '''
-        estates = []
         keeps = self.keep.loadAllRemoteData()
         safes = self.safe.loadAllRemoteData()
         if not keeps or not safes:
-            return []
+            return
         for key, keepData in keeps.items():
             if key not in safes:
                 continue
@@ -193,18 +192,17 @@ class RoadStack(stacking.Stack):
             if (not self.keep.verifyRemoteData(keepData) or not
                     self.safe.verifyRemoteData(safeData)):
                 continue
-            estate = estating.RemoteEstate( stack=self,
-                                            eid=keepData['eid'],
-                                            name=keepData['name'],
-                                            host=keepData['host'],
-                                            port=keepData['port'],
-                                            sid=keepData['sid'],
-                                            rsid=keepData['rsid'],
-                                            acceptance=safeData['acceptance'],
-                                            verkey=safeData['verhex'],
-                                            pubkey=safeData['pubhex'],)
-            estates.append(estate)
-        return estates
+            remote = estating.RemoteEstate(stack=self,
+                                           eid=keepData['eid'],
+                                           name=keepData['name'],
+                                           host=keepData['host'],
+                                           port=keepData['port'],
+                                           sid=keepData['sid'],
+                                           rsid=keepData['rsid'],
+                                           acceptance=safeData['acceptance'],
+                                           verkey=safeData['verhex'],
+                                           pubkey=safeData['pubhex'],)
+            self.addRemote(remote)
 
     def clearRemote(self, remote):
         '''
