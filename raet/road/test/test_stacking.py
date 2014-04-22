@@ -110,14 +110,14 @@ class BasicTestCase(unittest.TestCase):
         Utility method to service queues. Call from test method.
         '''
         self.timer.restart(duration=duration)
-        done = False
-        while not done:
+        while not self.timer.expired:
             self.other.serviceAll()
             self.main.serviceAll()
+            if not (self.main.transactions or self.other.transactions):
+                break
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
-            done = (self.timer.expired or
-                    (not (self.main.transactions or self.other.transactions)))
+
 
     def bootstrap(self, bk=raeting.bodyKinds.json):
         '''
@@ -216,7 +216,7 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
         self.assertDictEqual(body, self.other.rxMsgs[0])
 
-    def bidirectional(self, bk=raeting.bodyKinds.json, mains=None, others=None):
+    def bidirectional(self, bk=raeting.bodyKinds.json, mains=None, others=None, duration=3.0):
         '''
         Initialize
             main on port 7530 with eid of 1
@@ -247,13 +247,15 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMessages Bidirectional *********\n")
         for msg in mains:
-            self.main.txMsgs.append((msg, None))
+            self.main.transmit(msg)
+            #self.main.txMsgs.append((msg, None))
             #self.main.message(body=msg, deid=self.other.local.uid)
         for msg in others:
-            self.other.txMsgs.append((msg, None))
+            self.other.transmit(msg)
+            #self.other.txMsgs.append((msg, None))
             #self.other.message(body=msg, deid=self.main.local.uid)
 
-        self.service(duration=3.0)
+        self.service(duration=duration)
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.main.name, self.main.local.uid))
         self.assertEqual(len(self.main.transactions), 0)
@@ -323,244 +325,58 @@ class BasicTestCase(unittest.TestCase):
 
         self.bidirectional(bk=raeting.bodyKinds.msgpack, mains=mains, others=others)
 
-def testStackUdp(bk=raeting.bodyKinds.json):
-    '''
-    initially
-    master on port 7530 with eid of 1
-    minion on port 7531 with eid of 0
-    eventually
-    master eid of 1
-    minion eid of 2
-    '''
-    console.reinit(verbosity=console.Wordage.concise)
+    def testSegmentedJson(self):
+        '''
+        Test segmented message transactions
+        '''
+        console.terse("{0}\n".format(self.testSegmentedJson.__doc__))
 
-    store = storing.Store(stamp=0.0)
+        stuff = []
+        for i in range(300):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
 
-    stacking.RoadStack.Bk = bk  #set class body kind for serialization
+        others = []
+        mains = []
+        others.append(odict(house="Snake eyes", queue="near stuff", stuff=stuff))
+        mains.append(odict(house="Craps", queue="far stuff", stuff=stuff))
 
-    #master stack
-    masterName = "master"
-    signer = nacling.Signer()
-    masterSignKeyHex = signer.keyhex
-    privateer = nacling.Privateer()
-    masterPriKeyHex = privateer.keyhex
-    masterDirpath = os.path.join('/tmp/raet/road', 'keep', masterName)
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        others.append(odict(house="Other", queue="big stuff", bloat=bloat))
+        mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
-    #minion stack
-    minionName = "minion1"
-    signer = nacling.Signer()
-    minionSignKeyHex = signer.keyhex
-    privateer = nacling.Privateer()
-    minionPriKeyHex = privateer.keyhex
-    minionDirpath = os.path.join('/tmp/raet/road', 'keep', minionName)
+        self.bidirectional(bk=raeting.bodyKinds.json, mains=mains, others=others)
 
-    keeping.clearAllRoadSafe(masterDirpath)
-    keeping.clearAllRoadSafe(minionDirpath)
+    def testSegmentedMsgpack(self):
+        '''
+        Test segmented message transactions
+        '''
+        console.terse("{0}\n".format(self.testSegmentedJson.__doc__))
 
-    local = estating.LocalEstate(   eid=1,
-                                     name=masterName,
-                                     sigkey=masterSignKeyHex,
-                                     prikey=masterPriKeyHex,)
-    stack0 = stacking.RoadStack(local=local,
-                               auto=True,
-                               main=True,
-                               dirpath=masterDirpath,
-                               store=store)
+        stuff = []
+        for i in range(300):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
 
-    local = estating.LocalEstate(   eid=0,
-                                     name=minionName,
-                                     ha=("", raeting.RAET_TEST_PORT),
-                                     sigkey=minionSignKeyHex,
-                                     prikey=minionPriKeyHex,)
-    stack1 = stacking.RoadStack(local=local,  dirpath=minionDirpath, store=store)
+        others = []
+        mains = []
+        others.append(odict(house="Snake eyes", queue="near stuff", stuff=stuff))
+        mains.append(odict(house="Craps", queue="far stuff", stuff=stuff))
 
-    print "\n********* Join Transaction **********"
-    stack1.join()
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        others.append(odict(house="Other", queue="big stuff", bloat=bloat))
+        mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
-    timer = Timer(duration=1.0)
-    while not timer.expired:
-        stack1.serviceAll()
-        stack0.serviceAll()
-
-    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
-    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
-    print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    for estate in stack0.remotes.values():
-        print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
-
-    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
-    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
-    print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    for estate in stack1.remotes.values():
-            print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
+        self.bidirectional(bk=raeting.bodyKinds.msgpack, mains=mains, others=others)
 
 
-    print "\n********* Allow Transaction **********"
 
-    stack1.allow()
-    timer.restart()
-    while not timer.expired:
-        stack1.serviceAll()
-        stack0.serviceAll()
-
-    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
-    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
-    print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    for estate in stack0.remotes.values():
-        print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
-
-    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
-    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
-    print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    for estate in stack1.remotes.values():
-            print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
-
-
-    print "\n********* Message Transaction Minion to Master **********"
-    body = odict(what="This is a message to the master. How are you", extra="And some more.")
-    stack1.message(body=body, deid=1)
-
-    timer.restart()
-    while not timer.expired:
-        stack1.serviceAll()
-        stack0.serviceAll()
-
-    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
-    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
-    print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} Received Messages =\n{1}".format(stack0.name, stack0.rxMsgs)
-
-    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
-    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
-    print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    print "{0} Received Messages =\n{1}".format(stack1.name, stack1.rxMsgs)
-
-    print "\n********* Message Transaction Master to Minion **********"
-    body = odict(what="This is a message to the minion. Get to Work", extra="Fix the fence.")
-    stack0.message(body=body, deid=2)
-
-    timer.restart()
-    while not timer.expired:
-        stack1.serviceAll()
-        stack0.serviceAll()
-
-    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
-    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} dids=\n{1}".format(stack0.name, stack0.uids)
-    print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} Received Messages =\n{1}".format(stack0.name, stack0.rxMsgs)
-
-    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
-    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} dids=\n{1}".format(stack1.name, stack1.uids)
-    print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    print "{0} Received Messages =\n{1}".format(stack1.name, stack1.rxMsgs)
-
-    print "\n********* Message Transactions Both Ways **********"
-
-    stack1.txMsgs.append((odict(house="Mama mia1", queue="fix me"), None))
-    stack1.txMsgs.append((odict(house="Mama mia2", queue="help me"), None))
-    stack1.txMsgs.append((odict(house="Mama mia3", queue="stop me"), None))
-    stack1.txMsgs.append((odict(house="Mama mia4", queue="run me"), None))
-
-    stack0.txMsgs.append((odict(house="Papa pia1", queue="fix me"), None))
-    stack0.txMsgs.append((odict(house="Papa pia2", queue="help me"), None))
-    stack0.txMsgs.append((odict(house="Papa pia3", queue="stop me"), None))
-    stack0.txMsgs.append((odict(house="Papa pia4", queue="run me"), None))
-
-    #segmented packets
-    stuff = []
-    for i in range(300):
-        stuff.append(str(i).rjust(10, " "))
-    stuff = "".join(stuff)
-
-    stack1.txMsgs.append((odict(house="Mama mia1", queue="big stuff", stuff=stuff), None))
-    stack0.txMsgs.append((odict(house="Papa pia4", queue="gig stuff", stuff=stuff), None))
-
-    timer.restart()
-    while not timer.expired:
-        stack1.serviceAll()
-        stack0.serviceAll()
-
-    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
-    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} Received Messages".format(stack0.name)
-    for msg in stack0.rxMsgs:
-        print msg
-    print
-    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
-    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    print "{0} Received Messages".format(stack1.name)
-    for msg in stack1.rxMsgs:
-            print msg
-
-
-    print "\n********* Message Transactions Both Ways Again **********"
-
-    stack1.transmit(odict(house="Oh Boy1", queue="Nice"))
-    stack1.transmit(odict(house="Oh Boy2", queue="Mean"))
-    stack1.transmit(odict(house="Oh Boy3", queue="Ugly"))
-    stack1.transmit(odict(house="Oh Boy4", queue="Pretty"))
-
-    stack0.transmit(odict(house="Yeah Baby1", queue="Good"))
-    stack0.transmit(odict(house="Yeah Baby2", queue="Bad"))
-    stack0.transmit(odict(house="Yeah Baby3", queue="Fast"))
-    stack0.transmit(odict(house="Yeah Baby4", queue="Slow"))
-
-    #segmented packets
-    stuff = []
-    for i in range(300):
-        stuff.append(str(i).rjust(10, " "))
-    stuff = "".join(stuff)
-
-    stack1.transmit(odict(house="Snake eyes", queue="near stuff", stuff=stuff))
-    stack0.transmit(odict(house="Craps", queue="far stuff", stuff=stuff))
-
-    #timer.restart(duration=3)
-    while  store.stamp < 5.0: #not timer.expired
-        stack1.serviceAll()
-        stack0.serviceAll()
-        store.advanceStamp(0.1)
-        time.sleep(0.1)
-
-
-    print "{0} eid={1}".format(stack0.name, stack0.local.uid)
-    print "{0} remotes=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} transactions=\n{1}".format(stack0.name, stack0.transactions)
-    print "{0} Received Messages".format(stack0.name)
-    for msg in stack0.rxMsgs:
-        print msg
-    print "{0} Stats".format(stack0.name)
-    for key, val in stack0.stats.items():
-        print "   {0}={1}".format(key, val)
-    print
-    print "{0} eid={1}".format(stack1.name, stack1.local.uid)
-    print "{0} remotes=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} transactions=\n{1}".format(stack1.name, stack1.transactions)
-    print "{0} Received Messages".format(stack1.name)
-    for msg in stack1.rxMsgs:
-            print msg
-    print "{0} Stats".format(stack1.name)
-    for key, val in stack1.stats.items():
-        print "   {0}={1}".format(key, val)
-    print
-
-
-    stack0.server.close()
-    stack1.server.close()
-
-    stack0.clearLocal()
-    stack0.clearRemoteKeeps()
-    stack1.clearLocal()
-    stack1.clearRemoteKeeps()
 
 
 def runSome():
