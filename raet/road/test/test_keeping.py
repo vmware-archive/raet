@@ -322,6 +322,38 @@ class BasicTestCase(unittest.TestCase):
         stack.clearLocal()
         stack.clearRemoteKeeps()
 
+    def testAltDirpath(self):
+        '''
+        Keep fallback path function when don't have permissions to directory
+        fallback to ~user/.raet
+        '''
+        console.terse("{0}\n".format(self.testAltDirpath.__doc__))
+        base = '/var/cache/'
+        auto = True
+        data = self.createRoadData(name='main', base=base)
+        stack = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                stack.name, stack.keep.dirpath, stack.safe.dirpath))
+        self.assertTrue(".raet/keep/main" in stack.keep.dirpath)
+        self.assertTrue(".raet/keep/main" in stack.safe.dirpath)
+        self.assertEqual(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+
+        # test can write
+        stack.clearLocal()
+        stack.clearRemoteKeeps()
+
+        stack.dumpLocal()
+        stack.dumpRemotes()
+
+        stack.server.close()
+        stack.clearLocal()
+        stack.clearRemoteKeeps()
 
 def runSome():
     """ Unittest runner """
