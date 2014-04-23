@@ -4,6 +4,11 @@ Tests to try out stacking. Potentially ephemeral
 
 '''
 # pylint: skip-file
+import sys
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
 import  os
 
