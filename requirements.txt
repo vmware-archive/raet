@@ -3,6 +3,5 @@ cffi==0.8.2
 ioflo==0.9.31
 pycparser==2.10
 pysodium==0.6.1
-raet==0.0.09
 six==1.6.1
 wsgiref==0.1.2
