@@ -156,9 +156,11 @@ class SafeKeep(keeping.Keep):
         if main: #main estate logic
             if self.auto:
                 status = raeting.acceptances.accepted
+                remote.acceptance = status
             else:
                 if status is None:
                     status = raeting.acceptances.pending
+                    remote.acceptance = status
 
                 elif status == raeting.acceptances.accepted:
                     if (data and (
@@ -171,6 +173,7 @@ class SafeKeep(keeping.Keep):
                             (verhex != data.get('verhex')) or
                             (pubhex != data.get('pubhex')) )):
                         status = raeting.acceptances.pending
+                        remote.acceptance = status
 
                 else: # pre-existing was pending
                     # waiting for external acceptance
@@ -179,27 +182,31 @@ class SafeKeep(keeping.Keep):
         else: #other estate logic
             if status is None:
                 status = raeting.acceptances.accepted
+                remote.acceptance = status #change acceptance auto accept new keys
 
             elif status == raeting.acceptances.accepted:
                 if (  data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
+                    # do not change acceptance since old keys kept and were accepted
 
             elif status == raeting.acceptances.rejected:
                 if (  data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.accepted
+                    remote.acceptance = status #change acceptance since new keys
             else: # pre-existing was pending
                 status = raeting.acceptances.accepted
+                remote.acceptance = status # change acceptance since keys now accepted
 
-        if status != raeting.acceptances.rejected:
+        if status != raeting.acceptances.rejected: # save new accepted keys
             if (verhex and verhex != remote.verfer.keyhex):
                 remote.verfer = nacling.Verifier(verhex)
             if (pubhex and pubhex != remote.pubber.keyhex):
                 remote.pubber = nacling.Publican(pubhex)
-        remote.acceptance = status
+
         self.dumpRemote(remote)
         return status
 

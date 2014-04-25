@@ -12,6 +12,7 @@ else:
     import unittest
 
 import os
+import time
 
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer
@@ -63,7 +64,7 @@ class BasicTestCase(unittest.TestCase):
 
         return data
 
-    def createRoadStack(self, data, eid=0, main=False, auto=False, ha=None):
+    def createRoadStack(self, data, eid=0, main=None, auto=None, ha=None):
         '''
         Clears any old keep data from data['dirpath']
         Creates stack and local estate from data with
@@ -77,8 +78,6 @@ class BasicTestCase(unittest.TestCase):
         returns stack
 
         '''
-        keeping.clearAllKeepSafe(data['dirpath'])
-
         local = estating.LocalEstate(eid=eid,
                                      name=data['name'],
                                      ha=ha,
@@ -94,6 +93,46 @@ class BasicTestCase(unittest.TestCase):
 
         return stack
 
+    def join(self, other, main, duration=1.0):
+        '''
+        Utility method to do join. Call from test method.
+        '''
+        console.terse("\nJoin Transaction **************\n")
+        other.join()
+        self.service(main, other, duration=duration)
+
+    def allow(self, other, main, duration=1.0):
+        '''
+        Utility method to do allow. Call from test method.
+        '''
+        console.terse("\nAllow Transaction **************\n")
+        other.allow()
+        self.service(main, other, duration=duration)
+
+    def message(self, main,  other, mains, others, duration=2.0):
+        '''
+        Utility to send messages both ways
+        '''
+        for msg in mains:
+            main.transmit(msg)
+        for msg in others:
+            other.transmit(msg)
+
+        self.service(main, other, duration=duration)
+
+    def service(self, main, other, duration=1.0):
+        '''
+        Utility method to service queues. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            other.serviceAll()
+            main.serviceAll()
+            if not (main.transactions or other.transactions):
+                break
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
+
     def testBasic(self):
         '''
         Basic keep setup for stack keep and safe persistence load and dump
@@ -102,6 +141,7 @@ class BasicTestCase(unittest.TestCase):
         base = '/tmp/raet/'
         auto = True
         data = self.createRoadData(name='main', base=base)
+        keeping.clearAllKeepSafe(data['dirpath'])
         stack = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -331,6 +371,7 @@ class BasicTestCase(unittest.TestCase):
         base = '/var/cache/'
         auto = True
         data = self.createRoadData(name='main', base=base)
+        keeping.clearAllKeepSafe(data['dirpath'])
         stack = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -356,10 +397,321 @@ class BasicTestCase(unittest.TestCase):
         stack.clearRemoteKeeps()
 
     def testLostOtherKeep(self):
-        pass
+        '''
+        Test rejection when other attempts to join with keys that are different
+        from previous successful join
+        '''
+        console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
+        base = '/tmp/raet/'
+        auto = True
+        data = self.createRoadData(name='main', base=base)
+        keeping.clearAllKeepSafe(data['dirpath'])
+        main = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                main.name, main.keep.dirpath, main.safe.dirpath))
+        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+
+        data = self.createRoadData(name='other', base=base)
+        keeping.clearAllKeepSafe(data['dirpath'])
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                other.name, other.keep.dirpath, other.safe.dirpath))
+        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        #now forget the other data
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+        # reload with new data
+        data = self.createRoadData(name='other', base=base)
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                other.name, other.keep.dirpath, other.safe.dirpath))
+        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+
+        # attempt to join to main with main auto accept enabled
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        # now repeate with auto accept off on main
+        # now forget the other data again
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+        # reload with new data
+        data = self.createRoadData(name='other', base=base)
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                other.name, other.keep.dirpath, other.safe.dirpath))
+        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+
+        # attempt to join to main with main auto accept disabled
+        main.safe.auto = False # turn off auto accept
+        self.join(other, main, duration=2.0)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined) # unlost other remote still there
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertFalse(remote.joined) # new other rejected by main so not joined
+        self.assertEqual(remote.acceptance, None) # new other never been accepted
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed) # unlost other still there
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertFalse(remote.allowed) # new other not joined so aborted allow
+
+        # so try to send messages should fail since keys not match
+        mains = [odict(content="Hello other body")]
+        others = [odict(content="Hello main body")]
+        self.message(main, other, mains, others,  duration=2.0)
+        self.assertEqual(len(main.transactions), 1) #didn't abort since duration too short
+        self.assertNotEqual(len(others), len(main.rxMsgs))
+        self.assertEqual(len(other.transactions), 0)
+        self.assertNotEqual(len(mains), len(other.rxMsgs))
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
 
     def testLostMainKeep(self):
-        pass
+        '''
+        Test rejection when other attempts to join to main where main's keys are
+        different from previous successful join
+        '''
+        console.terse("{0}\n".format(self.testLostMainKeep.__doc__))
+        base = '/tmp/raet/'
+        auto = True
+        data = self.createRoadData(name='main', base=base)
+        savedMainData = data
+        keeping.clearAllKeepSafe(data['dirpath'])
+        main = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                main.name, main.keep.dirpath, main.safe.dirpath))
+        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+
+        data = self.createRoadData(name='other', base=base)
+        keeping.clearAllKeepSafe(data['dirpath'])
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                other.name, other.keep.dirpath, other.safe.dirpath))
+        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        #now forget the main local data only to simulate main changing keys
+        auto = False #do not auto accept
+        main.server.close()
+        main.clearLocal()
+        #main.clearRemoteKeeps()
+
+        # reload with new local data and saved remote data
+        auto = True
+        data = self.createRoadData(name='main', base=base)
+        main = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                main.name, main.keep.dirpath, main.safe.dirpath))
+        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        remote = main.remotes.values()[0]
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
+
+        # attempt to join to main with main auto accept enabled
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertFalse(remote.joined) # joiner will reject so main never finishes
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined) # no lost main remote still there
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertFalse(remote.allowed)
+        self.assertEqual(len(other.transactions), 1) # not timed out yet so still there
+        remote = other.remotes.values()[0]
+        self.assertFalse(remote.allowed) # new other not joined so aborted allow
+
+        for index in other.transactions:
+            other.removeTransaction(index)
+
+        # so try to send messages should fail since keys not match
+        mains = [odict(content="Hello other body")]
+        others = [odict(content="Hello main body")]
+        self.message(main, other, mains, others,  duration=2.0)
+        self.assertEqual(len(main.transactions), 0) #not allowed so aborted
+        self.assertNotEqual(len(others), len(main.rxMsgs))
+        self.assertEqual(len(other.transactions), 0) #not allowed so aborted
+        self.assertNotEqual(len(mains), len(other.rxMsgs))
+
+        # now restore original main keys to see if works
+        #now forget the new main data
+        main.server.close()
+        main.clearLocal()
+        #main.clearRemoteKeeps()
+
+        # reload with original saved data
+        auto = True
+        data = savedMainData
+        main = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                main.name, main.keep.dirpath, main.safe.dirpath))
+        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+
+        # attempt to join to main with main auto accept enabled
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        # so try to send messages should succeed
+        mains = [odict(content="Hello other body")]
+        others = [odict(content="Hello main body")]
+        self.message(main, other, mains, others,  duration=2.0)
+        self.assertEqual(len(main.transactions), 0) #not allowed so aborted
+        self.assertEqual(len(others), len(main.rxMsgs))
+        for i, msg in enumerate(main.rxMsgs):
+            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
+            self.assertDictEqual(others[i], msg)
+        self.assertEqual(len(other.transactions), 0) #not allowed so aborted
+        self.assertEqual(len(mains), len(other.rxMsgs))
+        for i, msg in enumerate(other.rxMsgs):
+            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
+            self.assertDictEqual(mains[i], msg)
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
 
     def testLostBothKeep(self):
         pass
@@ -500,8 +852,11 @@ def test(preClearMaster=False, preClearMinion=False, postClearMaster=False, post
 def runSome():
     """ Unittest runner """
     tests =  []
-    names = []
-    names.append('testBasic')
+    names = ['testBasic',
+             'testAltDirpath',
+             'testLostOtherKeep',
+             'testLostMainKeep', ]
+
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -518,6 +873,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some

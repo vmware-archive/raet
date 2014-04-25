@@ -252,6 +252,7 @@ class RoadStack(stacking.Stack):
             except raeting.PacketError as ex:
                 console.terse(str(ex) + '\n')
                 self.incStat('parsing_outer_error')
+                continue
 
             deid = packet.data['de']
             if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
