@@ -167,6 +167,8 @@ class SafeKeep(keeping.Keep):
                             (verhex != data.get('verhex')) or
                             (pubhex != data.get('pubhex')) )):
                         status = raeting.acceptances.rejected
+                    else: #in case new remote
+                        remote.acceptance = status
 
                 elif status == raeting.acceptances.rejected:
                     if (data and (
@@ -177,7 +179,7 @@ class SafeKeep(keeping.Keep):
 
                 else: # pre-existing was pending
                     # waiting for external acceptance
-                    pass
+                    remote.acceptance = status
 
         else: #other estate logic
             if status is None:
@@ -190,6 +192,8 @@ class SafeKeep(keeping.Keep):
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
                     # do not change acceptance since old keys kept and were accepted
+                else: #in case new remote
+                    remote.acceptance = status
 
             elif status == raeting.acceptances.rejected:
                 if (  data and (
