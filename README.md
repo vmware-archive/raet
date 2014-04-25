@@ -20,7 +20,7 @@ A message queuing service performs two distinct but complementary functions.
 storage, and distribution of messages between publishers and subscribers via queues.
 
 One of the advantages of a message queuing service for many applications is that
-the service hides behind and API, the complexities of queue management from the clients.
+the service hides behind an API, the complexities of queue management from the clients.
 The disadvantage is that at scale, where the volume of messages, the
 timing of messages, and the associated demands on memory, network, and cpu capacity
 become critical, the client has little ability to tune the service for performance.
@@ -35,7 +35,7 @@ TCP/IP adds significant latency to the network communications and is not therefo
 not well suited for the asynchronous nature of distibuted event driven application
 communications. This is primarily due to the way TCP/IP handles connection setup
 and teardown as well as failed connections in order to support streams. Fundamentally
-TCP/IP is optomized for sending large contiguous data streams not manay small
+TCP/IP is optomized for sending large contiguous data streams not many small
 aynchronous events or messages. While not a problem for small scale systems,
 the differences in the associated traffic characteristics can become problematic
 at scale.
@@ -60,7 +60,7 @@ for both authentication and encryption. The CurveCP protocol is based on LibSodi
 and provides a handshake protocol for bootstrapping secure network exchanges of information.
 
 Finally, one of the best ways to manage and fine tune processor resources
-(cpu, memory, network) in distrubted concurrent event driven applications is to use
+(cpu, memory, network) in distributed concurrent event driven applications is to use
 something called micro-threads. A microthread is typically an in-language feature
 that allows logical concurrency with no more overhead than a function call.
 Micro threading uses cooperative multi-tasking instead of threads and/or processes
@@ -132,7 +132,7 @@ Currently RAET supports two types of communication.
 - Host to host communication over UDP/IP sockets
 - Same host interprocess communication over Unix Domain (UXD) Sockets
 
-The archtecture of a RAET based application is shown in the figure below:
+The architecture of a RAET based application is shown in the figure below:
 
 ![Diagram 1](docs/images/RaetMetaphor.png?raw=true)
 
