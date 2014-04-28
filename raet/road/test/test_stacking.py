@@ -34,6 +34,7 @@ class BasicTestCase(unittest.TestCase):
 
     def setUp(self):
         self.store = storing.Store(stamp=0.0)
+        self.timer = StoreTimer(store=self.store, duration=1.0)
 
         dirpathBase='/tmp/raet/'
         stacking.RoadStack.Bk = raeting.bodyKinds.json
@@ -82,7 +83,7 @@ class BasicTestCase(unittest.TestCase):
                                          dirpath=otherDirpath,
                                          store=self.store)
 
-        self.timer = StoreTimer(store=self.store, duration=1.0)
+
 
     def tearDown(self):
         self.main.server.close()
