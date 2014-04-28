@@ -136,6 +136,122 @@ The architecture of a RAET based application is shown in the figure below:
 
 ![Diagram 1](docs/images/RaetMetaphor.png?raw=true)
 
+##Naming Metaphor for Components
+
+The following naming metaphor is designed to consistent but not conflicting with Ioflo
+
+### Road, Estates, Main Estate
+
+- The UDP channel is  a “Road"
+- The members of a Road are “Estates”  (as in real estate lots that front the road)
+- Each Estate has a unique UDP Host Port address “ha” , a unique  string “name”
+    and unique numerical ID “eid".
+- One Estate on the Road is the “Main” Estate
+- The Main Estate is responsible for allowing other estates to join the Road
+    via the Join (Key Exchange)  and Allow (CurveCP) transactions
+- The Main Estate is also responsible for routing messages between other Estates
+
+### Lane, Yards, Main Yard
+
+- Within each Estate may be a “Lane”.  This is a UXD channel.
+- The members of a Lane are “Yards”  (as in subdivision plots within the Estate)
+- Each Yard on a Lane has a unique UXD file name host address “ha’, and a unique string “name”.
+    There is also a numerical Yard ID “yid" that the class uses to generate yard
+    names but it is not an attribute of the Yard instance.
+- The Lane name is also used with the Yard Name to form a unique Filename that
+    is the ha of the UXD
+- One Yard on a Lane is  the “Main” Yard
+- The Main Yard is responsible for forming the Lane and permitting other Yards
+    to be on the lane. There is yet no formal process for this.
+    Currently there is a flag that will drop packets from any Yard that is not
+    already in the list of Yards maintained by the Main yard.
+    Also file permissions can be used to prevent spurious Yards from communicating
+    with the Main Yard.
+- The Main Yard is responsible for routing messages between other yards on the Lane
+
+
+## IoFlo Execution
+
+- Each Estate UDP interface is run via a StackUdp which is run within the context
+    of an IoFlo House
+    (so think of the House that runs the UDP Stack as the Manor House of the Estate)
+- Each Yard UXD interface is run via a StackUxd which is run within the context
+    of an IoFlo House
+    (so think of Houses that run UXD stacks as accessory Houses (Tents, Shacks) on the Estate)
+- The "Manor" House is special in that it runs both the UDP stack for the Estate
+     and also runs the UXD Stack for the Main Yard
+- The House that runs the Main Estate UDP Stack can be thought of as Mayor’s House
+
+- Within the context of a House is a Data Store. Shares in the Store are Addressed
+    by the unique Share Name which is a dotted path
+
+## Routing
+
+Given the Ioflo execution architecture described above, routing is performed as follows:
+
+- In order to address a specific Estate, the Estate Name is required
+- In order to address a specific Yard within an Estate, the Yard Name is required
+- In order to address a specific Queue within a House, the Share Name is required
+
+The UDP stack maps Estate Name to UDP HA and Estate ID
+The UXD stack maps Yard Name to UXD HA
+The Store of any IoFlo behavior maps Share Name to Share reference
+
+Therefore Routing
+from: a source identified by
+    a queue in a source Share,
+    in a source Yard,
+    in a source Estate
+to: a destination identified by
+    a queue, in a destination Share,
+    in a destination Yard,
+    in a destination Estate
+
+requires two Triples, one for Source and one for Destination
+
+Source
+(Estate Name, Yard Name, Share Name)
+
+Destination
+(Estate Name, Yard Name, Share Name)
+
+If any element of the Triple is None or Empty then a Default is used.
+
+Below is an example of a Message Body that has the Routing information it it.
+
+
+```python
+    estate = 'minion1'
+    stack0 = stacking.StackUxd(name='lord', lanename='cherry', yid=0)
+    stack1 = stacking.StackUxd(name='serf', lanename='cherry', yid=1)
+    yard = yarding.Yard( name=stack0.yard.name, prefix='cherry')
+    stack1.addRemoteYard(yard)
+
+    src = (estate, stack1.yard.name, None)
+    dst = (estate, stack0.yard.name, None)
+    route = odict(src=src, dst=dst)
+    msg = odict(route=route, stuff="Serf to my lord. Feed me!")
+    stack1.transmit(msg=msg)
+
+    timer = Timer(duration=0.5)
+    timer.restart()
+    while not timer.expired:
+        stack0.serviceAll()
+        stack1.serviceAll()
+
+
+    lord Received Message
+    {
+        'route':
+        {
+            'src': ['minion1', 'yard1', None],
+            'dst': ['minion1', 'yard0', None]
+        },
+        'stuff': 'Serf to my lord. Feed me!'
+    }
+````
+
+
 
 ## Details of UDP/IP Raet Protocol
 
@@ -307,7 +423,7 @@ si
 
 
 
-### Layering:
+## Layering:
 
 OSI Layers
 
@@ -333,3 +449,22 @@ OSI Layers
 - Application is Body data dictionary
 
 Packet signing could technically be in either the Transport or Session layers.
+
+## UXD Message
+
+RAET UXD Messages are limited in size to the same maximum (pre segmented)
+RAET UDP message size (about 16 Mb)
+
+UXD Messages have the following Format
+Header followed by serialized message body dict
+currently only JSON has been implemented.
+
+1) JSON Header:
+“RAET\njson\n\n”
+Followed by a jsonified  message body dict
+
+2) msgpack (not implemented yet) Header:
+“RAET\npack\n\n”
+Followed by a msgpackified   message body dict
+
+
