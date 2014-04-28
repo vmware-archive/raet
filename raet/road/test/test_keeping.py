@@ -1516,6 +1516,14 @@ class BasicTestCase(unittest.TestCase):
         other.clearRemoteKeeps()
 
 
+def runOne(test):
+    '''
+    Unittest Runner
+    '''
+    test = BasicTestCase(test)
+    suite = unittest.TestSuite([test])
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
 def runSome():
     '''
     Unittest runner
@@ -1534,14 +1542,6 @@ def runSome():
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-def runOne(test):
-    '''
-    Unittest Runner
-    '''
-    test = BasicTestCase(test)
-    suite = unittest.TestSuite([test])
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 def runAll():

@@ -43,12 +43,18 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testBasic.__doc__))
 
+def runOne(test):
+    '''
+    Unittest Runner
+    '''
+    test = BasicTestCase(test)
+    suite = unittest.TestSuite([test])
+    unittest.TextTestRunner(verbosity=2).run(suite)
 
 def runSome():
     """ Unittest runner """
     tests =  []
-    names = []
-    names.append('testBasic')
+    names = ['testBasic']
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -69,3 +75,4 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
+    #runOne('testBasic')
