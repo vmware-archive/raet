@@ -41,7 +41,7 @@ def test():
     masterSignKeyHex = signer.keyhex
     privateer = nacling.Privateer()
     masterPriKeyHex = privateer.keyhex
-    dirpathMaster = os.path.join(os.getcwd(), 'keep', masterName)
+    dirpathMaster = os.path.join('/tmp/raet', 'keep', masterName)
 
     #minion0 stack
     minionName0 = "minion0"
@@ -49,7 +49,7 @@ def test():
     minionSignKeyHex = signer.keyhex
     privateer = nacling.Privateer()
     minionPriKeyHex = privateer.keyhex
-    dirpathMinion0 = os.path.join(os.getcwd(), 'keep', minionName0)
+    dirpathMinion0 = os.path.join('/tmp/raet', 'keep', minionName0)
 
     keeping.clearAllKeepSafe(dirpathMaster)
     keeping.clearAllKeepSafe(dirpathMinion0)
@@ -106,23 +106,23 @@ def test():
 
     timer.restart(duration=1)
     while not timer.expired:
-        stack0.serviceAllTx()
+        stack0.serviceAllTx() # transmit but leave receives in socket buffer
 
     timer.restart(duration=1)
     while not timer.expired:
-        stack1.serviceAllRx()
+        stack1.serviceAllRx() # receive but leave transmits in queue
 
     print "{0} Received Messages".format(stack1.name)
     for msg in stack1.rxMsgs:
             print msg
     print
 
-    stack0.transactions = odict() #clear transactions
+    stack0.transactions = odict() #clear transactions so RX is stale correspondent
 
     timer.restart(duration=2)
     while not timer.expired:
-        stack1.serviceAllTx()
-        stack0.serviceAllRx()
+        stack1.serviceAllTx() #send queued transmits
+        stack0.serviceAllRx() # receive stale packets from buffer
 
     print "{0} Received Messages".format(stack0.name)
     for msg in stack0.rxMsgs:
@@ -137,6 +137,11 @@ def test():
     for key, val in stack1.stats.items():
         print "   {0}={1}".format(key, val)
     print
+
+    """
+    stale_correspondent_attempt=1
+    stale_correspondent_nack=1
+    """
 
 
     stack0.server.close()
