@@ -163,6 +163,14 @@ class BasicTestCase(unittest.TestCase):
         '''
         stacking.RoadStack.Bk = bk
 
+        self.assertEqual(self.main.name, 'main')
+        self.assertEqual(self.main.local.name, 'main')
+        self.assertEqual(self.main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+
+        self.assertEqual(self.other.name, 'other')
+        self.assertEqual(self.other.local.name, 'other')
+        self.assertEqual(self.other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+
         self.join()
         console.terse("\nStack '{0}' uid= {1}\n".format(self.main.name, self.main.local.uid))
         self.assertEqual(self.main.local.uid, 1)
@@ -172,10 +180,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.joined)
         self.assertEqual(remote.uid, 2)
         self.assertTrue(2 in self.main.remotes)
+        self.assertTrue(remote.uid in self.main.remotes)
         self.assertTrue(len(self.main.uids), 1)
         self.assertTrue(len(self.main.remotes), 1)
         self.assertEqual(remote.name, 'other')
         self.assertTrue('other' in self.main.uids)
+        self.assertIs(self.main.remotes[self.main.uids[remote.name]], remote)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
                 self.main.name, self.main.local.name, remote.name, remote.joined))
 
@@ -187,10 +197,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.joined)
         self.assertEqual(remote.uid, 1)
         self.assertTrue(1 in self.other.remotes)
+        self.assertTrue(remote.uid in self.other.remotes)
         self.assertTrue(len(self.other.uids), 1)
         self.assertTrue(len(self.other.remotes), 1)
         self.assertEqual(remote.name, 'main')
         self.assertTrue('main' in self.other.uids)
+        self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
                 self.other.name, self.other.local.name, remote.name, remote.joined))
 

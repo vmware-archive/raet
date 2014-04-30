@@ -4,8 +4,19 @@ Tests to try out stacking. Potentially ephemeral
 
 '''
 # pylint: skip-file
+import sys
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
+
+import os
+import time
+from collections import deque
+
 from ioflo.base.odicting import odict
-from ioflo.base.aiding import Timer
+from ioflo.base.aiding import Timer, StoreTimer
+from ioflo.base import storing
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
@@ -13,209 +24,354 @@ console = getConsole()
 from raet import raeting
 from raet.lane import yarding, stacking
 
-def testStackUxd(kind=raeting.packKinds.json):
-    '''
-    initially
-
-
-    '''
+def setUpModule():
     console.reinit(verbosity=console.Wordage.concise)
 
-    stacking.LaneStack.Pk = kind
-
-    #lord stack
-    #yard0 = yarding.Yard(name='lord')
-    stack0 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking',
-                                sockdirpath='/tmp/raet/test_stacking')
-
-    #serf stack
-    #yard1 = yarding.Yard(name='serf', yid=1)
-    stack1 = stacking.LaneStack(dirpath='/tmp/raet/test_stacking',
-                                sockdirpath='/tmp/raet/test_stacking')
-
-    stack0.addRemote(yarding.RemoteYard(ha=stack1.local.ha))
-    stack1.addRemote(yarding.RemoteYard(ha=stack0.local.ha))
-    #stack0.addRemoteYard(stack1.local)
-    #stack1.addRemoteYard(stack0.local)
-
-    print "{0} yard name={1} ha={2}".format(stack0.name, stack0.local.name, stack0.local.ha)
-    print "{0} yards=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} names=\n{1}".format(stack0.name, stack0.uids)
-
-    print "{0} yard name={1} ha={2}".format(stack1.name, stack1.local.name, stack1.local.ha)
-    print "{0} yards=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} names=\n{1}".format(stack1.name, stack1.uids)
-
-    print "\n********* UXD Message lord to serf serf to lord **********"
-    msg = odict(what="This is a message to the serf. Get to Work", extra="Fix the fence.")
-    stack0.transmit(msg=msg)
-
-    msg = odict(what="This is a message to the lord. Let me be", extra="Go away.")
-    stack1.transmit(msg=msg)
-
-    timer = Timer(duration=0.5)
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceAll()
-        stack1.serviceAll()
+def tearDownModule():
+    pass
 
 
-    print "{0} Received Messages".format(stack0.name)
-    for msg in stack0.rxMsgs:
-        print msg
-    print
 
-    print "{0} Received Messages".format(stack1.name)
-    for msg in stack1.rxMsgs:
-        print msg
-    print
+class BasicTestCase(unittest.TestCase):
+    """"""
 
-    print "\n********* Multiple Messages Both Ways **********"
+    def setUp(self):
+        self.store = storing.Store(stamp=0.0)
+        self.timer = StoreTimer(store=self.store, duration=1.0)
 
-    stack1.transmit(odict(house="Mama mia1", queue="fix me"), None)
-    stack1.transmit(odict(house="Mama mia2", queue="help me"), None)
-    stack1.transmit(odict(house="Mama mia3", queue="stop me"), None)
-    stack1.transmit(odict(house="Mama mia4", queue="run me"), None)
+        # main stack
+        self.main = stacking.LaneStack(name='main',
+                                    lanename='cherry',
+                                    yardname='main',
+                                    dirpath='/tmp/raet/lane',
+                                    sockdirpath='/tmp/raet/lane')
 
-    stack0.transmit(odict(house="Papa pia1", queue="fix me"), None)
-    stack0.transmit(odict(house="Papa pia2", queue="help me"), None)
-    stack0.transmit(odict(house="Papa pia3", queue="stop me"), None)
-    stack0.transmit(odict(house="Papa pia4", queue="run me"), None)
+        #other stack
+        self.other = stacking.LaneStack(name='other',
+                                    lanename='cherry',
+                                    yardname='other',
+                                    dirpath='/tmp/raet/lane',
+                                    sockdirpath='/tmp/raet/lane')
 
-    #big packets
-    stuff = []
-    for i in range(10000):
-        stuff.append(str(i).rjust(10, " "))
-    stuff = "".join(stuff)
+    def tearDown(self):
+        self.main.server.close()
+        self.other.server.close()
 
-    stack1.transmit(odict(house="Mama mia1", queue="big stuff", stuff=stuff), None)
-    stack0.transmit(odict(house="Papa pia4", queue="gig stuff", stuff=stuff), None)
+    def service(self, duration=1.0, real=True):
+        '''
+        Utility method to service queues. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            self.other.serviceAll()
+            self.main.serviceAll()
+            self.store.advanceStamp(0.1)
+            if real:
+                time.sleep(0.1)
 
-    timer.restart(duration=2)
-    while not timer.expired:
-        stack1.serviceAll()
-        stack0.serviceAll()
+    def serviceOther(self, duration=1.0, real=True):
+        '''
+        Utility method to only service other queues. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            self.other.serviceAll()
+            self.store.advanceStamp(0.1)
+            if real:
+                time.sleep(0.1)
 
-    print "{0} Received Messages".format(stack0.name)
-    for msg in stack0.rxMsgs:
-        print msg
-    print
-
-    print "{0} Received Messages".format(stack1.name)
-    for msg in stack1.rxMsgs:
-        print msg
-    print
-
-    src = ('minion', 'serf', None)
-    dst = ('master', None, None)
-    route = odict(src=src, dst=dst)
-    msg = odict(route=route, stuff="Hey buddy what is up?")
-    stack0.transmit(msg)
-
-    timer.restart(duration=2)
-    while not timer.expired:
-        stack1.serviceAll()
-        stack0.serviceAll()
-
-    print "{0} Received Messages".format(stack0.name)
-    for msg in stack0.rxMsgs:
-        print msg
-    print
-
-    print "{0} Received Messages".format(stack1.name)
-    for msg in stack1.rxMsgs:
-        print msg
-    print
-
-    estate = 'minion1'
-    #lord stack yard0
-    stack0 = stacking.LaneStack(name='lord',
-                                lanename='cherry',
-                                dirpath='/tmp/raet/test_stacking',
-                                sockdirpath='/tmp/raet/test_stacking')
-
-    #serf stack yard1
-    stack1 = stacking.LaneStack(name='serf',
-                                lanename='cherry',
-                                dirpath='/tmp/raet/test_stacking',
-                                sockdirpath='/tmp/raet/test_stacking')
-
-    print "Yid", yarding.Yard.Yid
-
-    print "\n********* Attempt Auto Accept ************"
-    #stack0.addRemoteYard(stack1.local)
-    yard = yarding.RemoteYard(name=stack0.local.name,
-                            lanename='cherry',
-                            dirpath='/tmp/raet/test_stacking')
-    stack1.addRemote(yard)
-
-    print "{0} yard name={1} ha={2}".format(stack0.name, stack0.local.name, stack0.local.ha)
-    print "{0} yards=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} names=\n{1}".format(stack0.name, stack0.uids)
-
-    print "{0} yard name={1} ha={2}".format(stack1.name, stack1.local.name, stack1.local.ha)
-    print "{0} yards=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} names=\n{1}".format(stack1.name, stack1.uids)
-
-    print "\n********* UXD Message serf to lord **********"
-    src = (estate, stack1.local.name, None)
-    dst = (estate, stack0.local.name, None)
-    route = odict(src=src, dst=dst)
-    msg = odict(route=route, stuff="Serf to my lord. Feed me!")
-    stack1.transmit(msg=msg)
-
-    timer = Timer(duration=0.5)
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceAll()
-        stack1.serviceAll()
+    def serviceMain(self, duration=1.0, real=True):
+        '''
+        Utility method to only service main queues. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            self.main.serviceAll()
+            self.store.advanceStamp(0.1)
+            if real:
+                time.sleep(0.1)
 
 
-    print "{0} Received Messages".format(stack0.name)
-    for msg in stack0.rxMsgs:
-        print msg
-    print
+    def bootstrap(self, kind=raeting.packKinds.json):
+        '''
+        Basic messaging
+        '''
+        self.main.addRemote(yarding.RemoteYard(ha=self.other.local.ha))
+        self.other.addRemote(yarding.RemoteYard(ha=self.main.local.ha))
 
-    print "{0} Received Messages".format(stack1.name)
-    for msg in stack1.rxMsgs:
-        print msg
-    print
+        self.assertEqual(self.main.name, 'main')
+        self.assertEqual(self.main.local.name, 'main')
+        self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(len(self.main.remotes), 1)
+        remote = self.main.remotes.values()[0]
+        self.assertEqual(remote.ha, '/tmp/raet/lane/cherry.other.uxd')
+        self.assertEqual(remote.name, 'other')
+        self.assertTrue(remote.uid in self.main.remotes)
+        self.assertTrue(remote.name in self.main.uids)
+        self.assertIs(self.main.remotes[self.main.uids[remote.name]], remote)
 
-    print "\n********* UXD Message lord to serf **********"
-    src = (estate, stack0.local.name, None)
-    dst = (estate, stack1.local.name, None)
-    route = odict(src=src, dst=dst)
-    msg = odict(route=route, stuff="Lord to serf. Feed yourself!")
-    stack0.transmit(msg=msg)
+
+        self.assertEqual(self.main.name, 'main')
+        self.assertEqual(self.main.local.name, 'main')
+        self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(len(self.other.remotes), 1)
+        remote = self.other.remotes.values()[0]
+        self.assertEqual(remote.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(remote.name, 'main')
+        self.assertTrue(remote.uid in self.other.remotes)
+        self.assertTrue(remote.name in self.other.uids)
+        self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
+
+        stacking.LaneStack.Pk = kind
+
+    def message(self, mains, others, duration=1.0):
+        '''
+        Transmit and reciev messages in mains and others lists
+        '''
+        for msg in mains:
+            self.main.transmit(msg=msg)
+
+        for msg in others:
+            self.other.transmit(msg=msg)
+
+        self.service(duration=duration)
+
+        self.assertEqual(len(self.main.rxMsgs), len(others))
+        for i, msg in enumerate(self.main.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.main.local.name, msg))
+            self.assertDictEqual(others[i], msg)
+
+        self.assertEqual(len(self.other.rxMsgs), len(mains))
+        for i, msg in enumerate(self.other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
+            self.assertDictEqual(mains[i], msg)
 
 
-    timer = Timer(duration=0.5)
-    timer.restart()
-    while not timer.expired:
-        stack0.serviceAll()
-        stack1.serviceAll()
+    def testMessageJson(self):
+        '''
+        Basic messaging with json packing
+        '''
+        console.terse("{0}\n".format(self.testMessageJson.__doc__))
+        self.bootstrap(kind=raeting.packKinds.json)
 
-    print "{0} Received Messages".format(stack0.name)
-    for msg in stack0.rxMsgs:
-        print msg
-    print
+        mains = []
+        mains.append(odict(what="This is a message to the serf. Get to Work", extra="Fix the fence."))
 
-    print "{0} Received Messages".format(stack1.name)
-    for msg in stack1.rxMsgs:
-        print msg
-    print
+        others = []
+        others.append(odict(what="This is a message to the lord. Let me be", extra="Go away."))
 
-    print "{0} yard name={1} ha={2}".format(stack0.name, stack0.local.name, stack0.local.ha)
-    print "{0} yards=\n{1}".format(stack0.name, stack0.remotes)
-    print "{0} names=\n{1}".format(stack0.name, stack0.uids)
+        self.message(mains=mains, others=others)
 
-    print "{0} yard name={1} ha={2}".format(stack1.name, stack1.local.name, stack1.local.ha)
-    print "{0} yards=\n{1}".format(stack1.name, stack1.remotes)
-    print "{0} names=\n{1}".format(stack1.name, stack1.uids)
+    def testMessageMsgpack(self):
+        '''
+        Basic messaging with msgpack packing
+        '''
+        console.terse("{0}\n".format(self.testMessageMsgpack.__doc__))
+        self.bootstrap(kind=raeting.packKinds.pack)
 
-    stack0.server.close()
-    stack1.server.close()
+        mains = []
+        mains.append(odict(what="This is a message to the serf. Get to Work", extra="Fix the fence."))
 
-if __name__ == "__main__":
-    testStackUxd(raeting.packKinds.json)
-    testStackUxd(raeting.packKinds.pack)
+        others = []
+        others.append(odict(what="This is a message to the lord. Let me be", extra="Go away."))
+
+        self.message(mains=mains, others=others)
+
+    def testMessageMultipleJson(self):
+        '''
+        Multiple messages with json packing
+        '''
+        console.terse("{0}\n".format(self.testMessageMultipleJson.__doc__))
+        self.bootstrap(kind=raeting.packKinds.json)
+
+        mains = []
+        mains.append(odict([('house', "Mama mia1"), ('queue', "fix me")]))
+        mains.append(odict([('house', "Mama mia2"), ('queue', "stop me")]))
+        mains.append(odict([('house', "Mama mia3"), ('queue', "help me")]))
+        mains.append(odict([('house', "Mama mia4"), ('queue', "run me")]))
+
+
+        others = []
+        others.append(odict([('house', "Papa pia1"), ('queue', "fix me")]))
+        others.append(odict([('house', "Papa pia1"), ('queue', "stop me")]))
+        others.append(odict([('house', "Papa pia1"), ('queue', "help me")]))
+        others.append(odict([('house', "Papa pia1"), ('queue', "run me")]))
+
+        self.message(mains=mains, others=others)
+
+    def testMessageMultipleMsgpack(self):
+        '''
+        multiple messages with msgpack packing
+        '''
+        console.terse("{0}\n".format(self.testMessageMultipleMsgpack.__doc__))
+        self.bootstrap(kind=raeting.packKinds.pack)
+
+        mains = []
+        mains.append(odict([('house', "Mama mia1"), ('queue', "fix me")]))
+        mains.append(odict([('house', "Mama mia2"), ('queue', "stop me")]))
+        mains.append(odict([('house', "Mama mia3"), ('queue', "help me")]))
+        mains.append(odict([('house', "Mama mia4"), ('queue', "run me")]))
+
+
+        others = []
+        others.append(odict([('house', "Papa pia1"), ('queue', "fix me")]))
+        others.append(odict([('house', "Papa pia1"), ('queue', "stop me")]))
+        others.append(odict([('house', "Papa pia1"), ('queue', "help me")]))
+        others.append(odict([('house', "Papa pia1"), ('queue', "run me")]))
+        self.message(mains=mains, others=others)
+
+    def testMessagePagedJson(self):
+        '''
+        Paged messages with json packing
+        '''
+        console.terse("{0}\n".format(self.testMessagePagedJson.__doc__))
+
+        self.bootstrap(kind=raeting.packKinds.json)
+
+        #big packets
+        stuff = []
+        for i in range(10000):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+
+        src = ['mayor', self.main.local.name, None]
+        dst = ['citizen', self.other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+
+
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', self.other.local.name, None]
+        dst = ['mayor', self.main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        self.message(mains=mains, others=others, duration=2.0)
+
+    def testMessagePagedMsgpack(self):
+        '''
+        Paged messages with msgpack packing
+        '''
+        console.terse("{0}\n".format(self.testMessagePagedJson.__doc__))
+
+        self.bootstrap(kind=raeting.packKinds.pack)
+
+        #big packets
+        stuff = []
+        for i in range(10000):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+
+        src = ['mayor', self.main.local.name, None]
+        dst = ['citizen', self.other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+
+
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', self.other.local.name, None]
+        dst = ['mayor', self.main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        self.message(mains=mains, others=others, duration=2.0)
+
+    def testAutoAccept(self):
+        '''
+        Basic send auto accept message
+        '''
+        console.terse("{0}\n".format(self.testMessageJson.__doc__))
+
+        self.assertTrue(self.main.accept)
+
+        # Don't add remote yard to main so only way to get message from other is
+        # if auto acccept works
+        self.other.addRemote(yarding.RemoteYard(ha=self.main.local.ha))
+
+        self.assertEqual(self.main.name, 'main')
+        self.assertEqual(self.main.local.name, 'main')
+        self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(len(self.main.remotes), 0)
+
+
+
+        self.assertEqual(self.main.name, 'main')
+        self.assertEqual(self.main.local.name, 'main')
+        self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(len(self.other.remotes), 1)
+        remote = self.other.remotes.values()[0]
+        self.assertEqual(remote.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(remote.name, 'main')
+        self.assertTrue(remote.uid in self.other.remotes)
+        self.assertTrue(remote.name in self.other.uids)
+        self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
+
+        stacking.LaneStack.Pk = raeting.packKinds.pack
+
+        others = []
+        others.append(odict(what="This is a message to the lord. Let me be", extra="Go away."))
+
+        self.message(mains=[], others=others)
+
+        self.assertEqual(len(self.main.remotes), 1)
+        remote = self.main.remotes.values()[0]
+        self.assertEqual(remote.ha, '/tmp/raet/lane/cherry.other.uxd')
+        self.assertEqual(remote.name, 'other')
+        self.assertTrue(remote.uid in self.main.remotes)
+        self.assertTrue(remote.name in self.main.uids)
+        self.assertIs(self.main.remotes[self.main.uids[remote.name]], remote)
+
+        self.main.rxMsgs = deque()
+        self.other.rxMsgs = deque()
+
+        mains = []
+        mains.append(odict(what="This is a message to the serf. Get to Work", extra="Fix the fence."))
+
+        self.message(mains=mains, others=[])
+
+
+def runOne(test):
+    '''
+    Unittest Runner
+    '''
+    test = BasicTestCase(test)
+    suite = unittest.TestSuite([test])
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+def runSome():
+    """ Unittest runner """
+    tests =  []
+    names = ['testMessageJson',
+             'testMessageMsgpack',
+             'testMessageMultipleJson',
+             'testMessageMultipleMsgpack',
+             'testMessagePagedJson',
+             'testMessagePagedMsgpack',
+             'testAutoAccept', ]
+    tests.extend(map(BasicTestCase, names))
+
+    suite = unittest.TestSuite(tests)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+def runAll():
+    """ Unittest runner """
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(BasicTestCase))
+
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+if __name__ == '__main__' and __package__ is None:
+
+    #console.reinit(verbosity=console.Wordage.concise)
+
+    #runAll() #run all unittests
+
+    runSome()#only run some
+
+    #runOne('testMessagePagedJson')
