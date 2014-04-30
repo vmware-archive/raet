@@ -219,11 +219,11 @@ class BasicTestCase(unittest.TestCase):
         others.append(odict([('house', "Papa pia1"), ('queue', "run me")]))
         self.message(mains=mains, others=others)
 
-    def testMessagePagedJson(self):
+    def testMessageSectionedJson(self):
         '''
-        Paged messages with json packing
+        Sectioned messages with json packing
         '''
-        console.terse("{0}\n".format(self.testMessagePagedJson.__doc__))
+        console.terse("{0}\n".format(self.testMessageSectionedJson.__doc__))
 
         self.bootstrap(kind=raeting.packKinds.json)
 
@@ -250,11 +250,11 @@ class BasicTestCase(unittest.TestCase):
 
         self.message(mains=mains, others=others, duration=2.0)
 
-    def testMessagePagedMsgpack(self):
+    def testMessageSectionedMsgpack(self):
         '''
-        Paged messages with msgpack packing
+        Sectioned messages with msgpack packing
         '''
-        console.terse("{0}\n".format(self.testMessagePagedMsgpack.__doc__))
+        console.terse("{0}\n".format(self.testMessageSectionedMsgpack.__doc__))
 
         self.bootstrap(kind=raeting.packKinds.pack)
 
@@ -297,8 +297,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.main.local.name, 'main')
         self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
         self.assertEqual(len(self.main.remotes), 0)
-
-
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
@@ -393,8 +391,8 @@ def runSome():
              'testMessageMsgpack',
              'testMessageMultipleJson',
              'testMessageMultipleMsgpack',
-             'testMessagePagedJson',
-             'testMessagePagedMsgpack',
+             'testMessageSectionedJson',
+             'testMessageSectionedMsgpack',
              'testAutoAccept',
              'testAutoAcceptNot', ]
     tests.extend(map(BasicTestCase, names))
