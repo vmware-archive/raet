@@ -111,9 +111,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(self.main.remotes[self.main.uids[remote.name]], remote)
 
 
-        self.assertEqual(self.main.name, 'main')
-        self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(self.other.name, 'other')
+        self.assertEqual(self.other.local.name, 'other')
+        self.assertEqual(self.other.local.ha, '/tmp/raet/lane/cherry.other.uxd')
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
         self.assertEqual(remote.ha, '/tmp/raet/lane/cherry.main.uxd')
@@ -145,7 +145,6 @@ class BasicTestCase(unittest.TestCase):
         for i, msg in enumerate(self.other.rxMsgs):
             console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
             self.assertDictEqual(mains[i], msg)
-
 
     def testMessageJson(self):
         '''
@@ -255,7 +254,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         Paged messages with msgpack packing
         '''
-        console.terse("{0}\n".format(self.testMessagePagedJson.__doc__))
+        console.terse("{0}\n".format(self.testMessagePagedMsgpack.__doc__))
 
         self.bootstrap(kind=raeting.packKinds.pack)
 
@@ -286,7 +285,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         Basic send auto accept message
         '''
-        console.terse("{0}\n".format(self.testMessageJson.__doc__))
+        console.terse("{0}\n".format(self.testAutoAccept.__doc__))
 
         self.assertTrue(self.main.accept)
 
@@ -301,9 +300,9 @@ class BasicTestCase(unittest.TestCase):
 
 
 
-        self.assertEqual(self.main.name, 'main')
-        self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(self.other.name, 'other')
+        self.assertEqual(self.other.local.name, 'other')
+        self.assertEqual(self.other.local.ha, '/tmp/raet/lane/cherry.other.uxd')
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
         self.assertEqual(remote.ha, '/tmp/raet/lane/cherry.main.uxd')
@@ -335,6 +334,49 @@ class BasicTestCase(unittest.TestCase):
 
         self.message(mains=mains, others=[])
 
+    def testAutoAcceptNot(self):
+        '''
+        Basic send non auto accept message
+        '''
+        console.terse("{0}\n".format(self.testAutoAcceptNot.__doc__))
+        self.main.accept =  False
+        self.assertIs(self.main.accept, False)
+
+        # Don't add remote yard to main so only way to get message from other is
+        # if auto acccept works
+        self.other.addRemote(yarding.RemoteYard(ha=self.main.local.ha))
+
+        self.assertEqual(self.main.name, 'main')
+        self.assertEqual(self.main.local.name, 'main')
+        self.assertEqual(self.main.local.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(len(self.main.remotes), 0)
+
+        self.assertEqual(self.other.name, 'other')
+        self.assertEqual(self.other.local.name, 'other')
+        self.assertEqual(self.other.local.ha, '/tmp/raet/lane/cherry.other.uxd')
+        self.assertEqual(len(self.other.remotes), 1)
+        remote = self.other.remotes.values()[0]
+        self.assertEqual(remote.ha, '/tmp/raet/lane/cherry.main.uxd')
+        self.assertEqual(remote.name, 'main')
+        self.assertTrue(remote.uid in self.other.remotes)
+        self.assertTrue(remote.name in self.other.uids)
+        self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
+
+        stacking.LaneStack.Pk = raeting.packKinds.pack
+
+        others = []
+        others.append(odict(what="This is a message to the lord. Let me be", extra="Go away."))
+
+        for msg in others:
+            self.other.transmit(msg=msg)
+
+        self.service()
+
+        self.assertEqual(len(self.main.rxMsgs), 0)
+        self.assertEqual(len(self.main.remotes), 0)
+        self.assertEqual(self.main.stats['unaccepted_source_yard'], 1)
+
+
 
 def runOne(test):
     '''
@@ -353,7 +395,8 @@ def runSome():
              'testMessageMultipleMsgpack',
              'testMessagePagedJson',
              'testMessagePagedMsgpack',
-             'testAutoAccept', ]
+             'testAutoAccept',
+             'testAutoAcceptNot', ]
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -374,4 +417,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testMessagePagedJson')
+    #runOne('testAutoAcceptNot')
