@@ -540,18 +540,20 @@ class StackTestCase(unittest.TestCase):
         mainDirpath = os.path.join(dirpathBase, 'road', 'keep', mainName)
         signer = nacling.Signer()
         mainSignKeyHex = signer.keyhex
+        mainVerKeyHex = signer.verhex
         privateer = nacling.Privateer()
         mainPriKeyHex = privateer.keyhex
-
+        mainPubKeyHex = privateer.pubhex
 
         #other stack
         otherName = "other"
         otherDirpath = os.path.join(dirpathBase, 'road', 'keep', otherName)
         signer = nacling.Signer()
         otherSignKeyHex = signer.keyhex
+        otherVerKeyHex = signer.verhex
         privateer = nacling.Privateer()
         otherPriKeyHex = privateer.keyhex
-
+        otherPubKeyHex = privateer.pubhex
 
         keeping.clearAllKeepSafe(mainDirpath)
         keeping.clearAllKeepSafe(otherDirpath)
@@ -568,7 +570,15 @@ class StackTestCase(unittest.TestCase):
                                          dirpath=mainDirpath,
                                          store=self.store)
 
-        local = estating.LocalEstate(eid=0,
+        remote1 = estating.RemoteEstate( eid=2,
+                                         name=otherName,
+                                         ha=("127.0.0.1", raeting.RAET_TEST_PORT),
+                                         verkey=otherVerKeyHex,
+                                         pubkey=otherPubKeyHex,)
+        self.main.addRemote(remote1)
+
+
+        local = estating.LocalEstate(eid=2,
                                      name=otherName,
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=otherSignKeyHex,
@@ -579,12 +589,22 @@ class StackTestCase(unittest.TestCase):
                                          dirpath=otherDirpath,
                                          store=self.store)
 
+        remote0 = estating.RemoteEstate(  eid=1,
+                                         name=mainName,
+                                        ha=('127.0.0.1', raeting.RAET_PORT),
+                                        verkey=mainVerKeyHex,
+                                        pubkey=mainPubKeyHex,)
+        self.other.addRemote(remote0)
+
+        remote0.publee = nacling.Publican(key=remote1.privee.pubhex)
+        remote1.publee = nacling.Publican(key=remote0.privee.pubhex)
+
         stuff = []
         for i in range(300):
             stuff.append(str(i).rjust(4, " "))
         self.stuff = "".join(stuff)
 
-        self.data = odict(hk=raeting.headKinds.json)
+        self.data = odict(hk=raeting.headKinds.raet)
 
 
     def tearDown(self):
@@ -596,79 +616,191 @@ class StackTestCase(unittest.TestCase):
         self.other.clearLocal()
         self.other.clearRemoteKeeps()
 
-    def testSignRaw(self):
+    def testSign(self):
         '''
-        More sophisticated tests
+        Signing tests
         '''
-        console.terse("{0}\n".format(self.testPackParse.__doc__))
+        console.terse("{0}\n".format(self.testSign.__doc__))
 
         self.assertEqual(len(self.stuff), 1200)
         self.assertTrue(len(self.stuff) > raeting.UDP_MAX_PACKET_SIZE)
 
-
-        print  "\n___________Raw Body Test"
-        data.update(se=1, de=2, bk=raeting.bodyKinds.raw, fk=raeting.footKinds.nacl)
-        tray0 = packeting.TxTray(stack=stack0, data=data, body=stuff)
+        # Raw bodied signed
+        self.data.update(se=1, de=2, bk=raeting.bodyKinds.raw, fk=raeting.footKinds.nacl)
+        tray0 = packeting.TxTray(stack=self.main, data=self.data, body=self.stuff)
         tray0.pack()
-        print tray0.packed
-        print tray0.packets
+        self.assertEqual(tray0.packed, '   0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 276 277 278 279 280 281 282 283 284 285 286 287 288 289 290 291 292 293 294 295 296 297 298 299')
+        self.assertEqual(len(tray0.packets), 2)
+        self.assertEqual(len(tray0.packets[0].packed), 1015)
+        self.assertEqual(len(tray0.packets[1].packed), 452)
 
-        tray1 = packeting.RxTray(stack=stack1)
+
+        tray1 = packeting.RxTray(stack=self.other)
+        self.assertFalse(tray1.complete)
         for packet in tray0.packets:
             tray1.parse(packet)
 
-        print tray1.data
-        print tray1.body
+        self.assertTrue(tray1.complete)
+        self.assertDictEqual(tray1.data, {'sh': '',
+                                          'sp': 7530,
+                                          'dh': '127.0.0.1',
+                                          'dp': 7530,
+                                          'ri': 'RAET',
+                                          'vn': 0,
+                                          'pk': 0,
+                                          'pl': 1015,
+                                          'hk': 0,
+                                          'hl': 67,
+                                          'se': 1,
+                                          'de': 2,
+                                          'cf': False,
+                                          'bf': False,
+                                          'si': 0,
+                                          'ti': 0,
+                                          'tk': 0,
+                                          'dt': 0,
+                                          'oi': 0,
+                                          'wf': False,
+                                          'sn': 0,
+                                          'sc': 2,
+                                          'ml': 1200,
+                                          'sf': True,
+                                          'af': False,
+                                          'bk': 2,
+                                          'ck': 0,
+                                          'fk': 1,
+                                          'fl': 64,
+                                          'fg': '10'})
+        self.assertEqual( tray1.body, self.stuff)
 
-        print stuff == tray1.body
-
-        print  "\n_____________    Packed Body Test"
-        body = odict(stuff=stuff)
-        print body
-        data.update(se=1, de=2, bk=bk, fk=raeting.footKinds.nacl)
-        tray0 = packeting.TxTray(stack=stack0, data=data, body=body)
+        # Json body
+        body = odict(stuff=self.stuff)
+        self.data.update(se=1, de=2, bk=raeting.bodyKinds.json, fk=raeting.footKinds.nacl)
+        tray0 = packeting.TxTray(stack=self.main, data=self.data, body=body)
         tray0.pack()
-        print tray0.packed
-        print tray0.packets
 
-        tray1 = packeting.RxTray(stack=stack1)
+        self.assertEqual(tray0.packed, '{"stuff":"   0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 276 277 278 279 280 281 282 283 284 285 286 287 288 289 290 291 292 293 294 295 296 297 298 299"}')
+        self.assertEqual(len(tray0.packets), 2)
+        self.assertEqual(len(tray0.packets[0].packed), 1015)
+        self.assertEqual(len(tray0.packets[1].packed), 464)
+
+
+        tray1 = packeting.RxTray(stack=self.other)
+        self.assertFalse(tray1.complete)
         for packet in tray0.packets:
             tray1.parse(packet)
 
-        print tray1.data
-        print tray1.body
+        self.assertTrue(tray1.complete)
+        self.assertDictEqual(tray1.data, {'sh': '',
+                                          'sp': 7530,
+                                          'dh': '127.0.0.1',
+                                          'dp': 7530,
+                                          'ri': 'RAET',
+                                          'vn': 0,
+                                          'pk': 0,
+                                          'pl': 1015,
+                                          'hk': 0,
+                                          'hl': 67,
+                                          'se': 1,
+                                          'de': 2,
+                                          'cf': False,
+                                          'bf': False,
+                                          'si': 0,
+                                          'ti': 0,
+                                          'tk': 0,
+                                          'dt': 0,
+                                          'oi': 0,
+                                          'wf': False,
+                                          'sn': 0,
+                                          'sc': 2,
+                                          'ml': 1212,
+                                          'sf': True,
+                                          'af': False,
+                                          'bk': 1,
+                                          'ck': 0,
+                                          'fk': 1,
+                                          'fl': 64,
+                                          'fg': '10'})
 
-        print body == tray1.body
+        self.assertEqual( tray1.body, body)
 
 
-        print "\n___________    Encrypted Coat Test "
-        body = odict(stuff=stuff)
-        print body
-        data.update(se=1, de=2,
+    def testEncrypt(self):
+        '''
+        Encrypt Decrypt tests
+        '''
+        console.terse("{0}\n".format(self.testEncrypt.__doc__))
+
+        self.assertEqual(len(self.stuff), 1200)
+        self.assertTrue(len(self.stuff) > raeting.UDP_MAX_PACKET_SIZE)
+
+        body = odict(stuff=self.stuff)
+        self.data.update(se=1, de=2,
                     bk=raeting.bodyKinds.json,
                     ck=raeting.coatKinds.nacl,
                     fk=raeting.footKinds.nacl)
-        tray0 = packeting.TxTray(stack=stack0, data=data, body=body)
+        tray0 = packeting.TxTray(stack=self.main, data=self.data, body=body)
         tray0.pack()
-        print tray0.packed
-        print tray0.packets
 
-        tray1 = packeting.RxTray(stack=stack1)
+        self.assertEqual(len(tray0.packed), 1252)
+        self.assertEqual(len(tray0.packets), 2)
+        self.assertEqual(len(tray0.packets[0].packed), 1015)
+        self.assertEqual(len(tray0.packets[1].packed), 514)
+
+        tray1 = packeting.RxTray(stack=self.other)
+        self.assertFalse(tray1.complete)
         for packet in tray0.packets:
             tray1.parse(packet)
 
-        print tray1.data
-        print tray1.body
+        self.assertTrue(tray1.complete)
+        self.assertDictEqual(tray1.data, {'sh': '',
+                                          'sp': 7530,
+                                          'dh': '127.0.0.1',
+                                          'dp': 7530,
+                                          'ri': 'RAET',
+                                          'vn': 0,
+                                          'pk': 0,
+                                          'pl': 1015,
+                                          'hk': 0,
+                                          'hl': 72,
+                                          'se': 1,
+                                          'de': 2,
+                                          'cf': False,
+                                          'bf': False,
+                                          'si': 0,
+                                          'ti': 0,
+                                          'tk': 0,
+                                          'dt': 0,
+                                          'oi': 0,
+                                          'wf': False,
+                                          'sn': 0,
+                                          'sc': 2,
+                                          'ml': 1252,
+                                          'sf': True,
+                                          'af': False,
+                                          'bk': 1,
+                                          'ck': 1,
+                                          'fk': 1,
+                                          'fl': 64,
+                                          'fg': '10'})
 
-        print body == tray1.body
+        self.assertEqual( tray1.body, body)
 
 
 
-def runOne(test):
+def runOneBasic(test):
     '''
     Unittest Runner
     '''
     test = BasicTestCase(test)
+    suite = unittest.TestSuite([test])
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+def runOneStack(test):
+    '''
+    Unittest Runner
+    '''
+    test = StackTestCase(test)
     suite = unittest.TestSuite([test])
     unittest.TextTestRunner(verbosity=2).run(suite)
 
@@ -701,8 +833,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
     runSome()#only run some
 
-    #runOne('testBasicJson')
+    #runOneBasic('testBasicJson')
+    #runOneStack('testEncrypt')
