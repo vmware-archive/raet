@@ -4,18 +4,22 @@ Tests to try out stacking. Potentially ephemeral
 
 '''
 # pylint: skip-file
+import sys
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
-import  os
+import os
 
 from ioflo.base.odicting import odict
-from ioflo.base.aiding import Timer,  StoreTimer
+from ioflo.base.aiding import Timer, StoreTimer
 from ioflo.base import storing
-
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from salt.transport.road.raet import (raeting, nacling, packeting, keeping,
-                                     estating, yarding, transacting, stacking)
+from raet import raeting, nacling
+from raet.road import packeting, estating, keeping, stacking, transacting
 
 
 def test():
@@ -50,23 +54,23 @@ def test():
     keeping.clearAllKeepSafe(dirpathMaster)
     keeping.clearAllKeepSafe(dirpathMinion0)
 
-    estate = estating.LocalEstate(   eid=1,
+    local = estating.LocalEstate(   eid=1,
                                      name=masterName,
                                      sigkey=masterSignKeyHex,
                                      prikey=masterPriKeyHex,)
-    stack0 = stacking.RoadStack(estate=estate,
+    stack0 = stacking.RoadStack(local=local,
                                store=store,
                                auto=True,
                                main=True,
                                dirpath=dirpathMaster)
 
 
-    estate = estating.LocalEstate(   eid=0,
+    local = estating.LocalEstate(   eid=0,
                                      name=minionName0,
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=minionSignKeyHex,
                                      prikey=minionPriKeyHex,)
-    stack1 = stacking.RoadStack(estate=estate,
+    stack1 = stacking.RoadStack(local=local,
                                store=store,
                                dirpath=dirpathMinion0)
 
@@ -78,10 +82,10 @@ def test():
     while not timer.expired:
         stack1.serviceAll()
         stack0.serviceAll()
-    for estate in stack0.estates.values():
-        print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
-    for estate in stack1.estates.values():
-        print "Remote Estate {0} joined= {1}".format(estate.eid, estate.joined)
+    for remote in stack0.remotes.values():
+        print "Remote Estate {0} joined= {1}".format(remote.eid, remote.joined)
+    for remote in stack1.remotes.values():
+        print "Remote Estate {0} joined= {1}".format(remote.eid, remote.joined)
 
     print "\n********* Allow Transaction **********"
     stack1.allow()
@@ -91,10 +95,10 @@ def test():
         stack0.serviceAll()
         store.advanceStamp(0.1)
 
-    for estate in stack0.estates.values():
-        print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
-    for estate in stack1.estates.values():
-        print "Remote Estate {0} allowed= {1}".format(estate.eid, estate.allowed)
+    for remote in stack0.remotes.values():
+        print "Remote Estate {0} allowed= {1}".format(remote.eid, remote.allowed)
+    for remote in stack1.remotes.values():
+        print "Remote Estate {0} allowed= {1}".format(remote.eid, remote.allowed)
 
     print "\n********* Message Transactions Both Ways **********"
     #stack1.transmit(odict(house="Oh Boy1", queue="Nice"))
@@ -106,7 +110,7 @@ def test():
 
     timer.restart(duration=1)
     while not timer.expired:
-        stack1.serviceRx()
+        stack1.serviceAllRx()
 
     print "{0} Received Messages".format(stack1.name)
     for msg in stack1.rxMsgs:
@@ -118,7 +122,7 @@ def test():
     timer.restart(duration=2)
     while not timer.expired:
         stack1.serviceAllTx()
-        stack0.serviceRx()
+        stack0.serviceAllRx()
 
     print "{0} Received Messages".format(stack0.name)
     for msg in stack0.rxMsgs:
