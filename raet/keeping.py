@@ -111,6 +111,14 @@ class Keep(object):
             return it
         return None
 
+    def clearDir(self):
+        '''
+        Clear the common directory
+        '''
+        # shutil.rmtree
+        if os.path.exists(self.dirpath):
+            os.rmdir(self.dirpath)
+
     def defaults(self):
         '''
         Return odict with items preloaded with defaults
@@ -146,6 +154,14 @@ class Keep(object):
         '''
         if os.path.exists(self.localfilepath):
             os.remove(self.localfilepath)
+
+    def clearLocalDir(self):
+        '''
+        Clear the local directory
+        '''
+        # shutil.rmtree
+        if os.path.exists(self.localdirpath):
+            os.rmdir(self.localdirpath)
 
     def verifyRemoteData(self, data):
         '''
@@ -187,6 +203,14 @@ class Keep(object):
                         "{0}.{1}.{2}".format(self.prefix, uid, self.ext))
         if os.path.exists(filepath):
             os.remove(filepath)
+
+    def clearRemoteDir(self):
+        '''
+        Clear the remote directory
+        '''
+        # shutil.rmtree
+        if os.path.exists(self.remotedirpath):
+            os.rmdir(self.remotedirpath)
 
     def loadAllRemoteData(self):
         '''
