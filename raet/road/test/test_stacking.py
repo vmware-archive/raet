@@ -628,10 +628,10 @@ class BasicTestCase(unittest.TestCase):
             print "   {0}={1}".format(key, val)
         print
 
-        self.assertEqual(self.other.stats.get('stale_correspondent_attempt'), 1)
-        self.assertEqual(self.other.stats.get('stale_correspondent_nack'), 1)
-        self.assertEqual(self.main.stats.get('messagent_correspond_complete'), 1)
-        self.assertEqual(self.main.stats.get('stale_packet'), 1)
+        self.assertTrue(self.other.stats.get('stale_correspondent_attempt') >= 1)
+        self.assertTrue(self.other.stats.get('stale_correspondent_nack') >= 1)
+        self.assertTrue(self.main.stats.get('messagent_correspond_complete') >= 1)
+        self.assertTrue(self.main.stats.get('stale_packet') >= 1)
 
 def runOne(test):
     '''
