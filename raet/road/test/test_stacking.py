@@ -633,8 +633,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.main.stats.get('messagent_correspond_complete'), 1)
         self.assertEqual(self.main.stats.get('stale_packet'), 1)
 
-
-
 def runOne(test):
     '''
     Unittest Runner
