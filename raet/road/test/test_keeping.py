@@ -140,9 +140,9 @@ class BasicTestCase(unittest.TestCase):
         Basic keep setup for stack keep and safe persistence load and dump
         '''
         console.terse("{0}\n".format(self.testBasic.__doc__))
-        #base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
-        data = self.createRoadData(name='main')
+        data = self.createRoadData(name='main', base=base)
         keeping.clearAllKeepSafe(data['dirpath'])
         stack = self.createRoadStack(data=data,
                                      eid=1,
