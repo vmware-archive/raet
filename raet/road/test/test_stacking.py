@@ -570,6 +570,70 @@ class BasicTestCase(unittest.TestCase):
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
                 self.other.name, self.other.local.name, remote.name, remote.joined))
 
+    def testStaleNack(self):
+        '''
+        Test stale nack
+        '''
+        console.terse("{0}\n".format(self.testStaleNack.__doc__))
+
+        self.join()
+        self.assertEqual(len(self.main.transactions), 0)
+        remote = self.main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(self.other.transactions), 0)
+        remote = self.other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow()
+        self.assertEqual(len(self.main.transactions), 0)
+        remote = self.main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(self.other.transactions), 0)
+        remote = self.other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        console.terse("\nMessage transaction *********\n")
+        body = odict(what="This is a message to the main estate. How are you", extra="I am fine.")
+        self.other.txMsgs.append((body, self.main.local.uid))
+        self.timer.restart(duration=1.0)
+        while not self.timer.expired:
+            self.other.serviceAllTx() # transmit but leave receives in socket buffer
+            self.main.serviceAllRx() # receive but leave transmits in queue
+
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
+
+        self.assertEqual(len(self.main.transactions), 0) #completed
+        self.assertEqual(len(self.other.transactions), 1) # waiting for ack
+
+        self.other.transactions = odict() #clear transactions so RX is stale correspondent
+        self.assertEqual(len(self.other.transactions), 0) # no initated transaction
+
+        self.timer.restart(duration=2.0)
+        while not self.timer.expired:
+            self.main.serviceAll() # transmit stale ack
+            self.other.serviceAll() # recieve ack
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
+
+        self.assertEqual(len(self.main.transactions), 0)
+        self.assertEqual(len(self.other.transactions), 0)
+
+        print "{0} Stats".format(self.main.name)
+        for key, val in self.main.stats.items():
+            print "   {0}={1}".format(key, val)
+        print
+        print "{0} Stats".format(self.other.name)
+        for key, val in self.other.stats.items():
+            print "   {0}={1}".format(key, val)
+        print
+
+        self.assertEqual(self.other.stats.get('stale_correspondent_attempt'), 1)
+        self.assertEqual(self.other.stats.get('stale_correspondent_nack'), 1)
+        self.assertEqual(self.main.stats.get('messagent_correspond_complete'), 1)
+        self.assertEqual(self.main.stats.get('stale_packet'), 1)
+
+
 
 def runOne(test):
     '''
@@ -588,7 +652,8 @@ def runSome():
              'testMsgBothwaysMsgpack',
              'testSegmentedJson',
              'testSegmentedMsgpack',
-             'testJoinForever']
+             'testJoinForever',
+             'testStaleNack', ]
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -611,4 +676,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testJoinForever')
+    #runOne('testStaleNack')

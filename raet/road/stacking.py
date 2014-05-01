@@ -302,16 +302,21 @@ class RoadStack(stacking.Stack):
                 packet.data['pk'] == raeting.pcktKinds.request and
                 packet.data['si'] == 0):
             self.replyJoin(packet)
+            return
 
         if (packet.data['tk'] == raeting.trnsKinds.allow and
                 packet.data['pk'] == raeting.pcktKinds.hello and
                 packet.data['si'] != 0):
             self.replyAllow(packet)
+            return
 
         if (packet.data['tk'] == raeting.trnsKinds.message and
                 packet.data['pk'] == raeting.pcktKinds.message and
                 packet.data['si'] != 0):
             self.replyMessage(packet)
+            return
+
+        self.incStat('stale_packet')
 
     def process(self):
         '''
