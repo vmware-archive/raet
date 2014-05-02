@@ -13,6 +13,7 @@ else:
 import os
 import time
 import tempfile
+import shutil
 
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer
@@ -37,12 +38,12 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="temo")
+        self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="temo")
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack
         mainName = "main"
-        mainDirpath = os.path.join(dirpathBase, 'road', 'keep', mainName)
+        mainDirpath = os.path.join(self.baseDirpath, 'road', 'keep', mainName)
         signer = nacling.Signer()
         mainSignKeyHex = signer.keyhex
         privateer = nacling.Privateer()
@@ -51,7 +52,7 @@ class BasicTestCase(unittest.TestCase):
 
         #other stack
         otherName = "other"
-        otherDirpath = os.path.join(dirpathBase, 'road', 'keep', otherName)
+        otherDirpath = os.path.join(self.baseDirpath, 'road', 'keep', otherName)
         signer = nacling.Signer()
         otherSignKeyHex = signer.keyhex
         privateer = nacling.Privateer()
@@ -94,6 +95,9 @@ class BasicTestCase(unittest.TestCase):
         self.main.clearRemoteKeeps()
         self.other.clearLocal()
         self.other.clearRemoteKeeps()
+
+        if os.path.exists(self.baseDirpath):
+            shutil.rmtree(self.baseDirpath)
 
 
     def join(self, mha=None, timeout=None):

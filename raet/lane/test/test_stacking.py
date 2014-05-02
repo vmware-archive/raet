@@ -13,6 +13,7 @@ else:
 import os
 import time
 import tempfile
+import shutil
 from collections import deque
 
 from ioflo.base.odicting import odict
@@ -40,25 +41,28 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.dirpathbase = os.path.join(tempfile.mkdtemp(prefix="raet",  suffix="temo"), 'lane')
+        self.baseDirpath = os.path.join(tempfile.mkdtemp(prefix="raet",  suffix="temo"), 'lane')
 
         # main stack
         self.main = stacking.LaneStack(name='main',
                                     lanename='cherry',
                                     yardname='main',
-                                    dirpath=self.dirpathbase,
-                                    sockdirpath=self.dirpathbase)
+                                    dirpath=self.baseDirpath,
+                                    sockdirpath=self.baseDirpath)
 
         #other stack
         self.other = stacking.LaneStack(name='other',
                                     lanename='cherry',
                                     yardname='other',
-                                    dirpath=self.dirpathbase,
-                                    sockdirpath=self.dirpathbase)
+                                    dirpath=self.baseDirpath,
+                                    sockdirpath=self.baseDirpath)
 
     def tearDown(self):
         self.main.server.close()
         self.other.server.close()
+
+        if os.path.exists(self.baseDirpath):
+            shutil.rmtree(self.baseDirpath)
 
     def service(self, duration=1.0, real=True):
         '''
@@ -104,10 +108,10 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, os.path.join(self.dirpathbase, 'cherry.main.uxd'))
+        self.assertEqual(self.main.local.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(len(self.main.remotes), 1)
         remote = self.main.remotes.values()[0]
-        self.assertEqual(remote.ha, os.path.join(self.dirpathbase, 'cherry.other.uxd'))
+        self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(remote.name, 'other')
         self.assertTrue(remote.uid in self.main.remotes)
         self.assertTrue(remote.name in self.main.uids)
@@ -116,10 +120,10 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
-        self.assertEqual(self.other.local.ha, os.path.join(self.dirpathbase, 'cherry.other.uxd'))
+        self.assertEqual(self.other.local.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
-        self.assertEqual(remote.ha, os.path.join(self.dirpathbase, 'cherry.main.uxd'))
+        self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(remote.name, 'main')
         self.assertTrue(remote.uid in self.other.remotes)
         self.assertTrue(remote.name in self.other.uids)
@@ -298,15 +302,15 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, os.path.join(self.dirpathbase, 'cherry.main.uxd'))
+        self.assertEqual(self.main.local.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(len(self.main.remotes), 0)
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
-        self.assertEqual(self.other.local.ha, os.path.join(self.dirpathbase, 'cherry.other.uxd'))
+        self.assertEqual(self.other.local.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
-        self.assertEqual(remote.ha, os.path.join(self.dirpathbase, 'cherry.main.uxd'))
+        self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(remote.name, 'main')
         self.assertTrue(remote.uid in self.other.remotes)
         self.assertTrue(remote.name in self.other.uids)
@@ -321,7 +325,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(len(self.main.remotes), 1)
         remote = self.main.remotes.values()[0]
-        self.assertEqual(remote.ha, os.path.join(self.dirpathbase, 'cherry.other.uxd'))
+        self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(remote.name, 'other')
         self.assertTrue(remote.uid in self.main.remotes)
         self.assertTrue(remote.name in self.main.uids)
@@ -349,15 +353,15 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, os.path.join(self.dirpathbase, 'cherry.main.uxd'))
+        self.assertEqual(self.main.local.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(len(self.main.remotes), 0)
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
-        self.assertEqual(self.other.local.ha, os.path.join(self.dirpathbase, 'cherry.other.uxd'))
+        self.assertEqual(self.other.local.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
-        self.assertEqual(remote.ha, os.path.join(self.dirpathbase, 'cherry.main.uxd'))
+        self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(remote.name, 'main')
         self.assertTrue(remote.uid in self.other.remotes)
         self.assertTrue(remote.name in self.other.uids)

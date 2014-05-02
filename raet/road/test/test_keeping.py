@@ -14,6 +14,7 @@ else:
 import os
 import time
 import tempfile
+import shutil
 
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer
@@ -38,10 +39,13 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-    def tearDown(self):
-        pass
+        self.base = tempfile.mkdtemp(prefix="raet",  suffix="base")
 
-    def createRoadData(self, name='main', base=None):
+    def tearDown(self):
+        if os.path.exists(self.base):
+            shutil.rmtree(self.base)
+
+    def createRoadData(self, name, base):
         '''
         Creates odict and populates with data to setup road stack
         {
@@ -53,8 +57,6 @@ class BasicTestCase(unittest.TestCase):
             pubhex: public key
         }
         '''
-        if not base:
-            base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         data = odict()
         data['name'] = name
         data['dirpath'] = os.path.join(base, 'road', 'keep', name)
@@ -140,9 +142,8 @@ class BasicTestCase(unittest.TestCase):
         Basic keep setup for stack keep and safe persistence load and dump
         '''
         console.terse("{0}\n".format(self.testBasic.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         stack = self.createRoadStack(data=data,
                                      eid=1,
@@ -220,14 +221,14 @@ class BasicTestCase(unittest.TestCase):
 
 
         # round trip with non empty remote data
-        other1Data = self.createRoadData(name='other1', base=base)
+        other1Data = self.createRoadData(name='other1', base=self.base)
         stack.addRemote(estating.RemoteEstate(eid=2,
                                               name=other1Data['name'],
                                               ha=('127.0.0.1', 7531),
                                               verkey=other1Data['verhex'],
                                               pubkey=other1Data['pubhex'],))
 
-        other2Data = self.createRoadData(name='other2', base=base)
+        other2Data = self.createRoadData(name='other2', base=self.base)
         stack.addRemote(estating.RemoteEstate(eid=3,
                                               name=other2Data['name'],
                                               ha=('127.0.0.1', 7532),
@@ -404,9 +405,8 @@ class BasicTestCase(unittest.TestCase):
         Test pending behavior when not auto accept by main
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = False #do not auto accept
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -422,7 +422,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -485,9 +485,8 @@ class BasicTestCase(unittest.TestCase):
 
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = False #do not auto accept
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -503,7 +502,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         savedOtherData = data
         other = self.createRoadStack(data=data,
@@ -632,9 +631,8 @@ class BasicTestCase(unittest.TestCase):
         from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -650,7 +648,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -688,7 +686,7 @@ class BasicTestCase(unittest.TestCase):
         other.clearRemoteKeeps()
 
         # reload with new data
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
@@ -727,7 +725,7 @@ class BasicTestCase(unittest.TestCase):
         other.clearRemoteKeeps()
 
         # reload with new data
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
@@ -785,9 +783,8 @@ class BasicTestCase(unittest.TestCase):
         from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostOtherKeepLocal.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -803,7 +800,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -841,7 +838,7 @@ class BasicTestCase(unittest.TestCase):
         #other.clearRemoteKeeps()
 
         # reload with new data
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         savedOtherData = data
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -881,7 +878,7 @@ class BasicTestCase(unittest.TestCase):
         #other.clearRemoteKeeps()
 
         # reload with new data
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
@@ -996,9 +993,9 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeep.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
+        self.base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
         keeping.clearAllKeepSafe(data['dirpath'])
         main = self.createRoadStack(data=data,
@@ -1015,7 +1012,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -1052,7 +1049,7 @@ class BasicTestCase(unittest.TestCase):
         main.clearRemoteKeeps()
 
         # reload with new data
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -1166,9 +1163,8 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
         keeping.clearAllKeepSafe(data['dirpath'])
         main = self.createRoadStack(data=data,
@@ -1185,7 +1181,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeepSafe(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -1223,7 +1219,7 @@ class BasicTestCase(unittest.TestCase):
 
         # reload with new local data and saved remote data
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -1340,9 +1336,9 @@ class BasicTestCase(unittest.TestCase):
         their local keys but keeping their remote data
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
-        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
+        self.base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
         keeping.clearAllKeepSafe(data['dirpath'])
         main = self.createRoadStack(data=data,
@@ -1359,7 +1355,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         savedOtherData = data
         keeping.clearAllKeepSafe(data['dirpath'])
         other = self.createRoadStack(data=data,
@@ -1401,7 +1397,7 @@ class BasicTestCase(unittest.TestCase):
 
         # reload with new local data and saved remote data
         auto = True
-        data = self.createRoadData(name='main', base=base)
+        data = self.createRoadData(name='main', base=self.base)
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -1409,7 +1405,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        data = self.createRoadData(name='other', base=base)
+        data = self.createRoadData(name='other', base=self.base)
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,

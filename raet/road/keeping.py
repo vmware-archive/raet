@@ -245,5 +245,5 @@ def clearAllKeepSafe(dirpath):
     safe = SafeKeep(dirpath=dirpath)
     safe.clearLocalData()
     safe.clearAllRemoteData()
-    road.clearAllDir()
-    safe.clearAllDir()
+    #road.clearAllDir()
+    #safe.clearAllDir()
