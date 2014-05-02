@@ -2,6 +2,17 @@
 CHANGE LOG
 -------------------
 ---------
+20140502
+---------
+
+v0.0.11
+
+Basic unittest suite added
+Some bug fixes
+
+
+
+---------
 20140428
 ---------
 
