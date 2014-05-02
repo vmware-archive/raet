@@ -14,6 +14,8 @@ try:
 except ImportError:
     import json
 
+import shutil
+
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
@@ -111,13 +113,13 @@ class Keep(object):
             return it
         return None
 
-    def clearDir(self):
+    def clearAllDir(self):
         '''
-        Clear the common directory
+        Clear all the directories
         '''
         # shutil.rmtree
         if os.path.exists(self.dirpath):
-            os.rmdir(self.dirpath)
+            shutil.rmtree(self.dirpath)
 
     def defaults(self):
         '''

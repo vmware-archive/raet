@@ -364,6 +364,7 @@ class BasicTestCase(unittest.TestCase):
         stack.clearLocal()
         stack.clearRemoteKeeps()
 
+
     def testAltDirpath(self):
         '''
         Keep fallback path function when don't have permissions to directory
@@ -403,7 +404,7 @@ class BasicTestCase(unittest.TestCase):
         Test pending behavior when not auto accept by main
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = False #do not auto accept
         data = self.createRoadData(name='main', base=base)
         keeping.clearAllKeepSafe(data['dirpath'])
@@ -416,8 +417,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=base)
@@ -430,8 +432,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertFalse(main.safe.auto)
 
@@ -482,7 +485,7 @@ class BasicTestCase(unittest.TestCase):
 
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = False #do not auto accept
         data = self.createRoadData(name='main', base=base)
         keeping.clearAllKeepSafe(data['dirpath'])
@@ -495,8 +498,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=base)
@@ -510,8 +514,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertFalse(main.safe.auto)
 
@@ -627,7 +632,7 @@ class BasicTestCase(unittest.TestCase):
         from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
         data = self.createRoadData(name='main', base=base)
         keeping.clearAllKeepSafe(data['dirpath'])
@@ -640,8 +645,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=base)
@@ -654,8 +660,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertTrue(main.safe.auto)
 
@@ -690,8 +697,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -728,8 +736,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
@@ -776,7 +785,7 @@ class BasicTestCase(unittest.TestCase):
         from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostOtherKeepLocal.__doc__))
-        base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
         data = self.createRoadData(name='main', base=base)
         keeping.clearAllKeepSafe(data['dirpath'])
@@ -789,8 +798,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=base)
@@ -803,8 +813,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertTrue(main.safe.auto)
 
@@ -840,8 +851,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -878,8 +890,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
@@ -928,8 +941,9 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
@@ -982,7 +996,7 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeep.__doc__))
-        base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
         data = self.createRoadData(name='main', base=base)
         savedMainData = data
@@ -996,8 +1010,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=base)
@@ -1010,8 +1025,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
@@ -1046,8 +1062,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -1098,8 +1115,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -1148,7 +1166,7 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
-        base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
         data = self.createRoadData(name='main', base=base)
         savedMainData = data
@@ -1162,8 +1180,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=base)
@@ -1176,8 +1195,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
@@ -1213,8 +1233,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
@@ -1267,8 +1288,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -1318,7 +1340,7 @@ class BasicTestCase(unittest.TestCase):
         their local keys but keeping their remote data
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
-        base = '/tmp/raet/'
+        base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
         auto = True
         data = self.createRoadData(name='main', base=base)
         savedMainData = data
@@ -1332,8 +1354,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=base)
@@ -1347,8 +1370,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
@@ -1394,16 +1418,18 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                         other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         remote = other.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
@@ -1461,16 +1487,18 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, '/tmp/raet/road/keep/main')
-        self.assertEqual(main.safe.dirpath, '/tmp/raet/road/keep/main')
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                         other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, '/tmp/raet/road/keep/other')
-        self.assertEqual(other.safe.dirpath, '/tmp/raet/road/keep/other')
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         remote = other.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
@@ -1559,7 +1587,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testBasic')
+    #runOne('testBasic')
 
