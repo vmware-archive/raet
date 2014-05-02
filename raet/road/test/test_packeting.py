@@ -13,6 +13,7 @@ else:
 
 import os
 import time
+import tempfile
 
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer
@@ -369,7 +370,7 @@ class StackTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        dirpathBase='/tmp/raet/'
+        dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="temp")
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack
@@ -672,7 +673,7 @@ if __name__ == '__main__' and __package__ is None:
 
     runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
     #runOneBasic('testBasicJson')
     #runOneStack('testEncrypt')
