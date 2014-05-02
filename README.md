@@ -463,7 +463,7 @@ currently only JSON has been implemented.
 “RAET\njson\n\n”
 Followed by a jsonified  message body dict
 
-2) msgpack (not implemented yet) Header:
+2) msgpack Header:
 “RAET\npack\n\n”
 Followed by a msgpackified   message body dict
 
