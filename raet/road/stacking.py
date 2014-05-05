@@ -103,9 +103,6 @@ class RoadStack(stacking.Stack):
 
         self.transactions = odict() #transactions
 
-        self.dumpLocal() # save local data
-        self.dumpRemotes() # save remote data
-
     def fetchRemoteByHostPort(self, host, port):
         '''
         Search for remote with matching (host, port)

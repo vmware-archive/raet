@@ -88,7 +88,6 @@ class LaneStack(stacking.Stack):
 
         self.books = odict()
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
-        #self.keep.dumpLocalLane(self.yard)
 
     def addBook(self, index, book):
         '''
