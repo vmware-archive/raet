@@ -76,9 +76,6 @@ class RoadStack(stacking.Stack):
             safe = keeping.SafeKeep(dirpath=dirpath,
                                     stackname=name,
                                     auto=auto)
-        else:
-            if auto is not None:
-                safe.auto = True if auto else False
         self.safe = safe
 
         if not local:
