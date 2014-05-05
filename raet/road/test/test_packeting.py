@@ -371,7 +371,7 @@ class StackTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="temp")
+        self.dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack

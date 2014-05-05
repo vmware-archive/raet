@@ -41,7 +41,9 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.baseDirpath = os.path.join(tempfile.mkdtemp(prefix="raet",  suffix="temo"), 'lane')
+        self.baseDirpath = os.path.join(
+                tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp'),
+                'lane')
 
         # main stack
         self.main = stacking.LaneStack(name='main',

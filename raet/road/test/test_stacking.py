@@ -38,7 +38,7 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="temo")
+        self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack

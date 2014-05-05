@@ -39,7 +39,7 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.base = tempfile.mkdtemp(prefix="raet",  suffix="base")
+        self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
 
     def tearDown(self):
         if os.path.exists(self.base):
@@ -993,7 +993,7 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeep.__doc__))
-        self.base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
+        self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
@@ -1336,7 +1336,7 @@ class BasicTestCase(unittest.TestCase):
         their local keys but keeping their remote data
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
-        self.base = tempfile.mkdtemp(prefix="raet",  suffix="temp")
+        self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
