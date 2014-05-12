@@ -38,8 +38,10 @@ class RoadKeep(keeping.Keep):
                 estate.eid.ext
                 estate.eid.ext
     '''
-    LocalFields = ['eid', 'name', 'main', 'host', 'port', 'sid']
-    RemoteFields = ['eid', 'name', 'host', 'port', 'sid', 'rsid']
+    #LocalFields = ['eid', 'name', 'main', 'host', 'port', 'sid']
+    #RemoteFields = ['eid', 'name', 'host', 'port', 'sid', 'rsid']
+    LocalFields = ['eid', 'name', 'main', 'ha', 'sid']
+    RemoteFields = ['eid', 'name', 'ha', 'sid', 'rsid']
 
     def __init__(self, prefix='estate', **kwa):
         '''
@@ -55,8 +57,9 @@ class RoadKeep(keeping.Keep):
                         ('eid', local.eid),
                         ('name', local.name),
                         ('main', local.main),
-                        ('host', local.host),
-                        ('port', local.port),
+                        ('ha', local.ha),
+                        #('host', local.host),
+                        #('port', local.port),
                         ('sid', local.sid)
                     ])
         if self.verifyLocalData(data):
@@ -69,8 +72,9 @@ class RoadKeep(keeping.Keep):
         data = odict([
                         ('eid', remote.eid),
                         ('name', remote.name),
-                        ('host', remote.host),
-                        ('port', remote.port),
+                        ('ha', remote.ha),
+                        #('host', remote.host),
+                        #('port', remote.port),
                         ('sid', remote.sid),
                         ('rsid', remote.rsid),
                     ])

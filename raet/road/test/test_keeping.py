@@ -168,13 +168,12 @@ class BasicTestCase(unittest.TestCase):
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         validLocalKeepData =  odict([
-                                 ('eid', 1),
-                                 ('name', 'main'),
-                                 ('main', True),
-                                 ('host', '0.0.0.0'),
-                                 ('port', 7530),
-                                 ('sid', 0),
-                               ])
+                                        ('eid', 1),
+                                        ('name', 'main'),
+                                        ('main', True),
+                                        ('ha', ['0.0.0.0', 7530]),
+                                        ('sid', 0),
+                                    ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         remoteKeepData = stack.keep.loadAllRemoteData()
@@ -201,8 +200,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('eid', stack.local.eid),
                                 ('name', stack.local.name),
                                 ('main', stack.local.main),
-                                ('host', stack.local.host),
-                                ('port', stack.local.port),
+                                ('ha', list(stack.local.ha)),
                                 ('sid', stack.local.sid),
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -241,15 +239,13 @@ class BasicTestCase(unittest.TestCase):
         validRemoteKeepData = {'2':
                             {'eid': 2,
                              'name': other1Data['name'],
-                             'host': '127.0.0.1',
-                             'port': 7531,
+                             'ha': ['127.0.0.1', 7531],
                              'sid': 0,
                              'rsid': 0},
                          '3':
                             {'eid': 3,
                              'name': other2Data['name'],
-                             'host': '127.0.0.1',
-                             'port': 7532,
+                             'ha': ['127.0.0.1', 7532],
                              'sid': 0,
                              'rsid': 0}
                         }
@@ -292,8 +288,7 @@ class BasicTestCase(unittest.TestCase):
             remoteKeepData[remote.uid] = odict([
                                                 ('eid', remote.eid),
                                                 ('name', remote.name),
-                                                ('host', remote.host),
-                                                ('port', remote.port),
+                                                ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
                                                 ('rsid', remote.rsid),
                                                ])
@@ -317,13 +312,11 @@ class BasicTestCase(unittest.TestCase):
                                    auto=auto,
                                    dirpath=data['dirpath'],
                                    store=self.store)
-
         localKeepData = odict([
                                 ('eid', stack.local.eid),
                                 ('name', stack.local.name),
                                 ('main', stack.local.main),
-                                ('host', stack.local.host),
-                                ('port', stack.local.port),
+                                ('ha', list(stack.local.ha)),
                                 ('sid', stack.local.sid),
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
@@ -343,8 +336,7 @@ class BasicTestCase(unittest.TestCase):
             remoteKeepData[remote.uid] = odict([
                                                 ('eid', remote.eid),
                                                 ('name', remote.name),
-                                                ('host', remote.host),
-                                                ('port', remote.port),
+                                                ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
                                                 ('rsid', remote.rsid),
                                                ])
