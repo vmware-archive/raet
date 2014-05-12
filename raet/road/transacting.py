@@ -373,6 +373,8 @@ class Joiner(Initiator):
         '''
         Perform acceptance in response to join response packet
         '''
+        #import wingdbstub
+
         if not self.stack.parseInner(self.rxPacket):
             return
         data = self.rxPacket.data
