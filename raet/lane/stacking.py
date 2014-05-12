@@ -89,6 +89,38 @@ class LaneStack(stacking.Stack):
         self.books = odict()
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
 
+    def loadLocal(self, local=None):
+        '''
+        Load self.local from keep file else local or new
+        '''
+        data = self.keep.loadLocalData()
+        if data and self.keep.verifyLocalData(data):
+            self.local = yarding.LocalYard(stack=self,
+                                     #uid=data['uid'],
+                                     name=data['name'],
+                                     ha=data['ha'])
+
+        elif local:
+            local.stack = self
+            self.local = local
+
+        else:
+            self.local = yarding.LocalYard(stack=self)
+
+    def loadRemotes(self):
+        '''
+        Load and add remote for each remote file
+        '''
+        datadict = self.keep.loadAllRemoteData()
+        for data in datadict.values():
+            if self.keep.verifyRemoteData(data):
+                lot = yarding.RemoteYard(stack=self,
+                                  #uid=data['uid'],
+                                  name=data['name'],
+                                  ha=data['ha'])
+                self.addRemote(remote)
+
+
     def addBook(self, index, book):
         '''
         Safely add book at index If not already there
