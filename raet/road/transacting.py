@@ -69,11 +69,11 @@ class Transaction(object):
         Property is transaction tuple (rf, le, re, si, ti, bf,)
         '''
         le = self.stack.local.uid
-        if le == 0: #bootstrapping onto channel use ha
+        if le == 0: # bootstrapping onto channel use ha
             le = self.stack.local.ha
         re = self.reid
-        if re == 0: #bootstrapping onto channel use ha
-            re = self.stack.remotes[self.reid].ha
+        if re == 0: # bootstrapping onto channel use ha from zeroth remote
+            re = self.stack.remotes[0].ha
         return ((self.rmt, le, re, self.sid, self.tid, self.bcst,))
 
     def process(self):
@@ -256,10 +256,10 @@ class Joiner(Initiator):
                                            duration=self.redoTimeoutMin)
 
         if self.reid is None:
-            if not self.stack.remotes: # no channel master so make one
-                master = estating.RemoteEstate(eid=0, ha=mha)
-                self.stack.addRemote(master)
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is channel master
+            if not self.stack.remotes: # no main estate so make one
+                main = estating.RemoteEstate(eid=0, ha=mha)
+                self.stack.addRemote(main)
+            self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
         self.sid = 0
         self.tid = self.stack.remotes[self.reid].nextTid()
         self.prep()

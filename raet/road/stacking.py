@@ -102,11 +102,22 @@ class RoadStack(stacking.Stack):
 
     def fetchRemoteByHostPort(self, host, port):
         '''
-        Search for remote with matching (host, port)
+        Search for remote with matching host and port
         Return remote if found Otherwise return None
         '''
         for remote in self.remotes.values():
             if remote.host == host and remote.port == port:
+                return remote
+
+        return None
+
+    def fetchRemoteByHa(self, ha):
+        '''
+        Search for remote with matching host address tuple, ha = (host, port)
+        Return remote if found Otherwise return None
+        '''
+        for remote in self.remotes.values():
+            if remote.ha == ha:
                 return remote
 
         return None
@@ -215,6 +226,15 @@ class RoadStack(stacking.Stack):
         Safely add transaction at index If not already there
         '''
         self.transactions[index] = transaction
+        re = index[2]
+        remote = None
+        if re in self.remotes:
+            remote = self.remotes[re]
+        else: # may be bootstrapping onto channel so using ha in index but 0th
+            remote = self.fetchRemoteByHa(ha=re)
+        if remote is not None:
+            remote.indexes.add(index)
+
         console.verbose( "Added {0} transaction to {1} at '{2}'\n".format(
                 transaction.__class__.__name__, self.name, index))
 
@@ -229,6 +249,15 @@ class RoadStack(stacking.Stack):
                     del  self.transactions[index]
             else:
                 del self.transactions[index]
+
+            re = index[2]
+            remote = None
+            if re in self.remotes:
+                remote = self.remotes[re]
+            else: # may be bootstrapping onto channel so using ha in index but 0th
+                remote = self.fetchRemoteByHa(ha=re)
+            if remote is not None:
+                remote.indexes.discard(index)
 
     def serviceRxes(self):
         '''
