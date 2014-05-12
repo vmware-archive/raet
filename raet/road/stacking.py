@@ -141,12 +141,10 @@ class RoadStack(stacking.Stack):
         if (keepData and self.keep.verifyLocalData(keepData) and
                 safeData and self.safe.verifyLocalData(safeData)):
             self.local = estating.LocalEstate(stack=self,
-                                          eid=keepData['eid'],
+                                          eid=keepData['uid'],
                                           name=keepData['name'],
                                           main=keepData['main'],
                                           ha=keepData['ha'],
-                                          #host=keepData['host'],
-                                          #port=keepData['port'],
                                           sid=keepData['sid'],
                                           sigkey=safeData['sighex'],
                                           prikey=safeData['prihex'],)
@@ -188,11 +186,9 @@ class RoadStack(stacking.Stack):
                     self.safe.verifyRemoteData(safeData)):
                 continue
             remote = estating.RemoteEstate(stack=self,
-                                           eid=keepData['eid'],
+                                           eid=keepData['uid'],
                                            name=keepData['name'],
                                            ha=keepData['ha'],
-                                           #host=keepData['host'],
-                                           #port=keepData['port'],
                                            sid=keepData['sid'],
                                            rsid=keepData['rsid'],
                                            acceptance=safeData['acceptance'],

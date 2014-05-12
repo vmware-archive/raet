@@ -44,7 +44,7 @@ class Keep(object):
             keep/
                 stackname/
                     local/
-                        prefix.uid.ext
+                        prefix.ext
                     remote/
                         prefix.uid.ext
                         prefix.uid.ext

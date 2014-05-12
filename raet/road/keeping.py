@@ -33,15 +33,13 @@ class RoadKeep(keeping.Keep):
     keep/
         stackname/
             local/
-                estate.eid.ext
+                estate.ext
             remote/
-                estate.eid.ext
-                estate.eid.ext
+                estate.uid.ext
+                estate.uid.ext
     '''
-    #LocalFields = ['eid', 'name', 'main', 'host', 'port', 'sid']
-    #RemoteFields = ['eid', 'name', 'host', 'port', 'sid', 'rsid']
-    LocalFields = ['eid', 'name', 'main', 'ha', 'sid']
-    RemoteFields = ['eid', 'name', 'ha', 'sid', 'rsid']
+    LocalFields = ['uid', 'name', 'ha', 'main', 'sid']
+    RemoteFields = ['uid', 'name', 'ha', 'sid', 'rsid']
 
     def __init__(self, prefix='estate', **kwa):
         '''
@@ -54,12 +52,10 @@ class RoadKeep(keeping.Keep):
         Dump local estate
         '''
         data = odict([
-                        ('eid', local.eid),
+                        ('uid', local.uid),
                         ('name', local.name),
-                        ('main', local.main),
                         ('ha', local.ha),
-                        #('host', local.host),
-                        #('port', local.port),
+                        ('main', local.main),
                         ('sid', local.sid)
                     ])
         if self.verifyLocalData(data):
@@ -70,11 +66,9 @@ class RoadKeep(keeping.Keep):
         Dump remote estate
         '''
         data = odict([
-                        ('eid', remote.eid),
+                        ('uid', remote.uid),
                         ('name', remote.name),
                         ('ha', remote.ha),
-                        #('host', remote.host),
-                        #('port', remote.port),
                         ('sid', remote.sid),
                         ('rsid', remote.rsid),
                     ])
@@ -85,8 +79,8 @@ class SafeKeep(keeping.Keep):
     '''
     RAET protocol estate safe (key) data persistence and status
     '''
-    LocalFields = ['eid', 'name', 'sighex', 'prihex']
-    RemoteFields = ['eid', 'name', 'acceptance', 'verhex', 'pubhex']
+    LocalFields = ['uid', 'name', 'sighex', 'prihex']
+    RemoteFields = ['uid', 'name', 'acceptance', 'verhex', 'pubhex']
     Auto = False #auto accept
 
     def __init__(self, prefix='key', auto=None, **kwa):
@@ -95,15 +89,10 @@ class SafeKeep(keeping.Keep):
 
         keep/
             local/
-                key.eid.ext
+                prefix.ext
             remote/
-                key.eid.ext
-                key.eid.ext
-
-                pended/
-                    key.eid.ext
-                rejected/
-                    key.eid.ext
+                prefix.uid.ext
+                prefix.uid.ext
         '''
         super(SafeKeep, self).__init__(prefix=prefix, **kwa)
         self.auto = auto if auto is not None else self.Auto
@@ -113,7 +102,7 @@ class SafeKeep(keeping.Keep):
         Dump the local estate
         '''
         data = odict([
-                        ('eid', local.eid),
+                        ('uid', local.uid),
                         ('name', local.name),
                         ('sighex', local.signer.keyhex),
                         ('prihex', local.priver.keyhex),
@@ -126,7 +115,7 @@ class SafeKeep(keeping.Keep):
         Dump the data from the remote estate
         '''
         data = odict([
-                ('eid', remote.eid),
+                ('uid', remote.uid),
                 ('name', remote.name),
                 ('acceptance', remote.acceptance),
                 ('verhex', remote.verfer.keyhex),

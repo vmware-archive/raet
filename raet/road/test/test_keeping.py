@@ -168,10 +168,10 @@ class BasicTestCase(unittest.TestCase):
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         validLocalKeepData =  odict([
-                                        ('eid', 1),
+                                        ('uid', 1),
                                         ('name', 'main'),
-                                        ('main', True),
                                         ('ha', ['0.0.0.0', 7530]),
+                                        ('main', True),
                                         ('sid', 0),
                                     ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -183,7 +183,7 @@ class BasicTestCase(unittest.TestCase):
         localSafeData = stack.safe.loadLocalData()
         console.terse("Local safe data = '{0}'\n".format(localSafeData))
         validLocalSafeData = odict([
-                                ('eid', 1),
+                                ('uid', 1),
                                 ('name', 'main'),
                                 ('sighex', data['sighex']),
                                 ('prihex', data['prihex']),
@@ -197,16 +197,16 @@ class BasicTestCase(unittest.TestCase):
         # test round trip with stack methods
         stack.loadLocal()
         localKeepData = odict([
-                                ('eid', stack.local.eid),
+                                ('uid', stack.local.uid),
                                 ('name', stack.local.name),
-                                ('main', stack.local.main),
                                 ('ha', list(stack.local.ha)),
+                                ('main', stack.local.main),
                                 ('sid', stack.local.sid),
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         localSafeData = odict([
-                                ('eid', stack.local.eid),
+                                ('uid', stack.local.uid),
                                 ('name', stack.local.name),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
@@ -237,13 +237,13 @@ class BasicTestCase(unittest.TestCase):
         remoteKeepData = stack.keep.loadAllRemoteData()
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
         validRemoteKeepData = {'2':
-                            {'eid': 2,
+                            {'uid': 2,
                              'name': other1Data['name'],
                              'ha': ['127.0.0.1', 7531],
                              'sid': 0,
                              'rsid': 0},
                          '3':
-                            {'eid': 3,
+                            {'uid': 3,
                              'name': other2Data['name'],
                              'ha': ['127.0.0.1', 7532],
                              'sid': 0,
@@ -254,13 +254,13 @@ class BasicTestCase(unittest.TestCase):
         remoteSafeData = stack.safe.loadAllRemoteData()
         console.terse("Remote safe data = '{0}'\n".format(remoteSafeData))
         validRemoteSafeData = {'2':
-                            {'eid': 2,
+                            {'uid': 2,
                              'name': other1Data['name'],
                              'acceptance': None,
                              'verhex': other1Data['verhex'],
                              'pubhex': other1Data['pubhex']},
                          '3':
-                            {'eid': 3,
+                            {'uid': 3,
                              'name': other2Data['name'],
                              'acceptance': None,
                              'verhex': other2Data['verhex'],
@@ -286,7 +286,7 @@ class BasicTestCase(unittest.TestCase):
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.uid] = odict([
-                                                ('eid', remote.eid),
+                                                ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
@@ -297,7 +297,7 @@ class BasicTestCase(unittest.TestCase):
         remoteSafeData = odict()
         for remote in stack.remotes.values():
             remoteSafeData[remote.uid] = odict([
-                                                ('eid', remote.eid),
+                                                ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('acceptance', remote.acceptance),
                                                 ('verhex', remote.verfer.keyhex),
@@ -313,17 +313,17 @@ class BasicTestCase(unittest.TestCase):
                                    dirpath=data['dirpath'],
                                    store=self.store)
         localKeepData = odict([
-                                ('eid', stack.local.eid),
+                                ('uid', stack.local.uid),
                                 ('name', stack.local.name),
-                                ('main', stack.local.main),
                                 ('ha', list(stack.local.ha)),
+                                ('main', stack.local.main),
                                 ('sid', stack.local.sid),
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         localSafeData = odict([
-                                ('eid', stack.local.eid),
+                                ('uid', stack.local.uid),
                                 ('name', stack.local.name),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
@@ -334,7 +334,7 @@ class BasicTestCase(unittest.TestCase):
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.uid] = odict([
-                                                ('eid', remote.eid),
+                                                ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
@@ -345,7 +345,7 @@ class BasicTestCase(unittest.TestCase):
         remoteSafeData = odict()
         for remote in stack.remotes.values():
             remoteSafeData[remote.uid] = odict([
-                                                ('eid', remote.eid),
+                                                ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('acceptance', remote.acceptance),
                                                 ('verhex', remote.verfer.keyhex),

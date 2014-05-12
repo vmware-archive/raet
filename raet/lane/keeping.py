@@ -31,15 +31,15 @@ class LaneKeep(keeping.Keep):
     keep/
         stackname/
             local/
-                estate.eid.ext
+                prefix.ext
             remote/
-                estate.eid.ext
-                estate.eid.ext
+                prefix.uid.ext
+                prefix.uid.ext
     '''
-    LocalFields = ['ha', 'name', 'main', 'mid']
-    RemoteFields = ['ha', 'name', 'mid',  'rmid']
+    LocalFields = ['uid', 'name', 'ha', 'main', 'mid']
+    RemoteFields = ['uid', 'name', 'ha', 'mid',  'rmid']
 
-    def __init__(self, prefix='estate', **kwa):
+    def __init__(self, prefix='yard', **kwa):
         '''
         Setup LaneKeep instance
         '''
