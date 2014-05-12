@@ -189,6 +189,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.main.uids), 1)
         self.assertTrue(len(self.main.remotes), 1)
         self.assertEqual(remote.name, 'other')
+        self.assertEqual(len(remote.indexes), 0)
         self.assertTrue('other' in self.main.uids)
         self.assertIs(self.main.remotes[self.main.uids[remote.name]], remote)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -206,6 +207,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.other.uids), 1)
         self.assertTrue(len(self.other.remotes), 1)
         self.assertEqual(remote.name, 'main')
+        self.assertEqual(len(remote.indexes), 0)
         self.assertTrue('main' in self.other.uids)
         self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -223,6 +225,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.main.uids), 1)
         self.assertTrue(len(self.main.remotes), 1)
         self.assertEqual(remote.name, 'other')
+        self.assertEqual(len(remote.indexes), 0)
         self.assertTrue('other' in self.main.uids)
         console.terse("Stack '{0}' estate name '{1}' allowd with '{2}' = {3}\n".format(
                 self.main.name, self.main.local.name, remote.name, remote.allowed))
@@ -238,6 +241,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.other.uids), 1)
         self.assertTrue(len(self.other.remotes), 1)
         self.assertEqual(remote.name, 'main')
+        self.assertEqual(len(remote.indexes), 0)
         self.assertTrue('main' in self.other.uids)
         console.terse("Stack '{0}' estate name '{1}' allowed with '{2}' = {3}\n".format(
                 self.other.name, self.other.local.name, remote.name, remote.allowed))
@@ -424,7 +428,6 @@ class BasicTestCase(unittest.TestCase):
         mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
         self.bidirectional(bk=raeting.bodyKinds.msgpack, mains=mains, others=others)
-
 
     def testJoinForever(self):
         '''
