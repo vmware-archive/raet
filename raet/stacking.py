@@ -117,7 +117,8 @@ class Stack(object):
 
     def moveRemote(self, old, new):
         '''
-        Move remote at key old uid to key new uid but keep same index
+        Move remote at key old uid with key new uid and replace the odict key index
+        so order is the same
         '''
         if new in self.remotes:
             emsg = "Cannot move, remote to '{0}', already exists".format(new)
