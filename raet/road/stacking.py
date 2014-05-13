@@ -42,6 +42,7 @@ class RoadStack(stacking.Stack):
     RAET protocol RoadStack for UDP communications
     '''
     Count = 0
+    Eid = 1 # class attribute
     Hk = raeting.headKinds.raet # stack default
     Bk = raeting.bodyKinds.json # stack default
     Fk = raeting.footKinds.nacl # stack default
@@ -55,7 +56,7 @@ class RoadStack(stacking.Stack):
                  keep=None,
                  dirpath=None,
                  local=None,
-                 eid=None,
+                 eid=None, #local estate eid
                  ha=("", raeting.RAET_PORT),
                  bufcnt=2,
                  safe=None,
@@ -65,6 +66,8 @@ class RoadStack(stacking.Stack):
         '''
         Setup StackUdp instance
         '''
+        self.eid = self.Eid # eid of next estate to add to road
+
         if not name:
             name = "roadstack{0}".format(RoadStack.Count)
             RoadStack.Count += 1
@@ -81,6 +84,7 @@ class RoadStack(stacking.Stack):
         if not local:
             self.remotes = odict()
             local = estating.LocalEstate(stack=self,
+                                         name=name,
                                          eid=eid,
                                          main=main,
                                          ha=ha)
@@ -88,17 +92,44 @@ class RoadStack(stacking.Stack):
             if main is not None:
                 local.main = True if main else False
 
-        server = aiding.SocketUdpNb(ha=local.ha,
-                                    bufsize=raeting.UDP_MAX_PACKET_SIZE * bufcnt)
-
         super(RoadStack, self).__init__(name=name,
                                         keep=keep,
                                         dirpath=dirpath,
                                         local=local,
-                                        server=server,
+                                        bufcnt=bufcnt,
                                         **kwa)
 
         self.transactions = odict() #transactions
+
+    def nextEid(self):
+        '''
+        Generates next estate id number.
+        '''
+        self.eid += 1
+        if self.eid > 0xffffffffL:
+            self.eid = 1  # rollover to 1
+        return self.eid
+
+    def serverFromLocal(self):
+        '''
+        Create server from local data
+        '''
+        if not self.local:
+            return None
+
+        server = aiding.SocketUdpNb(ha=self.local.ha,
+                        bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
+        return server
+
+    def removeRemote(self, uid):
+        '''
+        Remove remote at key uid
+        '''
+        remote = self.remotes.get(uid)
+        super(RoadStack, self).removeRemote(uid)
+        if remote:
+            for index in remote.indexes:
+                self.removeTransaction(index)
 
     def fetchRemoteByHostPort(self, host, port):
         '''
@@ -159,6 +190,8 @@ class RoadStack(stacking.Stack):
                                           sid=keepData['sid'],
                                           sigkey=safeData['sighex'],
                                           prikey=safeData['prihex'],)
+            self.safe.auto = safeData['auto']
+            self.name = keepData['name']
 
         elif local:
             local.stack = self

@@ -79,7 +79,7 @@ class SafeKeep(keeping.Keep):
     '''
     RAET protocol estate safe (key) data persistence and status
     '''
-    LocalFields = ['uid', 'name', 'sighex', 'prihex']
+    LocalFields = ['uid', 'name', 'sighex', 'prihex', 'auto']
     RemoteFields = ['uid', 'name', 'acceptance', 'verhex', 'pubhex']
     Auto = False #auto accept
 
@@ -106,6 +106,7 @@ class SafeKeep(keeping.Keep):
                         ('name', local.name),
                         ('sighex', local.signer.keyhex),
                         ('prihex', local.priver.keyhex),
+                        ('auto', self.auto),
                     ])
         if self.verifyLocalData(data):
             self.dumpLocalData(data)

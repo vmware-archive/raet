@@ -76,18 +76,26 @@ class LaneStack(stacking.Stack):
                                         lanename=lanename)
 
 
-        server = aiding.SocketUxdNb(ha=local.ha,
-                            bufsize=raeting.UXD_MAX_PACKET_SIZE * bufcnt)
-
         super(LaneStack, self).__init__(name=name,
                                         keep=keep,
                                         dirpath=dirpath,
                                         local=local,
-                                        server=server,
+                                        bufcnt=bufcnt,
                                         **kwa)
 
         self.books = odict()
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
+
+    def serverFromLocal(self):
+        '''
+        Create server from local data
+        '''
+        if not self.local:
+            return None
+
+        server = aiding.SocketUxdNb(ha=self.local.ha,
+                            bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
+        return server
 
     def loadLocal(self, local=None):
         '''
@@ -96,7 +104,6 @@ class LaneStack(stacking.Stack):
         data = self.keep.loadLocalData()
         if data and self.keep.verifyLocalData(data):
             self.local = yarding.LocalYard(stack=self,
-                                     #uid=data['uid'],
                                      name=data['name'],
                                      ha=data['ha'])
 
@@ -115,7 +122,6 @@ class LaneStack(stacking.Stack):
         for data in datadict.values():
             if self.keep.verifyRemoteData(data):
                 lot = yarding.RemoteYard(stack=self,
-                                  #uid=data['uid'],
                                   name=data['name'],
                                   ha=data['ha'])
                 self.addRemote(remote)

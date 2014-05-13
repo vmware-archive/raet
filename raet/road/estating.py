@@ -22,7 +22,6 @@ class Estate(lotting.Lot):
     '''
     RAET protocol endpoint estate object
     '''
-    Eid = 2 # class attribute
 
     def __init__(self,
                  stack=None,
@@ -37,16 +36,17 @@ class Estate(lotting.Lot):
         '''
         Setup Estate instance
         '''
-        super(Estate, self).__init__(stack=stack, name=name, ha=ha, **kwa)
         if eid is None:
-            if self.stack:
-                while Estate.Eid in self.stack.remotes:
-                    Estate.Eid += 1
-                eid = Estate.Eid
+            if stack:
+                eid = stack.nextEid()
+                while eid in stack.remotes:
+                    eid = stack.nextEid()
             else:
                 eid = 0
         self.eid = eid # estate ID
-        self.name = name or "estate{0}".format(self.uid)
+        name = name or "estate{0}".format(self.uid)
+
+        super(Estate, self).__init__(stack=stack, name=name, ha=ha, **kwa)
 
         self.sid = sid # current session ID
         self.tid = tid # current transaction ID
@@ -120,14 +120,18 @@ class LocalEstate(Estate):
     RAET protocol endpoint local estate object
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
-    def __init__(self, main=None, sigkey=None, prikey=None, **kwa):
+    def __init__(self, stack=None, name="", main=None,
+                 sigkey=None, prikey=None, **kwa):
         '''
         Setup Estate instance
 
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
         '''
-        super(LocalEstate, self).__init__(**kwa)
+        if not name and stack:
+            name = stack.name
+
+        super(LocalEstate, self).__init__(stack=stack, name=name, **kwa)
         self.main = True if main else False # main estate for road
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key

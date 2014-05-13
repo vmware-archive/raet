@@ -698,9 +698,10 @@ class Joinent(Correspondent):
         if remote:
             if not (host == remote.host and port == remote.port):
                 other = self.stack.fetchRemoteByHostPort(host, port)
-                if other and other is not remote: #may need to terminate transactions
+                if other and other is not remote:
                     try:
                         self.stack.removeRemote(other.uid)
+                        # may need to terminate transactions
                     except raeting.StackError as ex:
                         console.terse(str(ex) + '\n')
                         self.stack.incStat(self.statKey())
@@ -715,34 +716,49 @@ class Joinent(Correspondent):
                                                         pubhex=pubhex)
         else:
             other = self.stack.fetchRemoteByHostPort(host, port)
-            if other: #may need to terminate transactions
+            if other:
+                status = self.stack.safe.statusRemote(other,
+                                                      verhex=verhex,
+                                                      pubhex=pubhex)
+                if status == raeting.acceptances.accepted: # accepted keys so rename
+                    try:
+                        self.stack.renameRemote(old=other.name, new=name)
+                        remote = other
+                    except raeting.StackError as ex:
+                        console.terse(str(ex) + '\n')
+                        self.stack.incStat(self.statKey())
+                        self.remove(self.rxPacket.index)
+                        return
+                else: # not accepted so remove other and replace
+                    try:
+                        self.stack.removeRemote(other.uid)
+                        #may need to terminate transactions
+                    except raeting.StackError as ex:
+                        console.terse(str(ex) + '\n')
+                        self.stack.incStat(self.statKey())
+                        self.remove(self.rxPacket.index)
+                        return
+
+            if not remote: # create new one
+                remote = estating.RemoteEstate( stack=self.stack,
+                                                name=name,
+                                                host=host,
+                                                port=port,
+                                                acceptance=None,
+                                                verkey=verhex,
+                                                pubkey=pubhex,
+                                                rsid=self.sid,
+                                                rtid=self.tid, )
                 try:
-                    self.stack.removeRemote(other.uid)
+                    self.stack.addRemote(remote) #provisionally add .accepted is None
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
                     self.remove(self.rxPacket.index)
                     return
-
-            remote = estating.RemoteEstate( stack=self.stack,
-                                            name=name,
-                                            host=host,
-                                            port=port,
-                                            acceptance=None,
-                                            verkey=verhex,
-                                            pubkey=pubhex,
-                                            rsid=self.sid,
-                                            rtid=self.tid, )
-            try:
-                self.stack.addRemote(remote) #provisionally add .accepted is None
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.remove(self.rxPacket.index)
-                return
-            status = self.stack.safe.statusRemote(remote,
-                                                        verhex=verhex,
-                                                        pubhex=pubhex)
+                status = self.stack.safe.statusRemote(remote,
+                                                            verhex=verhex,
+                                                            pubhex=pubhex)
 
         self.stack.dumpRemote(remote)
         self.reid = remote.uid # auto generated at instance creation above

@@ -47,6 +47,7 @@ class Stack(object):
                  keep=None,
                  dirpath='',
                  local=None,
+                 bufcnt=2,
                  server=None,
                  rxMsgs=None,
                  txMsgs=None,
@@ -69,6 +70,11 @@ class Stack(object):
         self.remotes = odict() # remotes indexed by uid
         self.uids = odict() # remote uids indexed by name
         self.loadRemotes() # load remotes from saved data
+
+        self.bufcnt = bufcnt
+        if not server:
+            server = self.serverFromLocal()
+
         self.server = server
         if self.server:
             if not self.server.reopen():  # open socket
@@ -86,6 +92,12 @@ class Stack(object):
 
         self.dumpLocal() # save local data
         self.dumpRemotes() # save remote data
+
+    def serverFromLocal(self):
+        '''
+        Create server from local data
+        '''
+        return None
 
     def addRemote(self, remote, uid=None):
         '''
@@ -184,6 +196,7 @@ class Stack(object):
                                      uid=data['uid'],
                                      name=data['name'],
                                      ha=data['ha'])
+            self.name = self.local.name
 
         elif local:
             local.stack = self

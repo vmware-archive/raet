@@ -45,7 +45,7 @@ class BasicTestCase(unittest.TestCase):
         if os.path.exists(self.base):
             shutil.rmtree(self.base)
 
-    def createRoadData(self, name, base):
+    def createRoadData(self, name, base, auto=None):
         '''
         Creates odict and populates with data to setup road stack
         {
@@ -66,6 +66,7 @@ class BasicTestCase(unittest.TestCase):
         privateer = nacling.Privateer()
         data['prihex'] = privateer.keyhex
         data['pubhex'] = privateer.pubhex
+        data['auto'] = auto
 
         return data
 
@@ -90,7 +91,7 @@ class BasicTestCase(unittest.TestCase):
 
         stack = stacking.RoadStack(name=data['name'],
                                    local=local,
-                                   auto=auto,
+                                   auto=auto if auto is not None else data['auto'],
                                    main=main,
                                    dirpath=data['dirpath'],
                                    store=self.store)
@@ -143,12 +144,11 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testBasic.__doc__))
         auto = True
-        data = self.createRoadData(name='main', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
-        stack = self.createRoadStack(data=data,
+        mainData = self.createRoadData(name='main', base=self.base, auto=auto)
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        stack = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
-                                     auto=auto,
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
@@ -185,8 +185,9 @@ class BasicTestCase(unittest.TestCase):
         validLocalSafeData = odict([
                                 ('uid', 1),
                                 ('name', 'main'),
-                                ('sighex', data['sighex']),
-                                ('prihex', data['prihex']),
+                                ('sighex', mainData['sighex']),
+                                ('prihex', mainData['prihex']),
+                                ('auto', mainData['auto']),
                               ])
         self.assertDictEqual(localSafeData, validLocalSafeData)
 
@@ -210,6 +211,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
+                                ('auto', stack.safe.auto),
                               ])
         self.assertDictEqual(localSafeData, validLocalSafeData)
 
@@ -308,9 +310,9 @@ class BasicTestCase(unittest.TestCase):
         stack.server.close()
 
         # bootstrap new stack from stored keep and safe data
-        stack = stacking.RoadStack(name=data['name'],
-                                   auto=auto,
-                                   dirpath=data['dirpath'],
+        stack = stacking.RoadStack(name=mainData['name'],
+                                   auto=mainData['auto'],
+                                   dirpath=mainData['dirpath'],
                                    store=self.store)
         localKeepData = odict([
                                 ('uid', stack.local.uid),
@@ -327,6 +329,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
+                                ('auto', stack.safe.auto),
                               ])
         console.terse("Local safe data = '{0}'\n".format(localSafeData))
         self.assertDictEqual(localSafeData, validLocalSafeData)
@@ -599,6 +602,133 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+    def testRejoin(self):
+        '''
+        Test rejoin after successful join with saved keys for both
+        '''
+        console.terse("{0}\n".format(self.testRejoin.__doc__))
+        auto = True
+        data = self.createRoadData(name='main', base=self.base)
+        mainDirpath = data['dirpath']
+        keeping.clearAllKeepSafe(data['dirpath'])
+        main = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                main.name, main.keep.dirpath, main.safe.dirpath))
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
+        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.name, 'main')
+        self.assertEqual(main.local.name, main.name)
+
+        data = self.createRoadData(name='other', base=self.base)
+        otherDirpath = data['dirpath']
+        keeping.clearAllKeepSafe(data['dirpath'])
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                other.name, other.keep.dirpath, other.safe.dirpath))
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.name, 'other')
+        self.assertEqual(other.local.name, other.name)
+
+        self.assertTrue(main.safe.auto)
+
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        #now close down and reload data
+        main.server.close()
+        other.server.close()
+
+        # make new stacks with saved data
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+
+        # attempt to join to main with main auto accept enabled
+        self.assertEqual(other.name, 'other')
+        self.assertEqual(other.local.name, other.name)
+        self.assertEqual(main.name, 'main')
+        self.assertEqual(main.local.name, main.name)
+        self.assertTrue(main.safe.auto)
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        #now close down and reload data
+        main.server.close()
+        other.server.close()
+
+        # make new stacks with saved data
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+
+        # attempt to join to main with main auto accept disabled
+        main.safe.auto = False
+        self.assertFalse(main.safe.auto)
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1549,6 +1679,7 @@ def runSome():
              'testAltDirpath',
              'testPending',
              'testPendingSavedKeep',
+             'testRejoin',
              'testLostOtherKeep',
              'testLostOtherKeepLocal',
              'testLostMainKeep',
@@ -1575,7 +1706,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testBasic')
+    runOne('testPendingSavedKeep')
 
