@@ -129,7 +129,9 @@ class RoadStack(stacking.Stack):
         super(RoadStack, self).removeRemote(uid)
         if remote:
             for index in remote.indexes:
-                self.removeTransaction(index)
+                if index in self.transactions:
+                    self.transactions[index].nack()
+                    self.removeTransaction(index)
 
     def fetchRemoteByHostPort(self, host, port):
         '''

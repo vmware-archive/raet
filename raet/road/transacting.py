@@ -123,6 +123,13 @@ class Transaction(object):
         '''
         return ("{0}_transaction_failure".format(self.__class__.__name__.lower()))
 
+    def nack(self, **kwa):
+        '''
+        Placeholder override in sub class
+        nack to terminate transaction with other side of transaction
+        '''
+        pass
+
 class Initiator(Transaction):
     '''
     RAET protocol initiator transaction class
@@ -581,7 +588,7 @@ class Joinent(Correspondent):
 
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.nackJoin()
+            self.nack()
             console.concise("Joinent {0}. Timed out at {0}\n".format(
                     self.stack.name, self.stack.store.stamp))
             return
@@ -701,7 +708,6 @@ class Joinent(Correspondent):
                 if other and other is not remote:
                     try:
                         self.stack.removeRemote(other.uid)
-                        # may need to terminate transactions
                     except raeting.StackError as ex:
                         console.terse(str(ex) + '\n')
                         self.stack.incStat(self.statKey())
@@ -732,7 +738,6 @@ class Joinent(Correspondent):
                 else: # not accepted so remove other and replace
                     try:
                         self.stack.removeRemote(other.uid)
-                        #may need to terminate transactions
                     except raeting.StackError as ex:
                         console.terse(str(ex) + '\n')
                         self.stack.incStat(self.statKey())
@@ -773,7 +778,7 @@ class Joinent(Correspondent):
             self.redoTimer.restart(duration=duration)
             self.accept()
         else:
-            self.nackJoin()
+            self.nack()
             emsg = "Estate {0} eid {1} keys rejected\n".format(
                             remote.name, remote.uid)
             console.terse(emsg)
@@ -872,7 +877,7 @@ class Joinent(Correspondent):
                                                         self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
-    def nackJoin(self):
+    def nack(self):
         '''
         Send nack to join request
         '''
