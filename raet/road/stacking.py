@@ -379,6 +379,12 @@ class RoadStack(stacking.Stack):
             self.replyMessage(packet)
             return
 
+        if (packet.data['tk'] == raeting.trnsKinds.alive and
+                packet.data['pk'] == raeting.pcktKinds.request and
+                packet.data['si'] != 0):
+            self.replyAlive(packet)
+            return
+
         self.incStat('stale_packet')
 
     def process(self):
@@ -439,12 +445,12 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         joinent.join() #assigns .reid here
 
-    def allow(self, reid=None):
+    def allow(self, deid=None):
         '''
         Initiate allow transaction
         '''
         data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
-        allower = transacting.Allower(stack=self, reid=reid, txData=data)
+        allower = transacting.Allower(stack=self, reid=deid, txData=data)
         allower.hello()
 
     def replyAllow(self, packet):
@@ -480,7 +486,31 @@ class RoadStack(stacking.Stack):
         messengent = transacting.Messengent(stack=self,
                                         reid=packet.data['se'],
                                         bcst=packet.data['bf'],
-                                        wait=packet.data['wf'],
+                                        sid=packet.data['si'],
+                                        tid=packet.data['ti'],
+                                        txData=data,
+                                        rxPacket=packet)
+        messengent.message()
+
+    def alive(self, deid=None,  timeout=None):
+        '''
+        Initiate alive transaction
+        '''
+        data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
+        aliver = transacting.Aliver(stack=self,
+                                    timeout=timeout,
+                                    reid=deid,
+                                    txData=data)
+        aliver.alive()
+
+    def replyAlive(self, packet):
+        '''
+        Correspond to new Alive transaction
+        '''
+        data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
+        alivent = transacting.Alivent(stack=self,
+                                        reid=packet.data['se'],
+                                        bcst=packet.data['bf'],
                                         sid=packet.data['si'],
                                         tid=packet.data['ti'],
                                         txData=data,

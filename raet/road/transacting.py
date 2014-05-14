@@ -2045,6 +2045,7 @@ class Aliver(Initiator):
             self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
         remote = self.stack.remotes[self.reid]
         remote.alive = None # reset alive status until done with transaction
+        # .bcast set from packet by stack when created transaction
         self.sid = remote.sid
         self.tid = remote.nextTid()
         self.prep() # prepare .txData
@@ -2197,7 +2198,7 @@ class Alivent(Correspondent):
 
         remote = self.stack.remotes[self.reid]
         #remote.alive = None # reset alive status until done with transaction
-        # .bcast .wait set from packet by stack when created transaction
+        # .bcast set from packet by stack when created transaction
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
         remote.rsid = self.sid #update last received rsid for estate
         remote.rtid = self.tid #update last received rtid for estate
