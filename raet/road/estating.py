@@ -10,6 +10,7 @@ import socket
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
+from ioflo.base import storing
 
 from .. import raeting
 from .. import nacling
@@ -173,12 +174,11 @@ class RemoteEstate(Estate):
         # not synced with other side persistence heatbeet
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
-        self.timer = aiding.StoreTimer(self.stack.store,
-                                       duration=(self.period + self.offset)
+        self.restore()
 
     def rekey(self):
         '''
-        Refresh short term keys
+        Regenerate short term keys
         '''
         self.allowed = None
         self.privee = nacling.Privateer() # short term key
@@ -191,6 +191,19 @@ class RemoteEstate(Estate):
         And greater means the difference is less than N/2
         '''
         return (((rsid - self.rsid) % 0x100000000) < (0x100000000 // 2))
+
+    def restore(self):
+        '''
+        Recreate timer
+        Used when changing the stack so it uses the new stacks store
+        '''
+        if not self.stack:
+            store = storing.Store(stamp=0.0)
+        else:
+            store = self.stack.store
+
+        self.timer = aiding.StoreTimer(store=store,
+                                        duration=(self.period + self.offset))
 
     def refresh(self):
         '''

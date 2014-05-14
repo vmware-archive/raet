@@ -2185,7 +2185,7 @@ class Alivent(Correspondent):
     '''
     Timeout = 10.0
 
-    def __init__(self **kwa):
+    def __init__(self, **kwa):
         '''
         Setup instance
         '''

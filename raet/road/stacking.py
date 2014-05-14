@@ -121,6 +121,13 @@ class RoadStack(stacking.Stack):
                         bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
+    def addRemote(self, remote, uid=None):
+        '''
+        Add a remote  to .remotes
+        '''
+        super(RoadStack, self).addRemote(remote, uid)
+        remote.restore() #update remote keep alive timer to new stack
+
     def removeRemote(self, uid):
         '''
         Remove remote at key uid
