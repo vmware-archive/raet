@@ -161,7 +161,7 @@ TailSize = namedtuple('TailSize', TAIL_SIZES.keys())
 tailSizes = TailSize(**TAIL_SIZES)
 
 TRNS_KINDS = odict([('message', 0), ('join', 1), ('accept', 2), ('allow', 3),
-                     ('unknown', 255)])
+                    ('alive', 4), ('unknown', 255)])
 TRNS_KIND_NAMES = odict((v, k) for k, v in TRNS_KINDS.iteritems())  # inverse map
 TrnsKind = namedtuple('TrnsKind', TRNS_KINDS.keys())
 trnsKinds = TrnsKind(**TRNS_KINDS)

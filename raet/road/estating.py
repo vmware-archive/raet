@@ -142,7 +142,11 @@ class RemoteEstate(Estate):
     RAET protocol endpoint remote estate object
     Maintains verifier for verifying signatures and publican for encrypt/decrypt
     '''
-    def __init__(self, verkey=None, pubkey=None, acceptance=None, rsid=0, rtid=0, **kwa):
+    Period = 1.0
+    Offset = 0.5
+
+    def __init__(self, verkey=None, pubkey=None, acceptance=None,
+                 rsid=0, rtid=0, period=None, offset=None, **kwa):
         '''
         Setup Estate instance
 
@@ -154,6 +158,7 @@ class RemoteEstate(Estate):
         super(RemoteEstate, self).__init__(**kwa)
         self.joined = None
         self.allowed = None
+        self.alive = None
         self.acceptance = acceptance
         self.privee = nacling.Privateer() # short term key manager
         self.publee = nacling.Publican() # correspondent short term key  manager
@@ -164,7 +169,14 @@ class RemoteEstate(Estate):
         self.rtid = rtid # last tid received from remote when RmtFlag is True
         self.indexes = set() # indexes to outstanding transactions for this remote
 
-    def refresh(self):
+        # persistence keep alive heatbeat timer. Initial duration has offset so
+        # not synced with other side persistence heatbeet
+        self.period = period if period is not None else self.Period
+        self.offset = offset if offset is not None else self.Offset
+        self.timer = aiding.StoreTimer(self.stack.store,
+                                       duration=(self.period + self.offset)
+
+    def rekey(self):
         '''
         Refresh short term keys
         '''
@@ -179,3 +191,19 @@ class RemoteEstate(Estate):
         And greater means the difference is less than N/2
         '''
         return (((rsid - self.rsid) % 0x100000000) < (0x100000000 // 2))
+
+    def refresh(self):
+        '''
+        Restart presence heartbeat timer
+        '''
+        self.timer.restart(duration=self.period)
+
+    def process(self):
+        '''
+        Perform time based processing of keep alive heatbeat
+        '''
+        if self.timer.expired:
+            self.timer.restart(duration=(self.period + self.offset))
+            #start alive transaction here
+            pass
+
