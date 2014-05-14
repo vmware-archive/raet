@@ -515,7 +515,7 @@ class RoadStack(stacking.Stack):
                                         tid=packet.data['ti'],
                                         txData=data,
                                         rxPacket=packet)
-        messengent.message()
+        alivent.alive()
 
     def nackStale(self, packet):
         '''

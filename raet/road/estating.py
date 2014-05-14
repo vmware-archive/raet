@@ -205,11 +205,12 @@ class RemoteEstate(Estate):
         self.timer = aiding.StoreTimer(store=store,
                                         duration=(self.period + self.offset))
 
-    def refresh(self):
+    def refresh(self, alive=True):
         '''
         Restart presence heartbeat timer
         '''
         self.timer.restart(duration=self.period)
+        self.alive = alive
 
     def process(self):
         '''

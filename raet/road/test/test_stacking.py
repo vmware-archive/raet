@@ -116,6 +116,14 @@ class BasicTestCase(unittest.TestCase):
         self.other.allow()
         self.service()
 
+    def alive(self, initiator, correspondent):
+        '''
+        Utility method to do alive. Call from test method.
+        '''
+        console.terse("\nAlive Transaction **************\n")
+        initiator.alive(deid=correspondent.local.uid)
+        self.service()
+
     def service(self, duration=1.0, real=True):
         '''
         Utility method to service queues. Call from test method.
@@ -641,6 +649,51 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.main.stats.get('messagent_correspond_complete') >= 1)
         self.assertTrue(self.main.stats.get('stale_packet') >= 1)
 
+    def testAlive(self):
+        '''
+        Test basic alive transaction
+        '''
+        console.terse("{0}\n".format(self.testAlive.__doc__))
+
+        self.join()
+        self.assertEqual(len(self.main.transactions), 0)
+        remote = self.main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(self.other.transactions), 0)
+        remote = self.other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow()
+        self.assertEqual(len(self.main.transactions), 0)
+        remote = self.main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(self.other.transactions), 0)
+        remote = self.other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        console.terse("\nAlive Other to Main *********\n")
+        otherRemote = self.main.remotes.values()[0]
+        mainRemote = self.other.remotes.values()[0]
+        self.assertIs(otherRemote.alive, None)
+        self.assertIs(mainRemote.alive, None)
+
+        self.alive(self.other, self.main)
+        self.assertEqual(len(self.main.transactions), 0)
+        self.assertTrue(otherRemote.alive)
+        self.assertEqual(len(self.other.transactions), 0)
+        self.assertTrue(mainRemote.alive)
+
+        console.terse("\nAlive Main to Other *********\n")
+        self.alive(self.main, self.other)
+        self.assertEqual(len(self.main.transactions), 0)
+        remote = self.main.remotes.values()[0]
+        self.assertTrue(remote.alive)
+        self.assertEqual(len(self.other.transactions), 0)
+        remote = self.other.remotes.values()[0]
+        self.assertTrue(remote.alive)
+
+
+
 def runOne(test):
     '''
     Unittest Runner
@@ -659,7 +712,8 @@ def runSome():
              'testSegmentedJson',
              'testSegmentedMsgpack',
              'testJoinForever',
-             'testStaleNack', ]
+             'testStaleNack',
+             'testAlive', ]
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -682,4 +736,4 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testBootstrapJson')
+    #runOne('testAlive')

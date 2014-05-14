@@ -2079,8 +2079,7 @@ class Aliver(Initiator):
             console.concise("Aliver {0}. Timed out at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
             remote = self.stack.remotes[self.reid]
-            remote.alive = False # mark as dead
-            remote.refresh()
+            remote.refresh(alive=False) # mark as dead
             return
 
         # need keep sending message until completed or timed out
@@ -2157,8 +2156,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         remote = self.stack.remotes[self.reid]
-        remote.alive = True
-        remote.refresh() # restart timer
+        remote.refresh(alive=True) # restart timer mark as alive
         self.remove()
         console.concise("Aliver {0}. Done at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -2172,8 +2170,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         remote = self.stack.remotes[self.reid]
-        remote.alive = None # mark as indeterminate
-        remote.refresh() # restart timer
+        remote.refresh(alive=None) # restart timer mark as indeterminate
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -2255,8 +2252,7 @@ class Alivent(Correspondent):
 
         remote = self.stack.remotes[self.reid]
         if not remote.allowed:
-            remote.alive = None # indeterminate
-            remote.refresh()
+            remote.refresh(alive=None) # indeterminate
             emsg = "Alivent {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_alive_attempt')
@@ -2294,8 +2290,7 @@ class Alivent(Correspondent):
         self.transmit(packet)
         console.concise("Alivent {0}. Do ack alive at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
-        remote.alive = True
-        remote.refresh()
+        remote.refresh(alive=True)
         self.remove()
 
     def nack(self):
