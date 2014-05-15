@@ -137,7 +137,6 @@ class LocalEstate(Estate):
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
 
-
 class RemoteEstate(Estate):
     '''
     RAET protocol endpoint remote estate object
