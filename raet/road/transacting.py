@@ -2090,9 +2090,9 @@ class Aliver(Initiator):
                          self.redoTimeoutMax)
             self.redoTimer.restart(duration=duration)
             if self.txPacket:
-                if self.txPacket.data['pk'] == raeting.pcktKinds.alive:
+                if self.txPacket.data['pk'] == raeting.pcktKinds.request:
                     self.transmit(self.txPacket) # redo
-                    console.concise("Aliver {0}. Redo at {2}\n".format(
+                    console.concise("Aliver {0}. Redo at {1}\n".format(
                         self.stack.name, self.stack.store.stamp))
                     self.stack.incStat('redo_alive')
 
