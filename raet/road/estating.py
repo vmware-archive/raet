@@ -218,6 +218,5 @@ class RemoteEstate(Estate):
         '''
         if self.timer.expired:
             self.timer.restart(duration=(self.period + self.offset))
-            #start alive transaction here
-            pass
+            self.stack.alive(deid=self.uid)
 

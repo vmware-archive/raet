@@ -171,131 +171,6 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
 
-    def testRejoin(self):
-        '''
-        Test rejoin after successful join with saved keys for both
-        '''
-        console.terse("{0}\n".format(self.testRejoin.__doc__))
-        mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        mainDirpath = mainData['dirpath']
-        keeping.clearAllKeepSafe(mainData['dirpath'])
-        main = self.createRoadStack(data=mainData,
-                                     eid=1,
-                                     main=True,
-                                     auto=mainData['auto'],
-                                     ha=None)
-        #default ha is ("", raeting.RAET_PORT)
-
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
-        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
-        self.assertEqual(main.name, 'main')
-        self.assertEqual(main.local.name, main.name)
-
-        otherData = self.createRoadData(name='other', base=self.base)
-        otherDirpath = otherData['dirpath']
-        keeping.clearAllKeepSafe(otherData['dirpath'])
-        other = self.createRoadStack(data=otherData,
-                                     eid=0,
-                                     main=None,
-                                     auto=None,
-                                     ha=("", raeting.RAET_TEST_PORT))
-
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
-        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertEqual(other.name, 'other')
-        self.assertEqual(other.local.name, other.name)
-
-        self.assertTrue(main.safe.auto)
-
-        self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
-
-        self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-
-        #now close down and reload data
-        main.server.close()
-        other.server.close()
-
-        # make new stacks with saved data
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
-        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
-
-        # attempt to join to main with main auto accept enabled
-        self.assertEqual(other.name, 'other')
-        self.assertEqual(other.local.name, other.name)
-        self.assertEqual(main.name, 'main')
-        self.assertEqual(main.local.name, main.name)
-        self.assertTrue(main.safe.auto)
-        self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
-
-        self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-
-        #now close down and reload data
-        main.server.close()
-        other.server.close()
-
-        # make new stacks with saved data
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
-        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
-
-        # attempt to join to main with main auto accept disabled
-        main.safe.auto = False
-        self.assertFalse(main.safe.auto)
-        self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
-
-        self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-
-
-        main.server.close()
-        main.clearLocal()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocal()
-        other.clearRemoteKeeps()
 
     def testAlive(self):
         '''
@@ -391,7 +266,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         Test alive transaction with multiple remotes
         '''
-        console.terse("{0}\n".format(self.testAlive.__doc__))
+        console.terse("{0}\n".format(self.testAliveMultiple.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
         keeping.clearAllKeepSafe(mainData['dirpath'])
@@ -530,8 +405,83 @@ class BasicTestCase(unittest.TestCase):
         other1.clearLocal()
         other1.clearRemoteKeeps()
 
+    def testRemoteProcess(self):
+        '''
+        Test alive transaction with multiple remotes
+        '''
+        console.terse("{0}\n".format(self.testRemoteProcess.__doc__))
+
+        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        other1Data = self.createRoadData(name='other1', base=self.base)
+        keeping.clearAllKeepSafe(other1Data['dirpath'])
+        other1 = self.createRoadStack(data=other1Data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", 7532))
 
 
+        self.join(other, main)
+        self.join(other1, main)
+        self.allow(other, main)
+        self.allow(other1, main)
+
+        console.terse("\nTest process remotes presence *********\n")
+        console.terse("\nMake all alive *********\n")
+        stacks = [main, other, other1]
+        for remote in main.remotes.values(): #make all alive
+            main.alive(deid=remote.uid)
+        self.serviceStacks(stacks, duration=3.0)
+        for remote in main.remotes.values():
+            self.assertTrue(remote.alive)
+
+        for remote in main.remotes.values(): # should not start anything
+            remote.process()
+        for stack in stacks: # no alive transactions started
+            self.assertEqual(len(stack.transactions), 0)
+
+        console.terse("\nMake all expired so send alive *********\n")
+        # advance clock so remote keep alive timers expire
+        self.store.advanceStamp(estating.RemoteEstate.Period + estating.RemoteEstate.Offset)
+        for remote in main.remotes.values(): # should start
+            remote.process()
+            self.assertIs(remote.alive, None)
+
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+
+        self.serviceStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for remote in main.remotes.values():
+            self.assertTrue(remote.alive)
+
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+        other1.server.close()
+        other1.clearLocal()
+        other1.clearRemoteKeeps()
 
 def runOne(test):
     '''
@@ -546,9 +496,9 @@ def runSome():
     Unittest runner
     '''
     tests =  []
-    names = ['testRejoin',
-             'testAlive',
-             'testAliveMultiple', ]
+    names = ['testAlive',
+             'testAliveMultiple',
+             'testRemoteProcess', ]
 
     tests.extend(map(BasicTestCase, names))
 
@@ -572,5 +522,5 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testAliveMultiple')
+    #runOne('testRemoteProcess')
 
