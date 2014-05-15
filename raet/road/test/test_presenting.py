@@ -381,7 +381,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other1.transactions), 0)
         self.assertFalse(otherRemote.alive)
         self.assertTrue(other1Remote.alive)
-        self.serviceStack(other, duration=3.0)
+        self.serviceStacks([other, main], duration=3.0)
 
         console.terse("\nAlive Other Dead Other 1 from Main *********\n")
         main.alive(deid=other.local.uid)
@@ -391,7 +391,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         self.assertFalse(other1Remote.alive)
         self.assertTrue(otherRemote.alive)
-        self.serviceStack(other1, duration=3.0)
+        self.serviceStacks([other1,  main], duration=3.0)
 
         main.server.close()
         main.clearLocal()
