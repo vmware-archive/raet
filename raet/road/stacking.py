@@ -49,6 +49,8 @@ class RoadStack(stacking.Stack):
     Ck = raeting.coatKinds.nacl # stack default
     Bf = False # stack default for bcstflag
     Wf = False # stack default for waitflag
+    Period = 1.0 # stack default for keep alive
+    Offset = 0.5 # stack default for keep alive
 
     def __init__(self,
                  name='',
@@ -61,6 +63,8 @@ class RoadStack(stacking.Stack):
                  bufcnt=2,
                  safe=None,
                  auto=None,
+                 period=None,
+                 offset=None,
                  **kwa
                  ):
         '''
@@ -91,6 +95,9 @@ class RoadStack(stacking.Stack):
         else:
             if main is not None:
                 local.main = True if main else False
+
+        self.period = period if period is not None else self.Period
+        self.offset = offset if offset is not None else self.Offset
 
         super(RoadStack, self).__init__(name=name,
                                         keep=keep,

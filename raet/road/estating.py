@@ -217,6 +217,6 @@ class RemoteEstate(Estate):
         Perform time based processing of keep alive heatbeat
         '''
         if self.timer.expired:
-            self.timer.restart(duration=(self.period + self.offset))
+            self.timer.restart(duration=self.period)
             self.stack.alive(deid=self.uid)
 
