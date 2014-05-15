@@ -2148,7 +2148,6 @@ class Aliver(Initiator):
         self.transmit(packet)
         console.concise("Aliver {0}. Do Alive at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
-
     def complete(self):
         '''
         Process ack packet. Complete transaction and remove
@@ -2292,6 +2291,9 @@ class Alivent(Correspondent):
                                                         self.stack.store.stamp))
         remote.refresh(alive=True)
         self.remove()
+        console.concise("Alivent {0}. Done at {1}\n".format(
+                        self.stack.name, self.stack.store.stamp))
+        self.stack.incStat("alive_complete")
 
     def nack(self):
         '''

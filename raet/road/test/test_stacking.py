@@ -649,11 +649,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.main.stats.get('messagent_correspond_complete') >= 1)
         self.assertTrue(self.main.stats.get('stale_packet') >= 1)
 
-    def testAlive(self):
+    def testBasicAlive(self):
         '''
         Test basic alive transaction
         '''
-        console.terse("{0}\n".format(self.testAlive.__doc__))
+        console.terse("{0}\n".format(self.testBasicAlive.__doc__))
 
         self.join()
         self.assertEqual(len(self.main.transactions), 0)
@@ -692,8 +692,6 @@ class BasicTestCase(unittest.TestCase):
         remote = self.other.remotes.values()[0]
         self.assertTrue(remote.alive)
 
-
-
 def runOne(test):
     '''
     Unittest Runner
@@ -713,7 +711,7 @@ def runSome():
              'testSegmentedMsgpack',
              'testJoinForever',
              'testStaleNack',
-             'testAlive', ]
+             'testBasicAlive', ]
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
