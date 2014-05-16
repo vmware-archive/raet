@@ -403,17 +403,20 @@ class StackTestCase(unittest.TestCase):
                                      prikey=mainPriKeyHex,)
 
         self.main = stacking.RoadStack(name=mainName,
-                                         local=local,
-                                         auto=True,
-                                         main=True,
-                                         dirpath=mainDirpath,
-                                         store=self.store)
+                                       local=local,
+                                       auto=True,
+                                       main=True,
+                                       dirpath=mainDirpath,
+                                       store=self.store)
 
-        remote1 = estating.RemoteEstate( eid=2,
-                                         name=otherName,
-                                         ha=("127.0.0.1", raeting.RAET_TEST_PORT),
-                                         verkey=otherVerKeyHex,
-                                         pubkey=otherPubKeyHex,)
+        remote1 = estating.RemoteEstate(stack=self.main,
+                                        eid=2,
+                                        name=otherName,
+                                        ha=("127.0.0.1", raeting.RAET_TEST_PORT),
+                                        verkey=otherVerKeyHex,
+                                        pubkey=otherPubKeyHex,
+                                        period=self.main.period,
+                                        offset=self.main.offset,)
         self.main.addRemote(remote1)
 
 
@@ -428,11 +431,14 @@ class StackTestCase(unittest.TestCase):
                                          dirpath=otherDirpath,
                                          store=self.store)
 
-        remote0 = estating.RemoteEstate(  eid=1,
-                                         name=mainName,
+        remote0 = estating.RemoteEstate(stack=self.other,
+                                        eid=1,
+                                        name=mainName,
                                         ha=('127.0.0.1', raeting.RAET_PORT),
                                         verkey=mainVerKeyHex,
-                                        pubkey=mainPubKeyHex,)
+                                        pubkey=mainPubKeyHex,
+                                        period=self.other.period,
+                                        offset=self.other.offset,)
         self.other.addRemote(remote0)
 
         remote0.publee = nacling.Publican(key=remote1.privee.pubhex)

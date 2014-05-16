@@ -145,17 +145,19 @@ class RemoteEstate(Estate):
     Period = 1.0
     Offset = 0.5
 
-    def __init__(self, verkey=None, pubkey=None, acceptance=None,
+    def __init__(self, stack, verkey=None, pubkey=None, acceptance=None,
                  rsid=0, rtid=0, period=None, offset=None, **kwa):
         '''
         Setup Estate instance
+
+        stack is required parameter for RemoteEstate unlike its superclass
 
         verkey is either nacl VerifyKey or raw or hex encoded key
         pubkey is either nacl PublicKey or raw or hex encoded key
         '''
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
-        super(RemoteEstate, self).__init__(**kwa)
+        super(RemoteEstate, self).__init__(stack, **kwa)
         self.joined = None
         self.allowed = None
         self.alive = None
@@ -173,7 +175,13 @@ class RemoteEstate(Estate):
         # not synced with other side persistence heatbeet
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
-        self.restore()
+        # by default do not use offset on main unless it is explicity provided
+        if self.stack.main and offset is None:
+            duration = self.period
+        else:
+            duration = self.period + self.offset
+        self.timer = aiding.StoreTimer(store=self.stack.store,
+                                       duration=duration)
 
     def rekey(self):
         '''
@@ -190,19 +198,6 @@ class RemoteEstate(Estate):
         And greater means the difference is less than N/2
         '''
         return (((rsid - self.rsid) % 0x100000000) < (0x100000000 // 2))
-
-    def restore(self):
-        '''
-        Recreate timer
-        Used when changing the stack so it uses the new stacks store
-        '''
-        if not self.stack:
-            store = storing.Store(stamp=0.0)
-        else:
-            store = self.stack.store
-
-        self.timer = aiding.StoreTimer(store=store,
-                                        duration=(self.period + self.offset))
 
     def refresh(self, alive=True):
         '''

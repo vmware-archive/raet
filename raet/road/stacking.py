@@ -133,7 +133,9 @@ class RoadStack(stacking.Stack):
         Add a remote  to .remotes
         '''
         super(RoadStack, self).addRemote(remote, uid)
-        remote.restore() #update remote keep alive timer to new stack
+        if remote.timer.store is not self.store:
+            raise raeting.StackError("Store reference mismatch between remote"
+                    " '{0}' and stack '{1}'".format(remote.name, stack.name))
 
     def removeRemote(self, uid):
         '''
@@ -253,7 +255,9 @@ class RoadStack(stacking.Stack):
                                            rsid=keepData['rsid'],
                                            acceptance=safeData['acceptance'],
                                            verkey=safeData['verhex'],
-                                           pubkey=safeData['pubhex'],)
+                                           pubkey=safeData['pubhex'],
+                                           period=self.period,
+                                           offset=self.offset)
             self.addRemote(remote)
 
     def clearRemote(self, remote):

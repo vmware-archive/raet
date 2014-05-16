@@ -222,18 +222,24 @@ class BasicTestCase(unittest.TestCase):
 
         # round trip with non empty remote data
         other1Data = self.createRoadData(name='other1', base=self.base)
-        stack.addRemote(estating.RemoteEstate(eid=2,
+        stack.addRemote(estating.RemoteEstate(stack=stack,
+                                              eid=2,
                                               name=other1Data['name'],
                                               ha=('127.0.0.1', 7531),
                                               verkey=other1Data['verhex'],
-                                              pubkey=other1Data['pubhex'],))
+                                              pubkey=other1Data['pubhex'],
+                                              period=stack.period,
+                                              offset=stack.offset))
 
         other2Data = self.createRoadData(name='other2', base=self.base)
-        stack.addRemote(estating.RemoteEstate(eid=3,
+        stack.addRemote(estating.RemoteEstate(stack=stack,
+                                              eid=3,
                                               name=other2Data['name'],
                                               ha=('127.0.0.1', 7532),
                                               verkey=other2Data['verhex'],
-                                              pubkey=other2Data['pubhex'],))
+                                              pubkey=other2Data['pubhex'],
+                                              period=stack.period,
+                                              offset=stack.offset))
 
         stack.dumpRemotes()
         remoteKeepData = stack.keep.loadAllRemoteData()

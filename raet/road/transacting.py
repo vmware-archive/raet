@@ -264,7 +264,11 @@ class Joiner(Initiator):
 
         if self.reid is None:
             if not self.stack.remotes: # no main estate so make one
-                main = estating.RemoteEstate(eid=0, ha=mha)
+                main = estating.RemoteEstate(stack=self.stack,
+                                             eid=0,
+                                             ha=mha,
+                                             period=self.stack.period,
+                                             offset=self.stack.offset)
                 self.stack.addRemote(main)
             self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
         self.sid = 0
@@ -745,15 +749,17 @@ class Joinent(Correspondent):
                         return
 
             if not remote: # create new one
-                remote = estating.RemoteEstate( stack=self.stack,
-                                                name=name,
-                                                host=host,
-                                                port=port,
-                                                acceptance=None,
-                                                verkey=verhex,
-                                                pubkey=pubhex,
-                                                rsid=self.sid,
-                                                rtid=self.tid, )
+                remote = estating.RemoteEstate(stack=self.stack,
+                                               name=name,
+                                               host=host,
+                                               port=port,
+                                               acceptance=None,
+                                               verkey=verhex,
+                                               pubkey=pubhex,
+                                               rsid=self.sid,
+                                               rtid=self.tid,
+                                               period=self.stack.period,
+                                               offset=self.stack.offset,)
                 try:
                     self.stack.addRemote(remote) #provisionally add .accepted is None
                 except raeting.StackError as ex:
@@ -762,8 +768,8 @@ class Joinent(Correspondent):
                     self.remove(self.rxPacket.index)
                     return
                 status = self.stack.safe.statusRemote(remote,
-                                                            verhex=verhex,
-                                                            pubhex=pubhex)
+                                                      verhex=verhex,
+                                                      pubhex=pubhex)
 
         self.stack.dumpRemote(remote)
         self.reid = remote.uid # auto generated at instance creation above
