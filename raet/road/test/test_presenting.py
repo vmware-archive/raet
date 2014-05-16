@@ -450,16 +450,15 @@ class BasicTestCase(unittest.TestCase):
         for remote in main.remotes.values():
             self.assertTrue(remote.alive)
 
-        for remote in main.remotes.values(): # should not start anything
-            remote.process()
+        main.manage()
         for stack in stacks: # no alive transactions started
             self.assertEqual(len(stack.transactions), 0)
 
         console.terse("\nMake all expired so send alive *********\n")
         # advance clock so remote keep alive timers expire
         self.store.advanceStamp(estating.RemoteEstate.Period + estating.RemoteEstate.Offset)
+        main.manage()
         for remote in main.remotes.values(): # should start
-            remote.process()
             self.assertIs(remote.alive, None)
 
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions

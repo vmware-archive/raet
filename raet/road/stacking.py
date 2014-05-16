@@ -274,6 +274,14 @@ class RoadStack(stacking.Stack):
         super(RoadStack, self).clearRemoteKeeps()
         self.safe.clearAllRemoteData()
 
+    def manage(self):
+        '''
+        Manage remote estates. Time based processing of remote status such as
+        presence (keep alive) etc.
+        '''
+        for remote in self.remotes.values(): # should not start anything
+            remote.manage()
+
     def addTransaction(self, index, transaction):
         '''
         Safely add transaction at index If not already there

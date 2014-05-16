@@ -176,7 +176,7 @@ class RemoteEstate(Estate):
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
         # by default do not use offset on main unless it is explicity provided
-        if self.stack.main and offset is None:
+        if self.stack.local.main and offset is None:
             duration = self.period
         else:
             duration = self.period + self.offset
@@ -206,7 +206,7 @@ class RemoteEstate(Estate):
         self.timer.restart(duration=self.period)
         self.alive = alive
 
-    def process(self):
+    def manage(self):
         '''
         Perform time based processing of keep alive heatbeat
         '''
