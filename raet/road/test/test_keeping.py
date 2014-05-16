@@ -877,7 +877,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, None) # new other rejected by main so not joined
+        self.assertIs(remote.joined, False) # new other rejected by main so not joined
         self.assertEqual(remote.acceptance, None) # new other never been accepted
 
         self.allow(other, main)
@@ -1030,7 +1030,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, None) # new other rejected by main so not joined
+        self.assertIs(remote.joined, False) # new other rejected by main so not joined
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # old remote was accepted
 
         self.allow(other, main)
@@ -1515,7 +1515,7 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         self.assertTrue(remote.allowed)
 
-        #now forget the local local data only to simulate main changing keys
+        #now forget the local local data only to simulate both changing keys
         main.server.close()
         main.clearLocal()
         #main.clearRemoteKeeps()
@@ -1714,5 +1714,5 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    runOne('testPendingSavedKeep')
+    runOne('testLostBothKeepLocal')
 
