@@ -172,16 +172,15 @@ The following naming metaphor is designed to consistent but not conflicting with
 
 ## IoFlo Execution
 
-- Each Estate UDP interface is run via a StackUdp which is run within the context
-    of an IoFlo House
+- Each Estate UDP interface is run via a RoadStack (UDP sockets)
+    which is run within the context of an IoFlo House
     (so think of the House that runs the UDP Stack as the Manor House of the Estate)
-- Each Yard UXD interface is run via a StackUxd which is run within the context
-    of an IoFlo House
+- Each Yard UXD interface is run via a LaneStack (Unix domain socket)
+    which is run within the context of an IoFlo House
     (so think of Houses that run UXD stacks as accessory Houses (Tents, Shacks) on the Estate)
 - The "Manor" House is special in that it runs both the UDP stack for the Estate
      and also runs the UXD Stack for the Main Yard
 - The House that runs the Main Estate UDP Stack can be thought of as Mayor’s House
-
 - Within the context of a House is a Data Store. Shares in the Store are Addressed
     by the unique Share Name which is a dotted path
 
