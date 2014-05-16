@@ -271,8 +271,10 @@ class Joiner(Initiator):
                                              offset=self.stack.offset)
                 self.stack.addRemote(main)
             self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
+        remote = self.stack.remotes[self.reid]
+        remote.joined = None
         self.sid = 0
-        self.tid = self.stack.remotes[self.reid].nextTid()
+        self.tid = remote.nextTid()
         self.prep()
         self.add(self.index)
 
@@ -442,6 +444,7 @@ class Joiner(Initiator):
                                               pubhex=pubhex,
                                               main=False)
         if status == raeting.acceptances.rejected:
+            remote.joined = False
             self.nackAccept()
             return
 
@@ -584,7 +587,7 @@ class Joinent(Correspondent):
             if packet.data['pk'] == raeting.pcktKinds.ack: #accepted by joiner
                 self.joined()
             elif packet.data['pk'] == raeting.pcktKinds.nack: #rejected
-                self.rejected()
+                self.reject()
 
     def process(self):
         '''
@@ -869,13 +872,14 @@ class Joinent(Correspondent):
 
         self.stack.incStat("join_correspond_complete")
 
-    def rejected(self):
+    def reject(self):
         '''
         Process nack to accept response or stale
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
         remote = self.stack.remotes[self.reid]
+        remote.joined = False
         # use presence to remove remote
 
         self.remove(self.rxPacket.index)
@@ -912,6 +916,8 @@ class Joinent(Correspondent):
         console.terse("Joinent {0}. Reject at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
+        remote = self.stack.remotes[self.reid]
+        remote.joined = False
 
 class Allower(Initiator):
     '''
@@ -2074,7 +2080,9 @@ class Aliver(Initiator):
             if packet.data['pk'] == raeting.pcktKinds.ack:
                 self.complete()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
-                self.refused()
+                self.refuse()
+            elif packet.data['pk'] == raeting.pcktKinds.unjoined: # rejected
+                self.unjoin()
 
     def process(self):
         '''
@@ -2167,7 +2175,7 @@ class Aliver(Initiator):
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
 
-    def rejected(self):
+    def refuse(self):
         '''
         Process nack packet
         terminate in response to nack
@@ -2176,6 +2184,36 @@ class Aliver(Initiator):
             return
         remote = self.stack.remotes[self.reid]
         remote.refresh(alive=None) # restart timer mark as indeterminate
+        self.remove()
+        console.concise("Aliver {0}. Rejected at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
+    def unjoin(self):
+        '''
+        Process unjoin packet
+        terminate in response to unjoin
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alive=None) # restart timer mark as indeterminate
+        remote.joined = False
+        self.remove()
+        console.concise("Aliver {0}. Rejected at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
+    def unallow(self):
+        '''
+        Process unjoin packet
+        terminate in response to unallow
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alive=None) # restart timer mark as indeterminate
+        remote.allowed = False
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -2256,12 +2294,21 @@ class Alivent(Correspondent):
         body = self.rxPacket.body.data
 
         remote = self.stack.remotes[self.reid]
+
+        if not remote.joined:
+            remote.refresh(alive=None) # indeterminate
+            emsg = "Alivent {0}. Must be joined first\n".format(self.stack.name)
+            console.terse(emsg)
+            self.stack.incStat('unjoined_alive_attempt')
+            self.nack(kind=raeting.pcktKinds.unjoined)
+            return
+
         if not remote.allowed:
             remote.refresh(alive=None) # indeterminate
             emsg = "Alivent {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_alive_attempt')
-            self.nack()
+            self.nack(kind=raeting.pcktKinds.unallowed)
             return
 
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
@@ -2301,7 +2348,7 @@ class Alivent(Correspondent):
                         self.stack.name, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
 
-    def nack(self):
+    def nack(self, kind=raeting.pcktKinds.nack):
         '''
         Send nack to terminate alive transaction
         '''
@@ -2314,7 +2361,7 @@ class Alivent(Correspondent):
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.nack,
+                                    kind=kind,
                                     embody=body,
                                     data=self.txData)
         try:

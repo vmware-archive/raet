@@ -526,13 +526,13 @@ class BasicTestCase(unittest.TestCase):
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
                 self.main.name, self.main.local.name, remote.name, remote.joined))
 
-        # Other will have outstanding join transaction but remember previous join
+        # Other will have outstanding join transaction
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
         self.assertEqual(self.other.local.uid, 2)
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(len(self.other.transactions), 1)
         remote = self.other.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        self.assertIs(remote.joined, None)
         self.assertEqual(remote.uid, 1)
         self.assertTrue(1 in self.other.remotes)
         self.assertTrue(len(self.other.uids), 1)

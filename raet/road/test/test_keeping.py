@@ -873,7 +873,7 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined) # unlost other remote still there
+        self.assertIs(remote.joined, False) # unlost other remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
@@ -1026,7 +1026,7 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined) # unlost other remote still there
+        self.assertIs(remote.joined, False) # unlost other remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
@@ -1196,17 +1196,17 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, None) # joiner will reject so main never finishes
+        self.assertIs(remote.joined, False) # joiner will reject so main never finishes
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined) # no lost main remote still there
+        self.assertIs(remote.joined, False) # no lost main remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
         self.assertIs(remote.allowed, None)
-        self.assertEqual(len(other.transactions), 1) # not timed out yet so still there
+        self.assertEqual(len(other.transactions), 0) # not joined so aborts
         remote = other.remotes.values()[0]
         self.assertIs(remote.allowed, None) # new other not joined so aborted allow
 
@@ -1368,17 +1368,17 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, None) # joiner will reject so main never finishes
+        self.assertIs(remote.joined, False) # joiner will reject so main never finishes
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined) # no lost main remote still there
+        self.assertIs(remote.joined, False) # no lost main remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
         self.assertIs(remote.allowed, None)
-        self.assertEqual(len(other.transactions), 1) # not timed out yet so still there
+        self.assertEqual(len(other.transactions), 0) # not joined so aborted
         remote = other.remotes.values()[0]
         self.assertIs(remote.allowed, None) # new other not joined so aborted allow
 
@@ -1562,10 +1562,10 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, None) # joiner will reject so main never finishes
+        self.assertIs(remote.joined, False) # joiner will reject so main never finishes
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, None) # Joiner rejects main
+        self.assertIs(remote.joined, False) # Joiner rejects main
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main)
