@@ -1,6 +1,21 @@
 ------------------
 CHANGE LOG
 -------------------
+---------
+20140516
+---------
+
+v0.0.13
+
+Added "alive" transaction for keep alive preparatory to supporting presence
+Aliver and Alivent objects
+Refactored more rigorous normalized persistence of road data
+joined and allowed status more conistent
+Added some persistence fields
+Refactoring in support of persistence
+
+Updated unit tests
+
 
 ---------
 20140505
