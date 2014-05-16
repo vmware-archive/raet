@@ -446,9 +446,9 @@ class Joiner(Initiator):
                                               verhex=verhex,
                                               pubhex=pubhex,
                                               main=False)
+
         if status == raeting.acceptances.rejected:
             remote.joined = False
-            self.stack.dumpRemote(remote)
             self.nackAccept()
             return
 
@@ -470,15 +470,14 @@ class Joiner(Initiator):
                 self.remove(self.txPacket.index)
                 return
 
-        self.reid = reid
-
         self.stack.local.uid = leid
         self.stack.dumpLocal()
 
+        self.reid = reid
         remote = self.stack.remotes[self.reid]
-        remote.joined = True #accepted
         remote.nextSid()
         self.stack.dumpRemote(remote)
+        remote.joined = True #accepted
 
         self.ackAccept()
 
@@ -489,17 +488,8 @@ class Joiner(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove(self.txPacket.index)
-            return
-
         remote = self.stack.remotes[self.reid]
         remote.joined = False
-        self.stack.dumpRemote(remote)
-
         self.remove(self.txPacket.index)
         console.terse("Joiner {0}. Rejected at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
@@ -813,7 +803,6 @@ class Joinent(Correspondent):
             emsg = "Estate {0} eid {1} keys rejected\n".format(
                             remote.name, remote.uid)
             console.terse(emsg)
-        self.stack.dumpRemote(remote)
 
     def ackJoin(self):
         '''
@@ -912,13 +901,6 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove(self.txPacket.index)
-            return
-
         remote = self.stack.remotes[self.reid]
         remote.joined = True # accepted
         remote.nextSid()
@@ -936,16 +918,8 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove(self.txPacket.index)
-            return
-
         remote = self.stack.remotes[self.reid]
         remote.joined = False
-        self.stack.dumpRemote(remote)
         # use presence to remove remote
 
         self.remove(self.rxPacket.index)
@@ -979,7 +953,8 @@ class Allower(Initiator):
         if self.reid is None:
             self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
         remote = self.stack.remotes[self.reid]
-        remote.rekey() # reset .allowed to False and refresh short term keys
+        remote.rekey() # reset .allowed to None and refresh short term keys
+
         self.sid = remote.sid
         self.tid = remote.nextTid()
         self.prep() # prepare .txData
@@ -1004,7 +979,7 @@ class Allower(Initiator):
             elif packet.data['pk'] == raeting.pcktKinds.ack:
                 self.allow()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
-                self.rejected()
+                self.reject()
 
     def process(self):
         '''
@@ -1105,6 +1080,7 @@ class Allower(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
@@ -1199,28 +1175,19 @@ class Allower(Initiator):
         '''
         Process ackInitiate packet
         Perform allowment in response to ack to initiate packet
+        Transmits ack to complete transaction so correspondent knows
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        self.stack.remotes[self.reid].allowed = True
-        self.ackFinal()
-        #self.remove()
 
-    def rejected(self):
-        '''
-        Process nack packet
-        terminate in response to nack
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        self.remove()
-        console.concise("Allower {0}. Rejected at {1}\n".format(self.stack.name,
-                                                        self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
+        remote = self.stack.remotes[self.reid]
+        remote.allowed = True
+        self.ackFinal()
 
     def ackFinal(self):
         '''
         Send ack to ack Initiate to terminate transaction
+        Why do we need this?
         '''
         if self.reid not in self.stack.remotes:
             emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
@@ -1247,6 +1214,22 @@ class Allower(Initiator):
         console.concise("Allower {0}. Ack Final at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
+
+    def reject(self):
+        '''
+        Process nack packet
+        terminate in response to nack
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        remote = self.stack.remotes[self.reid]
+        remote.allowed = False
+        self.remove()
+        console.concise("Allower {0}. Rejected at {1}\n".format(self.stack.name,
+                                                        self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
 
 class Allowent(Correspondent):
     '''
@@ -1302,7 +1285,7 @@ class Allowent(Correspondent):
             elif packet.data['pk'] == raeting.pcktKinds.ack:
                 self.final()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
-                self.rejected()
+                self.reject()
 
     def process(self):
         '''
@@ -1554,26 +1537,34 @@ class Allowent(Correspondent):
         '''
         Perform allowment
         '''
-        self.stack.remotes[self.reid].allowed = True
+        remote = self.stack.remotes[self.reid]
+        remote.allowed = True
 
     def final(self):
         '''
         Process ackFinal packet
+        So that both sides are waiting on acks at the end so does not restart
+        transaction if ack initiate is dropped
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
         self.remove()
         console.concise("Allowent {0}. Do Final at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat("allow_correspond_complete")
 
-    def rejected(self):
+    def reject(self):
         '''
         Process nack packet
         terminate in response to nack
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        remote = self.stack.remotes[self.reid]
+        remote.allowed = False
+
         self.remove()
         console.concise("Allowent {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -1656,7 +1647,7 @@ class Messenger(Initiator):
             if packet.data['pk'] == raeting.pcktKinds.ack:
                 self.another()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
-                self.rejected()
+                self.reject()
             elif packet.data['pk'] == raeting.pcktKinds.resend: # missed resend
                 self.resend()
 
@@ -1802,7 +1793,7 @@ class Messenger(Initiator):
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat("message_initiate_complete")
 
-    def rejected(self):
+    def reject(self):
         '''
         Process nack packet
         terminate in response to nack

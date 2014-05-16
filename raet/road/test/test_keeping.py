@@ -215,7 +215,9 @@ class BasicTestCase(unittest.TestCase):
                               ])
         self.assertDictEqual(localSafeData, validLocalSafeData)
 
-        stack.removeAllRemotes()
+        #stack.removeAllRemotes()
+        stack.remotes = odict()
+        stack.uids = odict()
         stack.loadRemotes()
         self.assertDictEqual(stack.remotes, {})
 
@@ -289,7 +291,9 @@ class BasicTestCase(unittest.TestCase):
         for uid in temp:
             validRemoteSafeData[int(uid)] = temp[uid]
 
-        stack.removeAllRemotes()
+        #stack.removeAllRemotes()
+        stack.remotes = odict()
+        stack.uids = odict()
         stack.loadRemotes()
         remoteKeepData = odict()
         for remote in stack.remotes.values():
@@ -541,11 +545,15 @@ class BasicTestCase(unittest.TestCase):
                 main.safe.acceptRemote(remote)
 
         #now reload from keep data
-        main.removeAllRemotes()
+        #main.removeAllRemotes()
+        main.remotes = odict()
+        main.uids = odict()
         main.loadRemotes()
         main.loadLocal()
 
-        other.removeAllRemotes()
+        #other.removeAllRemotes()
+        other.remotes = odict()
+        other.uids = odict()
         other.loadRemotes()
         other.loadLocal()
 

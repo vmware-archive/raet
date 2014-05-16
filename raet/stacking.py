@@ -129,6 +129,7 @@ class Stack(object):
             raise raeting.StackError(emsg)
 
         remote = self.remotes[old]
+        self.clearRemote(remote)
         index = self.remotes.keys().index(old)
         remote.uid = new
         self.uids[remote.name] = new
@@ -163,6 +164,7 @@ class Stack(object):
             raise raeting.StackError(emsg)
 
         remote = self.remotes[uid]
+        self.clearRemote(remote)
         del self.remotes[uid]
         del self.uids[remote.name]
 
@@ -220,8 +222,9 @@ class Stack(object):
 
     def dumpRemotes(self):
         '''
-        Dump all remotes data to files
+        Dump all remotes data to keep files
         '''
+        self.clearRemotes()
         datadict = odict()
         for remote in self.remotes.values():
             self.dumpRemote(remote)
@@ -243,7 +246,7 @@ class Stack(object):
         '''
         Clear remote keep of remote
         '''
-        self.clearRemoteData(remote.uid)
+        self.keep.clearRemoteData(remote.uid)
 
     def clearRemotes(self):
         '''
