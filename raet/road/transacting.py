@@ -445,7 +445,7 @@ class Joiner(Initiator):
         status = self.stack.safe.statusRemote(remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
-                                              main=False)
+                                              main=self.stack.local.main)
 
         if status == raeting.acceptances.rejected:
             remote.joined = False
@@ -629,8 +629,9 @@ class Joinent(Correspondent):
                     data = self.stack.safe.loadRemote(remote)
                     if data:
                         status = self.stack.safe.statusRemote(remote,
-                                                                    data['verhex'],
-                                                                    data['pubhex'])
+                                                              data['verhex'],
+                                                              data['pubhex'],
+                                                              main=self.stack.local.main)
                         if status == raeting.acceptances.accepted:
                             self.accept()
 
@@ -734,14 +735,16 @@ class Joinent(Correspondent):
             remote.rsid = self.sid
             remote.rtid = self.tid
             status = self.stack.safe.statusRemote(remote,
-                                                        verhex=verhex,
-                                                        pubhex=pubhex)
+                                                  verhex=verhex,
+                                                  pubhex=pubhex,
+                                                  main=self.stack.local.main)
         else:
             other = self.stack.fetchRemoteByHostPort(host, port)
             if other:
                 status = self.stack.safe.statusRemote(other,
                                                       verhex=verhex,
-                                                      pubhex=pubhex)
+                                                      pubhex=pubhex,
+                                                      main=self.stack.local.main)
                 if status == raeting.acceptances.accepted: # accepted keys so rename
                     try:
                         self.stack.renameRemote(old=other.name, new=name)
@@ -781,7 +784,8 @@ class Joinent(Correspondent):
                     return
                 status = self.stack.safe.statusRemote(remote,
                                                       verhex=verhex,
-                                                      pubhex=pubhex)
+                                                      pubhex=pubhex,
+                                                      main=self.stack.local.main)
 
         self.stack.dumpRemote(remote)
         self.reid = remote.uid # auto generated at instance creation above
