@@ -210,6 +210,7 @@ class RoadStack(stacking.Stack):
                                           prikey=safeData['prihex'],)
             self.safe.auto = safeData['auto']
             self.name = keepData['name']
+            self.eid = keepData['neid']
 
         elif local:
             local.stack = self

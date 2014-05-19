@@ -718,6 +718,9 @@ class Joinent(Correspondent):
         port = data['sp']
         self.txData.update( dh=host, dp=port,) # responses use received host port
 
+        reid = data['se']
+        leid = data['de']
+
         remote = self.stack.fetchRemoteByName(name)
         if remote:
             if not (host == remote.host and port == remote.port):
