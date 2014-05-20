@@ -844,10 +844,10 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        self.assertIs(remote.joined, True) # main still rememebers join from before
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        self.assertIs(remote.joined, False)
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -855,7 +855,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
+        self.assertIs(remote.allowed, None)
 
         # now repeate with auto accept off on main
         # now forget the other data again
@@ -884,7 +884,7 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, False) # unlost other remote still there
+        self.assertIs(remote.joined, True) # unlost other remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
@@ -940,6 +940,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
+        savedOtherData = data
         keeping.clearAllKeepSafe(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -978,7 +979,6 @@ class BasicTestCase(unittest.TestCase):
 
         # reload with new data
         data = self.createRoadData(name='other', base=self.base)
-        savedOtherData = data
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
@@ -1000,7 +1000,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.joined)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        self.assertIs(remote.joined,  False)
+
+        print other.local.signer.verhex
+        print main.remotes[2].verfer.keyhex
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1008,7 +1011,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
+        self.assertIs(remote.allowed,  None)
 
         # now repeate with auto accept off on main
         # now forget the other data again
@@ -1037,7 +1040,7 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, False) # unlost other remote still there
+        self.assertIs(remote.joined, True) # unlost other remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
@@ -1072,7 +1075,7 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocal()
         data = savedOtherData
         other = self.createRoadStack(data=data,
-                                     eid=0,
+                                     eid=2,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
@@ -1625,7 +1628,7 @@ class BasicTestCase(unittest.TestCase):
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, False) # joiner will reject so main never finishes
+        self.assertIs(remote.joined, None) # Joinent will reject as name already in use
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertIs(remote.joined, False) # Joiner rejects main
@@ -1667,7 +1670,7 @@ class BasicTestCase(unittest.TestCase):
 
         data = savedOtherData
         other = self.createRoadStack(data=data,
-                                    eid=0,
+                                    eid=2,
                                     main=None,
                                     auto=None,
                                     ha=("", raeting.RAET_TEST_PORT))
@@ -1777,5 +1780,5 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testLostMainKeep')
+    #runOne('testPendingSavedKeep')
 
