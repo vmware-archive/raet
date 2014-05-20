@@ -1204,13 +1204,65 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
-        self.join(other, main)
+        self.join(other, main) # main will refuse and other will renew
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, False) # joiner will reject so main never finishes
+        self.assertIs(remote.joined, True)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False) # no lost main remote still there
+        self.assertIs(remote.joined, True)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertIs(remote.allowed, True)
+        self.assertEqual(len(other.transactions), 0) # not joined so aborts
+        remote = other.remotes.values()[0]
+        self.assertIs(remote.allowed, True) # new other not joined so aborted allow
+
+        for index in other.transactions:
+            other.removeTransaction(index)
+
+        # so try to send messages should succedd
+        mains = [odict(content="Hello other body")]
+        others = [odict(content="Hello main body")]
+        self.message(main, other, mains, others,  duration=2.0)
+        self.assertEqual(len(main.transactions), 0) #not allowed so aborted
+        self.assertEqual(len(others), len(main.rxMsgs))
+        self.assertEqual(len(other.transactions), 0) #not allowed so aborted
+        self.assertEqual(len(mains), len(other.rxMsgs))
+        main.rxMsgs.pop()
+        other.rxMsgs.pop()
+
+        #now forget the main local data only to simulate main changing its keys
+        main.server.close()
+        main.clearLocal()
+
+        # reload with new data
+        data = self.createRoadData(name='main', base=self.base)
+        main = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                main.name, main.keep.dirpath, main.safe.dirpath))
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
+        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+
+        # attempt to join to main with main auto accept enabled
+        self.join(other, main) # other will reject different keys
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertIs(remote.joined, False)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertIs(remote.joined, False)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main)
@@ -1721,9 +1773,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
     #runSome()#only run some
 
-    runOne('testLostBothKeepLocal')
+    #runOne('testLostMainKeep')
 

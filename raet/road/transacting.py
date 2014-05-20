@@ -239,6 +239,7 @@ class Staler(Initiator):
         console.terse("Nack stale correspondent at {0}\n".format(self.stack.store.stamp))
         self.stack.incStat('stale_correspondent_nack')
 
+
 class Joiner(Initiator):
     '''
     RAET protocol Joiner Initiator class Dual of Joinent
@@ -254,8 +255,7 @@ class Joiner(Initiator):
         kwa['kind'] = raeting.trnsKinds.join
         super(Joiner, self).__init__(**kwa)
 
-        if mha is None:
-            mha = ('127.0.0.1', raeting.RAET_PORT)
+        self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
@@ -266,7 +266,7 @@ class Joiner(Initiator):
             if not self.stack.remotes: # no main estate so make one
                 main = estating.RemoteEstate(stack=self.stack,
                                              eid=0,
-                                             ha=mha,
+                                             ha=self.mha,
                                              period=self.stack.period,
                                              offset=self.stack.offset)
                 self.stack.addRemote(main)
@@ -299,6 +299,8 @@ class Joiner(Initiator):
                 self.accept()
             elif packet.data['pk'] == raeting.pcktKinds.nack: #rejected
                 self.reject()
+            elif packet.data['pk'] == raeting.pcktKinds.renew: #refused renew
+                self.renew()
 
     def process(self):
         '''
@@ -376,6 +378,23 @@ class Joiner(Initiator):
         self.transmit(packet)
         console.concise("Joiner {0}. Do Join at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
+    def renew(self):
+        '''
+        Reset to vacuous Road data and try joining again
+        '''
+        if self.stack.local.main: # main never renews so just reject
+            self.reject()
+            return
+
+        if self.reid:
+            self.stack.removeRemote(self.reid)
+        self.stack.local.eid = 0
+        self.stack.dumpLocal()
+        self.remove(self.txPacket.index)
+        console.terse("Joiner {0}. Refused at {1}\n".format(self.stack.name,
+                                                    self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.stack.join(mha=self.mha)
 
     def pend(self):
         '''
@@ -640,18 +659,18 @@ class Joinent(Correspondent):
         Prepare .txData
         '''
         #since bootstrap transaction use the reversed seid and deid from packet
-        self.txData.update( sh=self.stack.local.host,
-                    sp=self.stack.local.port,
-                    se=self.rxPacket.data['de'],
-                    de=self.rxPacket.data['se'],
-                    tk=self.kind,
-                    cf=self.rmt,
-                    bf=self.bcst,
-                    wf=self.wait,
-                    si=self.sid,
-                    ti=self.tid,
-                    ck=raeting.coatKinds.nada,
-                    fk=raeting.footKinds.nada,)
+        self.txData.update(sh=self.stack.local.host,
+                           sp=self.stack.local.port,
+                           se=self.rxPacket.data['de'],
+                           de=self.rxPacket.data['se'],
+                           tk=self.kind,
+                           cf=self.rmt,
+                           bf=self.bcst,
+                           wf=self.wait,
+                           si=self.sid,
+                           ti=self.tid,
+                           ck=raeting.coatKinds.nada,
+                           fk=raeting.footKinds.nada,)
 
     def join(self):
         '''
@@ -720,6 +739,15 @@ class Joinent(Correspondent):
 
         reid = data['se']
         leid = data['de']
+
+        if ((reid != 0 and not reid in self.stack.remotes) or
+                (leid !=  0 and leid != self.stack.local.uid)):
+            if self.stack.safe.auto:
+                self.refuse() # refuse and renew
+            else:
+                self.nack() # reject
+            self.remove(self.rxPacket.index)
+            return
 
         remote = self.stack.fetchRemoteByName(name)
         if remote:
@@ -900,6 +928,35 @@ class Joinent(Correspondent):
         console.terse("Joinent {0}. Reject at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
+
+    def refuse(self):
+        '''
+        Send nack without creating a remote estate.
+        This is used when initiator is using assigned eids that no longer exist
+        '''
+        self.txData.update( dh=self.rxPacket.data['sh'], dp=self.rxPacket.data['sp'],)
+        ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
+        emsg = "Joinent {0}. Refused '{1}' at {2}\n".format(self.stack.name,
+                                                               ha,
+                                                               self.stack.store.stamp )
+        console.terse(emsg)
+        self.stack.incStat('invalid_join_attempt')
+
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.renew,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            return
+
+        self.stack.txes.append((packet.packed, ha))
+        console.terse("Nack refused Joiner at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat('refused_join_nack')
 
     def complete(self):
         '''
