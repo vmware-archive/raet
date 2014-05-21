@@ -1630,6 +1630,7 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, None) # Joinent will reject as name already in use
         self.assertEqual(len(other.transactions), 0)
+        #self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
         remote = other.remotes.values()[0]
         self.assertIs(remote.joined, False) # Joiner rejects main
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted

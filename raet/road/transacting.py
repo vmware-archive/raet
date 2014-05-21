@@ -263,14 +263,14 @@ class Joiner(Initiator):
                                            duration=self.redoTimeoutMin)
 
         if self.reid is None:
-            if not self.stack.remotes: # no main estate so make one
-                main = estating.RemoteEstate(stack=self.stack,
+            if not self.stack.remotes: # no remote estate so make one
+                remote = estating.RemoteEstate(stack=self.stack,
                                              eid=0,
                                              ha=self.mha,
                                              period=self.stack.period,
                                              offset=self.stack.offset)
-                self.stack.addRemote(main)
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
+                self.stack.addRemote(remote)
+            self.reid = self.stack.remotes.values()[0].uid # zeroth is default
         remote = self.stack.remotes[self.reid]
         remote.joined = None
         self.sid = 0
@@ -509,6 +509,7 @@ class Joiner(Initiator):
 
         remote = self.stack.remotes[self.reid]
         remote.joined = False
+        #self.stack.removeRemote(self.reid)
         self.remove(self.txPacket.index)
         console.terse("Joiner {0}. Rejected at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
@@ -1050,7 +1051,7 @@ class Allower(Initiator):
                                            duration=self.redoTimeoutMin)
 
         if self.reid is None:
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
+            self.reid = self.stack.remotes.values()[0].uid # zeroth is default
         remote = self.stack.remotes[self.reid]
         remote.rekey() # reset .allowed to None and refresh short term keys
 
@@ -1286,7 +1287,7 @@ class Allower(Initiator):
     def ackFinal(self):
         '''
         Send ack to ack Initiate to terminate transaction
-        Why do we need this?
+        Why do we need this? could we just let transaction timeout on allowent
         '''
         if self.reid not in self.stack.remotes:
             emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
@@ -2208,6 +2209,9 @@ class Aliver(Initiator):
                 self.refuse()
             elif packet.data['pk'] == raeting.pcktKinds.unjoined: # rejected
                 self.unjoin()
+            elif packet.data['pk'] == raeting.pcktKinds.unallowed: # rejected
+                self.unallow()
+
 
     def process(self):
         '''
@@ -2265,11 +2269,20 @@ class Aliver(Initiator):
             return
 
         remote = self.stack.remotes[self.reid]
+        if not remote.joined:
+            emsg = "Aliver {0}. Must be joined first\n".format(self.stack.name)
+            console.terse(emsg)
+            self.stack.incStat('unjoined_remote')
+            self.remove()
+            self.stack.join(deid=self.reid)
+            return
+
         if not remote.allowed:
             emsg = "Aliver {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
             self.remove()
+            self.stack.allow(deid=self.reid)
             return
 
         body = odict()
@@ -2328,10 +2341,11 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
+        self.stack.join(deid=self.reid)
 
     def unallow(self):
         '''
-        Process unjoin packet
+        Process unallow nack packet
         terminate in response to unallow
         '''
         if not self.stack.parseInner(self.rxPacket):
@@ -2343,6 +2357,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
+        self.stack.allow(deid=self.reid)
 
 class Alivent(Correspondent):
     '''

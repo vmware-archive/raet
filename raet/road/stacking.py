@@ -442,12 +442,13 @@ class RoadStack(stacking.Stack):
                                     rxPacket=packet)
         staler.nack()
 
-    def join(self, mha=None, timeout=None):
+    def join(self, deid=None, mha=None, timeout=None):
         '''
         Initiate join transaction
         '''
         data = odict(hk=self.Hk, bk=self.Bk)
         joiner = transacting.Joiner(stack=self,
+                                    reid=deid,
                                     timeout=timeout,
                                     txData=data,
                                     mha=mha)
