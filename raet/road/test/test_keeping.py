@@ -98,13 +98,13 @@ class BasicTestCase(unittest.TestCase):
 
         return stack
 
-    def join(self, other, main, duration=1.0):
+    def join(self, initiator, correspondent, deid=None, mha=None, duration=1.0):
         '''
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        other.join()
-        self.service(main, other, duration=duration)
+        initiator.join(deid=deid, mha=mha)
+        self.service(correspondent, initiator, duration=duration)
 
     def allow(self, other, main, duration=1.0):
         '''
@@ -563,7 +563,7 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
-        self.join(other, main, 5.0)
+        self.join(other, main, duration=5.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
         self.assertTrue(remote.joined)
@@ -583,7 +583,7 @@ class BasicTestCase(unittest.TestCase):
 
         #now change name of other to see if can still join with same ha
         other.local.name = "whowho"
-        self.join(other, main, 5.0)
+        self.join(other, main, duration=5.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
         self.assertTrue(remote.joined)
@@ -610,7 +610,7 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", 7532))
 
-        self.join(other, main, 5.0)
+        self.join(other, main, duration=5.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
         self.assertTrue(remote.joined)
@@ -755,6 +755,106 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         self.assertTrue(remote.allowed)
 
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+    def testRejoinFromMain(self):
+        '''
+        Test rejoin after successful join with saved keys for both initiated by main
+        '''
+        console.terse("{0}\n".format(self.testRejoinFromMain.__doc__))
+        auto = True
+        data = self.createRoadData(name='main', base=self.base)
+        mainDirpath = data['dirpath']
+        keeping.clearAllKeepSafe(data['dirpath'])
+        main = self.createRoadStack(data=data,
+                                     eid=1,
+                                     main=True,
+                                     auto=auto,
+                                     ha=None)
+        #default ha is ("", raeting.RAET_PORT)
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                main.name, main.keep.dirpath, main.safe.dirpath))
+        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
+        self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
+        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
+        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.name, 'main')
+        self.assertEqual(main.local.name, main.name)
+
+        data = self.createRoadData(name='other', base=self.base)
+        otherDirpath = data['dirpath']
+        keeping.clearAllKeepSafe(data['dirpath'])
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+                other.name, other.keep.dirpath, other.safe.dirpath))
+        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.name, 'other')
+        self.assertEqual(other.local.name, other.name)
+
+        self.assertTrue(main.safe.auto)
+
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+
+        #now close down and reload data
+        main.server.close()
+        other.server.close()
+
+        # make new stacks with saved data
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+
+        # attempt to join to other
+        self.assertEqual(other.name, 'other')
+        self.assertEqual(other.local.name, other.name)
+        self.assertEqual(main.name, 'main')
+        self.assertEqual(main.local.name, main.name)
+
+        remote = main.remotes.values()[0]
+        self.join(main, other, deid=remote.uid)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+
+        self.allow(main, other)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.allowed)
 
         main.server.close()
         main.clearLocal()
@@ -1791,5 +1891,5 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testPendingSavedKeep')
+    #runOne('testRejoinFromMain')
 
