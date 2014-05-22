@@ -509,7 +509,7 @@ class Joiner(Initiator):
 
         remote = self.stack.remotes[self.reid]
         remote.joined = False
-        #self.stack.removeRemote(self.reid)
+        self.stack.removeRemote(self.reid)
         self.remove(self.txPacket.index)
         console.terse("Joiner {0}. Rejected at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
@@ -544,7 +544,6 @@ class Joiner(Initiator):
         console.concise("Joiner {0}. Do Accept at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
         self.stack.incStat("join_initiate_complete")
-
 
     def nackAccept(self):
         '''

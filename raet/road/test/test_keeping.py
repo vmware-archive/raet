@@ -846,8 +846,9 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, True) # main still rememebers join from before
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False)
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.joined, False)
+        self.assertEqual(len(other.remotes), 0)
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -887,9 +888,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.joined, True) # unlost other remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False) # new other rejected by main so not joined
-        self.assertEqual(remote.acceptance, None) # new other never been accepted
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.joined, False) # new other rejected by main so not joined
+        #self.assertEqual(remote.acceptance, None) # new other never been accepted
+        self.assertEqual(len(other.remotes), 0)
+
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -999,11 +1002,9 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertTrue(remote.joined)
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined,  False)
-
-        print other.local.signer.verhex
-        print main.remotes[2].verfer.keyhex
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.joined,  False)
+        self.assertEqual(len(other.remotes), 0)
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1043,9 +1044,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.joined, True) # unlost other remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False) # new other rejected by main so not joined
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # old remote was accepted
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.joined, False) # new other rejected by main so not joined
+        #self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # old remote was accepted
+        self.assertEqual(len(other.remotes), 0)
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1581,6 +1583,9 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         self.assertTrue(remote.allowed)
 
+        #save copy of other remotes
+        otherRemotes = odict(other.remotes)
+
         #now forget the local local data only to simulate both changing keys
         main.server.close()
         main.clearLocal()
@@ -1630,10 +1635,10 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, None) # Joinent will reject as name already in use
         self.assertEqual(len(other.transactions), 0)
-        #self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False) # Joiner rejects main
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
+        self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.joined, False) # Joiner rejects main
+        #self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1675,6 +1680,11 @@ class BasicTestCase(unittest.TestCase):
                                     main=None,
                                     auto=None,
                                     ha=("", raeting.RAET_TEST_PORT))
+
+        # the failed join attempt deleted the remote
+        for remote in otherRemotes.values():
+            other.addRemote(remote)
+        other.dumpRemotes()
 
         console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
                 main.name, main.keep.dirpath, main.safe.dirpath))
