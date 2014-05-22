@@ -471,26 +471,27 @@ class Joiner(Initiator):
             self.nackAccept()
             return
 
-        if remote.uid != reid: #move remote estate to new index
-            try:
-                self.stack.moveRemote(old=remote.uid, new=reid)
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.remove(self.txPacket.index)
-                return
+        if not self.stack.local.main: #only should do this if not main
+            if remote.uid != reid: #move remote estate to new index
+                try:
+                    self.stack.moveRemote(old=remote.uid, new=reid)
+                except raeting.StackError as ex:
+                    console.terse(str(ex) + '\n')
+                    self.stack.incStat(self.statKey())
+                    self.remove(self.txPacket.index)
+                    return
 
-        if remote.name != name: # rename remote estate to new name
-            try:
-                self.stack.renameRemote(old=remote.name, new=name)
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.remove(self.txPacket.index)
-                return
+            if remote.name != name: # rename remote estate to new name
+                try:
+                    self.stack.renameRemote(old=remote.name, new=name)
+                except raeting.StackError as ex:
+                    console.terse(str(ex) + '\n')
+                    self.stack.incStat(self.statKey())
+                    self.remove(self.txPacket.index)
+                    return
 
-        self.stack.local.uid = leid
-        self.stack.dumpLocal()
+            self.stack.local.uid = leid
+            self.stack.dumpLocal()
 
         self.reid = reid
         remote = self.stack.remotes[self.reid]
@@ -934,20 +935,19 @@ class Joinent(Correspondent):
                 self.nack() # reject as keys rejected
                 return
 
+            if self.stack.local.uid != leid:
+                self.stack.local.uid = leid
+                self.stack.dumpLocal()
+
             remote.host = host
             remote.port = port
             remote.rsid = self.sid
             remote.rtid = self.tid
             if name != remote.name:
                 self.stack.renameRemote(old=remote.name, new=name)
-
-            if self.stack.local.uid != leid:
-                self.stack.local.uid = leid
-                self.stack.dumpLocal()
-
-            remote.nextSid()
+            #remote.nextSid() #set in complete method
             self.stack.dumpRemote(remote)
-            remote.joined = True #accepted
+            #remote.joined = True #accepted set in complete method
             duration = min(
                         max(self.redoTimeoutMin,
                              self.redoTimer.duration * 2.0),
