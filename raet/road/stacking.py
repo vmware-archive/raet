@@ -466,12 +466,16 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         joinent.join() #assigns .reid here
 
-    def allow(self, deid=None):
+    def allow(self, deid=None, mha=None, timeout=None):
         '''
         Initiate allow transaction
         '''
         data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
-        allower = transacting.Allower(stack=self, reid=deid, txData=data)
+        allower = transacting.Allower(stack=self,
+                                      reid=deid,
+                                      timeout=timeout,
+                                      txData=data,
+                                      mha=mha)
         allower.hello()
 
     def replyAllow(self, packet):
@@ -513,7 +517,7 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         messengent.message()
 
-    def alive(self, deid=None,  timeout=None):
+    def alive(self, deid=None,  mha=None, timeout=None):
         '''
         Initiate alive transaction
         '''
@@ -521,7 +525,8 @@ class RoadStack(stacking.Stack):
         aliver = transacting.Aliver(stack=self,
                                     timeout=timeout,
                                     reid=deid,
-                                    txData=data)
+                                    txData=data,
+                                    mha=mha)
         aliver.alive()
 
     def replyAlive(self, packet):

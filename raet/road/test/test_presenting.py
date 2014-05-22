@@ -125,12 +125,12 @@ class BasicTestCase(unittest.TestCase):
 
         self.service(main, other, duration=duration)
 
-    def alive(self, initiator, correspondent):
+    def alive(self, initiator, correspondent, deid=None, mha=None):
         '''
         Utility method to do alive. Call from test method.
         '''
         console.terse("\nAlive Transaction **************\n")
-        initiator.alive(deid=correspondent.local.uid)
+        initiator.alive(deid=deid, mha=mha)
         self.service(correspondent, initiator)
 
     def service(self, main, other, duration=1.0):
@@ -217,7 +217,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(otherRemote.alive, None)
         self.assertIs(mainRemote.alive, None)
 
-        self.alive(other, main)
+        self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertTrue(otherRemote.alive)
@@ -229,7 +229,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(otherRemote.alive, None)
         self.assertIs(mainRemote.alive, None)
 
-        self.alive(main, other)
+        self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertTrue(otherRemote.alive)
@@ -252,6 +252,76 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         self.assertFalse(mainRemote.alive)
         self.serviceStack(main, duration=3.0)
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+    def testAliveUnjoinedOther(self):
+        '''
+        Test alive transaction for unjoined other to main
+        '''
+        console.terse("{0}\n".format(self.testAliveUnjoinedOther.__doc__))
+
+        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nBoth unjoined Alive Other to Main *********\n")
+        self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(other.remotes), 0)
+
+        self.alive(other, main, mha=('127.0.0.1', main.local.port))
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes[main.local.uid]
+        self.assertIs(otherRemote.joined, True)
+        self.assertIs(mainRemote.joined,  True)
+        self.assertIs(otherRemote.alive,  None)
+        self.assertIs(mainRemote.alive,  None)
+
+        self.alive(other, main, deid=main.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertIs(otherRemote.allowed, True)
+        self.assertIs(mainRemote.allowed,  True)
+        self.assertIs(otherRemote.alive,  None)
+        self.assertIs(mainRemote.alive,  None)
+
+        self.alive(other, main, deid=main.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertIs(otherRemote.alive,  True)
+        self.assertIs(mainRemote.alive,  True)
+
+        console.terse("\nAlive Main to Other *********\n")
+        otherRemote.alive = None
+        mainRemote.alive = None
+        self.assertIs(otherRemote.alive, None)
+        self.assertIs(mainRemote.alive, None)
+
+        self.alive(main, other, deid=other.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertTrue(otherRemote.alive)
+        self.assertTrue(mainRemote.alive)
 
         main.server.close()
         main.clearLocal()
@@ -331,7 +401,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(otherRemote.alive, None)
         self.assertIs(mainRemote.alive, None)
 
-        self.alive(other, main)
+        self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertTrue(otherRemote.alive)
@@ -343,7 +413,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(otherRemote.alive, None)
         self.assertIs(mainRemote.alive, None)
 
-        self.alive(main, other)
+        self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertTrue(otherRemote.alive)
@@ -353,7 +423,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(other1Remote.alive, None)
         self.assertIs(main1Remote.alive, None)
 
-        self.alive(other1, main)
+        self.alive(other1, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other1.transactions), 0)
         self.assertTrue(other1Remote.alive)
@@ -365,7 +435,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(other1Remote.alive, None)
         self.assertIs(main1Remote.alive, None)
 
-        self.alive(main, other1)
+        self.alive(main, other1, deid=other1.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other1.transactions), 0)
         self.assertTrue(other1Remote.alive)
@@ -405,11 +475,11 @@ class BasicTestCase(unittest.TestCase):
         other1.clearLocal()
         other1.clearRemoteKeeps()
 
-    def testRemoteProcess(self):
+    def testManage(self):
         '''
         Test alive transaction with multiple remotes
         '''
-        console.terse("{0}\n".format(self.testRemoteProcess.__doc__))
+        console.terse("{0}\n".format(self.testManage.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
         keeping.clearAllKeepSafe(mainData['dirpath'])
@@ -497,7 +567,8 @@ def runSome():
     tests =  []
     names = ['testAlive',
              'testAliveMultiple',
-             'testRemoteProcess', ]
+             'testManage',
+             'testAliveUnjoinedOther', ]
 
     tests.extend(map(BasicTestCase, names))
 
@@ -521,5 +592,4 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testRemoteProcess')
-
+    #runOne('testAliveUnjoinedMain')
