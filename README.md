@@ -81,7 +81,7 @@ process context switching.
 An example of a framework that uses this type of micro-threaded but multi-process
 architecture is Erlang. Indeed, the success of the Erlang model provided
 support for the viability of the RAET approach.
-Indeed, one might ask, why not use Erlang, unfortunately, the Erlang ecosystem is
+Indeed, one might ask, why not use Erlang? Unfortunately, the Erlang ecosystem is
 somewhat limited in comparison to Python's and the language itself uses what one
 might describe as a very unfortunate syntax.
 One of the design objectives behine RAET was to leverage existing Python expertise
