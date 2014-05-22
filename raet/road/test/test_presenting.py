@@ -263,7 +263,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testAliveUnjoinedOther(self):
         '''
-        Test alive transaction for unjoined other to main
+        Test alive transaction for other to main unjoined on main
         '''
         console.terse("{0}\n".format(self.testAliveUnjoinedOther.__doc__))
 
@@ -286,6 +286,93 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nBoth unjoined Alive Other to Main *********\n")
         self.assertEqual(len(main.remotes), 0)
         self.assertEqual(len(other.remotes), 0)
+
+        self.alive(other, main, mha=('127.0.0.1', main.local.port))
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes[main.local.uid]
+        self.assertIs(otherRemote.joined, True)
+        self.assertIs(mainRemote.joined,  True)
+        self.assertIs(otherRemote.alive,  None)
+        self.assertIs(mainRemote.alive,  None)
+
+        self.alive(other, main, deid=main.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertIs(otherRemote.allowed, True)
+        self.assertIs(mainRemote.allowed,  True)
+        self.assertIs(otherRemote.alive,  None)
+        self.assertIs(mainRemote.alive,  None)
+
+        self.alive(other, main, deid=main.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertIs(otherRemote.alive,  True)
+        self.assertIs(mainRemote.alive,  True)
+
+        console.terse("\nAlive Main to Other *********\n")
+        otherRemote.alive = None
+        mainRemote.alive = None
+        self.assertIs(otherRemote.alive, None)
+        self.assertIs(mainRemote.alive, None)
+
+        self.alive(main, other, deid=other.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertTrue(otherRemote.alive)
+        self.assertTrue(mainRemote.alive)
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+    def testAliveUnjoinedMain(self):
+        '''
+        Test alive transaction for other to main unjoined on main
+        '''
+        console.terse("{0}\n".format(self.testAliveUnjoinedOther.__doc__))
+
+        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        # join and allow
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes[main.local.uid]
+        self.assertIs(otherRemote.joined, True)
+        self.assertIs(mainRemote.joined,  True)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertIs(otherRemote.allowed, True)
+        self.assertIs(mainRemote.allowed,  True)
+
+        console.terse("\nBoth unjoined Alive Other to Main *********\n")
+        # set main's remote of other to not joined or allowed
+        otherRemote.alive = None
+        otherRemote.joined = None
+        otherRemote.allowed = None
 
         self.alive(other, main, mha=('127.0.0.1', main.local.port))
         self.assertEqual(len(main.transactions), 0)
@@ -568,7 +655,8 @@ def runSome():
     names = ['testAlive',
              'testAliveMultiple',
              'testManage',
-             'testAliveUnjoinedOther', ]
+             'testAliveUnjoinedOther',
+             'testAliveUnjoinedMain', ]
 
     tests.extend(map(BasicTestCase, names))
 
