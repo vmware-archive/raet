@@ -206,11 +206,11 @@ class RemoteEstate(Estate):
         self.timer.restart(duration=self.period)
         self.alive = alive
 
-    def manage(self):
+    def manage(self, cascade=False, immediate=False):
         '''
         Perform time based processing of keep alive heatbeat
         '''
-        if self.timer.expired:
+        if immediate or self.timer.expired:
             self.timer.restart(duration=self.period)
-            self.stack.alive(deid=self.uid)
+            self.stack.alive(deid=self.uid, cascade=cascade)
 

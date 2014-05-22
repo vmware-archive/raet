@@ -806,7 +806,128 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocal()
         other.clearRemoteKeeps()
 
+    def testManageMainRebootCascade(self):
+        '''
+        Test stack manage remotes as if main were rebooted
+        '''
+        console.terse("{0}\n".format(self.testManageMainRebootCascade.__doc__))
 
+        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        mainDirpath = mainData['dirpath']
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        otherDirpath = otherData['dirpath']
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        other1Data = self.createRoadData(name='other1', base=self.base)
+        other1Dirpath = other1Data['dirpath']
+        keeping.clearAllKeepSafe(other1Data['dirpath'])
+        other1 = self.createRoadStack(data=other1Data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", 7532))
+
+
+        self.join(other, main)
+        self.join(other1, main)
+        self.allow(other, main)
+        self.allow(other1, main)
+
+        console.terse("\nTest manage remotes presence *********\n")
+        console.terse("\nMake all alive *********\n")
+        stacks = [main, other, other1]
+        for remote in main.remotes.values(): #make all alive
+            main.alive(deid=remote.uid)
+        self.serviceStacks(stacks, duration=3.0)
+        for remote in main.remotes.values():
+            self.assertTrue(remote.alive)
+
+        main.manage(immediate=True)
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+        for remote in main.remotes.values(): # should reset alive to None
+            self.assertIs(remote.alive, None)
+
+        self.serviceStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for remote in main.remotes.values():
+            self.assertTrue(remote.alive)
+
+        # now close down main and reload from saved data and manage
+        console.terse("\nMake all alive with cascade after main reboots *********\n")
+        main.server.close()
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        stacks = [main, other, other1]
+
+        for remote in main.remotes.values():
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alive, None)
+
+        main.manage(immediate=True, cascade=True)
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+        for remote in main.remotes.values(): # should reset alive to None
+            self.assertIs(remote.alive, None)
+        self.serviceStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for remote in main.remotes.values():
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alive, True)
+
+        # Now test as if others are rebooted
+        console.terse("\nMake all alive with cascade after others reboot *********\n")
+        other.server.close()
+        other1.server.close()
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+        other1 = stacking.RoadStack(dirpath=other1Dirpath, store=self.store)
+        stacks = [main, other, other1]
+
+        self.assertIs(other.remotes[main.local.uid].joined, None)
+        self.assertIs(other.remotes[main.local.uid].allowed, None)
+        self.assertIs(other.remotes[main.local.uid].alive, None)
+        self.assertIs(other1.remotes[main.local.uid].joined, None)
+        self.assertIs(other1.remotes[main.local.uid].allowed, None)
+        self.assertIs(other1.remotes[main.local.uid].alive, None)
+
+        main.manage(immediate=True, cascade=True)
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+        for remote in main.remotes.values(): # should reset alive to None
+            self.assertIs(remote.alive, None)
+        self.serviceStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        self.assertIs(other.remotes[main.local.uid].joined, True)
+        self.assertIs(other.remotes[main.local.uid].allowed, True)
+        self.assertIs(other.remotes[main.local.uid].alive, True)
+        self.assertIs(other1.remotes[main.local.uid].joined, True)
+        self.assertIs(other1.remotes[main.local.uid].allowed, True)
+        self.assertIs(other1.remotes[main.local.uid].alive, True)
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+        other1.server.close()
+        other1.clearLocal()
+        other1.clearRemoteKeeps()
 
 def runOne(test):
     '''
@@ -827,7 +948,8 @@ def runSome():
              'testAliveUnjoinedOther',
              'testAliveUnjoinedMain',
              'testJoinFromMain',
-             'testAliveUnjoinedFromMain', ]
+             'testAliveUnjoinedFromMain',
+             'testManageMainRebootCascade', ]
 
     tests.extend(map(BasicTestCase, names))
 
@@ -851,4 +973,4 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testAliveUnjoinedFromMain')
+    #runOne('testManageMainRebootCascade')

@@ -275,13 +275,18 @@ class RoadStack(stacking.Stack):
         super(RoadStack, self).clearRemoteKeeps()
         self.safe.clearAllRemoteData()
 
-    def manage(self):
+    def manage(self, cascade=False, immediate=False):
         '''
         Manage remote estates. Time based processing of remote status such as
         presence (keep alive) etc.
+
+        cascade induces the alive transactions to run join, allow, alive until
+        failure or alive success
+
+        immediate indicates to run first attempt immediately and not wait for timer
         '''
         for remote in self.remotes.values(): # should not start anything
-            remote.manage()
+            remote.manage(cascade=cascade, immediate=immediate)
 
     def addTransaction(self, index, transaction):
         '''
@@ -442,7 +447,7 @@ class RoadStack(stacking.Stack):
                                     rxPacket=packet)
         staler.nack()
 
-    def join(self, deid=None, mha=None, timeout=None):
+    def join(self, deid=None, mha=None, timeout=None, cascade=False):
         '''
         Initiate join transaction
         '''
@@ -451,7 +456,8 @@ class RoadStack(stacking.Stack):
                                     reid=deid,
                                     timeout=timeout,
                                     txData=data,
-                                    mha=mha)
+                                    mha=mha,
+                                    cascade=cascade)
         joiner.join()
 
     def replyJoin(self, packet):
@@ -466,7 +472,7 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         joinent.join() #assigns .reid here
 
-    def allow(self, deid=None, mha=None, timeout=None):
+    def allow(self, deid=None, mha=None, timeout=None, cascade=False):
         '''
         Initiate allow transaction
         '''
@@ -475,7 +481,8 @@ class RoadStack(stacking.Stack):
                                       reid=deid,
                                       timeout=timeout,
                                       txData=data,
-                                      mha=mha)
+                                      mha=mha,
+                                      cascade=cascade)
         allower.hello()
 
     def replyAllow(self, packet):
@@ -517,7 +524,7 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         messengent.message()
 
-    def alive(self, deid=None,  mha=None, timeout=None):
+    def alive(self, deid=None,  mha=None, timeout=None, cascade=False):
         '''
         Initiate alive transaction
         '''
@@ -526,7 +533,8 @@ class RoadStack(stacking.Stack):
                                     timeout=timeout,
                                     reid=deid,
                                     txData=data,
-                                    mha=mha)
+                                    mha=mha,
+                                    cascade=cascade)
         aliver.alive()
 
     def replyAlive(self, packet):

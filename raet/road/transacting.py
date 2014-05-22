@@ -248,7 +248,8 @@ class Joiner(Initiator):
     RedoTimeoutMax = 4.0 # max timeout
 
 
-    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
+    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
+                 cascade=False, **kwa):
         '''
         Setup Transaction instance
         '''
@@ -256,6 +257,7 @@ class Joiner(Initiator):
         super(Joiner, self).__init__(**kwa)
 
         self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
+        self.cascade = cascade
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
@@ -545,6 +547,8 @@ class Joiner(Initiator):
         console.concise("Joiner {0}. Do Accept at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
         self.stack.incStat("join_initiate_complete")
+        if self.cascade:
+            self.stack.allow(deid=self.reid, cascade=self.cascade)
 
     def nackAccept(self):
         '''
@@ -1097,7 +1101,8 @@ class Allower(Initiator):
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
 
-    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
+    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
+                 cascade=False, **kwa):
         '''
         Setup instance
         '''
@@ -1105,6 +1110,7 @@ class Allower(Initiator):
         super(Allower, self).__init__(**kwa)
 
         self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
+        self.cascade = cascade
 
         self.oreo = None # cookie from correspondent needed until handshake completed
 
@@ -1384,6 +1390,8 @@ class Allower(Initiator):
         console.concise("Allower {0}. Ack Final at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
+        if self.cascade:
+            self.stack.alive(deid=self.reid, cascade=self.cascade)
 
     def reject(self):
         '''
@@ -2237,7 +2245,8 @@ class Aliver(Initiator):
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
 
-    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
+    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
+                cascade=False, **kwa):
         '''
         Setup instance
         '''
@@ -2245,6 +2254,7 @@ class Aliver(Initiator):
         super(Aliver, self).__init__(**kwa)
 
         self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
+        self.cascade = cascade
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
@@ -2353,7 +2363,7 @@ class Aliver(Initiator):
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
             self.remove()
-            self.stack.join(deid=self.reid)
+            self.stack.join(deid=self.reid, cascade=self.cascade)
             return
 
         if not remote.allowed:
@@ -2361,7 +2371,7 @@ class Aliver(Initiator):
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
             self.remove()
-            self.stack.allow(deid=self.reid)
+            self.stack.allow(deid=self.reid, cascade=self.cascade)
             return
 
         body = odict()
@@ -2420,7 +2430,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(deid=self.reid)
+        self.stack.join(deid=self.reid, cascade=self.cascade)
 
     def unallow(self):
         '''
@@ -2436,7 +2446,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.allow(deid=self.reid)
+        self.stack.allow(deid=self.reid, cascade=self.cascade)
 
 class Alivent(Correspondent):
     '''
