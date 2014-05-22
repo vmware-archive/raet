@@ -340,11 +340,11 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testBootstrapJson.__doc__))
         self.bootstrap(bk=raeting.bodyKinds.json)
 
-    def testBootstrapMsgBack(self):
+    def testBootstrapMsgpack(self):
         '''
         Test join allow message transactions with MsgPack Serialization of body
         '''
-        console.terse("{0}\n".format(self.testBootstrapMsgBack.__doc__))
+        console.terse("{0}\n".format(self.testBootstrapMsgpack.__doc__))
         self.bootstrap(bk=raeting.bodyKinds.msgpack)
 
     def testMsgBothwaysJson(self):
@@ -704,7 +704,7 @@ def runSome():
     """ Unittest runner """
     tests =  []
     names = ['testBootstrapJson',
-             'testBootstrapMsgBack',
+             'testBootstrapMsgpack',
              'testMsgBothwaysJson',
              'testMsgBothwaysMsgpack',
              'testSegmentedJson',

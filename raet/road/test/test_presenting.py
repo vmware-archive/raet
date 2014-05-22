@@ -98,21 +98,21 @@ class BasicTestCase(unittest.TestCase):
 
         return stack
 
-    def join(self, other, main, duration=1.0):
+    def join(self, initiator, correspondent, deid=None, mha=None, duration=1.0):
         '''
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        other.join()
-        self.service(main, other, duration=duration)
+        initiator.join(deid=deid, mha=mha)
+        self.service(correspondent, initiator, duration=duration)
 
-    def allow(self, other, main, duration=1.0):
+    def allow(self, initiator, correspondent, duration=1.0):
         '''
         Utility method to do allow. Call from test method.
         '''
         console.terse("\nAllow Transaction **************\n")
-        other.allow()
-        self.service(main, other, duration=duration)
+        initiator.allow()
+        self.service(correspondent, initiator, duration=duration)
 
     def message(self, main,  other, mains, others, duration=2.0):
         '''
@@ -680,4 +680,4 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testAliveUnjoinedMain')
+    #runOne('testJoinFromMain')
