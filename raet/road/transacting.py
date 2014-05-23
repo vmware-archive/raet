@@ -2287,7 +2287,7 @@ class Aliver(Initiator):
                 self.stack.addRemote(remote)
             self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
         remote = self.stack.remotes[self.reid]
-        remote.alive = None # reset alive status until done with transaction
+        remote.alived = None # reset alive status until done with transaction
         # .bcast set from packet by stack when created transaction
         self.sid = remote.sid
         self.tid = remote.nextTid()
@@ -2326,7 +2326,7 @@ class Aliver(Initiator):
                 self.stack.name, self.stack.store.stamp))
             self.remove()
             remote = self.stack.remotes[self.reid]
-            remote.refresh(alive=False) # mark as dead
+            remote.refresh(alived=False) # mark as dead
             #self.reap() #remote is dead so reap it
             return
 
@@ -2412,7 +2412,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         remote = self.stack.remotes[self.reid]
-        remote.refresh(alive=True) # restart timer mark as alive
+        remote.refresh(alived=True) # restart timer mark as alive
         self.remove()
         console.concise("Aliver {0}. Done at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -2424,7 +2424,7 @@ class Aliver(Initiator):
         '''
         self.remove()
         remote = self.stack.remotes[self.reid]
-        remote.refresh(alive=False) # mark as dead
+        remote.refresh(alived=False) # mark as dead
         console.concise("Aliver {0}. Reaping dead remote '{1}' at {2}\n".format(
                 self.stack.name, remote.name, self.stack.store.stamp))
         self.stack.incStat("alive_reap")
@@ -2438,7 +2438,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         remote = self.stack.remotes[self.reid]
-        remote.refresh(alive=None) # restart timer mark as indeterminate
+        remote.refresh(alived=None) # restart timer mark as indeterminate
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -2452,7 +2452,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         remote = self.stack.remotes[self.reid]
-        remote.refresh(alive=None) # restart timer mark as indeterminate
+        remote.refresh(alived=None) # restart timer mark as indeterminate
         remote.joined = False
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
@@ -2468,7 +2468,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         remote = self.stack.remotes[self.reid]
-        remote.refresh(alive=None) # restart timer mark as indeterminate
+        remote.refresh(alived=None) # restart timer mark as indeterminate
         remote.allowed = False
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
@@ -2553,7 +2553,7 @@ class Alivent(Correspondent):
         remote = self.stack.remotes[self.reid]
 
         if not remote.joined:
-            remote.refresh(alive=None) # indeterminate
+            remote.refresh(alived=None) # indeterminate
             emsg = "Alivent {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_alive_attempt')
@@ -2561,7 +2561,7 @@ class Alivent(Correspondent):
             return
 
         if not remote.allowed:
-            remote.refresh(alive=None) # indeterminate
+            remote.refresh(alived=None) # indeterminate
             emsg = "Alivent {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_alive_attempt')
@@ -2599,7 +2599,7 @@ class Alivent(Correspondent):
         self.transmit(packet)
         console.concise("Alivent {0}. Do ack alive at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
-        remote.refresh(alive=True)
+        remote.refresh(alived=True)
         self.remove()
         console.concise("Alivent {0}. Done at {1}\n".format(
                         self.stack.name, self.stack.store.stamp))

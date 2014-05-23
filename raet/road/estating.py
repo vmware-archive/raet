@@ -160,7 +160,7 @@ class RemoteEstate(Estate):
         super(RemoteEstate, self).__init__(stack, **kwa)
         self.joined = None
         self.allowed = None
-        self.alive = None
+        self.alived = None
         self.acceptance = acceptance
         self.privee = nacling.Privateer() # short term key manager
         self.publee = nacling.Publican() # correspondent short term key  manager
@@ -199,12 +199,12 @@ class RemoteEstate(Estate):
         '''
         return (((rsid - self.rsid) % 0x100000000) < (0x100000000 // 2))
 
-    def refresh(self, alive=True):
+    def refresh(self, alived=True):
         '''
         Restart presence heartbeat timer
         '''
         self.timer.restart(duration=self.period)
-        self.alive = alive
+        self.alived = alived
 
     def manage(self, cascade=False, immediate=False):
         '''

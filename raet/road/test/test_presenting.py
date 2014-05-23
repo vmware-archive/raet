@@ -217,43 +217,43 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nAlive Other to Main *********\n")
         otherRemote = main.remotes[other.local.uid]
         mainRemote = other.remotes.values()[0]
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         console.terse("\nAlive Main to Other *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
 
         console.terse("\nDead Other from Main *********\n")
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
         main.alive(deid=other.local.uid)
         self.serviceStack(main, duration=3.0)
         self.assertEqual(len(main.transactions), 0)
-        self.assertFalse(otherRemote.alive)
+        self.assertFalse(otherRemote.alived)
         self.serviceStack(other, duration=3.0)
 
         console.terse("\nDead Main from Other *********\n")
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(mainRemote.alived)
         other.alive(deid=main.local.uid)
         self.serviceStack(other, duration=3.0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertFalse(mainRemote.alive)
+        self.assertFalse(mainRemote.alived)
         self.serviceStack(main, duration=3.0)
 
         main.server.close()
@@ -297,34 +297,34 @@ class BasicTestCase(unittest.TestCase):
         mainRemote = other.remotes[main.local.uid]
         self.assertIs(otherRemote.joined, True)
         self.assertIs(mainRemote.joined,  True)
-        self.assertIs(otherRemote.alive,  None)
-        self.assertIs(mainRemote.alive,  None)
+        self.assertIs(otherRemote.alived,  None)
+        self.assertIs(mainRemote.alived,  None)
 
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertIs(otherRemote.allowed, True)
         self.assertIs(mainRemote.allowed,  True)
-        self.assertIs(otherRemote.alive,  None)
-        self.assertIs(mainRemote.alive,  None)
+        self.assertIs(otherRemote.alived,  None)
+        self.assertIs(mainRemote.alived,  None)
 
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertIs(otherRemote.alive,  True)
-        self.assertIs(mainRemote.alive,  True)
+        self.assertIs(otherRemote.alived,  True)
+        self.assertIs(mainRemote.alived,  True)
 
         console.terse("\nAlive Main to Other *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         main.server.close()
         main.clearLocal()
@@ -377,10 +377,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(mainRemote.allowed,  True)
 
         console.terse("\nAllow Main to Other *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.allow(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
@@ -417,8 +417,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(mainRemote.joined,  True)
         self.assertIs(otherRemote.allowed,  True)
         self.assertIs(mainRemote.allowed,  True)
-        self.assertIs(otherRemote.alive,  True)
-        self.assertIs(mainRemote.alive,  True)
+        self.assertIs(otherRemote.alived,  True)
+        self.assertIs(mainRemote.alived,  True)
 
 
         main.server.close()
@@ -468,7 +468,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nBoth unjoined Alive Other to Main *********\n")
         # set main's remote of other to not joined or allowed
-        otherRemote.alive = None
+        otherRemote.alived = None
         otherRemote.joined = None
         otherRemote.allowed = None
 
@@ -479,34 +479,34 @@ class BasicTestCase(unittest.TestCase):
         mainRemote = other.remotes[main.local.uid]
         self.assertIs(otherRemote.joined, True)
         self.assertIs(mainRemote.joined,  True)
-        self.assertIs(otherRemote.alive,  None)
-        self.assertIs(mainRemote.alive,  None)
+        self.assertIs(otherRemote.alived,  None)
+        self.assertIs(mainRemote.alived,  None)
 
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertIs(otherRemote.allowed, True)
         self.assertIs(mainRemote.allowed,  True)
-        self.assertIs(otherRemote.alive,  None)
-        self.assertIs(mainRemote.alive,  None)
+        self.assertIs(otherRemote.alived,  None)
+        self.assertIs(mainRemote.alived,  None)
 
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertIs(otherRemote.alive,  True)
-        self.assertIs(mainRemote.alive,  True)
+        self.assertIs(otherRemote.alived,  True)
+        self.assertIs(mainRemote.alived,  True)
 
         console.terse("\nAlive Main to Other *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         main.server.close()
         main.clearLocal()
@@ -569,10 +569,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(mainRemote.allowed,  True)
 
         console.terse("\nAllow Other to Main *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.allow(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
@@ -619,8 +619,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(mainRemote.joined,  True)
         self.assertIs(otherRemote.allowed,  True)
         self.assertIs(mainRemote.allowed,  True)
-        self.assertIs(otherRemote.alive,  True)
-        self.assertIs(mainRemote.alive,  True)
+        self.assertIs(otherRemote.alived,  True)
+        self.assertIs(mainRemote.alived,  True)
 
         main.server.close()
         main.clearLocal()
@@ -697,52 +697,52 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main1Remote.allowed)
 
         console.terse("\nAlive Other to Main *********\n")
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         console.terse("\nAlive Main to Other *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         console.terse("\nAlive Other1 to Main *********\n")
-        self.assertIs(other1Remote.alive, None)
-        self.assertIs(main1Remote.alive, None)
+        self.assertIs(other1Remote.alived, None)
+        self.assertIs(main1Remote.alived, None)
 
         self.alive(other1, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other1.transactions), 0)
-        self.assertTrue(other1Remote.alive)
-        self.assertTrue(main1Remote.alive)
+        self.assertTrue(other1Remote.alived)
+        self.assertTrue(main1Remote.alived)
 
         console.terse("\nAlive Main to Other1 *********\n")
-        other1Remote.alive = None
-        main1Remote.alive = None
-        self.assertIs(other1Remote.alive, None)
-        self.assertIs(main1Remote.alive, None)
+        other1Remote.alived = None
+        main1Remote.alived = None
+        self.assertIs(other1Remote.alived, None)
+        self.assertIs(main1Remote.alived, None)
 
         self.alive(main, other1, deid=other1.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other1.transactions), 0)
-        self.assertTrue(other1Remote.alive)
-        self.assertTrue(main1Remote.alive)
+        self.assertTrue(other1Remote.alived)
+        self.assertTrue(main1Remote.alived)
 
         console.terse("\nDead Other Alive Other1, from Main *********\n")
-        self.assertTrue(main.remotes[other.local.uid].alive)
-        self.assertTrue(main.remotes[other1.local.uid].alive)
+        self.assertTrue(main.remotes[other.local.uid].alived)
+        self.assertTrue(main.remotes[other1.local.uid].alived)
         main.alive(deid=other.local.uid)
         main.alive(deid=other1.local.uid)
         # don't service other stack so it appears to be dead
@@ -750,8 +750,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other1.transactions), 0)
         #self.assertTrue(other.local.uid not in main.remotes)
-        self.assertIs(main.remotes[other.local.uid].alive, False)
-        self.assertTrue(main.remotes[other1.local.uid].alive)
+        self.assertIs(main.remotes[other.local.uid].alived, False)
+        self.assertTrue(main.remotes[other1.local.uid].alived)
 
         self.serviceStacks([other, main], duration=3.0) #clean up
         self.assertEqual(len(main.transactions), 0)
@@ -762,8 +762,8 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nReliven other *********\n")
         other.alive(deid=main.local.uid, cascade=True)
         self.serviceStacks([other, main], duration=3.0)
-        self.assertIs(main.remotes[other.local.uid].alive, True)
-        self.assertIs(other.remotes[main.local.uid].alive, True)
+        self.assertIs(main.remotes[other.local.uid].alived, True)
+        self.assertIs(other.remotes[main.local.uid].alived, True)
 
         console.terse("\nAlive Other Dead Other 1 from Main *********\n")
         main.alive(deid=other.local.uid)
@@ -771,8 +771,8 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStacks([main, other], duration=3.0)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertFalse(other1Remote.alive)
-        self.assertTrue(otherRemote.alive)
+        self.assertFalse(other1Remote.alived)
+        self.assertTrue(otherRemote.alived)
 
         self.serviceStacks([other1,  main], duration=3.0)
         self.assertEqual(len(main.transactions), 0)
@@ -783,8 +783,8 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nReliven other1 *********\n")
         other1.alive(deid=main.local.uid, cascade=True)
         self.serviceStacks([other1, main], duration=3.0)
-        self.assertIs(main.remotes[other1.local.uid].alive, True)
-        self.assertIs(other1.remotes[main.local.uid].alive, True)
+        self.assertIs(main.remotes[other1.local.uid].alived, True)
+        self.assertIs(other1.remotes[main.local.uid].alived, True)
 
         main.server.close()
         main.clearLocal()
@@ -841,7 +841,7 @@ class BasicTestCase(unittest.TestCase):
             main.alive(deid=remote.uid)
         self.serviceStacks(stacks, duration=3.0)
         for remote in main.remotes.values():
-            self.assertTrue(remote.alive)
+            self.assertTrue(remote.alived)
 
         main.manage()
         for stack in stacks: # no alive transactions started
@@ -852,7 +852,7 @@ class BasicTestCase(unittest.TestCase):
         self.store.advanceStamp(estating.RemoteEstate.Period + estating.RemoteEstate.Offset)
         main.manage()
         for remote in main.remotes.values(): # should start
-            self.assertIs(remote.alive, None)
+            self.assertIs(remote.alived, None)
 
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
 
@@ -860,7 +860,7 @@ class BasicTestCase(unittest.TestCase):
         for stack in stacks:
             self.assertEqual(len(stack.transactions), 0)
         for remote in main.remotes.values():
-            self.assertTrue(remote.alive)
+            self.assertTrue(remote.alived)
 
 
         main.server.close()
@@ -935,24 +935,24 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nAlive Main to other *********\n")
         otherRemote = main.remotes[other.local.uid]
         mainRemote = other.remotes[main.local.uid]
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
         self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         console.terse("\nAlive Other to Main *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         main.server.close()
         main.clearLocal()
@@ -1005,34 +1005,34 @@ class BasicTestCase(unittest.TestCase):
         mainRemote = other.remotes[main.local.uid]
         self.assertIs(otherRemote.joined, True)
         self.assertIs(mainRemote.joined,  True)
-        self.assertIs(otherRemote.alive,  None)
-        self.assertIs(mainRemote.alive,  None)
+        self.assertIs(otherRemote.alived,  None)
+        self.assertIs(mainRemote.alived,  None)
 
         self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertIs(otherRemote.allowed, True)
         self.assertIs(mainRemote.allowed,  True)
-        self.assertIs(otherRemote.alive,  None)
-        self.assertIs(mainRemote.alive,  None)
+        self.assertIs(otherRemote.alived,  None)
+        self.assertIs(mainRemote.alived,  None)
 
         self.alive(main, other, deid=other.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertIs(otherRemote.alive,  True)
-        self.assertIs(mainRemote.alive,  True)
+        self.assertIs(otherRemote.alived,  True)
+        self.assertIs(mainRemote.alived,  True)
 
         console.terse("\nAlive Other to Main *********\n")
-        otherRemote.alive = None
-        mainRemote.alive = None
-        self.assertIs(otherRemote.alive, None)
-        self.assertIs(mainRemote.alive, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
+        self.assertIs(otherRemote.alived, None)
+        self.assertIs(mainRemote.alived, None)
 
         self.alive(other, main, deid=main.local.uid)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(mainRemote.alive)
+        self.assertTrue(otherRemote.alived)
+        self.assertTrue(mainRemote.alived)
 
         main.server.close()
         main.clearLocal()
@@ -1088,18 +1088,18 @@ class BasicTestCase(unittest.TestCase):
             main.alive(deid=remote.uid)
         self.serviceStacks(stacks, duration=3.0)
         for remote in main.remotes.values():
-            self.assertTrue(remote.alive)
+            self.assertTrue(remote.alived)
 
         main.manage(immediate=True)
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
         for remote in main.remotes.values(): # should reset alive to None
-            self.assertIs(remote.alive, None)
+            self.assertIs(remote.alived, None)
 
         self.serviceStacks(stacks, duration=3.0)
         for stack in stacks:
             self.assertEqual(len(stack.transactions), 0)
         for remote in main.remotes.values():
-            self.assertTrue(remote.alive)
+            self.assertTrue(remote.alived)
 
         # now close down main and reload from saved data and manage
         console.terse("\nMake all alive with cascade after main reboots *********\n")
@@ -1110,19 +1110,19 @@ class BasicTestCase(unittest.TestCase):
         for remote in main.remotes.values():
             self.assertIs(remote.joined, None)
             self.assertIs(remote.allowed, None)
-            self.assertIs(remote.alive, None)
+            self.assertIs(remote.alived, None)
 
         main.manage(immediate=True, cascade=True)
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
         for remote in main.remotes.values(): # should reset alive to None
-            self.assertIs(remote.alive, None)
+            self.assertIs(remote.alived, None)
         self.serviceStacks(stacks, duration=3.0)
         for stack in stacks:
             self.assertEqual(len(stack.transactions), 0)
         for remote in main.remotes.values():
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertIs(remote.alive, True)
+            self.assertIs(remote.alived, True)
 
         # Now test as if others are rebooted
         console.terse("\nMake all alive with cascade after others reboot *********\n")
@@ -1134,24 +1134,24 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertIs(other.remotes[main.local.uid].joined, None)
         self.assertIs(other.remotes[main.local.uid].allowed, None)
-        self.assertIs(other.remotes[main.local.uid].alive, None)
+        self.assertIs(other.remotes[main.local.uid].alived, None)
         self.assertIs(other1.remotes[main.local.uid].joined, None)
         self.assertIs(other1.remotes[main.local.uid].allowed, None)
-        self.assertIs(other1.remotes[main.local.uid].alive, None)
+        self.assertIs(other1.remotes[main.local.uid].alived, None)
 
         main.manage(immediate=True, cascade=True)
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
         for remote in main.remotes.values(): # should reset alive to None
-            self.assertIs(remote.alive, None)
+            self.assertIs(remote.alived, None)
         self.serviceStacks(stacks, duration=3.0)
         for stack in stacks:
             self.assertEqual(len(stack.transactions), 0)
         self.assertIs(other.remotes[main.local.uid].joined, True)
         self.assertIs(other.remotes[main.local.uid].allowed, True)
-        self.assertIs(other.remotes[main.local.uid].alive, True)
+        self.assertIs(other.remotes[main.local.uid].alived, True)
         self.assertIs(other1.remotes[main.local.uid].joined, True)
         self.assertIs(other1.remotes[main.local.uid].allowed, True)
-        self.assertIs(other1.remotes[main.local.uid].alive, True)
+        self.assertIs(other1.remotes[main.local.uid].alived, True)
 
         main.server.close()
         main.clearLocal()
