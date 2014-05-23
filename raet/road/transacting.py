@@ -1934,6 +1934,10 @@ class Messenger(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=True)
+
         if self.tray.current >= len(self.tray.packets):
             self.complete()
         else:
@@ -1945,6 +1949,10 @@ class Messenger(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=True)
+
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
@@ -1994,6 +2002,10 @@ class Messenger(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=True)
+
         self.remove()
         console.concise("Messenger {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -2097,11 +2109,12 @@ class Messengent(Correspondent):
         Process message packet
         '''
         remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=True)
+
         if not remote.allowed:
             emsg = "Messengent {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_message_attempt')
-            #self.remove()
             self.nack()
             return
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
@@ -2217,6 +2230,10 @@ class Messengent(Correspondent):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=True)
+
         self.remove()
         console.concise("Messengent {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
