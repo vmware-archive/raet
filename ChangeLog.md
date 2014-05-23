@@ -1,6 +1,25 @@
 ------------------
 CHANGE LOG
 -------------------
+
+---------
+20140523
+---------
+
+v0.0.14
+
+Raet now has basic support for persistence. This is through the Aliver and Alivent
+transactions and inddicated by the state of RemoteEstate.alived attribute
+RoadStack objects now have a .manage method that is responsible for kicking off
+the RemoteEstate.manage method which starts alive transactions.
+
+The result is to mark the .alived property as True if communication is successful
+with the target of the transaction.
+
+
+Updated unit tests
+
+
 ---------
 20140516
 ---------
