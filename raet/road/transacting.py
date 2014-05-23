@@ -1228,6 +1228,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
             self.remove()
+            self.stack.join(deid=self.reid, cascade=self.cascade)
             return
 
         remote = self.stack.remotes[self.reid]

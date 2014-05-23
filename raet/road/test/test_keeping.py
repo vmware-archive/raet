@@ -955,8 +955,9 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.allowed, None)
+        self.assertEqual(len(other.remotes), 0)
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.allowed, None)
 
         # now repeate with auto accept off on main
         # now forget the other data again
@@ -999,8 +1000,9 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertTrue(remote.allowed) # unlost other still there
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.allowed, None) # new other not joined so aborted allow
+        self.assertEqual(len(other.remotes), 0)
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.allowed, None) # new other not joined so aborted allow
 
         # so try to send messages should fail since keys not match
         mains = [odict(content="Hello other body")]
@@ -1111,8 +1113,9 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.allowed,  None)
+        self.assertEqual(len(other.remotes), 0)
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.allowed,  None)
 
         # now repeate with auto accept off on main
         # now forget the other data again
@@ -1154,8 +1157,9 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertTrue(remote.allowed) # unlost other still there
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertEqual(remote.allowed, None) # new other not joined so aborted allow
+        self.assertEqual(len(other.remotes), 0)
+        #remote = other.remotes.values()[0]
+        #self.assertEqual(remote.allowed, None) # new other not joined so aborted allow
 
         # so try to send messages should fail since keys not match
         mains = [odict(content="Hello other body")]
@@ -1745,8 +1749,9 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.allowed, None)
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.allowed, None) # new other not joined so aborted allow
+        self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.allowed, None) # new other not joined so aborted allow
 
         # so try to send messages should fail since keys not match
         mains = [odict(content="Hello other body")]
