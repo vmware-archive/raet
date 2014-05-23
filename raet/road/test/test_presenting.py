@@ -529,16 +529,29 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main1Remote.alive)
 
         console.terse("\nDead Other Alive Other1, from Main *********\n")
-        self.assertTrue(otherRemote.alive)
-        self.assertTrue(other1Remote.alive)
+        self.assertTrue(main.remotes[other.local.uid].alive)
+        self.assertTrue(main.remotes[other1.local.uid].alive)
         main.alive(deid=other.local.uid)
         main.alive(deid=other1.local.uid)
+        # don't service other stack so it appears to be dead
         self.serviceStacks([main, other1], duration=3.0)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other1.transactions), 0)
-        self.assertFalse(otherRemote.alive)
-        self.assertTrue(other1Remote.alive)
+        #self.assertTrue(other.local.uid not in main.remotes)
+        self.assertIs(main.remotes[other.local.uid].alive, False)
+        self.assertTrue(main.remotes[other1.local.uid].alive)
+
+        self.serviceStacks([other, main], duration=3.0) #clean up
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertEqual(len(other1.transactions), 0)
+
+        #bring it back to life
+        console.terse("\nReliven other *********\n")
+        other.alive(deid=main.local.uid, cascade=True)
         self.serviceStacks([other, main], duration=3.0)
+        self.assertIs(main.remotes[other.local.uid].alive, True)
+        self.assertIs(other.remotes[main.local.uid].alive, True)
 
         console.terse("\nAlive Other Dead Other 1 from Main *********\n")
         main.alive(deid=other.local.uid)
@@ -548,7 +561,18 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         self.assertFalse(other1Remote.alive)
         self.assertTrue(otherRemote.alive)
+
         self.serviceStacks([other1,  main], duration=3.0)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertEqual(len(other1.transactions), 0)
+
+        #bring it back to life
+        console.terse("\nReliven other1 *********\n")
+        other1.alive(deid=main.local.uid, cascade=True)
+        self.serviceStacks([other1, main], duration=3.0)
+        self.assertIs(main.remotes[other1.local.uid].alive, True)
+        self.assertIs(other1.remotes[main.local.uid].alive, True)
 
         main.server.close()
         main.clearLocal()
@@ -973,4 +997,4 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testManageMainRebootCascade')
+    #runOne('testAliveMultiple')

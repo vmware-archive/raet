@@ -2301,17 +2301,17 @@ class Aliver(Initiator):
             elif packet.data['pk'] == raeting.pcktKinds.unallowed: # rejected
                 self.unallow()
 
-
     def process(self):
         '''
         Perform time based processing of transaction
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.remove()
             console.concise("Aliver {0}. Timed out at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
+            self.remove()
             remote = self.stack.remotes[self.reid]
             remote.refresh(alive=False) # mark as dead
+            #self.reap() #remote is dead so reap it
             return
 
         # need keep sending message until completed or timed out
@@ -2401,6 +2401,18 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Done at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
+
+    def reap(self):
+        '''
+        Remote dead. Reap it.
+        '''
+        self.remove()
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alive=False) # mark as dead
+        console.concise("Aliver {0}. Reaping dead remote '{1}' at {2}\n".format(
+                self.stack.name, remote.name, self.stack.store.stamp))
+        self.stack.incStat("alive_reap")
+        self.stack.removeRemote(remote.uid)
 
     def refuse(self):
         '''
