@@ -1156,6 +1156,8 @@ class Allower(Initiator):
                 self.allow()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
                 self.reject()
+            elif packet.data['pk'] == raeting.pcktKinds.unjoined: # rejected
+                self.unjoin()
 
     def process(self):
         '''
@@ -1409,6 +1411,20 @@ class Allower(Initiator):
                                                         self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
+    def unjoin(self):
+        '''
+        Process unjoin packet
+        terminate in response to unjoin
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.remotes[self.reid]
+        remote.joined = False
+        self.remove()
+        console.concise("Allower {0}. Rejected at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.stack.join(deid=self.reid, cascade=self.cascade)
 
 class Allowent(Correspondent):
     '''
@@ -1525,8 +1541,7 @@ class Allowent(Correspondent):
             emsg = "Allowent {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_allow_attempt')
-            #self.remove()
-            self.nack()
+            self.nack(kind=raeting.pcktKinds.unjoined)
             return
 
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
@@ -1749,9 +1764,9 @@ class Allowent(Correspondent):
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
-    def nack(self):
+    def nack(self, kind=raeting.pcktKinds.nack):
         '''
-        Send nack to terminate allower transaction
+        Send nack to terminate allow transaction
         '''
         if self.reid not in self.stack.remotes:
             emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
@@ -1760,9 +1775,9 @@ class Allowent(Correspondent):
             self.remove()
             return
 
-        body = "" #odict()
+        body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.nack,
+                                    kind=kind,
                                     embody=body,
                                     data=self.txData)
         try:

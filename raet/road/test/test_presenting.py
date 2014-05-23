@@ -98,20 +98,31 @@ class BasicTestCase(unittest.TestCase):
 
         return stack
 
-    def join(self, initiator, correspondent, deid=None, mha=None, duration=1.0):
+    def join(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
+                cascade=False):
         '''
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        initiator.join(deid=deid, mha=mha)
+        initiator.join(deid=deid, mha=mha, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
-    def allow(self, initiator, correspondent, duration=1.0):
+    def allow(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
+                cascade=False):
         '''
         Utility method to do allow. Call from test method.
         '''
         console.terse("\nAllow Transaction **************\n")
-        initiator.allow()
+        initiator.allow(deid=deid, mha=mha, cascade=cascade)
+        self.service(correspondent, initiator, duration=duration)
+
+    def alive(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
+                cascade=False):
+        '''
+        Utility method to do alive. Call from test method.
+        '''
+        console.terse("\nAlive Transaction **************\n")
+        initiator.alive(deid=deid, mha=mha, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
     def message(self, main,  other, mains, others, duration=2.0):
@@ -124,14 +135,6 @@ class BasicTestCase(unittest.TestCase):
             other.transmit(msg)
 
         self.service(main, other, duration=duration)
-
-    def alive(self, initiator, correspondent, deid=None, mha=None):
-        '''
-        Utility method to do alive. Call from test method.
-        '''
-        console.terse("\nAlive Transaction **************\n")
-        initiator.alive(deid=deid, mha=mha)
-        self.service(correspondent, initiator)
 
     def service(self, main, other, duration=1.0):
         '''
@@ -331,6 +334,101 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocal()
         other.clearRemoteKeeps()
 
+    def testAllowUnjoinedOther(self):
+        '''
+        Test allow transaction for other to main unjoined on main
+        '''
+        console.terse("{0}\n".format(self.testAllowUnjoinedOther.__doc__))
+
+        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nBoth unjoined Allow Other to Main *********\n")
+        self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(other.remotes), 0)
+
+        self.allow(other, main, mha=('127.0.0.1', main.local.port))
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes[main.local.uid]
+        self.assertIs(otherRemote.joined, True)
+        self.assertIs(mainRemote.joined,  True)
+        self.assertIs(otherRemote.allowed,  None)
+        self.assertIs(mainRemote.allowed,  None)
+
+        self.allow(other, main, deid=main.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertIs(otherRemote.allowed, True)
+        self.assertIs(mainRemote.allowed,  True)
+
+        console.terse("\nAllow Main to Other *********\n")
+        otherRemote.alive = None
+        mainRemote.alive = None
+        self.assertIs(otherRemote.alive, None)
+        self.assertIs(mainRemote.alive, None)
+
+        self.allow(main, other, deid=other.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertTrue(otherRemote.allowed)
+        self.assertTrue(mainRemote.allowed)
+
+        console.terse("\nBoth unjoined Allow Other to Main Cascade *********\n")
+        main.server.close()
+        other.server.close()
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(other.remotes), 0)
+
+        self.allow(other, main, mha=('127.0.0.1', main.local.port), cascade=True)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes[main.local.uid]
+        self.assertIs(otherRemote.joined, True)
+        self.assertIs(mainRemote.joined,  True)
+        self.assertIs(otherRemote.allowed,  True)
+        self.assertIs(mainRemote.allowed,  True)
+        self.assertIs(otherRemote.alive,  True)
+        self.assertIs(mainRemote.alive,  True)
+
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
     def testAliveUnjoinedMain(self):
         '''
         Test alive transaction for other to main unjoined on main
@@ -409,6 +507,120 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         self.assertTrue(otherRemote.alive)
         self.assertTrue(mainRemote.alive)
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
+
+    def testAllowUnjoinedMain(self):
+        '''
+        Test allow transaction for main to other unjoined on other
+        '''
+        console.terse("{0}\n".format(self.testAllowUnjoinedMain.__doc__))
+
+        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        #now create remote for other and add to main
+        main.addRemote(estating.RemoteEstate(stack=main,
+                                             eid=2,
+                                             name=otherData['name'],
+                                             ha=('127.0.0.1', other.local.port),
+                                             verkey=otherData['verhex'],
+                                             pubkey=otherData['pubhex'],
+                                             period=main.period,
+                                             offset=main.offset))
+
+        console.terse("\nBoth unjoined Allow Main to Other *********\n")
+        self.assertEqual(len(main.remotes), 1)
+        self.assertEqual(len(other.remotes), 0)
+
+        self.allow(main, other, mha=('127.0.0.1', other.local.port))
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes[main.local.uid]
+        self.assertIs(otherRemote.joined, True)
+        self.assertIs(mainRemote.joined,  True)
+        self.assertIs(otherRemote.allowed,  None)
+        self.assertIs(mainRemote.allowed,  None)
+
+        self.allow(main, other, deid=other.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertIs(otherRemote.allowed, True)
+        self.assertIs(mainRemote.allowed,  True)
+
+        console.terse("\nAllow Other to Main *********\n")
+        otherRemote.alive = None
+        mainRemote.alive = None
+        self.assertIs(otherRemote.alive, None)
+        self.assertIs(mainRemote.alive, None)
+
+        self.allow(other, main, deid=main.local.uid)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertTrue(otherRemote.allowed)
+        self.assertTrue(mainRemote.allowed)
+
+        console.terse("\nBoth unjoined Allow Main to Other Cascade *********\n")
+        main.server.close()
+        other.server.close()
+        keeping.clearAllKeepSafe(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        keeping.clearAllKeepSafe(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        #now create remote for other and add to main
+        main.addRemote(estating.RemoteEstate(stack=main,
+                                             eid=2,
+                                             name=otherData['name'],
+                                             ha=('127.0.0.1', other.local.port),
+                                             verkey=otherData['verhex'],
+                                             pubkey=otherData['pubhex'],
+                                             period=main.period,
+                                             offset=main.offset))
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertEqual(len(other.remotes), 0)
+
+        self.allow(main, other, mha=('127.0.0.1', other.local.port), cascade=True)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes[main.local.uid]
+        self.assertIs(otherRemote.joined, True)
+        self.assertIs(mainRemote.joined,  True)
+        self.assertIs(otherRemote.allowed,  True)
+        self.assertIs(mainRemote.allowed,  True)
+        self.assertIs(otherRemote.alive,  True)
+        self.assertIs(mainRemote.alive,  True)
 
         main.server.close()
         main.clearLocal()
@@ -970,7 +1182,9 @@ def runSome():
              'testAliveMultiple',
              'testManage',
              'testAliveUnjoinedOther',
+             'testAllowUnjoinedOther',
              'testAliveUnjoinedMain',
+             'testAllowUnjoinedMain',
              'testJoinFromMain',
              'testAliveUnjoinedFromMain',
              'testManageMainRebootCascade', ]
@@ -993,8 +1207,8 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
     #runSome()#only run some
 
-    #runOne('testAliveMultiple')
+    runOne('testAllowUnjoinedMain')
