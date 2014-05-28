@@ -287,8 +287,8 @@ PAGE_FIELD_FORMATS = odict([
                             ('sn', 's'),
                             ('dn', 's'),
                             ('mi', 'x'),
-                            ('pn', 'x'),
-                            ('pc', 'x'),
+                            ('pn', '04x'),
+                            ('pc', '04x'),
                            ])
 
 PAGE_FIELDS = ['ri', 'vn', 'pk', 'sn', 'dn', 'mi', 'pn', 'pc']

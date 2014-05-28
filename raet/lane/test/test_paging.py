@@ -55,8 +55,8 @@ class BasicTestCase(unittest.TestCase):
         page0 = paging.TxPage(data=data, embody=body)
         self.assertDictEqual(page0.body.data, body)
         page0.pack()
-        self.assertEqual(len(page0.packed), 141)
-        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 0\nsn \ndn \nmi 0\npn 0\npc 1\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
+        self.assertEqual(len(page0.packed), 147)
+        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 0\nsn \ndn \nmi 0\npn 0000\npc 0001\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
 
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()
@@ -83,7 +83,7 @@ class BasicTestCase(unittest.TestCase):
                                                    'mi': 1,
                                                    'pn': 0,
                                                    'pc': 2})
-        self.assertEqual(len(book0.pages[0].packed), 65523)
+        self.assertEqual(len(book0.pages[0].packed), 65533)
         self.assertDictEqual(book0.pages[1].data, {'ri': 'RAET',
                                                    'vn': 0,
                                                    'pk': 0,
@@ -92,7 +92,7 @@ class BasicTestCase(unittest.TestCase):
                                                    'mi': 1,
                                                    'pn': 1,
                                                    'pc': 2})
-        self.assertEqual(len(book0.pages[1].packed), 34585)
+        self.assertEqual(len(book0.pages[1].packed), 34587)
         self.assertEqual(book0.index, ('boy', 'girl', 1))
 
         book1 = paging.RxBook()
@@ -127,8 +127,8 @@ class BasicTestCase(unittest.TestCase):
         page0 = paging.TxPage(data=data, embody=body)
         self.assertDictEqual(page0.body.data, body)
         page0.pack()
-        self.assertEqual(len(page0.packed), 119)
-        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 1\nsn boy\ndn girl\nmi 1\npn 0\npc 1\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.')
+        self.assertEqual(len(page0.packed), 125)
+        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 1\nsn boy\ndn girl\nmi 1\npn 0000\npc 0001\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.')
 
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()

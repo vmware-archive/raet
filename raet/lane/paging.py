@@ -164,6 +164,11 @@ class TxBody(Body):
             console.terse(emsg)
             raise raeting.PageError(emsg)
 
+        if self.size > raeting.MAX_MESSAGE_SIZE:
+            emsg = "Packed message length of {0}, exceeds max of {1}".format(
+                     self.size, raeting.MAX_MESSAGE_SIZE)
+            raise raeting.PageError(emsg)
+
 class RxBody(Body):
     '''
     RAET protocol rx packet body class
@@ -365,7 +370,7 @@ class TxBook(Book):
         '''
         Create packeted segments from .packed using headsize
         '''
-        extrasize = 12 #need better estimate
+        extrasize = 2 #need better estimate
         hotelsize = headsize + extrasize
         secsize = raeting.UXD_MAX_PACKET_SIZE - hotelsize
 
