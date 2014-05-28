@@ -39,7 +39,37 @@ console = getConsole()
 
 class RoadStack(stacking.Stack):
     '''
-    RAET protocol RoadStack for UDP communications
+    RAET protocol RoadStack for UDP communications. This is the primary
+    network communication system in RAET. A stack does not work in the
+    same way as a socket, instead transmit (tx) and recive (rx) lists become
+    populated or emptied when calls are made to the transmit and recieve
+    methods.
+
+    name
+        The name to give the stack, if no name is given it will be
+        automatically assigned
+    main
+        <Incomplete Doc>
+    keep
+        Pass in a keep object, this object can define how stack data is
+        persisted to disk
+    dirpath
+        The location on the filesystem to use for stack cacheing
+    eid
+        The estate id, if None is specified a default will be assigned
+    ha
+        The host address, this is a tuple of (network_addr, port) that will
+        be bound to by the stack
+    bufcnt
+        The number of messages to buffer, defaults to 2
+    safe
+        Pass in a safe object to manage the encryption keys, RAET ships with
+        the raet.road.keeping.SafeKeep class for simple management
+    auto
+        <Incomplete Doc>
+    period
+        The default itteration timeframe to use for the background management
+        of the presence system. Defaults to 1.0
     '''
     Count = 0
     Eid = 1 # class attribute
