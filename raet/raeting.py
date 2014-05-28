@@ -191,7 +191,7 @@ PACK_KIND_NAMES = odict((v, k) for k, v in PACK_KINDS.iteritems())  # inverse ma
 PackKind = namedtuple('PackKind', PACK_KINDS.keys())
 packKinds = PackKind(**PACK_KINDS)
 
-# head fields that may be included in json header if not default value
+# head fields that may be included in packet header if not default value
 PACKET_DEFAULTS = odict([
                             ('sh', DEFAULT_SRC_HOST),
                             ('sp', RAET_PORT),
@@ -231,7 +231,7 @@ PACKET_FIELDS = ['sh', 'sp', 'dh', 'dp',
                  'dt', 'oi', 'wf', 'sn', 'sc', 'ml', 'sf', 'af',
                  'bk', 'ck', 'fk', 'fl', 'fg']
 
-HEAD_FIELDS = ['ri', 'vn', 'pk', 'pl', 'hk', 'hl',
+PACKET_HEAD_FIELDS = ['ri', 'vn', 'pk', 'pl', 'hk', 'hl',
                'se', 'de', 'cf', 'bf', 'si', 'ti', 'tk',
                'dt', 'oi', 'wf', 'sn', 'sc', 'ml', 'sf', 'af',
                'bk', 'bl', 'ck', 'cl', 'fk', 'fl', 'fg']
@@ -239,7 +239,7 @@ HEAD_FIELDS = ['ri', 'vn', 'pk', 'pl', 'hk', 'hl',
 PACKET_FLAGS = ['af', 'sf', 'wf', 'bf', 'cf']
 PACKET_FLAG_FIELDS = ['', '', 'af', 'sf', '', 'wf', 'bf', 'cf']
 
-FIELD_FORMATS = odict([
+PACKET_FIELD_FORMATS = odict([
                     ('ri', '.4s'),
                     ('vn', 'x'),
                     ('pk', 'x'),
@@ -268,16 +268,30 @@ FIELD_FORMATS = odict([
                     ('fg', '.2s'),
               ])
 
-# head fields that may be included in json header if not default value
+# head fields that may be included in page header if not default value
 PAGE_DEFAULTS = odict([
-                        ('syn', ''),
-                        ('dyn', ''),
-                        ('mid', 0),
-                        ('number', 0),
-                        ('count', 1),
-                        ('section', ''),
+                        ('ri', 'RAET'),
+                        ('vn', 0),
+                        ('pk', 0),
+                        ('sn', ''),
+                        ('dn', ''),
+                        ('mi', 0),
+                        ('pn', 0),
+                        ('pc', 1),
                       ])
 
+PAGE_FIELD_FORMATS = odict([
+                            ('ri', '.4s'),
+                            ('vn', 'x'),
+                            ('pk', 'x'),
+                            ('sn', 's'),
+                            ('dn', 's'),
+                            ('mi', 'x'),
+                            ('pn', 'x'),
+                            ('pc', 'x'),
+                           ])
+
+PAGE_FIELDS = ['ri', 'vn', 'pk', 'sn', 'dn', 'mi', 'pn', 'pc']
 
 
 class RaetError(Exception):

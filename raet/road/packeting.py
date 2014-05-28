@@ -79,7 +79,7 @@ class TxHead(Head):
         # kit always includes raet id, packet length, and header kind fields
         kit = odict([('ri', 'RAET'), ('pl', 0), ('hl', 0)])
         for k, v in raeting.PACKET_DEFAULTS.items():  # include if not equal to default
-            if ((k in raeting.HEAD_FIELDS) and
+            if ((k in raeting.PACKET_HEAD_FIELDS) and
                 (k not in raeting.PACKET_FLAGS) and
                 (data[k] != v)):
                 kit[k] = data[k]
@@ -89,7 +89,7 @@ class TxHead(Head):
             lines = []
             for k, v in kit.items():
                 lines.append("{key} {val:{fmt}}".format(
-                        key=k, val=v, fmt=raeting.FIELD_FORMATS[k]))
+                        key=k, val=v, fmt=raeting.PACKET_FIELD_FORMATS[k]))
 
             packed = "\n".join(lines)
             packed = '{0}{1}'.format(packed, raeting.HEAD_END)
@@ -110,17 +110,17 @@ class TxHead(Head):
             # substitute true lengths
             packed = packed.replace('\npl {val:{fmt}}\n'.format(
                                         val=kit['pl'],
-                                        fmt=raeting.FIELD_FORMATS['pl']),
+                                        fmt=raeting.PACKET_FIELD_FORMATS['pl']),
                                     '\npl {0}\n'.format("{val:{fmt}}".format(
                                         val=pl,
-                                        fmt=raeting.FIELD_FORMATS['pl'])[-4:]),
+                                        fmt=raeting.PACKET_FIELD_FORMATS['pl'])[-4:]),
                                     1)
             packed = packed.replace('\nhl {val:{fmt}}\n'.format(
                                         val=kit['hl'],
-                                        fmt=raeting.FIELD_FORMATS['hl']),
+                                        fmt=raeting.PACKET_FIELD_FORMATS['hl']),
                                     '\nhl {0}\n'.format("{val:{fmt}}".format(
                                             val=hl,
-                                            fmt=raeting.FIELD_FORMATS['hl'])[-2:]),
+                                            fmt=raeting.PACKET_FIELD_FORMATS['hl'])[-2:]),
                                     1)
             self.packed = packed
 
@@ -176,14 +176,14 @@ class RxHead(Head):
             lines = front.split('\n')
             for line in lines:
                 key, val = line.split(' ')
-                if key not in raeting.HEAD_FIELDS:
+                if key not in raeting.PACKET_HEAD_FIELDS:
                     emsg = "Unknown head field '{0}'".format(key)
                     raise raeting.PacketError(emsg)
-                if 'x' in raeting.FIELD_FORMATS[key]:
+                if 'x' in raeting.PACKET_FIELD_FORMATS[key]:
                     val = int(val, 16)
-                elif 'd' in raeting.FIELD_FORMATS[key]:
+                elif 'd' in raeting.PACKET_FIELD_FORMATS[key]:
                     val = int(val)
-                elif 'f' in raeting.FIELD_FORMATS[key]:
+                elif 'f' in raeting.PACKET_FIELD_FORMATS[key]:
                     val = float(val)
                 kit[key] = val
 

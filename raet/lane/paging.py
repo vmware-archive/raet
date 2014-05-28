@@ -25,25 +25,188 @@ console = getConsole()
 
 from .. import raeting
 
+class Part(object):
+    '''
+    Base class for parts of a RAET page
+    Should be subclassed
+    '''
+
+    def __init__(self, page=None, **kwa):
+        '''
+        Setup Part instance
+        '''
+        self.page = page  # Page this Part belongs too
+        self.packed = ''
+
+    def __len__(self):
+        '''
+        Returns the length of .packed
+        '''
+        return len(self.packed)
+
+    @property
+    def size(self):
+        '''
+        Property is the length of this Part
+        '''
+        return self.__len__()
+
+class Head(Part):
+    '''
+    RAET protocol page header class
+    Manages the header portion of a page
+    '''
+    def __init__(self, **kwa):
+        '''
+        Setup Head instance
+        '''
+        super(Head, self).__init__(**kwa)
+
+class TxHead(Head):
+    '''
+    RAET protocol transmit page header class
+    '''
+    def pack(self):
+        '''
+        Composes .packed, which is the packed form of this part
+        '''
+        self.packed = ''
+        data = self.page.data  # for speed
+        lines = []
+        for k, v in data.items():
+            lines.append("{key} {val:{fmt}}".format(
+                    key=k, val=v, fmt=raeting.PAGE_FIELD_FORMATS[k]))
+
+        self.packed = '{0}{1}'.format("\n".join(lines), raeting.HEAD_END)
+
+
+class RxHead(Head):
+    '''
+    RAET protocol receive page header class
+    '''
+    def parse(self):
+        '''
+        Unpacks head. Parses head and updates .page.data
+        Raises PageError if failure occurs
+        '''
+        self.packed = ''
+        data = self.page.data  # for speed
+        packed = self.page.packed  # for speed
+
+        if not packed:
+            emsg = "Packed empty, nothing to parse."
+            console.terse(emsg)
+            raise raeting.PageError(emsg)
+
+        if (not packed.startswith('ri RAET\n') or raeting.HEAD_END not in packed):
+            emsg = "Unrecognized packed body head\n"
+            console.terse(emsg)
+            raise raeting.PageError(emsg)
+
+        front, sep, back = packed.partition(raeting.HEAD_END)
+        self.packed = "{0}{1}".format(front, sep)
+        self.page.body.packed = back
+
+        kit = odict()
+        lines = front.split('\n')
+        for line in lines:
+            key, val = line.split(' ')
+            if key not in raeting.PAGE_FIELDS:
+                emsg = "Unknown head field '{0}'".format(key)
+                raise raeting.PageError(emsg)
+            if 'x' in raeting.PAGE_FIELD_FORMATS[key]:
+                val = int(val, 16)
+            elif 'd' in raeting.PAGE_FIELD_FORMATS[key]:
+                val = int(val)
+            elif 'f' in raeting.PAGE_FIELD_FORMATS[key]:
+                val = float(val)
+            kit[key] = val
+
+        data.update(kit)
+
+
+class Body(Part):
+    '''
+    RAET protocol page body class
+    Manages the message portion of the page
+    '''
+    def __init__(self, data=None, **kwa):
+        '''
+        Setup Body instance
+        '''
+        super(Body, self).__init__(**kwa)
+        if data is None:
+            data = odict()
+        self.data = data
+
+class TxBody(Body):
+    '''
+    RAET protocol tx page body class
+    '''
+    def pack(self):
+        '''
+        Composes .packed, which is the packed form of this part
+        '''
+        self.packed = ''
+        pk = self.page.data['pk']
+
+        if pk == raeting.packKinds.json:
+            if self.data:
+                self.packed = json.dumps(self.data, separators=(',', ':'))
+        elif pk == raeting.packKinds.pack:
+            if self.data:
+                if not msgpack:
+                    emsg = "Msgpack not installed."
+                    raise raeting.PacketError(emsg)
+                self.packed = msgpack.dumps(self.data)
+        else:
+            emsg = "Unrecognized message pack kind '{0}'\n".format(pk)
+            console.terse(emsg)
+            raise raeting.PageError(emsg)
+
+class RxBody(Body):
+    '''
+    RAET protocol rx packet body class
+    '''
+    def parse(self):
+        '''
+        Parses body. Assumes already unpacked.
+        Results in updated .data
+        '''
+        self.data = odict()
+        pk = self.page.data['pk']
+
+        if pk not in raeting.PACK_KIND_NAMES:
+            emsg = "Unrecognizable page body."
+            raise raeting.PageError(emsg)
+
+        if pk == raeting.packKinds.json:
+            if self.packed:
+                self.data = json.loads(self.packed, object_pairs_hook=odict)
+        elif pk == raeting.packKinds.pack:
+            if self.packed:
+                if not msgpack:
+                    emsg = "Msgpack not installed."
+                    raise raeting.PacketError(emsg)
+                self.data = msgpack.loads(self.packed, object_pairs_hook=odict)
+
+        if not isinstance(self.data, Mapping):
+            emsg = "Message body not a mapping\n"
+            console.terse(emsg)
+            raise raeting.PageError(emsg)
 
 class Page(object):
     '''
     RAET UXD protocol page object. Support sectioning of messages into Uxd pages
     '''
-    Pk = raeting.packKinds.json
 
-    def __init__(self, stack=None, data=None, kind=None):
+    def __init__(self, stack=None, data=None):
         ''' Setup Page instance. Meta data for a packet. '''
         self.stack = stack
-        self.data = data or odict()
-        self.kind = kind if kind is not None else self.Pk
-        if self.kind not in [raeting.packKinds.json, raeting.packKinds.pack]:
-            emsg = "Invalid message pack kind '{0}'\n".format(kind)
-            console.terse(emsg)
-            raise raeting.PageError(emsg)
+        self.data = odict(raeting.PAGE_DEFAULTS)
+        if data:
+            self.data.update(data)
         self.packed = ''  # packed string
-        self.head = ''
-        self.body = ''
 
     @property
     def size(self):
@@ -55,55 +218,39 @@ class Page(object):
     @property
     def paginated(self):
         '''
-        Property is True if the page data as 'page' field else false
+        Property is True if the page count > 1 else False
         '''
-        return (True if self.data.get('page') else False)
+        return (True if self.data.get('pc', 0) > 1 else False)
 
 class TxPage(Page):
     '''
     RAET Protocol Transmit Page object
     '''
-    def __init__(self, data=None, **kwa):
+    def __init__(self, embody=None, **kwa):
         '''
         Setup TxPacket instance
         '''
         super(TxPage, self).__init__(**kwa)
-        if data is not None:
-            self.data.update(data)
+        self.head = TxHead(page=self)
+        self.body = TxBody(page=self, data=embody)
 
     @property
     def index(self):
         '''
-        Property is unique message tuple (lyn, ryn, mid)
-        If not paginated return (None, None, 0)
-        lyn = local yard name which for transmit is syn
-        ryn = remote yard name which for transmit is dyn
-        mid = message id
+        Property is unique message tuple (ln, rn, mi)
+        ln = local yard name which for transmit is sn
+        rn = remote yard name which for transmit is dn
+        mi = message id
         '''
-        data = self.data.get('page', odict(syn=None, dyn=None, mid=0))
-        return (data['syn'], data['dyn'], data['mid'], )
+        return (self.data['sn'], self.data['dn'], self.data['mi'], )
 
     def prepack(self):
         '''
-        Pack serialize message body data
+        Pack without raising oversize exception
         '''
-        self.packed = ''
-        self.head = ''
-        self.body = ''
-
-        if self.kind == raeting.packKinds.json:
-            self.head = 'RAET\njson\n\n'
-            self.body = json.dumps(self.data, separators=(',', ':'))
-            self.packed = "".join([self.head, self.body])
-
-        elif self.kind == raeting.packKinds.pack:
-            if not msgpack:
-                emsg = "Msgpack not installed\n"
-                console.terse(emsg)
-                raise raeting.PageError(emsg)
-            self.head = 'RAET\npack\n\n'
-            self.body = msgpack.dumps(self.data)
-            self.packed = "".join([self.head, self.body ])
+        self.head.pack()
+        self.body.pack()
+        self.packed = self.head.packed + self.body.packed
 
     def pack(self):
         '''
@@ -126,72 +273,19 @@ class RxPage(Page):
         Setup RxPage instance
         '''
         super(RxPage, self).__init__(**kwa)
+        self.head = RxHead(page=self)
+        self.body = RxBody(page=self)
         self.packed = packed or ''
 
     @property
     def index(self):
         '''
-        Property is unique message tuple (lyn, ryn, mid)
-        If not paginated return (None, None, 0)
-        lyn = local yard name which for receive is dyn
-        ryn = remote yard name which for receive is syn
-        mid = message id
+        Property is unique message tuple (ln, rn, mi)
+        ln = local yard name which for receive is dn
+        rn = remote yard name which for receive is sn
+        mi = message id
         '''
-        data = self.data.get('page', odict(syn=None, dyn=None, mid=0))
-        return (data['dyn'], data['syn'], data['mid'], )
-
-    def parseHead(self, packed=None):
-        '''
-        Parse head of message in packed or self.packed
-        '''
-        if packed:
-            self.packed = packed
-
-        if not self.packed:
-            emsg = "Packed empty, nothing to parse."
-            console.terse(emsg)
-            raise raeting.PageError(emsg)
-
-        if (not self.packed.startswith('RAET\n') or raeting.HEAD_END not in self.packed):
-            emsg = "Unrecognized packed body head\n"
-            console.terse(emsg)
-            raise raeting.PageError(emsg)
-
-        front, sep, back = self.packed.partition(raeting.HEAD_END)
-        code, sep, kind = front.partition('\n')
-        if kind not in [raeting.PACK_KIND_NAMES[raeting.packKinds.json],
-                        raeting.PACK_KIND_NAMES[raeting.packKinds.pack]]:
-            emsg = "Unrecognized message pack kind '{0}'\n".format(kind)
-            console.terse(emsg)
-            raise raeting.PageError(emsg)
-
-        if len(back) > raeting.UXD_MAX_PACKET_SIZE: #raeting.MAX_MESSAGE_SIZE
-            emsg = "Message length of {0}, exceeds max of {1}\n".format(
-                     len(back), raeting.UXD_MAX_PACKET_SIZE)
-            console.terse(emsg)
-            raise raeting.PageError(emsg)
-
-        self.kind = raeting.PACK_KINDS[kind]
-        self.head = front + sep
-        self.body = back
-
-    def parseBody(self):
-        self.data = odict()
-
-        if self.kind == raeting.packKinds.json:
-            self.data = json.loads(self.body, object_pairs_hook=odict)
-
-        elif self.kind == raeting.packKinds.pack:
-            if not msgpack:
-                emsg = "Msgpack not installed\n"
-                console.terse(emsg)
-                raise raeting.PageError(emsg)
-            self.data = msgpack.loads(self.body, object_pairs_hook=odict)
-
-        if not isinstance(self.data, Mapping):
-            emsg = "Message body not a mapping\n"
-            console.terse(emsg)
-            raise raeting.PageError(emsg)
+        return (self.data['dn'], self.data['sn'], self.data['mi'], )
 
     def parse(self, packed=None):
         '''
@@ -200,14 +294,14 @@ class RxPage(Page):
         if packed:
             self.packed = packed
 
-        self.parseHead(packed)
-        self.parseBody()
+        self.head.parse() #this sets self.body.packed
+        self.body.parse()
 
 class Book(object):
     '''
     Manages messages, sectioning when needed and the associated pages
     '''
-    def __init__(self, stack=None, data=None, body=None, kind=None, **kwa):
+    def __init__(self, stack=None, data=None, body=None):
         '''
         Setup instance
         '''
@@ -216,8 +310,7 @@ class Book(object):
         if data:
             self.data.update(data)
         self.body = body #body data of message
-        self.kind = kind
-        self.packed = ''
+        self.packed = '' # complete unsectionalize packed message body no headers
 
     @property
     def size(self):
@@ -240,18 +333,17 @@ class TxBook(Book):
     @property
     def index(self):
         '''
-        Property is unique message tuple (ryn, lyn, mid)
-        ryn = remote yard name which for transmit is syn
-        lyn = local yard name which for transmit is dyn
-        mid = message id
+        Property is unique message tuple (rn, ln, mi)
+        rn = remote yard name which for transmit is sn
+        ln = local yard name which for transmit is dn
+        mi = message id
         '''
-        return (self.data['syn'], self.data['dyn'], self.data['mid'],)
+        return (self.data['sn'], self.data['dn'], self.data['mi'],)
 
     def pack(self, data=None, body=None):
         '''
         Convert message in .body into one or more pages
         '''
-        self.packed = ''
         if data:
             self.data.update(data)
         if body is not None:
@@ -259,25 +351,21 @@ class TxBook(Book):
 
         self.pages = []
         page = TxPage(  stack=self.stack,
-                        data=self.body,
-                        kind=self.kind)
+                        data=self.data,
+                        embody=self.body)
 
         page.prepack()
+        self.packed = page.body.packed
         if page.size <= raeting.UXD_MAX_PACKET_SIZE:
             self.pages.append(page)
         else:
-            self.packed = page.body
-            self.paginate(headsize=len(page.head))
+            self.paginate(headsize=len(page.head.packed))
 
     def paginate(self, headsize):
         '''
         Create packeted segments from .packed using headsize
         '''
-        if self.kind == raeting.packKinds.json:
-            extrasize = 4096 #need better estimate
-        else:
-            extrasize = 2048
-
+        extrasize = 12 #need better estimate
         hotelsize = headsize + extrasize
         secsize = raeting.UXD_MAX_PACKET_SIZE - hotelsize
 
@@ -287,12 +375,13 @@ class TxBook(Book):
                 section = self.packed[i * secsize:]
             else:
                 section = self.packed[i * secsize: (i+1) * secsize]
-            data = odict(self.data)
-            data['number'] = i
-            data['count'] = seccount
-            data['section'] = section
-            page = TxPage( stack=self.stack, data=odict(page=data), kind=self.kind)
-            page.pack()
+            data = odict(self.data) #make copy so self.data is first page
+            data['pn'] = i
+            data['pc'] = seccount
+            page = TxPage( stack=self.stack, data=data)
+            page.body.packed = section
+            page.head.pack()
+            page.packed = page.head.packed + page.body.packed
             self.pages.append(page)
 
 
@@ -311,36 +400,35 @@ class RxBook(Book):
     @property
     def index(self):
         '''
-        Property is unique message tuple (lyn, ryn, mid)
-        lyn = local yard name which for receive is dyn
-        ryn = remote yard name which for receive is syn
-        mid = message id
+        Property is unique message tuple (ln, rn, mi)
+        ln = local yard name which for receive is dn
+        rn = remote yard name which for receive is sn
+        mi = message id
         '''
-        return (self.data['dyn'], self.data['syn'], self.data['mid'], )
+        return (self.data['dn'], self.data['sn'], self.data['mi'], )
 
     def parse(self, page):
         '''
-        Process a given page. Assumes its already been parsed
+        Process a given page. Assumes page.head has been successfully parsed
         '''
-        self.kind = page.kind
-
-        if not page.paginated: # not a paginated message
-            self.body = page.data
+        if not page.paginated: # not a paginated message so can parse body as is
+            self.data.update(page.data)
+            page.body.parse()
+            self.body = page.body.data
             self.complete = True
             return self.body
 
-        data = page.data['page']
-        count = data['count']
-        console.verbose("section count = {0} mid={1}\n".format(count, data['mid']))
+        #paginated so add to pages
+        pc = page.data['pc'] #page count
+        pn = page.data['pn']
+        console.verbose("page count={0} number={1} message id={2}\n".format(
+                     pc, pn, page.data['mi']))
 
         if not self.sections: #update data from first page received
-            self.data.update(data)
-            self.sections = [None] * count
+            self.data.update(page.data)
+            self.sections = [None] * pc
 
-        section = data['section']
-        number = data['number']
-
-        self.sections[number] = section
+        self.sections[pn] = page.body.packed
         if None in self.sections: #don't have all sections yet
             return None
         self.body = self.desectionize()
@@ -350,14 +438,12 @@ class RxBook(Book):
         '''
         Generate message from pages
         '''
-        count = self.data['count']
         self.packed = "".join(self.sections)
-
-        page = RxPage(stack = self.stack, kind=self.kind)
-        page.body = self.packed
-        page.parseBody()
+        page = RxPage(stack = self.stack, data=self.data)
+        page.body.packed = self.packed
+        page.body.parse()
         self.complete = True
 
-        return page.data
+        return page.body.data
 
 

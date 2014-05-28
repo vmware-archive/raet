@@ -169,14 +169,18 @@ class LaneStack(stacking.Stack):
                     return
 
             page = paging.RxPage(packed=raw)
-            page.parse()
-
             self.processRx(page)
 
     def processRx(self, received):
         '''
         Retrieve next page from stack receive queue if any and parse
         '''
+        try:
+            received.head.parse()
+        except PageError as ex:
+            console.terse(str(ex) + '\n')
+            self.incStat('invalid_page_header')
+
         console.verbose("{0} received page data\n{1}\n".format(self.name, received.data))
         console.verbose("{0} received page index = '{1}'\n".format(self.name, received.index))
 
@@ -185,12 +189,14 @@ class LaneStack(stacking.Stack):
             if not book:
                 book = paging.RxBook(stack=self)
                 self.addBook(received.index, book)
-            body = book.parse(received)
-            if body is None: #not done yet
+            book.parse(received)
+            if not book.complete:
                 return
             self.removeBook(book.index)
+            body = book.body
         else:
-            body = received.data
+            received.body.parse()
+            body = received.body.data
 
         self.rxMsgs.append(body)
 
@@ -256,8 +262,8 @@ class LaneStack(stacking.Stack):
             self.incStat("invalid_destination")
             return
         remote = self.remotes[duid]
-        data = odict(syn=self.local.name, dyn=remote.name, mid=remote.nextMid())
-        book = paging.TxBook(data=data, body=body, kind=self.Pk)
+        data = odict(pk=self.Pk, sn=self.local.name, dn=remote.name, mi=remote.nextMid())
+        book = paging.TxBook(data=data, body=body)
         try:
             book.pack()
         except raeting.PageError as ex:

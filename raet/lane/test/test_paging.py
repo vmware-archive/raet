@@ -38,94 +38,109 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-
     def tearDown(self):
         pass
-
-
 
     def testPackParseJson(self):
         '''
         Test basic page pack and parse
         '''
         console.terse("{0}\n".format(self.testPackParseJson.__doc__))
-        pk = raeting.packKinds.json
-
+        data = odict(pk=raeting.packKinds.json)
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
 
         body = odict([('route', route), ('content', "Hello all yards.")])
-        page0 = paging.TxPage(kind=pk, data=body)
-        self.assertDictEqual(page0.data, body)
+        page0 = paging.TxPage(data=data, embody=body)
+        self.assertDictEqual(page0.body.data, body)
         page0.pack()
-        self.assertEqual(len(page0.packed), 110)
-        self.assertEqual(page0.packed, 'RAET\njson\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
+        self.assertEqual(len(page0.packed), 141)
+        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 0\nsn \ndn \nmi 0\npn 0\npc 1\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
 
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()
-        self.assertDictEqual(page1.data, body)
-
+        self.assertDictEqual(page1.body.data, body)
 
         stuff = []
         for i in range(10000):
             stuff.append(str(i).rjust(10, " "))
         stuff = "".join(stuff)
         body = odict(msg=stuff)
-        page0 = paging.TxPage(kind=pk, data=body)
-        try:
-            page0.pack()
-        except raeting.PageError as ex:
-            print ex
-            print "Need to use book"
+        page0 = paging.TxPage(data=data, embody=body)
+        self.assertRaises(raeting.PageError, page0.pack)
 
-        data = odict(syn="boy", dyn='girl', mid=1)
-        book0 = paging.TxBook(data=data, body=body, kind=pk)
+        data.update(odict(sn="boy", dn='girl', mi=1))
+        book0 = paging.TxBook(data=data, body=body)
         book0.pack()
-        print book0.packed
-        print book0.pages
+        self.assertEqual(len(book0.pages), 2)
+        self.assertEqual(book0.packed, page0.body.packed)
+        self.assertDictEqual(book0.pages[0].data, {'ri': 'RAET',
+                                                   'vn': 0,
+                                                   'pk': 0,
+                                                   'sn': 'boy',
+                                                   'dn': 'girl',
+                                                   'mi': 1,
+                                                   'pn': 0,
+                                                   'pc': 2})
+        self.assertEqual(len(book0.pages[0].packed), 65523)
+        self.assertDictEqual(book0.pages[1].data, {'ri': 'RAET',
+                                                   'vn': 0,
+                                                   'pk': 0,
+                                                   'sn': 'boy',
+                                                   'dn': 'girl',
+                                                   'mi': 1,
+                                                   'pn': 1,
+                                                   'pc': 2})
+        self.assertEqual(len(book0.pages[1].packed), 34585)
+        self.assertEqual(book0.index, ('boy', 'girl', 1))
 
         book1 = paging.RxBook()
         for page in book0.pages:
-            page = paging.RxPage(packed=page.packed)
-            page.parse()
+            page = paging.RxPage(packed=page.packed) # simulate received packed
+            page.head.parse() #parse head to get data
             book1.parse(page)
 
-        print book1.data
-        print book1.body
-
-        print body == book1.body
+        self.assertDictEqual(body, book1.body)
+        self.assertDictEqual(book1.data, {'ri': 'RAET',
+                                          'vn': 0,
+                                          'pk': 0,
+                                          'sn': 'boy',
+                                          'dn': 'girl',
+                                          'mi': 1,
+                                          'pn': 0,
+                                          'pc': 2})
+        self.assertEqual(book1.index, ('girl', 'boy', 1))
 
     def testPackParseMsgpack(self):
         '''
         Test basic page pack and parse
         '''
         console.terse("{0}\n".format(self.testPackParseMsgpack.__doc__))
-        pk = raeting.packKinds.pack
-
+        data = odict(pk=raeting.packKinds.pack)
+        data.update(odict(sn="boy", dn='girl', mi=1))
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
 
         body = odict([('route', route), ('content', "Hello all yards.")])
-        page0 = paging.TxPage(kind=pk, data=body)
-        self.assertDictEqual(page0.data, body)
+        page0 = paging.TxPage(data=data, embody=body)
+        self.assertDictEqual(page0.body.data, body)
         page0.pack()
-        self.assertEqual(len(page0.packed), 81)
-        self.assertEqual(page0.packed, 'RAET\npack\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.')
+        self.assertEqual(len(page0.packed), 119)
+        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 1\nsn boy\ndn girl\nmi 1\npn 0\npc 1\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.')
 
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()
-        self.assertDictEqual(page1.data, body)
-
+        self.assertDictEqual(page1.body.data, body)
 
     def testSectionedJson(self):
         '''
         Test sectioned pack and parse json packing
         '''
         console.terse("{0}\n".format(self.testSectionedJson.__doc__))
-        pk = raeting.packKinds.json
-
+        data = odict(pk=raeting.packKinds.json)
+        data.update(odict(sn="boy", dn='girl', mi=1))
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
@@ -138,13 +153,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(stuff) > raeting.UXD_MAX_PACKET_SIZE)
 
         body = odict([('route', route), ('content', stuff)])
-        page0 = paging.TxPage(kind=pk, data=body)
-        self.assertDictEqual(page0.data, body)
+        page0 = paging.TxPage(data=data, embody=body)
+        self.assertDictEqual(page0.body.data, body)
         self.assertRaises(raeting.PageError, page0.pack)
 
-
-        data = odict(syn="boy", dyn='girl', mid=1)
-        book0 = paging.TxBook(data=data, body=body, kind=pk)
+        book0 = paging.TxBook(data=data, body=body)
         book0.pack()
         self.assertEqual(len(book0.packed), 100083)
         self.assertEqual(len(book0.pages), 2)
@@ -153,22 +166,22 @@ class BasicTestCase(unittest.TestCase):
         book1 = paging.RxBook()
         for page in book0.pages:
             page = paging.RxPage(packed=page.packed)
-            page.parse()
+            page.head.parse() #parse head to get data
             book1.parse(page)
 
         self.assertEqual(book1.index, ('girl', 'boy', 1))
         self.assertDictEqual(book1.body, body)
-        self.assertEqual(book1.data['syn'], 'boy')
-        self.assertEqual(book1.data['dyn'], 'girl')
-        self.assertEqual(book1.data['mid'], 1)
+        self.assertEqual(book1.data['sn'], 'boy')
+        self.assertEqual(book1.data['dn'], 'girl')
+        self.assertEqual(book1.data['mi'], 1)
 
     def testSectionedMsgpack(self):
         '''
         Test sectioned pack and parse msgpack packing
         '''
         console.terse("{0}\n".format(self.testSectionedMsgpack.__doc__))
-        pk = raeting.packKinds.pack
-
+        data = odict(pk=raeting.packKinds.pack)
+        data.update(odict(sn="boy", dn='girl', mi=1))
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
@@ -181,13 +194,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(stuff) > raeting.UXD_MAX_PACKET_SIZE)
 
         body = odict([('route', route), ('content', stuff)])
-        page0 = paging.TxPage(kind=pk, data=body)
-        self.assertDictEqual(page0.data, body)
+        page0 = paging.TxPage(data=data, embody=body)
+        self.assertDictEqual(page0.body.data, body)
         self.assertRaises(raeting.PageError, page0.pack)
 
-
-        data = odict(syn="boy", dyn='girl', mid=1)
-        book0 = paging.TxBook(data=data, body=body, kind=pk)
+        book0 = paging.TxBook(data=data, body=body)
         book0.pack()
         self.assertEqual(len(book0.packed), 100058)
         self.assertEqual(len(book0.pages), 2)
@@ -196,14 +207,14 @@ class BasicTestCase(unittest.TestCase):
         book1 = paging.RxBook()
         for page in book0.pages:
             page = paging.RxPage(packed=page.packed)
-            page.parse()
+            page.head.parse() #parse head to get data
             book1.parse(page)
 
         self.assertEqual(book1.index, ('girl', 'boy', 1))
         self.assertDictEqual(book1.body, body)
-        self.assertEqual(book1.data['syn'], 'boy')
-        self.assertEqual(book1.data['dyn'], 'girl')
-        self.assertEqual(book1.data['mid'], 1)
+        self.assertEqual(book1.data['sn'], 'boy')
+        self.assertEqual(book1.data['dn'], 'girl')
+        self.assertEqual(book1.data['mi'], 1)
 
 
 def runOne(test):
@@ -237,8 +248,8 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testPackParse')
+    #runOne('testSectionedMsgpack')
