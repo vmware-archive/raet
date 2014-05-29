@@ -47,17 +47,17 @@ class BasicTestCase(unittest.TestCase):
 
         # main stack
         self.main = stacking.LaneStack(name='main',
-                                    lanename='cherry',
-                                    yardname='main',
-                                    dirpath=self.baseDirpath,
-                                    sockdirpath=self.baseDirpath)
+                                       yid=1,
+                                       lanename='cherry',
+                                       dirpath=os.path.join(self.baseDirpath, 'main'),
+                                       sockdirpath=self.baseDirpath)
 
         #other stack
         self.other = stacking.LaneStack(name='other',
-                                    lanename='cherry',
-                                    yardname='other',
-                                    dirpath=self.baseDirpath,
-                                    sockdirpath=self.baseDirpath)
+                                        yid=1,
+                                        lanename='cherry',
+                                        dirpath=os.path.join(self.baseDirpath, 'other'),
+                                        sockdirpath=self.baseDirpath)
 
     def tearDown(self):
         self.main.server.close()
@@ -105,8 +105,8 @@ class BasicTestCase(unittest.TestCase):
         '''
         Basic messaging
         '''
-        self.main.addRemote(yarding.RemoteYard(ha=self.other.local.ha))
-        self.other.addRemote(yarding.RemoteYard(ha=self.main.local.ha))
+        self.main.addRemote(yarding.RemoteYard(stack=self.main, ha=self.other.local.ha))
+        self.other.addRemote(yarding.RemoteYard(stack=self.main, ha=self.main.local.ha))
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
@@ -300,7 +300,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Don't add remote yard to main so only way to get message from other is
         # if auto acccept works
-        self.other.addRemote(yarding.RemoteYard(ha=self.main.local.ha))
+        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.local.ha))
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
@@ -351,7 +351,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Don't add remote yard to main so only way to get message from other is
         # if auto acccept works
-        self.other.addRemote(yarding.RemoteYard(ha=self.main.local.ha))
+        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.local.ha))
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')

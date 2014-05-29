@@ -152,7 +152,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
+        console.terse("{0} keep dirpath = {1} safe dirpath = {2}\n".format(
                 stack.name, stack.keep.dirpath, stack.safe.dirpath))
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
         self.assertTrue(stack.safe.dirpath.endswith('road/keep/main'))
@@ -204,7 +204,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
-                                ('neid', stack.eid),
+                                ('neid', stack.neid),
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -332,7 +332,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
-                                ('neid', stack.eid)
+                                ('neid', stack.neid)
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)

@@ -99,11 +99,13 @@ class RoadStack(stacking.Stack):
                  ):
         '''
         Setup StackUdp instance
+
+        stack.name and stack.local.name will match
         '''
-        self.eid = self.Eid # eid of next estate to add to road
+        self.neid = self.Eid # eid of initial next estate to add to road
 
         if not name:
-            name = "roadstack{0}".format(RoadStack.Count)
+            name = "road{0}".format(RoadStack.Count)
             RoadStack.Count += 1
 
         if not keep:
@@ -142,10 +144,10 @@ class RoadStack(stacking.Stack):
         '''
         Generates next estate id number.
         '''
-        self.eid += 1
-        if self.eid > 0xffffffffL:
-            self.eid = 1  # rollover to 1
-        return self.eid
+        self.neid += 1
+        if self.neid > 0xffffffffL:
+            self.neid = 1  # rollover to 1
+        return self.neid
 
     def serverFromLocal(self):
         '''
@@ -240,7 +242,7 @@ class RoadStack(stacking.Stack):
                                           prikey=safeData['prihex'],)
             self.safe.auto = safeData['auto']
             self.name = keepData['name']
-            self.eid = keepData['neid']
+            self.neid = keepData['neid']
 
         elif local:
             local.stack = self

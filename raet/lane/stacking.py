@@ -37,18 +37,18 @@ class LaneStack(stacking.Stack):
     RAET protocol UXD (unix domain) socket stack object
     '''
     Count = 0
+    Yid = 1
     Pk = raeting.packKinds.json # serialization pack kind of Uxd message
     Accept = True # accept any uxd messages if True from yards not already in lanes
 
     def __init__(self,
                  name='',
-                 main=False,
+                 main=None,
                  keep=None,
                  dirpath='',
                  local=None,
                  lanename='lane',
                  yid=None,
-                 yardname='',
                  sockdirpath='',
                  ha='',
                  bufcnt=10,
@@ -56,25 +56,30 @@ class LaneStack(stacking.Stack):
                  **kwa
                  ):
         '''
-        Setup StackUxd instance
-        '''
-        if not name:
-            name = "lanestack{0}".format(LaneStack.Count)
-            LaneStack.Count += 1
+        Setup LaneStack instance
 
-        if not keep:
-            keep = keeping.LaneKeep(dirpath=dirpath, stackname=name)
+        stack.name and stack.local.name will match
+        '''
+        self.nyid = self.Yid # yid of initial next estate to add to road
+        self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
 
         if not local:
             self.remotes = odict()
             local = yarding.LocalYard(  stack=self,
                                         yid=yid,
-                                        name=yardname,
+                                        name=name,
                                         main=main,
                                         ha=ha,
                                         dirpath=sockdirpath,
                                         lanename=lanename)
+        else:
+            if main is not None:
+                local.main = True if main else False
 
+        name = local.name # make stack and local name match, ha may have changed it
+
+        if not keep:
+            keep = keeping.LaneKeep(dirpath=dirpath, stackname=name)
 
         super(LaneStack, self).__init__(name=name,
                                         keep=keep,
@@ -84,7 +89,16 @@ class LaneStack(stacking.Stack):
                                         **kwa)
 
         self.books = odict()
-        self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
+
+
+    def nextYid(self):
+        '''
+        Generates next yard id number.
+        '''
+        self.nyid += 1
+        if self.nyid > 0xffffffffL:
+            self.nyid = 1  # rollover to 1
+        return self.nyid
 
     def serverFromLocal(self):
         '''
@@ -104,12 +118,20 @@ class LaneStack(stacking.Stack):
         data = self.keep.loadLocalData()
         if data and self.keep.verifyLocalData(data):
             self.local = yarding.LocalYard(stack=self,
-                                     name=data['name'],
-                                     ha=data['ha'])
+                                           yid=data['uid'],
+                                           name=data['name'],
+                                           ha=data['ha'],
+                                           main=data['main'],
+                                           mid=data['mid'],
+                                           lanename=data['lanename'])
+            self.name = self.local.name
+            self.nyid = data['nyid']
+            self.accept = data['accept']
 
         elif local:
             local.stack = self
             self.local = local
+            self.name = local.name
 
         else:
             self.local = yarding.LocalYard(stack=self)
@@ -121,11 +143,13 @@ class LaneStack(stacking.Stack):
         datadict = self.keep.loadAllRemoteData()
         for data in datadict.values():
             if self.keep.verifyRemoteData(data):
-                lot = yarding.RemoteYard(stack=self,
-                                  name=data['name'],
-                                  ha=data['ha'])
+                remote = yarding.RemoteYard(stack=self,
+                                            yid=data['uid'],
+                                            name=data['name'],
+                                            ha=data['ha'],
+                                            mid=data['mid'],
+                                            rmid=data['rmid'])
                 self.addRemote(remote)
-
 
     def addBook(self, index, book):
         '''
@@ -152,36 +176,43 @@ class LaneStack(stacking.Stack):
         '''
         while self.rxes:
             raw, sa, da = self.rxes.popleft()
-
             console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
+            page = paging.RxPage(packed=raw)
 
-            if sa not in self.remotes:
+            try:
+                page.head.parse()
+            except PageError as ex:
+                console.terse(str(ex) + '\n')
+                self.incStat('invalid_page_header')
+
+            dn = page.data['dn']
+            if dn != self.local.name:
+                emsg = "Invalid destination yard name = {0}. Dropping packet...\n".format(dn)
+                console.concise( emsg)
+                self.incStat('invalid_destination')
+
+            sn = page.data['sn']
+            if sn not in self.uids:
                 if not self.accept:
-                    emsg = "Unaccepted source ha = {0}. Dropping packet...\n".format(sa)
+                    emsg = "Unaccepted source yard name = {0}. Dropping packet...\n".format(sn)
                     console.terse(emsg)
                     self.incStat('unaccepted_source_yard')
                     return
                 try:
-                    self.addRemote(yarding.RemoteYard(ha=sa))
+                    self.addRemote(yarding.RemoteYard(ha=sa)) # sn and sa are assume compat
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.incStat('invalid_source_yard')
                     return
 
-            page = paging.RxPage(packed=raw)
             self.processRx(page)
 
     def processRx(self, received):
         '''
         Retrieve next page from stack receive queue if any and parse
+        Assumes received header has been parsed
         '''
-        try:
-            received.head.parse()
-        except PageError as ex:
-            console.terse(str(ex) + '\n')
-            self.incStat('invalid_page_header')
-
-        console.verbose("{0} received page data\n{1}\n".format(self.name, received.data))
+        console.verbose("{0} received page header\n{1}\n".format(self.name, received.data))
         console.verbose("{0} received page index = '{1}'\n".format(self.name, received.index))
 
         if received.paginated:

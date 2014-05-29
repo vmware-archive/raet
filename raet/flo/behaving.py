@@ -316,7 +316,6 @@ class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
         txmsgs=odict(ipath='txmsgs', ival=deque()),
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
         local=odict(ipath='local', ival=odict(name='minion',
-                                              yardname="",
                                               lane="maple")),)
 
     def postinitio(self):
@@ -324,7 +323,6 @@ class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
         Setup stack instance
         '''
         name = self.local.data.name
-        yardname = self.local.data.yardname
         lane = self.local.data.lane
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
@@ -332,7 +330,6 @@ class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
         self.stack.value = LaneStack(
                                        store=self.store,
                                        name=name,
-                                       yardname=yardname,
                                        lanename=lane,
                                        txMsgs=txMsgs,
                                        rxMsgs=rxMsgs, )

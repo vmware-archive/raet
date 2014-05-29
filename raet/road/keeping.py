@@ -57,7 +57,7 @@ class RoadKeep(keeping.Keep):
                         ('ha', local.ha),
                         ('main', local.main),
                         ('sid', local.sid),
-                        ('neid', local.stack.eid),
+                        ('neid', local.stack.neid),
                     ])
         if self.verifyLocalData(data):
             self.dumpLocalData(data)
@@ -240,5 +240,3 @@ def clearAllKeepSafe(dirpath):
     safe = SafeKeep(dirpath=dirpath)
     safe.clearLocalData()
     safe.clearAllRemoteData()
-    #road.clearAllDir()
-    #safe.clearAllDir()

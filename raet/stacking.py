@@ -56,11 +56,14 @@ class Stack(object):
                  stats=None,
                  ):
         '''
-        Setup StackUdp instance
+        Setup Stack instance
         '''
         if not name:
-            name = "stack{0}".format(Stack.Count)
-            Stack.Count += 1
+            if local:
+                name = local.name
+            else:
+                name = "stack{0}".format(Stack.Count)
+                Stack.Count += 1
         self.name = name
         self.version = version
         self.store = store or storing.Store(stamp=0.0)
@@ -195,10 +198,10 @@ class Stack(object):
         '''
         data = self.keep.loadLocalData()
         if data and self.keep.verifyLocalData(data):
-            self.local = lotting.Lot(stack=self,
-                                     uid=data['uid'],
-                                     name=data['name'],
-                                     ha=data['ha'])
+            self.local = lotting.LocalLot(stack=self,
+                                          uid=data['uid'],
+                                          name=data['name'],
+                                          ha=data['ha'])
             self.name = self.local.name
 
         elif local:
@@ -206,7 +209,7 @@ class Stack(object):
             self.local = local
 
         else:
-            self.local = lotting.Lot(stack=self)
+            self.local = lotting.LocalLot(stack=self)
 
     def clearLocal(self):
         '''
@@ -322,7 +325,7 @@ class Stack(object):
         '''
         Append duple (msg, duid) to .txMsgs deque
         If msg is not mapping then raises exception
-        If deid is None then it will default to the first entry in .estates
+        If duid is None then it will default to the first entry in .remotes
         '''
         if not isinstance(msg, Mapping):
             emsg = "Invalid msg, not a mapping {0}\n".format(msg)

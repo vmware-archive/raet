@@ -63,3 +63,16 @@ class Lot(object):
     @ha.setter
     def ha(self, value):
         self._ha = value
+
+class LocalLot(Lot):
+    '''
+    Raet protocol local endpoint
+    '''
+    def  __init__(self, stack=None, name="", **kwa):
+        '''
+        Setup instance
+        '''
+        if not name and stack:
+            name = stack.name
+
+        super(LocalLot, self).__init__(stack=stack, name=name, **kwa)

@@ -45,6 +45,7 @@ class Estate(lotting.Lot):
             else:
                 eid = 0
         self.eid = eid # estate ID
+
         name = name or "estate{0}".format(self.uid)
 
         super(Estate, self).__init__(stack=stack, name=name, ha=ha, **kwa)

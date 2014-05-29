@@ -31,12 +31,12 @@ class LaneKeep(keeping.Keep):
     keep/
         stackname/
             local/
-                prefix.ext
+                yard.ext
             remote/
-                prefix.uid.ext
-                prefix.uid.ext
+                yard.name.ext
+                yard.name.ext
     '''
-    LocalFields = ['uid', 'name', 'ha', 'main', 'mid']
+    LocalFields = ['uid', 'name', 'ha', 'main', 'mid', 'lanename', 'nyid', 'accept']
     RemoteFields = ['uid', 'name', 'ha', 'mid',  'rmid']
 
     def __init__(self, prefix='yard', **kwa):
@@ -45,7 +45,38 @@ class LaneKeep(keeping.Keep):
         '''
         super(LaneKeep, self).__init__(prefix=prefix, **kwa)
 
-def clearAllLaneSafe(dirpath):
+    def dumpLocal(self, local):
+        '''
+        Dump local estate
+        '''
+        data = odict([
+                        ('uid', local.uid),
+                        ('name', local.name),
+                        ('ha', local.ha),
+                        ('main', local.main),
+                        ('mid', local.mid),
+                        ('lanename', local.lanename),
+                        ('nyid', local.stack.nyid),
+                        ('accept', local.stack.accept),
+                    ])
+        if self.verifyLocalData(data):
+            self.dumpLocalData(data)
+
+    def dumpRemote(self, remote):
+        '''
+        Dump remote estate
+        '''
+        data = odict([
+                        ('uid', remote.uid),
+                        ('name', remote.name),
+                        ('ha', remote.ha),
+                        ('mid', remote.mid),
+                        ('rmid', remote.rmid),
+                    ])
+        if self.verifyRemoteData(data):
+            self.dumpRemoteData(data, remote.uid)
+
+def clearAllKeep(dirpath):
     '''
     Convenience function to clear all lane keep data in dirpath
     '''
