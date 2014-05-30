@@ -62,6 +62,7 @@ class LaneStack(stacking.Stack):
         '''
         self.nyid = self.Yid # yid of initial next estate to add to road
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
+        self.name = name
 
         if not local:
             self.remotes = odict()
