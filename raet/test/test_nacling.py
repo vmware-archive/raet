@@ -26,7 +26,6 @@ def tearDownModule():
     pass
 
 
-
 class BasicTestCase(unittest.TestCase):
     '''
     Test basic sign verify encrypt decrypt functions
