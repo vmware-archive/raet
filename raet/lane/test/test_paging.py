@@ -55,9 +55,8 @@ class BasicTestCase(unittest.TestCase):
         page0 = paging.TxPage(data=data, embody=body)
         self.assertDictEqual(page0.body.data, body)
         page0.pack()
-        self.assertEqual(len(page0.packed), 147)
-        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 0\nsn \ndn \nmi 0\npn 0000\npc 0001\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
-
+        self.assertEqual(len(page0.packed), 152)
+        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 0\nsn \ndn \nsi 0\nbi 0\npn 0000\npc 0001\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()
         self.assertDictEqual(page1.body.data, body)
@@ -70,7 +69,7 @@ class BasicTestCase(unittest.TestCase):
         page0 = paging.TxPage(data=data, embody=body)
         self.assertRaises(raeting.PageError, page0.pack)
 
-        data.update(odict(sn="boy", dn='girl', mi=1))
+        data.update(odict(sn="boy", dn='girl', si=0, bi=1))
         book0 = paging.TxBook(data=data, body=body)
         book0.pack()
         self.assertEqual(len(book0.pages), 2)
@@ -80,7 +79,8 @@ class BasicTestCase(unittest.TestCase):
                                                    'pk': 0,
                                                    'sn': 'boy',
                                                    'dn': 'girl',
-                                                   'mi': 1,
+                                                   'si': 0,
+                                                   'bi': 1,
                                                    'pn': 0,
                                                    'pc': 2})
         self.assertEqual(len(book0.pages[0].packed), 65533)
@@ -89,11 +89,12 @@ class BasicTestCase(unittest.TestCase):
                                                    'pk': 0,
                                                    'sn': 'boy',
                                                    'dn': 'girl',
-                                                   'mi': 1,
+                                                   'si': 0,
+                                                   'bi': 1,
                                                    'pn': 1,
                                                    'pc': 2})
-        self.assertEqual(len(book0.pages[1].packed), 34587)
-        self.assertEqual(book0.index, ('boy', 'girl', 1))
+        self.assertEqual(len(book0.pages[1].packed), 34597)
+        self.assertEqual(book0.index, ('boy', 'girl', 0, 1))
 
         book1 = paging.RxBook()
         for page in book0.pages:
@@ -107,10 +108,11 @@ class BasicTestCase(unittest.TestCase):
                                           'pk': 0,
                                           'sn': 'boy',
                                           'dn': 'girl',
-                                          'mi': 1,
+                                          'si': 0,
+                                          'bi': 1,
                                           'pn': 0,
                                           'pc': 2})
-        self.assertEqual(book1.index, ('girl', 'boy', 1))
+        self.assertEqual(book1.index, ('girl', 'boy', 0, 1))
 
     def testPackParseMsgpack(self):
         '''
@@ -118,7 +120,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testPackParseMsgpack.__doc__))
         data = odict(pk=raeting.packKinds.pack)
-        data.update(odict(sn="boy", dn='girl', mi=1))
+        data.update(odict(sn="boy", dn='girl', si=0, bi=1))
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
@@ -127,9 +129,8 @@ class BasicTestCase(unittest.TestCase):
         page0 = paging.TxPage(data=data, embody=body)
         self.assertDictEqual(page0.body.data, body)
         page0.pack()
-        self.assertEqual(len(page0.packed), 125)
-        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 1\nsn boy\ndn girl\nmi 1\npn 0000\npc 0001\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.')
-
+        self.assertEqual(len(page0.packed), 130)
+        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 1\nsn boy\ndn girl\nsi 0\nbi 1\npn 0000\npc 0001\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.')
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()
         self.assertDictEqual(page1.body.data, body)
@@ -140,7 +141,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testSectionedJson.__doc__))
         data = odict(pk=raeting.packKinds.json)
-        data.update(odict(sn="boy", dn='girl', mi=1))
+        data.update(odict(sn="boy", dn='girl', si=0, bi=1))
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
@@ -161,7 +162,7 @@ class BasicTestCase(unittest.TestCase):
         book0.pack()
         self.assertEqual(len(book0.packed), 100083)
         self.assertEqual(len(book0.pages), 2)
-        self.assertEqual(book0.index, ('boy', 'girl', 1))
+        self.assertEqual(book0.index, ('boy', 'girl', 0, 1))
 
         book1 = paging.RxBook()
         for page in book0.pages:
@@ -169,11 +170,12 @@ class BasicTestCase(unittest.TestCase):
             page.head.parse() #parse head to get data
             book1.parse(page)
 
-        self.assertEqual(book1.index, ('girl', 'boy', 1))
+        self.assertEqual(book1.index, ('girl', 'boy', 0, 1))
         self.assertDictEqual(book1.body, body)
         self.assertEqual(book1.data['sn'], 'boy')
         self.assertEqual(book1.data['dn'], 'girl')
-        self.assertEqual(book1.data['mi'], 1)
+        self.assertEqual(book1.data['si'], 0)
+        self.assertEqual(book1.data['bi'], 1)
 
     def testSectionedMsgpack(self):
         '''
@@ -181,7 +183,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testSectionedMsgpack.__doc__))
         data = odict(pk=raeting.packKinds.pack)
-        data.update(odict(sn="boy", dn='girl', mi=1))
+        data.update(odict(sn="boy", dn='girl', si=0, bi=1))
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
@@ -202,7 +204,7 @@ class BasicTestCase(unittest.TestCase):
         book0.pack()
         self.assertEqual(len(book0.packed), 100058)
         self.assertEqual(len(book0.pages), 2)
-        self.assertEqual(book0.index, ('boy', 'girl', 1))
+        self.assertEqual(book0.index, ('boy', 'girl', 0, 1))
 
         book1 = paging.RxBook()
         for page in book0.pages:
@@ -210,11 +212,12 @@ class BasicTestCase(unittest.TestCase):
             page.head.parse() #parse head to get data
             book1.parse(page)
 
-        self.assertEqual(book1.index, ('girl', 'boy', 1))
+        self.assertEqual(book1.index, ('girl', 'boy', 0, 1))
         self.assertDictEqual(book1.body, body)
         self.assertEqual(book1.data['sn'], 'boy')
         self.assertEqual(book1.data['dn'], 'girl')
-        self.assertEqual(book1.data['mi'], 1)
+        self.assertEqual(book1.data['si'], 0)
+        self.assertEqual(book1.data['bi'], 1)
 
 
 def runOne(test):

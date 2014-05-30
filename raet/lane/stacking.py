@@ -122,7 +122,7 @@ class LaneStack(stacking.Stack):
                                            name=data['name'],
                                            ha=data['ha'],
                                            main=data['main'],
-                                           mid=data['mid'],
+                                           sid=data['sid'],
                                            lanename=data['lanename'])
             self.name = self.local.name
             self.nyid = data['nyid']
@@ -147,8 +147,8 @@ class LaneStack(stacking.Stack):
                                             yid=data['uid'],
                                             name=data['name'],
                                             ha=data['ha'],
-                                            mid=data['mid'],
-                                            rmid=data['rmid'])
+                                            sid=data['sid'],
+                                            rsid=data['rsid'])
                 self.addRemote(remote)
 
     def addBook(self, index, book):
@@ -293,7 +293,11 @@ class LaneStack(stacking.Stack):
             self.incStat("invalid_destination")
             return
         remote = self.remotes[duid]
-        data = odict(pk=self.Pk, sn=self.local.name, dn=remote.name, mi=remote.nextMid())
+        data = odict(pk=self.Pk,
+                     sn=self.local.name,
+                     dn=remote.name,
+                     si=remote.sid,
+                     bi=remote.nextBid())
         book = paging.TxBook(data=data, body=body)
         try:
             book.pack()

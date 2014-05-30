@@ -275,7 +275,8 @@ PAGE_DEFAULTS = odict([
                         ('pk', 0),
                         ('sn', ''),
                         ('dn', ''),
-                        ('mi', 0),
+                        ('si', 0),
+                        ('bi', 0),
                         ('pn', 0),
                         ('pc', 1),
                       ])
@@ -286,12 +287,13 @@ PAGE_FIELD_FORMATS = odict([
                             ('pk', 'x'),
                             ('sn', 's'),
                             ('dn', 's'),
-                            ('mi', 'x'),
+                            ('si', 'x'),
+                            ('bi', 'x'),
                             ('pn', '04x'),
                             ('pc', '04x'),
                            ])
 
-PAGE_FIELDS = ['ri', 'vn', 'pk', 'sn', 'dn', 'mi', 'pn', 'pc']
+PAGE_FIELDS = ['ri', 'vn', 'pk', 'sn', 'dn', 'si', 'bi', 'pn', 'pc']
 
 
 class RaetError(Exception):

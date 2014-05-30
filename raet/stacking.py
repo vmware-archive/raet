@@ -201,7 +201,8 @@ class Stack(object):
             self.local = lotting.LocalLot(stack=self,
                                           uid=data['uid'],
                                           name=data['name'],
-                                          ha=data['ha'])
+                                          ha=data['ha'],
+                                          sid = data['sid'])
             self.name = self.local.name
 
         elif local:
@@ -242,7 +243,8 @@ class Stack(object):
                 lot = lotting.Lot(stack=self,
                                   uid=data['uid'],
                                   name=data['name'],
-                                  ha=data['ha'])
+                                  ha=data['ha'],
+                                  sid=data['sid'])
                 self.addRemote(remote)
 
     def clearRemote(self, remote):

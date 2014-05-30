@@ -242,12 +242,13 @@ class TxPage(Page):
     @property
     def index(self):
         '''
-        Property is unique message tuple (ln, rn, mi)
+        Property is unique message tuple (ln, rn, si, bi)
         ln = local yard name which for transmit is sn
         rn = remote yard name which for transmit is dn
-        mi = message id
+        si = session id
+        bi = book id
         '''
-        return (self.data['sn'], self.data['dn'], self.data['mi'], )
+        return (self.data['sn'], self.data['dn'], self.data['si'], self.data['bi'], )
 
     def prepack(self):
         '''
@@ -285,12 +286,13 @@ class RxPage(Page):
     @property
     def index(self):
         '''
-        Property is unique message tuple (ln, rn, mi)
+        Property is unique message tuple (ln, rn, si, bi)
         ln = local yard name which for receive is dn
         rn = remote yard name which for receive is sn
-        mi = message id
+        si = session id
+        bi = book id
         '''
-        return (self.data['dn'], self.data['sn'], self.data['mi'], )
+        return (self.data['dn'], self.data['sn'], self.data['si'], self.data['bi'],)
 
     def parse(self, packed=None):
         '''
@@ -338,12 +340,13 @@ class TxBook(Book):
     @property
     def index(self):
         '''
-        Property is unique message tuple (rn, ln, mi)
+        Property is unique message tuple (rn, ln, si, bi)
         rn = remote yard name which for transmit is sn
         ln = local yard name which for transmit is dn
-        mi = message id
+        si = session id
+        bi = book id
         '''
-        return (self.data['sn'], self.data['dn'], self.data['mi'],)
+        return (self.data['sn'], self.data['dn'], self.data['si'], self.data['bi'],)
 
     def pack(self, data=None, body=None):
         '''
@@ -405,12 +408,13 @@ class RxBook(Book):
     @property
     def index(self):
         '''
-        Property is unique message tuple (ln, rn, mi)
+        Property is unique message tuple (ln, rn, si, bi)
         ln = local yard name which for receive is dn
         rn = remote yard name which for receive is sn
-        mi = message id
+        si = session id
+        bi = book id
         '''
-        return (self.data['dn'], self.data['sn'], self.data['mi'], )
+        return (self.data['dn'], self.data['sn'], self.data['si'], self.data['bi'], )
 
     def parse(self, page):
         '''
@@ -426,8 +430,8 @@ class RxBook(Book):
         #paginated so add to pages
         pc = page.data['pc'] #page count
         pn = page.data['pn']
-        console.verbose("page count={0} number={1} message id={2}\n".format(
-                     pc, pn, page.data['mi']))
+        console.verbose("page count={0} number={1} session id={2} book id={2}\n".format(
+                     pc, pn, page.data['si'], page.data['bi']))
 
         if not self.sections: #update data from first page received
             self.data.update(page.data)

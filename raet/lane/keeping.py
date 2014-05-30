@@ -36,8 +36,8 @@ class LaneKeep(keeping.Keep):
                 yard.name.ext
                 yard.name.ext
     '''
-    LocalFields = ['uid', 'name', 'ha', 'main', 'mid', 'lanename', 'nyid', 'accept']
-    RemoteFields = ['uid', 'name', 'ha', 'mid',  'rmid']
+    LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'lanename', 'nyid', 'accept']
+    RemoteFields = ['uid', 'name', 'ha', 'sid',  'rsid']
 
     def __init__(self, prefix='yard', **kwa):
         '''
@@ -54,7 +54,7 @@ class LaneKeep(keeping.Keep):
                         ('name', local.name),
                         ('ha', local.ha),
                         ('main', local.main),
-                        ('mid', local.mid),
+                        ('sid', local.sid),
                         ('lanename', local.lanename),
                         ('nyid', local.stack.nyid),
                         ('accept', local.stack.accept),
@@ -70,8 +70,8 @@ class LaneKeep(keeping.Keep):
                         ('uid', remote.uid),
                         ('name', remote.name),
                         ('ha', remote.ha),
-                        ('mid', remote.mid),
-                        ('rmid', remote.rmid),
+                        ('sid', remote.sid),
+                        ('rsid', remote.rsid),
                     ])
         if self.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.uid)

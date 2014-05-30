@@ -26,13 +26,12 @@ class Estate(lotting.Lot):
 
     def __init__(self,
                  stack=None,
-                 eid=None,
                  name="",
-                 sid=0,
+                 ha=None,
+                 eid=None,
                  tid=0,
                  host="",
                  port=raeting.RAET_PORT,
-                 ha=None,
                  **kwa):
         '''
         Setup Estate instance
@@ -50,7 +49,6 @@ class Estate(lotting.Lot):
 
         super(Estate, self).__init__(stack=stack, name=name, ha=ha, **kwa)
 
-        self.sid = sid # current session ID
         self.tid = tid # current transaction ID
 
         if ha:  # takes precedence
@@ -90,23 +88,6 @@ class Estate(lotting.Lot):
         Expects value is tuple of (host, port)
         '''
         self.host, self.port = value
-
-    def nextSid(self):
-        '''
-        Generates next session id number.
-        '''
-        self.sid += 1
-        if self.sid > 0xffffffffL:
-            self.sid = 1  # rollover to 1
-        return self.sid
-
-    def validSid(self, sid):
-        '''
-        Compare new sid to old .sid and return True if new is greater than old
-        modulo N where N is 2^32 = 0x100000000
-        And greater means the difference is less than N/2
-        '''
-        return (((sid - self.sid) % 0x100000000) < (0x100000000 // 2))
 
     def nextTid(self):
         '''

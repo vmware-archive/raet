@@ -27,7 +27,7 @@ class Lot(object):
     '''
     Count = 0
 
-    def __init__(self, stack=None, uid=None, name="", ha=None):
+    def __init__(self, stack=None, uid=None, name="", ha=None, sid=0):
         '''
         Setup Lot instance
         '''
@@ -38,6 +38,7 @@ class Lot(object):
         self._uid = uid
         self.name = name or "lot{0}".format(self._uid)
         self._ha = ha
+        self.sid = sid # current session ID
 
     @property
     def uid(self):
@@ -63,6 +64,24 @@ class Lot(object):
     @ha.setter
     def ha(self, value):
         self._ha = value
+
+    def nextSid(self):
+        '''
+        Generates next session id number.
+        '''
+        self.sid += 1
+        if self.sid > 0xffffffffL:
+            self.sid = 1  # rollover to 1
+        return self.sid
+
+    def validSid(self, sid):
+        '''
+        Compare new sid to old .sid and return True if new is greater than old
+        modulo N where N is 2^32 = 0x100000000
+        And greater means the difference is less than N/2
+        '''
+        return (((sid - self.sid) % 0x100000000) < (0x100000000 // 2))
+
 
 class LocalLot(Lot):
     '''

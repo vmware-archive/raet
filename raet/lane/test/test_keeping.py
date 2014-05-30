@@ -151,7 +151,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', 'main'),
                                 ('ha', stack.local.ha),
                                 ('main', True),
-                                ('mid', 0),
+                                ('sid', 0),
                                 ('lanename', 'apple'),
                                 ('nyid', 1),
                                 ('accept', True)
@@ -171,7 +171,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', stack.local.ha),
                                 ('main', stack.local.main),
-                                ('mid', stack.local.mid),
+                                ('sid', stack.local.sid),
                                 ('lanename', stack.local.lanename),
                                 ('nyid', stack.nyid),
                                 ('accept', stack.accept),
@@ -211,14 +211,14 @@ class BasicTestCase(unittest.TestCase):
                                     {'uid': 2,
                                      'name': 'other1',
                                      'ha': '',
-                                     'mid': 0,
-                                     'rmid': 0},
+                                     'sid': 0,
+                                     'rsid': 0},
                                 '3':
                                     {'uid': 3,
                                      'name': 'other2',
                                      'ha': '',
-                                     'mid': 0,
-                                     'rmid': 0}
+                                     'sid': 0,
+                                     'rsid': 0}
                                 }
         validRemoteKeepData['2']['ha'] = stack.remotes[2].ha
         validRemoteKeepData['3']['ha'] = stack.remotes[3].ha
@@ -241,8 +241,8 @@ class BasicTestCase(unittest.TestCase):
                                                 ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('ha', remote.ha),
-                                                ('mid', remote.mid),
-                                                ('rmid', remote.rmid),
+                                                ('sid', remote.sid),
+                                                ('rsid', remote.rsid),
                                                ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
         stack.server.close()
@@ -256,7 +256,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', stack.local.ha),
                                 ('main', stack.local.main),
-                                ('mid', stack.local.mid),
+                                ('sid', stack.local.sid),
                                 ('lanename', stack.local.lanename),
                                 ('nyid', stack.nyid),
                                 ('accept', stack.accept),
@@ -270,8 +270,8 @@ class BasicTestCase(unittest.TestCase):
                                                 ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('ha', remote.ha),
-                                                ('mid', remote.mid),
-                                                ('rmid', remote.rmid),
+                                                ('sid', remote.sid),
+                                                ('rsid', remote.rsid),
                                                ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 

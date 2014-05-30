@@ -34,7 +34,7 @@ class Keep(object):
     RAET protocol base class for data persistence of objects that follow the Lot
     protocol
     '''
-    LocalFields = ['uid', 'name', 'ha']
+    LocalFields = ['uid', 'name', 'ha', 'sid']
     RemoteFields = ['uid', 'name', 'ha']
 
     def __init__(self, dirpath='', stackname='stack', prefix='data', ext='json', **kwa):
@@ -254,7 +254,8 @@ class Keep(object):
         data = odict([
                         ('uid', local.uid),
                         ('name', local.name),
-                        ('ha', local.ha)
+                        ('ha', local.ha),
+                        ('sid', local.sid)
                     ])
         if self.verifyLocalData(data):
             self.dumpLocalData(data)
@@ -266,7 +267,8 @@ class Keep(object):
         data = odict([
                         ('uid', remote.uid),
                         ('name', remote.name),
-                        ('ha', remote.ha)
+                        ('ha', remote.ha),
+                        ('sid', remote.sid)
                     ])
 
         if self.verifyRemoteData(data):

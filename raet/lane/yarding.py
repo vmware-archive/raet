@@ -33,10 +33,10 @@ class Yard(lotting.Lot):
                   stack=None,
                   yid=None,
                   name='',
-                  mid=0,
                   ha='',
                   dirpath='',
                   lanename='',
+                  bid=0,
                   **kwa):
         '''
         Initialize instance
@@ -77,7 +77,7 @@ class Yard(lotting.Lot):
         super(Yard, self).__init__(stack=stack, name=name, ha=ha, **kwa)
 
         self.lanename = lanename or 'lane'
-        self.mid = mid #current message id
+        self.bid = bid #current book id
 
         if not dirpath:
             dirpath = YARD_UXD_DIR
@@ -135,22 +135,14 @@ class Yard(lotting.Lot):
 
         return (lanename, yardname)
 
-    def nextMid(self):
+    def nextBid(self):
         '''
-        Generates next message id number.
+        Generates next book id number.
         '''
-        self.mid += 1
-        if self.mid > 0xffffffffL:
-            self.mid = 1  # rollover to 1
-        return self.mid
-
-    def validMid(self, mid):
-        '''
-        Compare new mid to old .mid and return True if new is greater than old
-        modulo N where N is 2^32 = 0x100000000
-        And greater means the difference is less than N/2
-        '''
-        return (((mid - self.mid) % 0x100000000) < (0x100000000 // 2))
+        self.bid += 1
+        if self.bid > 0xffffffffL:
+            self.bid = 1  # rollover to 1
+        return self.bid
 
 class LocalYard(Yard):
     '''
@@ -170,17 +162,17 @@ class RemoteYard(Yard):
     '''
     RAET protocol endpoint remote yard
     '''
-    def __init__(self, rmid=0, **kwa):
+    def __init__(self, rsid=0, **kwa):
         '''
         Setup Yard instance
         '''
         super(RemoteYard, self).__init__(**kwa)
-        self.rmid = rmid # last mid received from remote
+        self.rsid = rsid # last sid received from remote
 
-    def validRmid(self, rmid):
+    def validRsid(self, rsid):
         '''
-        Compare new rmid to old .rmid and return True if new is greater than old
+        Compare new rsid to old .rsid and return True if new is greater than old
         modulo N where N is 2^32 = 0x100000000
         And greater means the difference is less than N/2
         '''
-        return (((rmid - self.rmid) % 0x100000000) < (0x100000000 // 2))
+        return (((rsid - self.rsid) % 0x100000000) < (0x100000000 // 2))
