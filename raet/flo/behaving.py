@@ -70,6 +70,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
                                                  main=False,
                                                  auto=True,
                                                  eid=0,
+                                                 localname='master',
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
                                                  sigkey=None,
@@ -82,6 +83,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
         sigkey = self.local.data.sigkey
         prikey = self.local.data.prikey
         name = self.local.data.name
+        localname = self.local.data.localname
         dirpath = os.path.abspath(os.path.expanduser(
                                      os.path.join(self.local.data.dirpath, name)))
         auto = self.local.data.auto
@@ -90,7 +92,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
 
         eid = self.local.data.eid
         local = estating.LocalEstate(  eid=eid,
-                                        name=name,
+                                        name=localname,
                                         ha=ha,
                                         sigkey=sigkey,
                                         prikey=prikey,)
@@ -100,6 +102,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
         self.stack.value = RoadStack(  local=local,
                                        store=self.store,
                                        name=name,
+                                       localname=localname,
                                        auto=auto,
                                        main=main,
                                        dirpath=dirpath,

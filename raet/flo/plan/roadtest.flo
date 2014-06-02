@@ -25,7 +25,7 @@ framer receiver be active first start
 house minion1
 
 init .raet.road.stack.local to eid 0 name "minion1" host "" port 7531 \
-    dirpath "/tmp/raet/test/keep/" main False auto True
+    dirpath "/tmp/raet/test/keep/" main False auto True localname "minion1"
 
 
 framer minionudpstack be active first start
@@ -82,7 +82,7 @@ framer bootstrap be active first join
 house minion2
 
 init .raet.road.stack.local to eid 0 name "minion2" host "" port 7532 \
-    dirpath "/tmp/raet/test/keep/" main False auto True
+    dirpath "/tmp/raet/test/keep/" main False auto True localname "minion2"
 
 
 framer minionudpstack be active first start
