@@ -47,6 +47,7 @@ class Stack(object):
                  keep=None,
                  dirpath='',
                  local=None,
+                 localname='',
                  bufcnt=2,
                  server=None,
                  rxMsgs=None,
@@ -59,17 +60,15 @@ class Stack(object):
         Setup Stack instance
         '''
         if not name:
-            if local:
-                name = local.name
-            else:
-                name = "stack{0}".format(Stack.Count)
-                Stack.Count += 1
+            name = "stack{0}".format(Stack.Count)
+            Stack.Count += 1
+
         self.name = name
         self.version = version
         self.store = store or storing.Store(stamp=0.0)
 
         self.keep = keep or keeping.LotKeep(dirpath=dirpath, stackname=self.name)
-        self.loadLocal(local) # load local data from saved data else passed in local
+        self.loadLocal(local=local, name=localname) # load local data from saved data else passed in local
         self.remotes = odict() # remotes indexed by uid
         self.uids = odict() # remote uids indexed by name
         self.loadRemotes() # load remotes from saved data
@@ -192,7 +191,7 @@ class Stack(object):
         '''
         self.keep.dumpLocal(self.local)
 
-    def loadLocal(self, local=None):
+    def loadLocal(self, local=None, name=''):
         '''
         Load self.local from keep file else local or new
         '''
@@ -210,7 +209,7 @@ class Stack(object):
             self.local = local
 
         else:
-            self.local = lotting.LocalLot(stack=self)
+            self.local = lotting.LocalLot(stack=self, name=name)
 
     def clearLocal(self):
         '''

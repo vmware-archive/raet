@@ -91,7 +91,4 @@ class LocalLot(Lot):
         '''
         Setup instance
         '''
-        if not name and stack:
-            name = stack.name
-
         super(LocalLot, self).__init__(stack=stack, name=name, **kwa)

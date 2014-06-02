@@ -11,17 +11,22 @@ import libnacl
 
 # Import Cryptographic libs
 import warnings
-with warnings.catch_warnings():
-    '''Filter to ignore the following warning:
-    UserWarning: reimporting '_cffi__x332a1fa9xefb54d7c' might overwrite older definitions
-    '''
-    warnings.simplefilter('ignore')
-    import nacl.signing
+
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
 from . import encoding
+
+class CryptoError(Exception):
+    """
+    Base exception for all nacl related errors
+    """
+
+class BadSignatureError(CryptoError):
+    """
+    Raised when the signature was forged or otherwise corrupt.
+    """
 
 class EncryptedMessage(six.binary_type):
     """
@@ -275,10 +280,10 @@ class VerifyKey(encoding.Encodable, StringFixer, object):
         # Decode the key
         key = encoder.decode(key)
 
-        if len(key) != nacl.c.crypto_sign_PUBLICKEYBYTES:
+        if len(key) != libnacl.crypto_sign_PUBLICKEYBYTES:
             raise ValueError(
                 "The key must be exactly %s bytes long" %
-                nacl.c.crypto_sign_PUBLICKEYBYTES,
+                libnacl.crypto_sign_PUBLICKEYBYTES,
             )
 
         self._key = key
@@ -290,7 +295,7 @@ class VerifyKey(encoding.Encodable, StringFixer, object):
         """
         Verifies the signature of a signed message, returning the message
         if it has not been tampered with else raising
-        :class:`~nacl.signing.BadSignatureError`.
+        :class:`~BadSignatureError`.
 
         :param smessage: [:class:`bytes`] Either the original messaged or a
             signature and message concated together.
@@ -308,7 +313,7 @@ class VerifyKey(encoding.Encodable, StringFixer, object):
         # Decode the signed message
         smessage = encoder.decode(smessage)
 
-        return nacl.c.crypto_sign_open(self._key, smessage)
+        return libnacl.crypto_sign_open(smessage, self._key)
 
 
 class SigningKey(encoding.Encodable, StringFixer, object):
@@ -335,13 +340,13 @@ class SigningKey(encoding.Encodable, StringFixer, object):
         seed = encoder.decode(seed)
 
         # Verify that our seed is the proper size
-        if len(seed) != nacl.c.crypto_sign_SEEDBYTES:
+        if len(seed) != libnacl.crypto_sign_SEEDBYTES:
             raise ValueError(
                 "The seed must be exactly %d bytes long" %
-                nacl.c.crypto_sign_SEEDBYTES
+                libnacl.crypto_sign_SEEDBYTES
             )
 
-        secret_key, public_key = nacl.c.crypto_sign_seed_keypair(seed)
+        public_key, secret_key = libnacl.crypto_sign_seed_keypair(seed)
 
         self._seed = seed
         self._signing_key = secret_key
@@ -358,7 +363,7 @@ class SigningKey(encoding.Encodable, StringFixer, object):
         :rtype: :class:`~SigningKey`
         """
         return cls(
-            libnacl.randombytes(nacl.c.crypto_sign_SEEDBYTES),
+            libnacl.randombytes(libnacl.crypto_sign_SEEDBYTES),
             encoder=encoding.RawEncoder,
         )
 
@@ -368,12 +373,12 @@ class SigningKey(encoding.Encodable, StringFixer, object):
 
         :param message: [:class:`bytes`] The data to be signed.
         :param encoder: A class that is used to encode the signed message.
-        :rtype: :class:`~nacl.signing.SignedMessage`
+        :rtype: :class:`~SignedMessage`
         """
-        raw_signed = nacl.c.crypto_sign(self._signing_key, message)
+        raw_signed = libnacl.crypto_sign(message, self._signing_key)
 
-        signature = encoder.encode(raw_signed[:nacl.c.crypto_sign_BYTES])
-        message = encoder.encode(raw_signed[nacl.c.crypto_sign_BYTES:])
+        signature = encoder.encode(raw_signed[:libnacl.crypto_sign_BYTES])
+        message = encoder.encode(raw_signed[libnacl.crypto_sign_BYTES:])
         signed = encoder.encode(raw_signed)
 
         return SignedMessage._from_parts(signature, message, signed)
@@ -385,16 +390,16 @@ class Signer(object):
     '''
     def __init__(self, key=None):
         if key:
-            if not isinstance(key, nacl.signing.SigningKey):
+            if not isinstance(key, SigningKey): #not key so seed to regenerate
                 if len(key) == 32:
-                    key = SigningKey(key, encoding.RawEncoder)
+                    key = SigningKey(seed=key, encoder=encoding.RawEncoder)
                 else:
-                    key = SigningKey(key, encoding.HexEncoder)
+                    key = SigningKey(seed=key, encoder=encoding.HexEncoder)
         else:
             key = SigningKey.generate()
         self.key = key
-        self.keyhex = self.key.encode(encoding.HexEncoder)
-        self.keyraw = self.key.encode(encoding.RawEncoder)
+        self.keyhex = self.key.encode(encoding.HexEncoder) #seed
+        self.keyraw = self.key.encode(encoding.RawEncoder) #seed
         self.verhex = self.key.verify_key.encode(encoding.HexEncoder)
         self.verraw = self.key.verify_key.encode(encoding.RawEncoder)
 
@@ -437,7 +442,7 @@ class Verifier(object):
             return False
         try:
             self.key.verify(signature + msg)
-        except nacl.exceptions.BadSignatureError:
+        except BadSignatureError:
             return False
         return True
 

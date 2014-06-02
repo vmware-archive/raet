@@ -88,6 +88,7 @@ class RoadStack(stacking.Stack):
                  keep=None,
                  dirpath=None,
                  local=None,
+                 localname ='', #local estate name
                  eid=None, #local estate eid
                  ha=("", raeting.RAET_PORT),
                  bufcnt=2,
@@ -120,7 +121,7 @@ class RoadStack(stacking.Stack):
         if not local:
             self.remotes = odict()
             local = estating.LocalEstate(stack=self,
-                                         name=name,
+                                         name=localname,
                                          eid=eid,
                                          main=main,
                                          ha=ha)
@@ -135,6 +136,7 @@ class RoadStack(stacking.Stack):
                                         keep=keep,
                                         dirpath=dirpath,
                                         local=local,
+                                        localname=localname,
                                         bufcnt=bufcnt,
                                         **kwa)
 
@@ -222,7 +224,7 @@ class RoadStack(stacking.Stack):
         self.keep.dumpLocal(self.local)
         self.safe.dumpLocal(self.local)
 
-    def loadLocal(self, local=None):
+    def loadLocal(self, local=None, name=''):
         '''
         Load local estate if keeps found and verified
         otherwise use local if provided
@@ -249,7 +251,7 @@ class RoadStack(stacking.Stack):
             self.local = local
 
         else:
-            self.local = estating.LocalEstate(stack=self)
+            self.local = estating.LocalEstate(stack=self, name=name)
 
     def clearLocal(self):
         '''

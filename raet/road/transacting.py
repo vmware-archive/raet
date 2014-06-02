@@ -410,7 +410,7 @@ class Joiner(Initiator):
         '''
         Perform acceptance in response to join response packet
         '''
-        #import wingdbstub
+        import wingdbstub
 
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -1775,7 +1775,7 @@ class Allowent(Correspondent):
             self.remove()
             return
 
-        body = odict()
+        body = ""
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=kind,
                                     embody=body,

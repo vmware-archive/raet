@@ -45,7 +45,7 @@ class BasicTestCase(unittest.TestCase):
         if os.path.exists(self.base):
             shutil.rmtree(self.base)
 
-    def createLaneData(self, name, yid, base, lanename):
+    def createLaneData(self, name, yid, base, lanename, localname=''):
         '''
         Creates odict and populates with data to setup lane stack
         {
@@ -59,6 +59,7 @@ class BasicTestCase(unittest.TestCase):
         data['yid'] = yid
         data['dirpath'] = os.path.join(base, 'lane', 'keep', name)
         data['lanename'] = lanename
+        data['localname'] = localname or name
 
         return data
 
@@ -70,6 +71,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         stack = stacking.LaneStack(name=data['name'],
                                    yid=data['yid'],
+                                   localname=data['localname'],
                                    main=main,
                                    lanename=data['lanename'],
                                    dirpath=data['dirpath'],

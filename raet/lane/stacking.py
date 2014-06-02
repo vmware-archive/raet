@@ -47,6 +47,7 @@ class LaneStack(stacking.Stack):
                  keep=None,
                  dirpath='',
                  local=None,
+                 localname='',
                  lanename='lane',
                  yid=None,
                  sockdirpath='',
@@ -62,13 +63,15 @@ class LaneStack(stacking.Stack):
         '''
         self.nyid = self.Yid # yid of initial next estate to add to road
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
-        self.name = name
+        if not name:
+            name = "lane{0}".format(LaneStack.Count)
+            LaneStack.Count += 1
 
         if not local:
             self.remotes = odict()
             local = yarding.LocalYard(  stack=self,
                                         yid=yid,
-                                        name=name,
+                                        name=localname,
                                         main=main,
                                         ha=ha,
                                         dirpath=sockdirpath,
@@ -77,8 +80,6 @@ class LaneStack(stacking.Stack):
             if main is not None:
                 local.main = True if main else False
 
-        name = local.name # make stack and local name match, ha may have changed it
-
         if not keep:
             keep = keeping.LaneKeep(dirpath=dirpath, stackname=name)
 
@@ -86,6 +87,7 @@ class LaneStack(stacking.Stack):
                                         keep=keep,
                                         dirpath=dirpath,
                                         local=local,
+                                        localname=localname,
                                         bufcnt=bufcnt,
                                         **kwa)
 
@@ -112,7 +114,7 @@ class LaneStack(stacking.Stack):
                             bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
-    def loadLocal(self, local=None):
+    def loadLocal(self, local=None, name=''):
         '''
         Load self.local from keep file else local or new
         '''
@@ -135,7 +137,7 @@ class LaneStack(stacking.Stack):
             self.name = local.name
 
         else:
-            self.local = yarding.LocalYard(stack=self)
+            self.local = yarding.LocalYard(stack=self, name=name)
 
     def loadRemotes(self):
         '''
@@ -272,7 +274,7 @@ class LaneStack(stacking.Stack):
                         blocks.append(ta)
 
                     else:
-                        #console.verbose("socket.error = {0}\n".format(ex))
+                        console.terse("Sending to '{0}' from '{1}\n".format(ta, self.local.ha))
                         raise
             while laters:
                 self.txes.append(laters.popleft())

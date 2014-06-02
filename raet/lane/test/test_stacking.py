@@ -48,6 +48,7 @@ class BasicTestCase(unittest.TestCase):
         # main stack
         self.main = stacking.LaneStack(name='main',
                                        yid=1,
+                                       localname='main',
                                        lanename='cherry',
                                        dirpath=os.path.join(self.baseDirpath, 'main'),
                                        sockdirpath=self.baseDirpath)
@@ -55,6 +56,7 @@ class BasicTestCase(unittest.TestCase):
         #other stack
         self.other = stacking.LaneStack(name='other',
                                         yid=1,
+                                        localname='other',
                                         lanename='cherry',
                                         dirpath=os.path.join(self.baseDirpath, 'other'),
                                         sockdirpath=self.baseDirpath)

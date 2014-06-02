@@ -63,6 +63,7 @@ class BasicTestCase(unittest.TestCase):
                  len(msg), msg, len(signature)))
         self.assertEqual(len(msg), 35)
         self.assertEqual(len(signature), 64)
+
         verified = verferPam.verify(signature, msg)
         self.assertTrue(verified)
         console.terse("Verified by Pam = {0}\n".format(verified))

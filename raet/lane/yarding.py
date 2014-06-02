@@ -152,8 +152,6 @@ class LocalYard(Yard):
         '''
         Setup Yard instance
         '''
-        if not name and stack:
-            name = stack.name
         super(LocalYard, self).__init__(stack=stack, name=name, **kwa)
         self.main = True if main else False # main yard on lane
 

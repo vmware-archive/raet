@@ -111,9 +111,6 @@ class LocalEstate(Estate):
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
         '''
-        if not name and stack:
-            name = stack.name
-
         super(LocalEstate, self).__init__(stack=stack, name=name, **kwa)
         self.main = True if main else False # main estate for road
         self.signer = nacling.Signer(sigkey)
