@@ -173,6 +173,7 @@ class BasicTestCase(unittest.TestCase):
                                         ('ha', ['0.0.0.0', 7530]),
                                         ('main', True),
                                         ('sid', 0),
+                                        ('stack', 'main'),
                                         ('neid', 1),
                                     ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -204,6 +205,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
+                                ('stack', stack.name),
                                 ('neid', stack.neid),
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -332,6 +334,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
+                                ('stack', stack.name),
                                 ('neid', stack.neid)
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))

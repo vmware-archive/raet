@@ -127,14 +127,13 @@ class LaneStack(stacking.Stack):
                                            main=data['main'],
                                            sid=data['sid'],
                                            lanename=data['lanename'])
-            self.name = self.local.name
+            self.name = data['stack']
             self.nyid = data['nyid']
             self.accept = data['accept']
 
         elif local:
             local.stack = self
             self.local = local
-            self.name = local.name
 
         else:
             self.local = yarding.LocalYard(stack=self, name=name)

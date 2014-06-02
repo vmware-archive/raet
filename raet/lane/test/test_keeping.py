@@ -155,6 +155,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('main', True),
                                 ('sid', 0),
                                 ('lanename', 'apple'),
+                                ('stack', 'main'),
                                 ('nyid', 1),
                                 ('accept', True)
                               ])
@@ -175,6 +176,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
                                 ('lanename', stack.local.lanename),
+                                ('stack', stack.name),
                                 ('nyid', stack.nyid),
                                 ('accept', stack.accept),
                               ])
@@ -260,6 +262,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
                                 ('lanename', stack.local.lanename),
+                                ('stack', stack.name),
                                 ('nyid', stack.nyid),
                                 ('accept', stack.accept),
                               ])

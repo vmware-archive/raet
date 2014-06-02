@@ -243,7 +243,7 @@ class RoadStack(stacking.Stack):
                                           sigkey=safeData['sighex'],
                                           prikey=safeData['prihex'],)
             self.safe.auto = safeData['auto']
-            self.name = keepData['name']
+            self.name = keepData['stack']
             self.neid = keepData['neid']
 
         elif local:

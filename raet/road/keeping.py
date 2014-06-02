@@ -38,7 +38,7 @@ class RoadKeep(keeping.Keep):
                 estate.uid.ext
                 estate.uid.ext
     '''
-    LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid']
+    LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'stack', 'neid']
     RemoteFields = ['uid', 'name', 'ha', 'sid', 'rsid']
 
     def __init__(self, prefix='estate', **kwa):
@@ -57,6 +57,7 @@ class RoadKeep(keeping.Keep):
                         ('ha', local.ha),
                         ('main', local.main),
                         ('sid', local.sid),
+                        ('stack', local.stack.name),
                         ('neid', local.stack.neid),
                     ])
         if self.verifyLocalData(data):
