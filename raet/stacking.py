@@ -80,10 +80,12 @@ class Stack(object):
         self.server = server
         if self.server:
             if not self.server.reopen():  # open socket
-                raise raeting.StackError("Stack {0}: Can't open server at"
-                            " {1}\n".format(self.name, self.server.ha))
+                raise raeting.StackError("Stack '{0}': Failed opening server at"
+                            " '{1}'\n".format(self.name, self.server.ha))
             if self.local:
                 self.local.ha = self.server.ha  # update local host address after open
+
+            console.terse("Stack '{0}': Opened server at '{1}'\n".format(self.name, self.local.ha))
 
         self.rxMsgs = rxMsgs if rxMsgs is not None else deque() # messages received
         self.txMsgs = txMsgs if txMsgs is not None else deque() # messages to transmit
@@ -122,7 +124,7 @@ class Stack(object):
         Move remote at key old uid with key new uid and replace the odict key index
         so order is the same
         '''
-        if new in self.remotes:
+        if new in self.remotes or new == self.local.uid:
             emsg = "Cannot move, remote to '{0}', already exists".format(new)
             raise raeting.StackError(emsg)
 
@@ -142,7 +144,7 @@ class Stack(object):
         '''
         rename remote with old name to new name but keep same index
         '''
-        if new in self.uids:
+        if new in self.uids or new == self.local.name:
             emsg = "Cannot rename remote to '{0}', already exists".format(new)
             raise raeting.StackError(emsg)
 

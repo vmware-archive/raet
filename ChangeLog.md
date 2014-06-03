@@ -3,6 +3,25 @@ CHANGE LOG
 -------------------
 
 ---------
+20140603
+---------
+
+v0.0.15
+
+Added persistence to Lanes of Yard info. Add some unit tests
+Had to make quite a few changes to accomodate this with naming of Yard persistence
+files and directories since multiple LaneStacks on same host using same yard
+So made stackname differentiator
+
+Updated Salt to use this
+
+Add support for libnacl to replace PyNaCl. Ported PyNaCl high level interface. At some
+point will refactor to use simpler libnacl high level interface
+
+
+
+
+---------
 20140523
 ---------
 
