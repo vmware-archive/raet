@@ -39,7 +39,7 @@ class Keep(object):
 
     def __init__(self,
                  dirpath='',
-                 dirpathbase=KEEP_DIR,
+                 dirpathbase='',
                  stackname='stack',
                  prefix='data',
                  ext='json',
@@ -56,6 +56,8 @@ class Keep(object):
                         prefix.uid.ext
         '''
         if not dirpath:
+            if not dirpathbase:
+                dirpathbase = KEEP_DIR
             dirpath = os.path.join(dirpathbase, stackname)
         dirpath = os.path.abspath(os.path.expanduser(dirpath))
 
