@@ -6,6 +6,18 @@ CHANGE LOG
 20140603
 ---------
 
+v0.0.16
+
+Added basedirpath to Stack creation to provide default way to guarantee that the
+stackname is part of the Keep dirpath so that Keep files especially for LaneStack yards
+are uniquely named
+
+Some other refactoring.
+
+---------
+20140603
+---------
+
 v0.0.15
 
 Added persistence to Lanes of Yard info. Add some unit tests
