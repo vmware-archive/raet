@@ -37,7 +37,13 @@ class Keep(object):
     LocalFields = ['uid', 'name', 'ha', 'sid']
     RemoteFields = ['uid', 'name', 'ha']
 
-    def __init__(self, dirpath='', stackname='stack', prefix='data', ext='json', **kwa):
+    def __init__(self,
+                 dirpath='',
+                 dirpathbase=KEEP_DIR,
+                 stackname='stack',
+                 prefix='data',
+                 ext='json',
+                 **kwa):
         '''
         Setup Keep instance
         Create directories for saving associated data files
@@ -50,7 +56,7 @@ class Keep(object):
                         prefix.uid.ext
         '''
         if not dirpath:
-            dirpath = os.path.join(KEEP_DIR, stackname)
+            dirpath = os.path.join(dirpathbase, stackname)
         dirpath = os.path.abspath(os.path.expanduser(dirpath))
 
         if not os.path.exists(dirpath):

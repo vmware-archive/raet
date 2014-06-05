@@ -46,6 +46,7 @@ class Stack(object):
                  store=None,
                  keep=None,
                  dirpath='',
+                 dirpathbase='',
                  local=None,
                  localname='',
                  bufcnt=2,
@@ -67,7 +68,9 @@ class Stack(object):
         self.version = version
         self.store = store or storing.Store(stamp=0.0)
 
-        self.keep = keep or keeping.LotKeep(dirpath=dirpath, stackname=self.name)
+        self.keep = keep or keeping.LotKeep(dirpath=dirpath,
+                                            dirpathbase=dirpathbase,
+                                            stackname=self.name)
         self.loadLocal(local=local, name=localname) # load local data from saved data else passed in local
         self.remotes = odict() # remotes indexed by uid
         self.uids = odict() # remote uids indexed by name

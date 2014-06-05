@@ -2,9 +2,10 @@
 
 house master
 
-init .raet.road.stack.local to eid 1 name "master" host "" port 7530 \
+init .raet.road.stack.local to did 1 name "master" host "" port 7530 \
     dirpathbase "/tmp/raet/test/keep/" main True auto True
-
+init .raet.lane.stack.local to name "boss" lane "ash" yid 0 \
+    dirpathbase "/tmp/raet/test/lane/keep/"
 
 framer masterudpstack be active first start
     frame start
@@ -20,11 +21,72 @@ framer receiver be active first start
     frame abort
         bid stop all
 
+framer bossuxdstack be active first start
+    frame start
+        do raet lane stack per inode ".raet.lane.stack"
+        exit
+            do raet lane stack closer per inode ".raet.lane.stack."
+
+framer uxdreceiver be active first start
+    frame start
+        do raet lane stack printer per inode ".raet.road.stack."
+        timeout 5
+
+    frame abort
+        bid stop me
+
+framer setupuxdyard be active first start
+    frame start
+        enter
+            do raet lane stack yard add to lane "ash" yid 1
+
+    frame send
+        enter
+            do raet lane stack transmit to stuff "Lord Hello" \
+                per inode ".raet.lane.stack."
+
+    frame stop
+        bid stop me
+
+
+house serf
+
+init .raet.lane.stack.local to name "serf" lane "ash" yid 1 \
+    dirpathbase "/tmp/raet/test/lane/keep/"
+
+framer serfuxdstack be active first start
+    frame start
+        do raet lane stack per inode ".raet.lane.stack"
+        exit
+            do raet lane stack closer per inode ".raet.lane.stack."
+
+framer uxdreceiver be active first start
+    frame start
+        do raet lane stack printer per inode ".raet.road.stack."
+        timeout 5
+
+    frame abort
+        bid stop me
+
+
+framer setupuxdyard be active first start
+    frame start
+        enter
+            do raet lane stack yard add to lane "ash" yid 0
+        timeout 0.5
+
+    frame send
+        enter
+            do raet lane stack transmit to stuff "Serf Hello" \
+                per inode ".raet.lane.stack."
+
+    frame stop
+        bid stop me
 
 
 house minion1
 
-init .raet.road.stack.local to eid 0 name "minion1" host "" port 7531 \
+init .raet.road.stack.local to did 0 name "minion1" host "" port 7531 \
     dirpathbase "/tmp/raet/test/keep/" localname "minion1"
 
 

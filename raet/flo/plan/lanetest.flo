@@ -2,64 +2,64 @@
 
 house master
 
-init .raet.lane.stack.local to name "lord" lane "ash" localname "lord"
+init .raet.lane.stack.local to name "lord" lane "ash" localname "lord" dirpathbase "/tmp/raet/test/lane/keep/"
 init .raet.lane.stack.dest to "serf"
 
 framer bossuxdstack be active first start
-   frame start
-      do raet lane stack per inode ".raet.lane.stack"
-      exit
-         do raet lane stack closer per inode ".raet.lane.stack."
-      timeout 5
+    frame start
+        do raet lane stack per inode ".raet.lane.stack"
+        exit
+            do raet lane stack closer per inode ".raet.lane.stack."
+        timeout 5
 
-   frame abort
-      bid stop all
+    frame abort
+        bid stop all
 
 framer uxdreceiver be active first start
-   frame start
-      do raet lane stack printer per inode ".raet.lane.stack."
+    frame start
+        do raet lane stack printer per inode ".raet.lane.stack."
 
 framer setupuxdyard be active first start
-   frame start
-      enter
-         do raet lane stack yard add to lane "ash" name "serf"
-      timeout 1
+    frame start
+        enter
+            do raet lane stack yard add to lane "ash" name "serf"
+        timeout 1
 
-   frame send
-      enter
-         do raet lane stack transmit to stuff "Lord says Hello" \
-            per inode ".raet.lane.stack."
+    frame send
+        enter
+            do raet lane stack transmit to stuff "Lord says Hello" \
+                per inode ".raet.lane.stack."
 
 
 house serf
 
-init .raet.lane.stack.local to name "serf" lane "ash" localname "serf"
+init .raet.lane.stack.local to name "serf" lane "ash" localname "serf" dirpathbase "/tmp/raet/test/lane/keep/"
 init .raet.lane.stack.dest to "lord"
 
 framer serfuxdstack be active first start
-   frame start
-      do raet lane stack per inode ".raet.lane.stack"
-      exit
-         do raet lane stack closer per inode ".raet.lane.stack."
-      timeout 5
+    frame start
+        do raet lane stack per inode ".raet.lane.stack"
+        exit
+            do raet lane stack closer per inode ".raet.lane.stack."
+        timeout 5
 
-   frame abort
-      bid stop all
+    frame abort
+        bid stop all
 
 framer uxdreceiver be active first start
-   frame start
-      do raet lane stack printer per inode ".raet.lane.stack."
+    frame start
+        do raet lane stack printer per inode ".raet.lane.stack."
 
 
 framer setupuxdyard be active first start
-   frame start
-      enter
-         do raet lane stack yard add to lane "ash" name "lord"
-      timeout 1
+    frame start
+        enter
+            do raet lane stack yard add to lane "ash" name "lord"
+        timeout 1
 
-   frame send
-      enter
-         do raet lane stack transmit to stuff "Serf says Hello" \
-            per inode ".raet.lane.stack."
+    frame send
+        enter
+            do raet lane stack transmit to stuff "Serf says Hello" \
+                per inode ".raet.lane.stack."
 
 

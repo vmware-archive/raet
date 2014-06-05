@@ -57,7 +57,8 @@ class BasicTestCase(unittest.TestCase):
         data = odict()
         data['name'] = name
         data['yid'] = yid
-        data['dirpath'] = os.path.join(base, 'lane', 'keep', name)
+        data['dirpathbase'] = os.path.join(base, 'lane', 'keep')
+        data['dirpath'] = os.path.join(data['dirpathbase'], name)
         data['lanename'] = lanename
         data['localname'] = localname or name
 
@@ -74,7 +75,7 @@ class BasicTestCase(unittest.TestCase):
                                    localname=data['localname'],
                                    main=main,
                                    lanename=data['lanename'],
-                                   dirpath=data['dirpath'],
+                                   dirpathbase=data['dirpathbase'],
                                    sockdirpath=data['dirpath'])
 
         return stack
