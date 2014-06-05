@@ -46,7 +46,7 @@ class LaneStack(stacking.Stack):
                  main=None,
                  keep=None,
                  dirpath='',
-                 dirpathbase='',
+                 basedirpath='',
                  local=None,
                  localname='',
                  lanename='lane',
@@ -83,13 +83,13 @@ class LaneStack(stacking.Stack):
 
         if not keep:
             keep = keeping.LaneKeep(dirpath=dirpath,
-                                    dirpathbase=dirpathbase,
+                                    basedirpath=basedirpath,
                                     stackname=name)
 
         super(LaneStack, self).__init__(name=name,
                                         keep=keep,
                                         dirpath=dirpath,
-                                        dirpathbase=dirpathbase,
+                                        basedirpath=basedirpath,
                                         local=local,
                                         localname=localname,
                                         bufcnt=bufcnt,

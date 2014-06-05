@@ -66,7 +66,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
         txmsgs=odict(ipath='txmsgs', ival=deque()),
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
         local=odict(ipath='local', ival=odict(   name='master',
-                                                 dirpathbase='/tmp/raet/keep',
+                                                 basedirpath='/tmp/raet/keep',
                                                  main=False,
                                                  auto=True,
                                                  eid=0,
@@ -84,7 +84,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
         prikey = self.local.data.prikey
         name = self.local.data.name
         localname = self.local.data.localname
-        dirpathbase = os.path.abspath(os.path.expanduser(self.local.data.dirpathbase))
+        basedirpath = os.path.abspath(os.path.expanduser(self.local.data.basedirpath))
         auto = self.local.data.auto
         main = self.local.data.main
         ha = (self.local.data.host, self.local.data.port)
@@ -104,7 +104,7 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
                                        localname=localname,
                                        auto=auto,
                                        main=main,
-                                       dirpathbase=dirpathbase,
+                                       basedirpath=basedirpath,
                                        txMsgs=txMsgs,
                                        rxMsgs=rxMsgs, )
 
@@ -320,7 +320,7 @@ class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
         local=odict(ipath='local', ival=odict(name='minion',
                                               localname='minion',
                                               lane="maple",
-                                              dirpathbase="/tmp/raet/test/lane/keep/")),)
+                                              basedirpath="/tmp/raet/test/lane/keep/")),)
 
     def postinitio(self):
         '''
@@ -329,7 +329,7 @@ class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
         name = self.local.data.name
         lane = self.local.data.lane
         localname = self.local.data.localname
-        dirpathbase = self.local.data.dirpathbase
+        basedirpath = self.local.data.basedirpath
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
@@ -337,7 +337,7 @@ class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
                                        store=self.store,
                                        name=name,
                                        localname=localname,
-                                       dirpathbase=dirpathbase,
+                                       basedirpath=basedirpath,
                                        lanename=lane,
                                        txMsgs=txMsgs,
                                        rxMsgs=rxMsgs, )

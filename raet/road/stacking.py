@@ -87,7 +87,7 @@ class RoadStack(stacking.Stack):
                  main=None,
                  keep=None,
                  dirpath='',
-                 dirpathbase='',
+                 basedirpath='',
                  local=None,
                  localname ='', #local estate name
                  eid=None, #local estate eid
@@ -112,12 +112,12 @@ class RoadStack(stacking.Stack):
 
         if not keep:
             keep = keeping.RoadKeep(dirpath=dirpath,
-                                    dirpathbase=dirpathbase,
+                                    basedirpath=basedirpath,
                                     stackname=name)
 
         if not safe:
             safe = keeping.SafeKeep(dirpath=dirpath,
-                                    dirpathbase=dirpathbase,
+                                    basedirpath=basedirpath,
                                     stackname=name,
                                     auto=auto)
         self.safe = safe
@@ -139,7 +139,7 @@ class RoadStack(stacking.Stack):
         super(RoadStack, self).__init__(name=name,
                                         keep=keep,
                                         dirpath=dirpath,
-                                        dirpathbase=dirpathbase,
+                                        basedirpath=basedirpath,
                                         local=local,
                                         localname=localname,
                                         bufcnt=bufcnt,

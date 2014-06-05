@@ -51,7 +51,7 @@ class BasicTestCase(unittest.TestCase):
         {
             name: stack name local estate name
             dirpath: dirpath for keep files
-            dirpathbase: base dirpath for keep files
+            basedirpath: base dirpath for keep files
             sighex: signing key
             verhex: verify key
             prihex: private key
@@ -60,8 +60,8 @@ class BasicTestCase(unittest.TestCase):
         '''
         data = odict()
         data['name'] = name
-        data['dirpathbase'] = os.path.join(base, 'road', 'keep')
-        data['dirpath'] = os.path.join(data['dirpathbase'], name)
+        data['basedirpath'] = os.path.join(base, 'road', 'keep')
+        data['dirpath'] = os.path.join(data['basedirpath'], name)
         signer = nacling.Signer()
         data['sighex'] = signer.keyhex
         data['verhex'] = signer.verhex
@@ -95,7 +95,7 @@ class BasicTestCase(unittest.TestCase):
                                    local=local,
                                    auto=auto if auto is not None else data['auto'],
                                    main=main,
-                                   dirpathbase=data['dirpathbase'],
+                                   basedirpath=data['basedirpath'],
                                    store=self.store)
 
         return stack

@@ -3,9 +3,9 @@
 house master
 
 init .raet.road.stack.local to did 1 name "master" host "" port 7530 \
-    dirpathbase "/tmp/raet/test/keep/" main True auto True
+    basedirpath "/tmp/raet/test/keep/" main True auto True
 init .raet.lane.stack.local to name "boss" lane "ash" yid 0 \
-    dirpathbase "/tmp/raet/test/lane/keep/"
+    basedirpath "/tmp/raet/test/lane/keep/"
 
 framer masterudpstack be active first start
     frame start
@@ -52,7 +52,7 @@ framer setupuxdyard be active first start
 house serf
 
 init .raet.lane.stack.local to name "serf" lane "ash" yid 1 \
-    dirpathbase "/tmp/raet/test/lane/keep/"
+    basedirpath "/tmp/raet/test/lane/keep/"
 
 framer serfuxdstack be active first start
     frame start
@@ -87,7 +87,7 @@ framer setupuxdyard be active first start
 house minion1
 
 init .raet.road.stack.local to did 0 name "minion1" host "" port 7531 \
-    dirpathbase "/tmp/raet/test/keep/" localname "minion1"
+    basedirpath "/tmp/raet/test/keep/" localname "minion1"
 
 
 framer minionudpstack be active first start
