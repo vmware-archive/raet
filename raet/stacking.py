@@ -312,11 +312,31 @@ class Stack(object):
                 # triple = ( packet, source address, destination address)
                 self.rxes.append((rx, ra, self.server.ha))
 
+    def serviceReceiveOnce(self):
+        '''
+        Retrieve from server one recieved and put on the rxes deque
+        '''
+        if self.server:
+            rx, ra = self.server.receive()  # if no data the duple is ('',None)
+            if not rx:  # no received data so break
+                return
+            # triple = ( packet, source address, destination address)
+            self.rxes.append((rx, ra, self.server.ha))
+
     def serviceRxes(self):
         '''
         Process all messages in .rxes deque
         '''
         while self.rxes:
+            raw, sa, da = self.rxes.popleft()
+            console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
+            processRx(received=raw)
+
+    def serviceRxOnce(self):
+        '''
+        Process one messages in .rxes deque
+        '''
+        if self.rxes:
             raw, sa, da = self.rxes.popleft()
             console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
             processRx(received=raw)
@@ -353,7 +373,14 @@ class Stack(object):
         '''
         while self.txMsgs:
             body, drid = self.txMsgs.popleft() # duple (body dict, destination eid)
+            #need to pack body here and tx
 
+    def serviceTxMsgOnce(self):
+        '''
+        Service one message on .txMsgs queue of outgoing messages
+        '''
+        if self.txMsgs:
+            body, drid = self.txMsgs.popleft() # duple (body dict, destination eid)
             #need to pack body here and tx
 
     def tx(self, packed, duid):
@@ -374,6 +401,26 @@ class Stack(object):
         if self.server:
             laters = deque()
             while self.txes:
+                tx, ta = self.txes.popleft()  # duple = (packet, destination address)
+                try:
+                    self.server.send(tx, ta)
+                except socket.error as ex:
+                    if ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
+                        #busy with last message save it for later
+                        laters.append((tx, ta))
+                    else:
+                        #console.verbose("socket.error = {0}\n".format(ex))
+                        raise
+            while laters:
+                self.txes.append(laters.popleft())
+
+    def serviceTxOnce(self):
+        '''
+        Service on message on the .txes deque to send through server
+        '''
+        if self.server:
+            laters = deque()
+            if self.txes:
                 tx, ta = self.txes.popleft()  # duple = (packet, destination address)
                 try:
                     self.server.send(tx, ta)
@@ -425,6 +472,29 @@ class Stack(object):
         '''
         self.serviceReceives()
         self.serviceTxes()
+
+    def serviceOneRx(self):
+        '''
+        Propagate one packet all the way through the received side of the stack
+        Service:
+           server receive
+           rxes queue
+           process
+        '''
+        self.serviceReceiveOnce()
+        self.serviceRxOnce()
+        self.process()
+
+    def serviceOneTx(self):
+        '''
+        Propagate one packet all the way through the transmit side of the stack
+        Service:
+           txMsgs queue
+           txes queue to server send
+        '''
+        self.serviceTxMsgOnce()
+        self.serviceTxOnce()
+
 
     def process(self):
         '''
