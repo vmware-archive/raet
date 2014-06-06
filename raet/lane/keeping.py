@@ -28,13 +28,14 @@ class LaneKeep(keeping.Keep):
     '''
     RAET protocol yard on lane data persistence for a given yeard
 
-    keep/
-        stackname/
-            local/
-                yard.ext
-            remote/
-                yard.name.ext
-                yard.name.ext
+    lane/
+        keep/
+            stackname/
+                local/
+                    yard.ext
+                remote/
+                    yard.uid.ext
+                    yard.uid.ext
     '''
     LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'lanename', 'stack', 'nyid', 'accept']
     RemoteFields = ['uid', 'name', 'ha', 'sid',  'rsid']

@@ -30,13 +30,14 @@ class RoadKeep(keeping.Keep):
     RAET protocol estate on road data persistence for a given estate
     road specific data but not key data
 
-    keep/
-        stackname/
-            local/
-                estate.ext
-            remote/
-                estate.uid.ext
-                estate.uid.ext
+    road/
+        keep/
+            stackname/
+                local/
+                    estate.ext
+                remote/
+                    estate.uid.ext
+                    estate.uid.ext
     '''
     LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'stack', 'neid']
     RemoteFields = ['uid', 'name', 'ha', 'sid', 'rsid']

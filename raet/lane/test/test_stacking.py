@@ -43,14 +43,14 @@ class BasicTestCase(unittest.TestCase):
 
         self.baseDirpath = os.path.join(
                 tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp'),
-                'lane')
+                'lane', 'keep')
 
         # main stack
         self.main = stacking.LaneStack(name='main',
                                        yid=1,
                                        localname='main',
                                        lanename='cherry',
-                                       dirpath=os.path.join(self.baseDirpath, 'main'),
+                                       basedirpath=self.baseDirpath,
                                        sockdirpath=self.baseDirpath)
 
         #other stack
@@ -58,7 +58,7 @@ class BasicTestCase(unittest.TestCase):
                                         yid=1,
                                         localname='other',
                                         lanename='cherry',
-                                        dirpath=os.path.join(self.baseDirpath, 'other'),
+                                        basedirpath=self.baseDirpath,
                                         sockdirpath=self.baseDirpath)
 
     def tearDown(self):
