@@ -80,16 +80,26 @@ class BasicTestCase(unittest.TestCase):
 
         return stack
 
-    def message(self, main,  other, mains, others, duration=2.0):
+    def message(self, main,  other, mains, others, duration=1.0):
         '''
         Utility to send messages both ways
         '''
         for msg in mains:
-            main.transmit(msg)
+            main.transmit(msg, duid=main.uids[other.local.name])
         for msg in others:
-            other.transmit(msg)
+            other.transmit(msg,  duid=other.uids[main.local.name])
 
         self.service(main, other, duration=duration)
+
+        self.assertEqual(len(main.rxMsgs), len(others))
+        for i, msg in enumerate(main.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
+            self.assertDictEqual(others[i], msg)
+
+        self.assertEqual(len(other.rxMsgs), len(mains))
+        for i, msg in enumerate(other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
+            self.assertDictEqual(mains[i], msg)
 
     def service(self, main, other, duration=1.0):
         '''
@@ -285,7 +295,119 @@ class BasicTestCase(unittest.TestCase):
         stack.clearLocal()
         stack.clearRemoteKeeps()
 
+    def testRestart(self):
+        '''
+        Test messaging after restart with saved data
+        '''
+        console.terse("{0}\n".format(self.testRestart.__doc__))
 
+        stacking.LaneStack.Pk = raeting.packKinds.json
+
+        mainData = self.createLaneData(name='main', yid=1, base=self.base, lanename='apple')
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createLaneStack(data=mainData, main=True)
+        self.assertTrue(main.keep.dirpath.endswith('/lane/keep/main'))
+        self.assertTrue(main.keep.localdirpath.endswith('/lane/keep/main/local'))
+        self.assertTrue(main.keep.remotedirpath.endswith('/lane/keep/main/remote'))
+        self.assertTrue(main.keep.localfilepath.endswith('/lane/keep/main/local/yard.json'))
+        self.assertTrue(main.local.ha.endswith('/lane/keep/main/apple.main.uxd'))
+        self.assertTrue(main.local.main)
+
+        otherData = self.createLaneData(name='other', yid=1, base=self.base, lanename='apple')
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createLaneStack(data=otherData)
+        self.assertTrue(other.keep.dirpath.endswith('/lane/keep/other'))
+        self.assertTrue(other.keep.localdirpath.endswith('/lane/keep/other/local'))
+        self.assertTrue(other.keep.remotedirpath.endswith('/lane/keep/other/remote'))
+        self.assertTrue(other.keep.localfilepath.endswith('/lane/keep/other/local/yard.json'))
+        self.assertTrue(other.local.ha.endswith('/lane/keep/other/apple.other.uxd'))
+
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        self.assertTrue('other' in main.uids)
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        self.assertTrue('main' in other.uids)
+
+        src = ['mayor', main.local.name, None] # (house, yard, queue)
+        dst = ['citizen', other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my command"
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', other.local.name, None]
+        dst = ['mayor', main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my reply."
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        self.message(main,  other, mains, others, duration=1.0)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertEqual(len(other.remotes), 1)
+
+        main.dumpRemotes()
+        other.dumpRemotes()
+
+        #now close down and reload data
+        main.server.close()
+        other.server.close()
+
+        # make new stacks with saved data
+        main = stacking.LaneStack(dirpath=mainData['dirpath'], store=self.store)
+        other = stacking.LaneStack(dirpath=otherData['dirpath'], store=self.store)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.message(main,  other, mains, others, duration=1.0)
+
+        #now close down and reload data
+        main.server.close()
+        other.server.close()
+
+        # make new stacks with saved data
+        main = stacking.LaneStack(dirpath=mainData['dirpath'], store=self.store)
+        other = stacking.LaneStack(dirpath=otherData['dirpath'], store=self.store)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        # now send paginated messages
+        src = ['mayor', main.local.name, None] # (house, yard, queue)
+        dst = ['citizen', other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = ["Do as I say."]
+        for i in range(10000):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', other.local.name, None]
+        dst = ['mayor', main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = ["As you wish."]
+        for i in range(10000):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        self.message(main,  other, mains, others, duration=1.0)
+
+        main.server.close()
+        main.clearLocal()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocal()
+        other.clearRemoteKeeps()
 
 
 def runOne(test):
@@ -301,7 +423,8 @@ def runSome():
     Unittest runner
     '''
     tests =  []
-    names = ['testBasic',]
+    names = ['testBasic',
+             'testRestart', ]
 
     tests.extend(map(BasicTestCase, names))
 
@@ -325,5 +448,5 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    runOne('testBasic')
+    runOne('testRestart')
 

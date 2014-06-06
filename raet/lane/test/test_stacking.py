@@ -108,7 +108,7 @@ class BasicTestCase(unittest.TestCase):
         Basic messaging
         '''
         self.main.addRemote(yarding.RemoteYard(stack=self.main, ha=self.other.local.ha))
-        self.other.addRemote(yarding.RemoteYard(stack=self.main, ha=self.main.local.ha))
+        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.local.ha))
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
@@ -137,7 +137,7 @@ class BasicTestCase(unittest.TestCase):
 
     def message(self, mains, others, duration=1.0):
         '''
-        Transmit and reciev messages in mains and others lists
+        Transmit and receive messages in mains and others lists
         '''
         for msg in mains:
             self.main.transmit(msg=msg)
