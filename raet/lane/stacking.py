@@ -213,6 +213,43 @@ class LaneStack(stacking.Stack):
 
             self.processRx(page)
 
+    def serviceRxOnce(self):
+        '''
+        Process one messages in .rxes deque
+        '''
+        if self.rxes:
+            raw, sa, da = self.rxes.popleft()
+            console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
+            page = paging.RxPage(packed=raw)
+
+            try:
+                page.head.parse()
+            except PageError as ex:
+                console.terse(str(ex) + '\n')
+                self.incStat('invalid_page_header')
+
+            dn = page.data['dn']
+            if dn != self.local.name:
+                emsg = "Invalid destination yard name = {0}. Dropping packet...\n".format(dn)
+                console.concise( emsg)
+                self.incStat('invalid_destination')
+
+            sn = page.data['sn']
+            if sn not in self.uids:
+                if not self.accept:
+                    emsg = "Unaccepted source yard name = {0}. Dropping packet...\n".format(sn)
+                    console.terse(emsg)
+                    self.incStat('unaccepted_source_yard')
+                    return
+                try:
+                    self.addRemote(yarding.RemoteYard(ha=sa)) # sn and sa are assume compat
+                except raeting.StackError as ex:
+                    console.terse(str(ex) + '\n')
+                    self.incStat('invalid_source_yard')
+                    return
+
+            self.processRx(page)
+
     def processRx(self, received):
         '''
         Retrieve next page from stack receive queue if any and parse

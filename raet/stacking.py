@@ -88,7 +88,7 @@ class Stack(object):
             if self.local:
                 self.local.ha = self.server.ha  # update local host address after open
 
-            console.terse("Stack '{0}': Opened server at '{1}'\n".format(self.name, self.local.ha))
+            console.verbose("Stack '{0}': Opened server at '{1}'\n".format(self.name, self.local.ha))
 
         self.rxMsgs = rxMsgs if rxMsgs is not None else deque() # messages received
         self.txMsgs = txMsgs if txMsgs is not None else deque() # messages to transmit
@@ -300,46 +300,56 @@ class Stack(object):
             self.stats[key] = 0
         self.statTimer.restart()
 
+    def _handleOneReceived(self):
+        '''
+        Handle one received message from server
+        assumes that there is a server
+        '''
+        rx, ra = self.server.receive()  # if no data the duple is ('',None)
+        if not rx:  # no received data
+            return False
+        # triple = ( packet, source address, destination address)
+        self.rxes.append((rx, ra, self.server.ha))
+        return True
+
     def serviceReceives(self):
         '''
         Retrieve from server all recieved and put on the rxes deque
         '''
         if self.server:
-            while True:
-                rx, ra = self.server.receive()  # if no data the duple is ('',None)
-                if not rx:  # no received data so break
-                    break
-                # triple = ( packet, source address, destination address)
-                self.rxes.append((rx, ra, self.server.ha))
+            while self._handleOneReceived():
+                pass
 
     def serviceReceiveOnce(self):
         '''
         Retrieve from server one recieved and put on the rxes deque
         '''
         if self.server:
-            rx, ra = self.server.receive()  # if no data the duple is ('',None)
-            if not rx:  # no received data so break
-                return
-            # triple = ( packet, source address, destination address)
-            self.rxes.append((rx, ra, self.server.ha))
+            self._handleOneReceived()
+
+
+    def _handleOneRx(self):
+        '''
+        Handle on message from .rxes deque
+        Assuems that there is a message on the .rxes deque
+        '''
+        raw, sa, da = self.rxes.popleft()
+        console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
+        processRx(received=raw)
 
     def serviceRxes(self):
         '''
         Process all messages in .rxes deque
         '''
         while self.rxes:
-            raw, sa, da = self.rxes.popleft()
-            console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
-            processRx(received=raw)
+            self._handleOneRx()
 
     def serviceRxOnce(self):
         '''
         Process one messages in .rxes deque
         '''
         if self.rxes:
-            raw, sa, da = self.rxes.popleft()
-            console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
-            processRx(received=raw)
+            self.handleOnceRx()
 
     def processRx(self, received):
         '''

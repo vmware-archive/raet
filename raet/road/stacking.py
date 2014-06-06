@@ -393,6 +393,13 @@ class RoadStack(stacking.Stack):
 
             self.processRx(packet)
 
+    def serviceRxOnce(self):
+        '''
+        Process one messages in .rxes deque
+        '''
+        if self.rxes:
+            pass
+
     def processRx(self, received):
         '''
         Process packet via associated transaction or
