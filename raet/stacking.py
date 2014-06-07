@@ -331,7 +331,7 @@ class Stack(object):
     def _handleOneRx(self):
         '''
         Handle on message from .rxes deque
-        Assuems that there is a message on the .rxes deque
+        Assumes that there is a message on the .rxes deque
         '''
         raw, sa, da = self.rxes.popleft()
         console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
@@ -377,21 +377,27 @@ class Stack(object):
             duid = self.remotes.values()[0].uid
         self.txMsgs.append((msg, duid))
 
+    def  _handleOneTxMsg(self):
+        '''
+        Take one message from .txMsgs deque and handle it
+        Assumes there is a message on the deque
+        '''
+        body, drid = self.txMsgs.popleft() # duple (body dict, destination eid)
+        #need to pack body here and tx
+
     def serviceTxMsgs(self):
         '''
         Service .txMsgs queue of outgoing  messages
         '''
         while self.txMsgs:
-            body, drid = self.txMsgs.popleft() # duple (body dict, destination eid)
-            #need to pack body here and tx
+            self._handleOneTxMsg()
 
     def serviceTxMsgOnce(self):
         '''
         Service one message on .txMsgs queue of outgoing messages
         '''
         if self.txMsgs:
-            body, drid = self.txMsgs.popleft() # duple (body dict, destination eid)
-            #need to pack body here and tx
+            self._handleOneTxMsg()
 
     def tx(self, packed, duid):
         '''
@@ -404,23 +410,39 @@ class Stack(object):
             raise raeting.StackError(msg)
         self.txes.append((packed, self.remotes[duid].ha))
 
+
+    def _handleOneTx(self, laters, blocks):
+        '''
+        Handle one message on .txes deque
+        Assumes there is a message
+        laters is deque of messages to try again later
+        blocks is list of destinations that already blocked on this service
+        '''
+        tx, ta = self.txes.popleft()  # duple = (packet, destination address)
+
+        if ta in blocks: # already blocked on this iteration
+            laters.append((tx, ta)) # keep sequential
+            return
+
+        try:
+            self.server.send(tx, ta)
+        except socket.error as ex:
+            if ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
+                #busy with last message save it for later
+                laters.append((tx, ta))
+                blocks.append(ta)
+            else:
+                raise
+
     def serviceTxes(self):
         '''
         Service the .txes deque to send  messages through server
         '''
         if self.server:
             laters = deque()
+            blocks = []
             while self.txes:
-                tx, ta = self.txes.popleft()  # duple = (packet, destination address)
-                try:
-                    self.server.send(tx, ta)
-                except socket.error as ex:
-                    if ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
-                        #busy with last message save it for later
-                        laters.append((tx, ta))
-                    else:
-                        #console.verbose("socket.error = {0}\n".format(ex))
-                        raise
+                self._handleOneTx(laters, blocks)
             while laters:
                 self.txes.append(laters.popleft())
 
@@ -430,17 +452,9 @@ class Stack(object):
         '''
         if self.server:
             laters = deque()
+            blocks = [] # will always be empty since only once
             if self.txes:
-                tx, ta = self.txes.popleft()  # duple = (packet, destination address)
-                try:
-                    self.server.send(tx, ta)
-                except socket.error as ex:
-                    if ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
-                        #busy with last message save it for later
-                        laters.append((tx, ta))
-                    else:
-                        #console.verbose("socket.error = {0}\n".format(ex))
-                        raise
+                self._handleOneTx(laters, blocks)
             while laters:
                 self.txes.append(laters.popleft())
 

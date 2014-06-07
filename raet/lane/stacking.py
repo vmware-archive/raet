@@ -176,79 +176,57 @@ class LaneStack(stacking.Stack):
             else:
                 del self.books[index]
 
+
+    def _handleOneRx(self):
+        '''
+        Handle on message from .rxes deque
+        Assumes that there is a message on the .rxes deque
+        '''
+        raw, sa, da = self.rxes.popleft()
+        console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
+        page = paging.RxPage(packed=raw)
+
+        try:
+            page.head.parse()
+        except PageError as ex:
+            console.terse(str(ex) + '\n')
+            self.incStat('invalid_page_header')
+
+        dn = page.data['dn']
+        if dn != self.local.name:
+            emsg = "Invalid destination yard name = {0}. Dropping packet...\n".format(dn)
+            console.concise( emsg)
+            self.incStat('invalid_destination')
+
+        sn = page.data['sn']
+        if sn not in self.uids:
+            if not self.accept:
+                emsg = "Unaccepted source yard name = {0}. Dropping packet...\n".format(sn)
+                console.terse(emsg)
+                self.incStat('unaccepted_source_yard')
+                return
+            try:
+                self.addRemote(yarding.RemoteYard(ha=sa)) # sn and sa are assume compat
+            except raeting.StackError as ex:
+                console.terse(str(ex) + '\n')
+                self.incStat('invalid_source_yard')
+                return
+
+        self.processRx(page)
+
     def serviceRxes(self):
         '''
         Process all messages in .rxes deque
         '''
         while self.rxes:
-            raw, sa, da = self.rxes.popleft()
-            console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
-            page = paging.RxPage(packed=raw)
-
-            try:
-                page.head.parse()
-            except PageError as ex:
-                console.terse(str(ex) + '\n')
-                self.incStat('invalid_page_header')
-
-            dn = page.data['dn']
-            if dn != self.local.name:
-                emsg = "Invalid destination yard name = {0}. Dropping packet...\n".format(dn)
-                console.concise( emsg)
-                self.incStat('invalid_destination')
-
-            sn = page.data['sn']
-            if sn not in self.uids:
-                if not self.accept:
-                    emsg = "Unaccepted source yard name = {0}. Dropping packet...\n".format(sn)
-                    console.terse(emsg)
-                    self.incStat('unaccepted_source_yard')
-                    return
-                try:
-                    self.addRemote(yarding.RemoteYard(ha=sa)) # sn and sa are assume compat
-                except raeting.StackError as ex:
-                    console.terse(str(ex) + '\n')
-                    self.incStat('invalid_source_yard')
-                    return
-
-            self.processRx(page)
+            self._handleOneRx()
 
     def serviceRxOnce(self):
         '''
         Process one messages in .rxes deque
         '''
         if self.rxes:
-            raw, sa, da = self.rxes.popleft()
-            console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
-            page = paging.RxPage(packed=raw)
-
-            try:
-                page.head.parse()
-            except PageError as ex:
-                console.terse(str(ex) + '\n')
-                self.incStat('invalid_page_header')
-
-            dn = page.data['dn']
-            if dn != self.local.name:
-                emsg = "Invalid destination yard name = {0}. Dropping packet...\n".format(dn)
-                console.concise( emsg)
-                self.incStat('invalid_destination')
-
-            sn = page.data['sn']
-            if sn not in self.uids:
-                if not self.accept:
-                    emsg = "Unaccepted source yard name = {0}. Dropping packet...\n".format(sn)
-                    console.terse(emsg)
-                    self.incStat('unaccepted_source_yard')
-                    return
-                try:
-                    self.addRemote(yarding.RemoteYard(ha=sa)) # sn and sa are assume compat
-                except raeting.StackError as ex:
-                    console.terse(str(ex) + '\n')
-                    self.incStat('invalid_source_yard')
-                    return
-
-            self.processRx(page)
+            self._handleOneRx()
 
     def processRx(self, received):
         '''
@@ -274,50 +252,46 @@ class LaneStack(stacking.Stack):
 
         self.rxMsgs.append(body)
 
-    def serviceTxMsgs(self):
+    def  _handleOneTxMsg(self):
         '''
-        Service .txMsgs queue of outgoing messages
+        Take one message from .txMsgs deque and handle it
+        Assumes there is a message on the deque
         '''
-        while self.txMsgs:
-            body, duid = self.txMsgs.popleft() # duple (body dict, destination name)
-            self.message(body, duid)
-            console.verbose("{0} sending to {1}\n{2}\n".format(self.name, duid, body))
+        body, duid = self.txMsgs.popleft() # duple (body dict, destination name)
+        self.message(body, duid)
+        console.verbose("{0} sending to {1}\n{2}\n".format(self.name, duid, body))
 
-    def serviceTxes(self):
+    def _handleOneTx(self, laters, blocks):
         '''
-        Service the .txes deque to send Uxd messages
+        Handle one message on .txes deque
+        Assumes there is a message
+        aters is deque of messages to try again later
+        blocks is list of blocked destination address so put all associated into laters
         '''
-        if self.server:
-            laters = deque()
-            blocks = []
+        tx, ta = self.txes.popleft()  # duple = (packet, destination address)
 
-            while self.txes:
-                tx, ta = self.txes.popleft()  # duple = (packet, destination address)
+        if ta in blocks: # already blocked on this iteration
+            laters.append((tx, ta)) # keep sequential
+            return
 
-                if ta in blocks: # already blocked on this iteration
-                    laters.append((tx, ta)) # keep sequential
-                    continue
+        try:
+            self.server.send(tx, ta)
+        except socket.error as ex:
+            if ex.errno == errno.ECONNREFUSED:
+                console.terse("socket.error = {0}\n".format(ex))
+                self.incStat("stale_transmit_yard")
+                yard = self.remotes.get(ta)
+                if yard:
+                    self.removeRemote(yard.uid)
+                    console.terse("Reaped yard {0}\n".format(yard.name))
+            elif ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
+                #busy with last message save it for later
+                laters.append((tx, ta))
+                blocks.append(ta)
 
-                try:
-                    self.server.send(tx, ta)
-                except socket.error as ex:
-                    if ex.errno == errno.ECONNREFUSED:
-                        console.terse("socket.error = {0}\n".format(ex))
-                        self.incStat("stale_transmit_yard")
-                        yard = self.remotes.get(ta)
-                        if yard:
-                            self.removeRemote(yard.uid)
-                            console.terse("Reaped yard {0}\n".format(yard.name))
-                    elif ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
-                        #busy with last message save it for later
-                        laters.append((tx, ta))
-                        blocks.append(ta)
-
-                    else:
-                        console.terse("Sending to '{0}' from '{1}\n".format(ta, self.local.ha))
-                        raise
-            while laters:
-                self.txes.append(laters.popleft())
+            else:
+                console.terse("Sending to '{0}' from '{1}\n".format(ta, self.local.ha))
+                raise
 
     def message(self, body, duid):
         '''
