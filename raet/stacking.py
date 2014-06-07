@@ -327,7 +327,6 @@ class Stack(object):
         if self.server:
             self._handleOneReceived()
 
-
     def _handleOneRx(self):
         '''
         Handle on message from .rxes deque
@@ -382,8 +381,9 @@ class Stack(object):
         Take one message from .txMsgs deque and handle it
         Assumes there is a message on the deque
         '''
-        body, drid = self.txMsgs.popleft() # duple (body dict, destination eid)
-        #need to pack body here and tx
+        body, duid = self.txMsgs.popleft() # duple (body dict, destination uid
+        self.message(body, duid)
+        console.verbose("{0} sending\n{1}\n".format(self.name, body))
 
     def serviceTxMsgs(self):
         '''
@@ -398,6 +398,12 @@ class Stack(object):
         '''
         if self.txMsgs:
             self._handleOneTxMsg()
+
+    def message(self, body, duid):
+        '''
+        Sends message body remote at duid
+        '''
+        pass
 
     def tx(self, packed, duid):
         '''

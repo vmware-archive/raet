@@ -365,40 +365,33 @@ class RoadStack(stacking.Stack):
             if remote is not None:
                 remote.indexes.discard(index)
 
-    def serviceRxes(self):
+    def _handleOneRx(self):
         '''
-        Process all messages in .rxes deque
+        Handle on message from .rxes deque
+        Assumes that there is a message on the .rxes deque
         '''
-        while self.rxes:
-            raw, sa, da = self.rxes.popleft()
-            console.verbose("{0} received packet\n{1}\n".format(self.name, raw))
+        raw, sa, da = self.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(self.name, raw))
 
-            packet = packeting.RxPacket(stack=self, packed=raw)
-            try:
-                packet.parseOuter()
-            except raeting.PacketError as ex:
-                console.terse(str(ex) + '\n')
-                self.incStat('parsing_outer_error')
-                continue
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        try:
+            packet.parseOuter()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.incStat('parsing_outer_error')
+            return
 
-            deid = packet.data['de']
-            if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
-                emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
-                console.concise( emsg)
-                self.incStat('invalid_destination')
+        deid = packet.data['de']
+        if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
+            emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
+            console.concise( emsg)
+            self.incStat('invalid_destination')
 
-            sh, sp = sa
-            dh, dp = da
-            packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
+        sh, sp = sa
+        dh, dp = da
+        packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
 
-            self.processRx(packet)
-
-    def serviceRxOnce(self):
-        '''
-        Process one messages in .rxes deque
-        '''
-        if self.rxes:
-            pass
+        self.processRx(packet)
 
     def processRx(self, received):
         '''
@@ -418,15 +411,6 @@ class RoadStack(stacking.Stack):
             return
 
         self.reply(received)
-
-    def serviceTxMsgs(self):
-        '''
-        Service .txMsgs queue of outgoing  messages and start message transactions
-        '''
-        while self.txMsgs:
-            body, deid = self.txMsgs.popleft() # duple (body dict, destination eid)
-            self.message(body, deid)
-            console.verbose("{0} sending\n{1}\n".format(self.name, body))
 
     def reply(self, packet):
         '''
@@ -544,14 +528,14 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         allowent.hello()
 
-    def message(self, body=None, deid=None):
+    def message(self, body=None, duid=None):
         '''
-        Initiate message transaction
+        Initiate message transaction to remote at duid
         '''
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         messenger = transacting.Messenger(stack=self,
                                           txData=data,
-                                          reid=deid,
+                                          reid=duid,
                                           bcst=self.Bf,
                                           wait=self.Wf)
         messenger.message(body)
