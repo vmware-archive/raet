@@ -172,11 +172,12 @@ class RemoteEstate(Estate):
 
     def validRsid(self, rsid):
         '''
-        Compare new rsid to old .rsid and return True if new is greater than old
-        modulo N where N is 2^32 = 0x100000000
-        And greater means the difference is less than N/2
+        Compare new rsid to old .rsid and return True
+        If new is >= old modulo N where N is 2^32 = 0x100000000
+        And >= means the difference is less than N//2 = 0x80000000
         '''
-        return (((rsid - self.rsid) % 0x100000000) < (0x100000000 // 2))
+        return (((rsid - self.rsid) % raeting.SID_WRAP_MODULO) <
+                                             (raeting.SID_WRAP_DELTA))
 
     def refresh(self, alived=True):
         '''

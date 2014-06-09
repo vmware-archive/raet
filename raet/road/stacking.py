@@ -581,23 +581,23 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         alivent.alive()
 
-    def nackStale(self, packet):
-        '''
-        Send nack to stale correspondent packet
-        '''
-        body = odict()
-        txData = packet.data
-        ha = (packet.data['sh'], packet.data['sp'])
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.nack,
-                                    embody=body,
-                                    data=txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.incStat("packing_error")
-            return
+    #def nackStale(self, packet):
+        #'''
+        #Send nack to stale correspondent packet
+        #'''
+        #body = odict()
+        #txData = packet.data
+        #ha = (packet.data['sh'], packet.data['sp'])
+        #packet = packeting.TxPacket(stack=self.stack,
+                                    #kind=raeting.pcktKinds.nack,
+                                    #embody=body,
+                                    #data=txData)
+        #try:
+            #packet.pack()
+        #except raeting.PacketError as ex:
+            #console.terse(str(ex) + '\n')
+            #self.incStat("packing_error")
+            #return
 
-        self.txes.append((packet.packed, ha))
+        #self.txes.append((packet.packed, ha))
 

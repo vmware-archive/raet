@@ -361,6 +361,7 @@ class BasicTestCase(unittest.TestCase):
                                                 ('sid', remote.sid),
                                                 ('rsid', remote.rsid),
                                                ])
+            validRemoteKeepData[remote.uid]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         remoteSafeData = odict()

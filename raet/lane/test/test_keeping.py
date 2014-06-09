@@ -112,6 +112,48 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
 
+
+    def serviceStackOneTx(self, stack):
+        '''
+        Utility method to service one packet on Tx queues. Call from test method.
+        '''
+        stack.serviceOneAllTx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceStackOneRx(self, stack):
+        '''
+        Utility method to service one packet on Rx queues. Call from test method.
+        '''
+        stack.serviceOneAllRx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceOneTx(self, main, other):
+        '''
+        Utility method to service one packet on Tx queues. Call from test method.
+        '''
+        other.serviceOneAllTx()
+        main.serviceOneAllTx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceOneRx(self, main, other):
+        '''
+        Utility method to service one packet on Rx queues. Call from test method.
+        '''
+        other.serviceOneAllRx()
+        main.serviceOneAllRx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceOneAll(self, main, other):
+        '''
+        Utility method to service one packet on all queues. Call from test method.
+        '''
+        self.serviceOneTx(main=main, other=other)
+        self.serviceOneRx(main=main, other=other)
+
     def serviceStack(self, stack, duration=1.0):
         '''
         Utility method to service queues for one stack. Call from test method.
@@ -289,6 +331,7 @@ class BasicTestCase(unittest.TestCase):
                                                 ('sid', remote.sid),
                                                 ('rsid', remote.rsid),
                                                ])
+            validRemoteKeepData[remote.uid]['sid'] += 1 # on load stack increments
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
@@ -344,16 +387,23 @@ class BasicTestCase(unittest.TestCase):
         self.message(main,  other, mains, others, duration=1.0)
 
         self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
         self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 0)
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
 
         main.dumpRemotes()
         other.dumpRemotes()
 
-        #now close down and reload data
+        #now close down and reload data, make new stacks with saved data
         main.server.close()
         other.server.close()
-
-        # make new stacks with saved data
         main = stacking.LaneStack(dirpath=mainData['dirpath'], store=self.store)
         other = stacking.LaneStack(dirpath=otherData['dirpath'], store=self.store)
 
@@ -361,14 +411,22 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue('other' in main.uids)
         self.assertEqual(len(other.remotes), 1)
         self.assertTrue('main' in other.uids)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 1)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 1)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
 
         self.message(main,  other, mains, others, duration=1.0)
 
-        #now close down and reload data
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+        #now close down and reload data, make new stacks with saved data
         main.server.close()
         other.server.close()
-
-        # make new stacks with saved data
         main = stacking.LaneStack(dirpath=mainData['dirpath'], store=self.store)
         other = stacking.LaneStack(dirpath=otherData['dirpath'], store=self.store)
 
@@ -376,6 +434,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue('other' in main.uids)
         self.assertEqual(len(other.remotes), 1)
         self.assertTrue('main' in other.uids)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 2)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 2)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 1)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 1)
 
         # now send paginated messages
         src = ['mayor', main.local.name, None] # (house, yard, queue)
@@ -395,11 +458,101 @@ class BasicTestCase(unittest.TestCase):
         for i in range(10000):
             stuff.append(str(i).rjust(10, " "))
         stuff = "".join(stuff)
-
         others = []
         others.append(odict([('route', route), ('content', stuff)]))
 
         self.message(main,  other, mains, others, duration=1.0)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+        #now close down and reload data, make new stacks with saved data
+        main.server.close()
+        other.server.close()
+        main = stacking.LaneStack(dirpath=mainData['dirpath'], store=self.store)
+        other = stacking.LaneStack(dirpath=otherData['dirpath'], store=self.store)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 3)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 3)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 2)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 2)
+
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+        for msg in others:
+            other.transmit(msg,  duid=other.uids[main.local.name])
+
+
+        self.assertEqual(len(main.txMsgs), 1)
+        self.assertEqual(len(other.txMsgs), 1)
+        self.assertEqual(len(main.books), 0)
+        self.assertEqual(len(other.books), 0)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        # Now only send and receive one page to/from each side
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(len(main.txMsgs), 0)
+        self.assertEqual(len(other.txMsgs), 0)
+        self.assertEqual(len(main.txes), 1)
+        self.assertEqual(len(other.txes), 1)
+        self.assertEqual(len(main.books), 1)
+        self.assertEqual(len(other.books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+        #now close down one side only and reload data, make new stack with saved data
+        main.server.close()
+        main = stacking.LaneStack(dirpath=mainData['dirpath'], store=self.store)
+
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 4)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 3)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 3)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 3)
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 1)
+        self.assertEqual(len(main.books), 0)
+        self.assertEqual(len(other.books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        # Now remaining page from other (there should be no pages from main)
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 4)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 3)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 3)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 3)
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 0)
+        self.assertEqual(len(main.books), 1)
+        self.assertEqual(len(other.books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+
+
+        #self.assertEqual(main.stats['stale_sid_attempt'], 0)
+
+
+
+        #send a new message from main and reap stale book from other
+        #send a new message from other and reap stale book from main
+
 
         main.server.close()
         main.clearLocal()
@@ -444,9 +597,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
     #runSome()#only run some
 
-    runOne('testRestart')
+    #runOne('testRestart')
 

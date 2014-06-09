@@ -97,7 +97,6 @@ class LaneStack(stacking.Stack):
 
         self.books = odict()
 
-
     def nextYid(self):
         '''
         Generates next yard id number.
@@ -205,12 +204,26 @@ class LaneStack(stacking.Stack):
                 console.terse(emsg)
                 self.incStat('unaccepted_source_yard')
                 return
+
             try:
                 self.addRemote(yarding.RemoteYard(ha=sa)) # sn and sa are assume compat
             except raeting.StackError as ex:
                 console.terse(str(ex) + '\n')
                 self.incStat('invalid_source_yard')
                 return
+
+        remote = self.remotes[self.uids[sn]]
+        sid = page.data['si']
+        if not remote.validRsid(sid):
+            emsg = "Stale sid '{0}' in page from remote {1}\n".format(sid, remote.name)
+            console.terse(emsg)
+            self.stack.incStat('stale_sid_attempt')
+            return
+
+        if sid != remote.rsid:
+            remote.rsid = sid
+            self.dumpRemote(remote)
+        # need to reap for any stale books with older sid for the given remote
 
         self.processRx(page)
 

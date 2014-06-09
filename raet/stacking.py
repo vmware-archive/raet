@@ -76,6 +76,9 @@ class Stack(object):
         self.uids = odict() # remote uids indexed by name
         self.loadRemotes() # load remotes from saved data
 
+        for remote in self.remotes.values():
+            remote.nextSid()
+
         self.bufcnt = bufcnt
         if not server:
             server = self.serverFromLocal()
@@ -503,7 +506,7 @@ class Stack(object):
         self.serviceReceives()
         self.serviceTxes()
 
-    def serviceOneRx(self):
+    def serviceOneAllRx(self):
         '''
         Propagate one packet all the way through the received side of the stack
         Service:
@@ -515,7 +518,7 @@ class Stack(object):
         self.serviceRxOnce()
         self.process()
 
-    def serviceOneTx(self):
+    def serviceOneAllTx(self):
         '''
         Propagate one packet all the way through the transmit side of the stack
         Service:
@@ -524,7 +527,6 @@ class Stack(object):
         '''
         self.serviceTxMsgOnce()
         self.serviceTxOnce()
-
 
     def process(self):
         '''
