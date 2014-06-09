@@ -31,7 +31,7 @@ Separating the function of network transport of asynchrounous event from the
 function of message queue management allows independant tuning at scale of each function.
 
 Most if not all of the MQ services are based on TCP/IP for transport.
-TCP/IP adds significant latency to the network communications and is not therefore
+TCP/IP adds significant latency to the network communications and is therefore
 not well suited for the asynchronous nature of distibuted event driven application
 communications. This is primarily due to the way TCP/IP handles connection setup
 and teardown as well as failed connections in order to support streams. Fundamentally
