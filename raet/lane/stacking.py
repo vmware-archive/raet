@@ -175,6 +175,18 @@ class LaneStack(stacking.Stack):
             else:
                 del self.books[index]
 
+    def removeStaleBooks(self, remote):
+        '''
+        Remove stale books associated with remote when index si older than remote.rsid
+        where index is tuple (ln, rn, si, bi)
+        '''
+        for index, book in self.books.items():
+            if index[1] == remote.name and not remote.validRsid(index[2]):
+                self.removeBook(index, book)
+                emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, remote.name)
+                console.terse(emsg)
+                self.incStat('stale_book')
+
 
     def _handleOneRx(self):
         '''
@@ -213,16 +225,18 @@ class LaneStack(stacking.Stack):
                 return
 
         remote = self.remotes[self.uids[sn]]
-        sid = page.data['si']
-        if not remote.validRsid(sid):
-            emsg = "Stale sid '{0}' in page from remote {1}\n".format(sid, remote.name)
+        si = page.data['si']
+        if not remote.validRsid(si):
+            emsg = "Stale sid '{0}' in page from remote {1}\n".format(si, remote.name)
             console.terse(emsg)
-            self.stack.incStat('stale_sid_attempt')
+            self.incStat('stale_sid_attempt')
             return
 
-        if sid != remote.rsid:
-            remote.rsid = sid
+        if si != remote.rsid:
+            remote.rsid = si
             self.dumpRemote(remote)
+            self.removeStaleBooks(remote)
+
         # need to reap for any stale books with older sid for the given remote
 
         self.processRx(page)
@@ -252,6 +266,13 @@ class LaneStack(stacking.Stack):
         if received.paginated:
             book = self.books.get(received.index)
             if not book:
+                if received.data['pn'] != 0: # not first page to missed first page
+                    emsg = "Missed page  prior to '{0}' from remote {1}\n".format(
+                            received.data['pn'],
+                            self.remotes[self.uids[received.data['sn']]].name)
+                    console.terse(emsg)
+                    self.incStat('missed_page')
+                    return
                 book = paging.RxBook(stack=self)
                 self.addBook(received.index, book)
             book.parse(received)

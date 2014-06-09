@@ -101,18 +101,6 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
             self.assertDictEqual(mains[i], msg)
 
-    def service(self, main, other, duration=1.0):
-        '''
-        Utility method to service queues. Call from test method.
-        '''
-        self.timer.restart(duration=duration)
-        while not self.timer.expired:
-            other.serviceAll()
-            main.serviceAll()
-            self.store.advanceStamp(0.1)
-            time.sleep(0.1)
-
-
     def serviceStackOneTx(self, stack):
         '''
         Utility method to service one packet on Tx queues. Call from test method.
@@ -153,6 +141,17 @@ class BasicTestCase(unittest.TestCase):
         '''
         self.serviceOneTx(main=main, other=other)
         self.serviceOneRx(main=main, other=other)
+
+    def service(self, main, other, duration=1.0):
+        '''
+        Utility method to service queues. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            other.serviceAll()
+            main.serviceAll()
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
 
     def serviceStack(self, stack, duration=1.0):
         '''
@@ -539,19 +538,35 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.remotes[other.uids['main']].rsid, 3)
         self.assertEqual(len(main.txes), 0)
         self.assertEqual(len(other.txes), 0)
-        self.assertEqual(len(main.books), 1)
+        self.assertEqual(len(main.books), 0)
         self.assertEqual(len(other.books), 1)
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.rxMsgs), 0)
-
-
-
-        #self.assertEqual(main.stats['stale_sid_attempt'], 0)
-
+        self.assertEqual(main.stats['missed_page'], 1)
 
 
         #send a new message from main and reap stale book from other
-        #send a new message from other and reap stale book from main
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+
+        self.service(main, other, duration=1.0)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 4)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 3)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 3)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 4)
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 0)
+        self.assertEqual(len(main.books), 0)
+        self.assertEqual(len(other.books), 0)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 1)
+        self.assertEqual(other.stats['stale_book'], 1)
+
+        self.assertEqual(len(other.rxMsgs), len(mains))
+        for i, msg in enumerate(other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
+            self.assertDictEqual(mains[i], msg)
 
 
         main.server.close()
@@ -597,9 +612,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
     #runSome()#only run some
 
-    #runOne('testRestart')
+    runOne('testRestart')
 
