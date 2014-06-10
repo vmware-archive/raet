@@ -103,8 +103,9 @@ from ioflo.base.odicting import odict
 # Used to comput session id wrap around where valid sid is >= modulo N given by
 # (((new - old) % 0x100000000) < (0x100000000 // 2))
 # N//2 = 0x80000000
-SID_WRAP_MODULO = 0x100000000 # session id wrap at modulo N= 2^32 = 0x100000000
+SID_WRAP_MODULO = 0x100000000 # session id wraps modulo N = 2^32 = 0x100000000
 SID_WRAP_DELTA = 0x80000000 # session id >= delta at N//2 = 0x80000000
+SID_ROLLOVER= 0xffffffff # session id rolls over at modulo (N-1) -= 2^32 -1 = 0xffffffff
 
 RAET_PORT = 7530
 RAET_TEST_PORT = 7531

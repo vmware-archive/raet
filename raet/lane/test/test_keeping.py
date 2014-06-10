@@ -569,6 +569,67 @@ class BasicTestCase(unittest.TestCase):
             self.assertDictEqual(mains[i], msg)
 
 
+        # setup to test reset sid numbering by sending single pages to create stale books
+
+        other.rxMsgs.pop()
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+        for msg in others:
+            other.transmit(msg,  duid=other.uids[main.local.name])
+
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 4)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 3)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 3)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 4)
+        self.assertEqual(len(main.txes), 1)
+        self.assertEqual(len(other.txes), 1)
+        self.assertEqual(len(main.books), 1)
+        self.assertEqual(len(other.books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        # simulate restart that loses msg in queue
+        main.txes.pop()
+        other.txes.pop()
+
+        src = ['mayor', main.local.name, None] # (house, yard, queue)
+        dst = ['citizen', other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my command"
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', other.local.name, None]
+        dst = ['mayor', main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my reply."
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        main.remotes[main.uids['other']].sid = 0 #set to zero to reset
+        other.remotes[other.uids['main']].sid = 0 #set to zero to reset
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+        for msg in others:
+            other.transmit(msg,  duid=other.uids[main.local.name])
+
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].sid, 0)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 0)
+        self.assertEqual(len(main.books), 0)
+        self.assertEqual(len(other.books), 0)
+        self.assertEqual(len(main.rxMsgs), 1)
+        self.assertEqual(len(other.rxMsgs), 1)
+        self.assertEqual(main.stats['stale_book'], 1)
+        self.assertEqual(other.stats['stale_book'], 2)
+
         main.server.close()
         main.clearLocal()
         main.clearRemoteKeeps()

@@ -172,6 +172,7 @@ class RemoteYard(Yard):
         Compare new rsid to old .rsid and return True
         If new is >= old modulo N where N is 2^32 = 0x100000000
         And >= means the difference is less than N//2 = 0x80000000
+        (((new - old) % 0x100000000) < (0x100000000 // 2))
         '''
         return (((rsid - self.rsid) % raeting.SID_WRAP_MODULO) <
                                              (raeting.SID_WRAP_DELTA))

@@ -21,6 +21,8 @@ from ioflo.base.odicting import odict
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
+from . import raeting
+
 class Lot(object):
     '''
     RAET protocol stack endpoint
@@ -68,19 +70,22 @@ class Lot(object):
     def nextSid(self):
         '''
         Generates next session id number.
+        Follover at wrap modulor (N-1) = 2^32 -1 = 0xffffffff
         '''
         self.sid += 1
-        if self.sid > 0xffffffffL:
+        if self.sid > raeting.SID_ROLLOVER: #0xffffffff
             self.sid = 1  # rollover to 1
         return self.sid
 
     def validSid(self, sid):
         '''
-        Compare new sid to old .sid and return True if new is greater than old
-        modulo N where N is 2^32 = 0x100000000
-        And greater means the difference is less than N/2
+        Compare new sid to old .sid and return True
+        If new is >= old modulo N where N is 2^32 = 0x100000000
+        And greater means the difference is less than N//2 = 0x80000000
+
         '''
-        return (((sid - self.sid) % 0x100000000) < (0x100000000 // 2))
+        return (((sid - self.sid) % raeting.SID_WRAP_MODULO) <
+                                             (raeting.SID_WRAP_DELTA))
 
 
 class LocalLot(Lot):

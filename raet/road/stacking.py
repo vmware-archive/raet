@@ -428,16 +428,16 @@ class RoadStack(stacking.Stack):
             self.replyAllow(packet)
             return
 
-        if (packet.data['tk'] == raeting.trnsKinds.message and
-                packet.data['pk'] == raeting.pcktKinds.message and
-                packet.data['si'] != 0):
-            self.replyMessage(packet)
-            return
-
         if (packet.data['tk'] == raeting.trnsKinds.alive and
                 packet.data['pk'] == raeting.pcktKinds.request and
                 packet.data['si'] != 0):
             self.replyAlive(packet)
+            return
+
+        if (packet.data['tk'] == raeting.trnsKinds.message and
+                packet.data['pk'] == raeting.pcktKinds.message and
+                packet.data['si'] != 0):
+            self.replyMessage(packet)
             return
 
         self.incStat('stale_packet')
@@ -528,32 +528,6 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         allowent.hello()
 
-    def message(self, body=None, duid=None):
-        '''
-        Initiate message transaction to remote at duid
-        '''
-        data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
-        messenger = transacting.Messenger(stack=self,
-                                          txData=data,
-                                          reid=duid,
-                                          bcst=self.Bf,
-                                          wait=self.Wf)
-        messenger.message(body)
-
-    def replyMessage(self, packet):
-        '''
-        Correspond to new Message transaction
-        '''
-        data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
-        messengent = transacting.Messengent(stack=self,
-                                        reid=packet.data['se'],
-                                        bcst=packet.data['bf'],
-                                        sid=packet.data['si'],
-                                        tid=packet.data['ti'],
-                                        txData=data,
-                                        rxPacket=packet)
-        messengent.message()
-
     def alive(self, deid=None,  mha=None, timeout=None, cascade=False):
         '''
         Initiate alive transaction
@@ -581,23 +555,29 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         alivent.alive()
 
-    #def nackStale(self, packet):
-        #'''
-        #Send nack to stale correspondent packet
-        #'''
-        #body = odict()
-        #txData = packet.data
-        #ha = (packet.data['sh'], packet.data['sp'])
-        #packet = packeting.TxPacket(stack=self.stack,
-                                    #kind=raeting.pcktKinds.nack,
-                                    #embody=body,
-                                    #data=txData)
-        #try:
-            #packet.pack()
-        #except raeting.PacketError as ex:
-            #console.terse(str(ex) + '\n')
-            #self.incStat("packing_error")
-            #return
+    def message(self, body=None, duid=None):
+        '''
+        Initiate message transaction to remote at duid
+        '''
+        data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
+        messenger = transacting.Messenger(stack=self,
+                                          txData=data,
+                                          reid=duid,
+                                          bcst=self.Bf,
+                                          wait=self.Wf)
+        messenger.message(body)
 
-        #self.txes.append((packet.packed, ha))
+    def replyMessage(self, packet):
+        '''
+        Correspond to new Message transaction
+        '''
+        data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
+        messengent = transacting.Messengent(stack=self,
+                                        reid=packet.data['se'],
+                                        bcst=packet.data['bf'],
+                                        sid=packet.data['si'],
+                                        tid=packet.data['ti'],
+                                        txData=data,
+                                        rxPacket=packet)
+        messengent.message()
 

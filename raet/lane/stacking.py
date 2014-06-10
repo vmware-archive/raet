@@ -175,18 +175,20 @@ class LaneStack(stacking.Stack):
             else:
                 del self.books[index]
 
-    def removeStaleBooks(self, remote):
+    def removeStaleBooks(self, remote, reset=False):
         '''
         Remove stale books associated with remote when index si older than remote.rsid
         where index is tuple (ln, rn, si, bi)
+        If reset then reset sid sequence and remmove all books with nonzero si
         '''
         for index, book in self.books.items():
-            if index[1] == remote.name and not remote.validRsid(index[2]):
-                self.removeBook(index, book)
-                emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, remote.name)
-                console.terse(emsg)
-                self.incStat('stale_book')
-
+            if index[1] == remote.name:
+                sid = index[2]
+                if (reset and sid != 0) or (not remote.validRsid(sid)):
+                    self.removeBook(index, book)
+                    emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, remote.name)
+                    console.terse(emsg)
+                    self.incStat('stale_book')
 
     def _handleOneRx(self):
         '''
@@ -226,7 +228,7 @@ class LaneStack(stacking.Stack):
 
         remote = self.remotes[self.uids[sn]]
         si = page.data['si']
-        if not remote.validRsid(si):
+        if si != 0 and not remote.validRsid(si):
             emsg = "Stale sid '{0}' in page from remote {1}\n".format(si, remote.name)
             console.terse(emsg)
             self.incStat('stale_sid_attempt')
@@ -235,7 +237,7 @@ class LaneStack(stacking.Stack):
         if si != remote.rsid:
             remote.rsid = si
             self.dumpRemote(remote)
-            self.removeStaleBooks(remote)
+            self.removeStaleBooks(remote, reset=(si == 0))
 
         # need to reap for any stale books with older sid for the given remote
 
