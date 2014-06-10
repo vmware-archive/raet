@@ -256,14 +256,12 @@ class BasicTestCase(unittest.TestCase):
                             {'uid': 2,
                              'name': other1Data['name'],
                              'ha': ['127.0.0.1', 7531],
-                             'sid': 0,
-                             'rsid': 0},
+                             'sid': 0},
                          '3':
                             {'uid': 3,
                              'name': other2Data['name'],
                              'ha': ['127.0.0.1', 7532],
-                             'sid': 0,
-                             'rsid': 0}
+                             'sid': 0}
                         }
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -308,7 +306,6 @@ class BasicTestCase(unittest.TestCase):
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
-                                                ('rsid', remote.rsid),
                                                ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -359,7 +356,6 @@ class BasicTestCase(unittest.TestCase):
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
-                                                ('rsid', remote.rsid),
                                                ])
             validRemoteKeepData[remote.uid]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
