@@ -95,8 +95,6 @@ class LaneStack(stacking.Stack):
                                         bufcnt=bufcnt,
                                         **kwa)
 
-        self.books = odict()
-
     def nextYid(self):
         '''
         Generates next yard id number.
@@ -155,40 +153,6 @@ class LaneStack(stacking.Stack):
                                             sid=data['sid'],)
                 self.addRemote(remote)
 
-    def addBook(self, index, book):
-        '''
-        Safely add book at index If not already there
-        '''
-        self.books[index] = book
-        console.verbose( "Added book to {0} at '{1}'\n".format(self.name, index))
-
-    def removeBook(self, index, book=None):
-        '''
-        Safely remove book at index If book identity same
-        If book is None then remove without comparing identity
-        '''
-        if index in self.books:
-            if book:
-                if book is self.books[index]:
-                    del  self.books[index]
-            else:
-                del self.books[index]
-
-    def removeStaleBooks(self, remote, reset=False):
-        '''
-        Remove stale books associated with remote when index si older than remote.rsid
-        where index is tuple (ln, rn, si, bi)
-        If reset then reset sid sequence and remmove all books with nonzero si
-        '''
-        for index, book in self.books.items():
-            if index[1] == remote.name:
-                sid = index[2]
-                if (reset and sid != 0) or (not remote.validRsid(sid)):
-                    self.removeBook(index, book)
-                    emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, remote.name)
-                    console.terse(emsg)
-                    self.incStat('stale_book')
-
     def _handleOneRx(self):
         '''
         Handle on message from .rxes deque
@@ -235,11 +199,9 @@ class LaneStack(stacking.Stack):
 
         if si != remote.rsid:
             remote.rsid = si
-            self.removeStaleBooks(remote, reset=(si == 0))
+            remote.removeStaleBooks(reset=(si == 0))
 
-        # need to reap for any stale books with older sid for the given remote
-
-        self.processRx(page)
+        self.processRx(page, remote)
 
     def serviceRxes(self):
         '''
@@ -255,34 +217,34 @@ class LaneStack(stacking.Stack):
         if self.rxes:
             self._handleOneRx()
 
-    def processRx(self, received):
+    def processRx(self, page, remote):
         '''
         Retrieve next page from stack receive queue if any and parse
         Assumes received header has been parsed
         '''
-        console.verbose("{0} received page header\n{1}\n".format(self.name, received.data))
-        console.verbose("{0} received page index = '{1}'\n".format(self.name, received.index))
+        console.verbose("{0} received page header\n{1}\n".format(self.name, page.data))
+        console.verbose("{0} received page index = '{1}'\n".format(self.name, page.index))
 
-        if received.paginated:
-            book = self.books.get(received.index)
+        if page.paginated:
+            index = (page.data['si'], page.data['bi'])
+            book = remote.books.get(index)
             if not book:
-                if received.data['pn'] != 0: # not first page to missed first page
+                if page.data['pn'] != 0: # not first page to missed first page
                     emsg = "Missed page  prior to '{0}' from remote {1}\n".format(
-                            received.data['pn'],
-                            self.remotes[self.uids[received.data['sn']]].name)
+                            page.data['pn'], remote.name)
                     console.terse(emsg)
                     self.incStat('missed_page')
                     return
                 book = paging.RxBook(stack=self)
-                self.addBook(received.index, book)
-            book.parse(received)
+                remote.addBook(index, book)
+            book.parse(page)
             if not book.complete:
                 return
-            self.removeBook(book.index)
+            remote.removeBook(index)
             body = book.body
         else:
-            received.body.parse()
-            body = received.body.data
+            page.body.parse()
+            body = page.body.data
 
         self.rxMsgs.append(body)
 

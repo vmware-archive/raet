@@ -166,6 +166,7 @@ class RemoteYard(Yard):
         '''
         super(RemoteYard, self).__init__(**kwa)
         self.rsid = rsid # last sid received from remote
+        self.books = odict()
 
     def validRsid(self, rsid):
         '''
@@ -175,3 +176,36 @@ class RemoteYard(Yard):
         (((new - old) % 0x100000000) < (0x100000000 // 2))
         '''
         return self.validSid(new=rsid, old=self.rsid)
+
+    def addBook(self, index, book):
+        '''
+        Safely add book at index,(si, bi) If not already there
+        '''
+        self.books[index] = book
+        console.verbose( "Added book to {0} at '{1}'\n".format(self.name, index))
+
+    def removeBook(self, index, book=None):
+        '''
+        Safely remove book at index, (si, bi) If book identity same
+        If book is None then remove without comparing identity
+        '''
+        if index in self.books:
+            if book:
+                if book is self.books[index]:
+                    del  self.books[index]
+            else:
+                del self.books[index]
+
+    def removeStaleBooks(self, reset=False):
+        '''
+        Remove stale books associated with remote when index si older than remote.rsid
+        where index is tuple (si, bi)
+        If reset then reset sid sequence and remmove all books with nonzero si
+        '''
+        for index, book in self.books.items():
+                sid = index[0]
+                if (reset and sid != 0) or (not self.validRsid(sid)):
+                    self.removeBook(index, book)
+                    emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, self.name)
+                    console.terse(emsg)
+                    self.stack.incStat('stale_book')
