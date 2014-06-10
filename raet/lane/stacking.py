@@ -152,8 +152,7 @@ class LaneStack(stacking.Stack):
                                             yid=data['uid'],
                                             name=data['name'],
                                             ha=data['ha'],
-                                            sid=data['sid'],
-                                            rsid=data['rsid'])
+                                            sid=data['sid'],)
                 self.addRemote(remote)
 
     def addBook(self, index, book):
@@ -236,7 +235,6 @@ class LaneStack(stacking.Stack):
 
         if si != remote.rsid:
             remote.rsid = si
-            self.dumpRemote(remote)
             self.removeStaleBooks(remote, reset=(si == 0))
 
         # need to reap for any stale books with older sid for the given remote

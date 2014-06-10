@@ -267,14 +267,12 @@ class BasicTestCase(unittest.TestCase):
                                     {'uid': 2,
                                      'name': 'other1',
                                      'ha': '',
-                                     'sid': 0,
-                                     'rsid': 0},
+                                     'sid': 0},
                                 '3':
                                     {'uid': 3,
                                      'name': 'other2',
                                      'ha': '',
-                                     'sid': 0,
-                                     'rsid': 0}
+                                     'sid': 0,}
                                 }
         validRemoteKeepData['2']['ha'] = stack.remotes[2].ha
         validRemoteKeepData['3']['ha'] = stack.remotes[3].ha
@@ -298,7 +296,6 @@ class BasicTestCase(unittest.TestCase):
                                                 ('name', remote.name),
                                                 ('ha', remote.ha),
                                                 ('sid', remote.sid),
-                                                ('rsid', remote.rsid),
                                                ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
         stack.server.close()
@@ -328,7 +325,6 @@ class BasicTestCase(unittest.TestCase):
                                                 ('name', remote.name),
                                                 ('ha', remote.ha),
                                                 ('sid', remote.sid),
-                                                ('rsid', remote.rsid),
                                                ])
             validRemoteKeepData[remote.uid]['sid'] += 1 # on load stack increments
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
@@ -436,8 +432,8 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(main.remotes[main.uids['other']].sid, 2)
         self.assertEqual(other.remotes[other.uids['main']].sid, 2)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, 1)
-        self.assertEqual(other.remotes[other.uids['main']].rsid, 1)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
 
         # now send paginated messages
         src = ['mayor', main.local.name, None] # (house, yard, queue)
@@ -480,8 +476,8 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(main.remotes[main.uids['other']].sid, 3)
         self.assertEqual(other.remotes[other.uids['main']].sid, 3)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, 2)
-        self.assertEqual(other.remotes[other.uids['main']].rsid, 2)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
 
         for msg in mains:
             main.transmit(msg, duid=main.uids[other.local.name])
@@ -520,7 +516,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(main.remotes[main.uids['other']].sid, 4)
         self.assertEqual(other.remotes[other.uids['main']].sid, 3)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, 3)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
         self.assertEqual(other.remotes[other.uids['main']].rsid, 3)
         self.assertEqual(len(main.txes), 0)
         self.assertEqual(len(other.txes), 1)
@@ -673,9 +669,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
     #runSome()#only run some
 
-    runOne('testRestart')
+    #runOne('testRestart')
 

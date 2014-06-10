@@ -177,8 +177,7 @@ class RemoteEstate(Estate):
         And >= means the difference is less than N//2 = 0x80000000
         (((new - old) % 0x100000000) < (0x100000000 // 2))
         '''
-        return (((rsid - self.rsid) % raeting.SID_WRAP_MODULO) <
-                                             (raeting.SID_WRAP_DELTA))
+        return self.validSid(new=rsid, old=self.rsid)
 
     def refresh(self, alived=True):
         '''
