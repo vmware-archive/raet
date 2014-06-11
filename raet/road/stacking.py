@@ -400,33 +400,43 @@ class RoadStack(stacking.Stack):
         console.verbose("{0} received packet data\n{1}\n".format(self.name, received.data))
         console.verbose("{0} received packet index = '{1}'\n".format(self.name, received.index))
 
+        tk = received.data['tk']
+        cf = received.data['cf']
+        rsid = received.data['si']
         reid = received.data['se']
         remote = self.remotes.get(reid, None)
-        rsid = received.data['si']
-        cf = received.data['cf']
 
-        if remote and rsid != 0 and not cf: # packet from remote initiated transaction
-            if not remote.validRsid(rsid): # invalid rsid
-                emsg = "Stale sid '{0}' in packet\n".format(rsid)
+        if rsid == 0:
+            if tk != raeting.trnsKinds.join:
+                emsg = "Invalid sid '{0}' in packet\n".format(rsid)
                 console.terse(emsg)
-                self.incStat('stale_sid_attempt')
-                self.stale(received)
-                return # should nack stale transaction
+                self.incStat('invalid_sid_attempt')
+                return
 
-            if rsid != remote.rsid:
-                #console.verbose("Changing rsid of '{0}' from {1} to {2} in {3} "
-                        #"transaction.\n".format(remote.name,
-                                                #remote.rsid,
-                                                #rsid,
-                                                #raeting.TRNS_KIND_NAMES[received.data['tk']]))
-                remote.rsid = rsid
+        else: # rsid !=0
+            if remote and not cf: # packet from remote initiated transaction
+                if not remote.validRsid(rsid): # invalid rsid
+                    emsg = "Stale sid '{0}' in packet\n".format(rsid)
+                    console.terse(emsg)
+                    self.incStat('stale_sid_attempt')
+                    #self.stale(received) need correspondent stalent to nack
+                    return # should nack stale transaction
+
+                if rsid != remote.rsid:
+                    #console.verbose("Changing rsid of '{0}' from {1} to {2} in {3} "
+                            #"transaction.\n".format(remote.name,
+                                                    #remote.rsid,
+                                                    #rsid,
+                                                    #raeting.TRNS_KIND_NAMES[received.data['tk']]))
+                    remote.rsid = rsid
+                    # need to remove any stale correspondent transactions with this remote with older sid
 
         trans = self.transactions.get(received.index, None)
         if trans:
             trans.receive(received)
             return
 
-        if cf: #packet from correspondent to non-existent transaction in
+        if cf: #packet from correspondent to non-existent locally initiated transaction
             self.stale(received)
             return
 
