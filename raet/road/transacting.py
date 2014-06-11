@@ -2019,8 +2019,8 @@ class Alivent(Correspondent):
             raise TypeError(emsg)
         super(Alivent, self).__init__(**kwa)
 
-        remote = self.stack.remotes[self.reid]
-        #remote.alive = None # reset alive status until done with transaction
+        #remote = self.stack.remotes[self.reid]
+        #self.remote.alive = None # reset alive status until done with transaction
         self.prep() # prepare .txData
         self.add(self.index)
 
@@ -2049,11 +2049,11 @@ class Alivent(Correspondent):
         '''
         Prepare .txData
         '''
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
+                            dh=self.remote.host,
+                            dp=self.remote.port,
                             se=self.stack.local.uid,
                             de=self.reid,
                             tk=self.kind,
@@ -2072,30 +2072,30 @@ class Alivent(Correspondent):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
 
-        if not remote.joined:
-            remote.refresh(alived=None) # indeterminate
+        if not self.remote.joined:
+            self.remote.refresh(alived=None) # indeterminate
             emsg = "Alivent {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_alive_attempt')
             self.nack(kind=raeting.pcktKinds.unjoined)
             return
 
-        if not remote.allowed:
-            remote.refresh(alived=None) # indeterminate
+        if not self.remote.allowed:
+            self.remote.refresh(alived=None) # indeterminate
             emsg = "Alivent {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_alive_attempt')
             self.nack(kind=raeting.pcktKinds.unallowed)
             return
 
-        if self.reid not in self.stack.remotes:
-            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -2113,7 +2113,7 @@ class Alivent(Correspondent):
         self.transmit(packet)
         console.concise("Alivent {0}. Do ack alive at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
-        remote.refresh(alived=True)
+        self.remote.refresh(alived=True)
         self.remove()
         console.concise("Alivent {0}. Done at {1}\n".format(
                         self.stack.name, self.stack.store.stamp))
