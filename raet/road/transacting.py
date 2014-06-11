@@ -2390,7 +2390,7 @@ class Messengent(Correspondent):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.prep() # prepare .txData
         self.tray = packeting.RxTray(stack=self.stack)
         self.add(self.index)
@@ -2441,11 +2441,11 @@ class Messengent(Correspondent):
         '''
         Prepare .txData
         '''
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
+                            dh=self.remote.host,
+                            dp=self.remote.port,
                             se=self.stack.local.uid,
                             de=self.reid,
                             tk=self.kind,
@@ -2459,10 +2459,10 @@ class Messengent(Correspondent):
         '''
         Process message packet
         '''
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=True)
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=True)
 
-        if not remote.allowed:
+        if not self.remote.allowed:
             emsg = "Messengent {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_message_attempt')
@@ -2498,12 +2498,12 @@ class Messengent(Correspondent):
         '''
         Send ack to message
         '''
-        if self.reid not in self.stack.remotes:
-            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -2526,12 +2526,12 @@ class Messengent(Correspondent):
         '''
         Send resend request(s) for missing packets
         '''
-        if self.reid not in self.stack.remotes:
-            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         while misseds:
             if len(misseds) > 64:
@@ -2575,8 +2575,8 @@ class Messengent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=True)
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=True)
 
         self.remove()
         console.concise("Messengent {0}. Rejected at {1}\n".format(
@@ -2587,12 +2587,12 @@ class Messengent(Correspondent):
         '''
         Send nack to terminate messenger transaction
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
