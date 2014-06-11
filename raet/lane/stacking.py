@@ -217,34 +217,34 @@ class LaneStack(stacking.Stack):
         if self.rxes:
             self._handleOneRx()
 
-    def processRx(self, page, remote):
+    def processRx(self, received, remote):
         '''
         Retrieve next page from stack receive queue if any and parse
         Assumes received header has been parsed
         '''
-        console.verbose("{0} received page header\n{1}\n".format(self.name, page.data))
-        console.verbose("{0} received page index = '{1}'\n".format(self.name, page.index))
+        console.verbose("{0} received page header\n{1}\n".format(self.name, received.data))
+        console.verbose("{0} received page index = '{1}'\n".format(self.name, received.index))
 
-        if page.paginated:
-            index = (page.data['si'], page.data['bi'])
+        if received.paginated:
+            index = (received.data['si'], received.data['bi'])
             book = remote.books.get(index)
             if not book:
-                if page.data['pn'] != 0: # not first page to missed first page
+                if received.data['pn'] != 0: # not first page to missed first page
                     emsg = "Missed page  prior to '{0}' from remote {1}\n".format(
-                            page.data['pn'], remote.name)
+                            received.data['pn'], remote.name)
                     console.terse(emsg)
                     self.incStat('missed_page')
                     return
                 book = paging.RxBook(stack=self)
                 remote.addBook(index, book)
-            book.parse(page)
+            book.parse(received)
             if not book.complete:
                 return
             remote.removeBook(index)
             body = book.body
         else:
-            page.body.parse()
-            body = page.body.data
+            received.body.parse()
+            body = received.body.data
 
         self.rxMsgs.append(body)
 

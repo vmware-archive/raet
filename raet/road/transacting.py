@@ -34,7 +34,7 @@ class Transaction(object):
     '''
     Timeout =  5.0 # default timeout
 
-    def __init__(self, stack=None, kind=None, timeout=None,
+    def __init__(self, stack=None, remote=None, kind=None, timeout=None,
                  reid=None, rmt=False, bcst=False, wait=False, sid=None, tid=None,
                  txData=None, txPacket=None, rxPacket=None):
         '''
@@ -42,6 +42,7 @@ class Transaction(object):
         timeout of 0.0 means no timeout go forever
         '''
         self.stack = stack
+        self.remote = remote
         self.kind = kind or raeting.PACKET_DEFAULTS['tk']
 
         if timeout is None:
@@ -686,7 +687,7 @@ class Joinent(Correspondent):
         Rules:
             Only one estate with given eid is allowed on road
             Only one estate with given name is allowed on road.
-            Only one estate with given ha on road is allowed on road.
+            Only one estate with given ha is allowed on road.
 
             Are multiple estates with same keys but different name (ha) allowed?
             Current logic ignores same keys or not
@@ -747,7 +748,7 @@ class Joinent(Correspondent):
 
         if self.stack.local.main:
             if ((reid != 0 and not reid in self.stack.remotes) or
-                    (leid !=  0 and leid != self.stack.local.uid)):
+                    (leid != 0 and leid != self.stack.local.uid)):
                 if self.stack.safe.auto:
                     emsg = "Estate '{0}' renew stale eid '{1}'\n".format(
                             name, reid)
@@ -808,8 +809,8 @@ class Joinent(Correspondent):
 
                 remote.host = host
                 remote.port = port
-                remote.rsid = self.sid
-                remote.rtid = self.tid
+                remote.rsid = self.sid # fix this?
+                #remote.rtid = self.tid
                 if name != remote.name:
                     self.stack.renameRemote(old=remote.name, new=name)
 
@@ -846,7 +847,6 @@ class Joinent(Correspondent):
                                                    verkey=verhex,
                                                    pubkey=pubhex,
                                                    rsid=self.sid,
-                                                   rtid=self.tid,
                                                    period=self.stack.period,
                                                    offset=self.stack.offset,)
 
@@ -914,7 +914,6 @@ class Joinent(Correspondent):
                                                verkey=verhex,
                                                pubkey=pubhex,
                                                rsid=self.sid,
-                                               rtid=self.tid,
                                                period=self.stack.period,
                                                offset=self.stack.offset,)
                 try:
@@ -944,7 +943,7 @@ class Joinent(Correspondent):
             remote.host = host
             remote.port = port
             remote.rsid = self.sid
-            remote.rtid = self.tid
+            #remote.rtid = self.tid
             if name != remote.name:
                 self.stack.renameRemote(old=remote.name, new=name)
             #remote.nextSid() #set in complete method
@@ -1450,8 +1449,8 @@ class Allowent(Correspondent):
 
         remote = self.stack.remotes[self.reid]
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        remote.rsid = self.sid #update last received rsid for estate
-        remote.rtid = self.tid #update last received rtid for estate
+        #remote.rsid = self.sid #update last received rsid for estate
+        #remote.rtid = self.tid #update last received rtid for estate
         self.oreo = None #keep locally generated oreo around for redos
         remote.rekey() # refresh short term keys and .allowed
         self.prep() # prepare .txData
@@ -1542,13 +1541,13 @@ class Allowent(Correspondent):
             self.nack(kind=raeting.pcktKinds.unjoined)
             return
 
-        #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        if not remote.validRsid(self.sid):
-            emsg = "Stale sid '{0}' in packet\n".format(self.sid)
-            console.terse(emsg)
-            self.stack.incStat('stale_sid_allow_attempt')
-            self.remove()
-            return
+        ##Current .sid was set by stack from rxPacket.data sid so it is the new rsid
+        #if not remote.validRsid(self.sid):
+            #emsg = "Stale sid '{0}' in packet\n".format(self.sid)
+            #console.terse(emsg)
+            #self.stack.incStat('stale_sid_allow_attempt')
+            #self.remove()
+            #return
 
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -2037,8 +2036,8 @@ class Alivent(Correspondent):
         #remote.alive = None # reset alive status until done with transaction
         # .bcast set from packet by stack when created transaction
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        remote.rsid = self.sid #update last received rsid for estate
-        remote.rtid = self.tid #update last received rtid for estate
+        #remote.rsid = self.sid #update last received rsid for estate
+        #remote.rtid = self.tid #update last received rtid for estate
         self.prep() # prepare .txData
         self.add(self.index)
 
@@ -2108,13 +2107,13 @@ class Alivent(Correspondent):
             self.nack(kind=raeting.pcktKinds.unallowed)
             return
 
-        #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        if not remote.validRsid(self.sid):
-            emsg = "Stale sid '{0}' in packet\n".format(self.sid)
-            console.terse(emsg)
-            self.stack.incStat('stale_sid_message_attempt')
-            self.remove()
-            return
+        ##Current .sid was set by stack from rxPacket.data sid so it is the new rsid
+        #if not remote.validRsid(self.sid):
+            #emsg = "Stale sid '{0}' in packet\n".format(self.sid)
+            #console.terse(emsg)
+            #self.stack.incStat('stale_sid_message_attempt')
+            #self.remove()
+            #return
 
         if self.reid not in self.stack.remotes:
             msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
@@ -2419,8 +2418,8 @@ class Messengent(Correspondent):
         remote = self.stack.remotes[self.reid]
         # .bcast .wait set from packet by stack when created transaction
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        remote.rsid = self.sid #update last received rsid for estate
-        remote.rtid = self.tid #update last received rtid for estate
+        #remote.rsid = self.sid #update last received rsid for estate
+        #remote.rtid = self.tid #update last received rtid for estate
         self.prep() # prepare .txData
         self.tray = packeting.RxTray(stack=self.stack)
         self.add(self.index)
@@ -2498,13 +2497,13 @@ class Messengent(Correspondent):
             self.stack.incStat('unallowed_message_attempt')
             self.nack()
             return
-        #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        if not remote.validRsid(self.sid):
-            emsg = "Stale sid '{0}' in packet\n".format(self.sid)
-            console.terse(emsg)
-            self.stack.incStat('stale_sid_message_attempt')
-            self.remove()
-            return
+        ##Current .sid was set by stack from rxPacket.data sid so it is the new rsid
+        #if not remote.validRsid(self.sid):
+            #emsg = "Stale sid '{0}' in packet\n".format(self.sid)
+            #console.terse(emsg)
+            #self.stack.incStat('stale_sid_message_attempt')
+            #self.remove()
+            #return
 
         try:
             body = self.tray.parse(self.rxPacket)

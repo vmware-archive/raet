@@ -380,15 +380,15 @@ class RoadStack(stacking.Stack):
             self.incStat('parsing_outer_error')
             return
 
+        sh, sp = sa
+        dh, dp = da
+        packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
+
         deid = packet.data['de']
         if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
             emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
             console.concise( emsg)
             self.incStat('invalid_destination')
-
-        sh, sp = sa
-        dh, dp = da
-        packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
 
         self.processRx(packet)
 
@@ -400,16 +400,37 @@ class RoadStack(stacking.Stack):
         console.verbose("{0} received packet data\n{1}\n".format(self.name, received.data))
         console.verbose("{0} received packet index = '{1}'\n".format(self.name, received.index))
 
+        reid = received.data['se']
+        remote = self.remotes.get(reid, None)
+        rsid = received.data['si']
+        cf = received.data['cf']
+
+        if remote and rsid != 0 and not cf: # packet from remote initiated transaction
+            if not remote.validRsid(rsid): # invalid rsid
+                emsg = "Stale sid '{0}' in packet\n".format(rsid)
+                console.terse(emsg)
+                self.incStat('stale_sid_attempt')
+                self.stale(received)
+                return # should nack stale transaction
+
+            if rsid != remote.rsid:
+                #console.verbose("Changing rsid of '{0}' from {1} to {2} in {3} "
+                        #"transaction.\n".format(remote.name,
+                                                #remote.rsid,
+                                                #rsid,
+                                                #raeting.TRNS_KIND_NAMES[received.data['tk']]))
+                remote.rsid = rsid
+
         trans = self.transactions.get(received.index, None)
         if trans:
             trans.receive(received)
             return
 
-        if received.data['cf']: #correspondent to stale transaction
+        if cf: #packet from correspondent to non-existent transaction in
             self.stale(received)
             return
 
-        self.reply(received)
+        self.reply(received) # new transaction initiated by remote
 
     def reply(self, packet):
         '''

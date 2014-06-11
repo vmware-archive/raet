@@ -1217,7 +1217,7 @@ class BasicTestCase(unittest.TestCase):
         # so try to send messages
         mains = [odict(content="Hello other body")]
         others = [odict(content="Hello main body")]
-        self.message(main, other, mains, others,  duration=2.0)
+        self.message(main, other, mains, others,  duration=3.0)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(others), len(main.rxMsgs))
         for i, msg in enumerate(main.rxMsgs):
@@ -1894,9 +1894,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    #runOne('testRejoinFromMain')
+    #runOne('testLostOtherKeepLocal')
 
