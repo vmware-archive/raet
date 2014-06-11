@@ -1445,9 +1445,9 @@ class Allowent(Correspondent):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.oreo = None #keep locally generated oreo around for redos
-        remote.rekey() # refresh short term keys and .allowed
+        self.remote.rekey() # refresh short term keys and .allowed
         self.prep() # prepare .txData
         self.add(self.index)
 
@@ -1510,11 +1510,11 @@ class Allowent(Correspondent):
         '''
         Prepare .txData
         '''
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
+                            dh=self.remote.host,
+                            dp=self.remote.port,
                             se=self.stack.local.uid,
                             de=self.reid,
                             tk=self.kind,
@@ -1528,8 +1528,8 @@ class Allowent(Correspondent):
         '''
         Process hello packet
         '''
-        remote = self.stack.remotes[self.reid]
-        if not remote.joined:
+        #remote = self.stack.remotes[self.reid]
+        if not self.remote.joined:
             emsg = "Allowent {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_allow_attempt')
@@ -1557,9 +1557,9 @@ class Allowent(Correspondent):
 
         plain, shortraw, cipher, nonce = raeting.HELLO_PACKER.unpack(body)
 
-        remote = self.stack.remotes[self.reid]
-        remote.publee = nacling.Publican(key=shortraw)
-        msg = self.stack.local.priver.decrypt(cipher, nonce, remote.publee.key)
+        #remote = self.stack.remotes[self.reid]
+        self.remote.publee = nacling.Publican(key=shortraw)
+        msg = self.stack.local.priver.decrypt(cipher, nonce, self.remote.publee.key)
         if msg != plain :
             emsg = "Invalid plain not match decrypted cipher\n"
             console.terse(emsg)
@@ -1573,23 +1573,23 @@ class Allowent(Correspondent):
         '''
         Send Cookie Packet
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         oreo = self.stack.local.priver.nonce()
         self.oreo = binascii.hexlify(oreo)
 
-        stuff = raeting.COOKIESTUFF_PACKER.pack(remote.privee.pubraw,
+        stuff = raeting.COOKIESTUFF_PACKER.pack(self.remote.privee.pubraw,
                                                 self.stack.local.uid,
-                                                remote.uid,
+                                                self.remote.uid,
                                                 oreo)
 
-        cipher, nonce = self.stack.local.priver.encrypt(stuff, remote.publee.key)
+        cipher, nonce = self.stack.local.priver.encrypt(stuff, self.remote.publee.key)
         body = raeting.COOKIE_PACKER.pack(cipher, nonce)
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.cookie,
@@ -1631,9 +1631,9 @@ class Allowent(Correspondent):
 
         shortraw, oreo, cipher, nonce = raeting.INITIATE_PACKER.unpack(body)
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
 
-        if shortraw != remote.publee.keyraw:
+        if shortraw != self.remote.publee.keyraw:
             emsg = "Mismatch of short term public key in initiate packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
@@ -1647,7 +1647,7 @@ class Allowent(Correspondent):
             self.remove()
             return
 
-        msg = remote.privee.decrypt(cipher, nonce, remote.publee.key)
+        msg = self.remote.privee.decrypt(cipher, nonce, self.remote.publee.key)
         if len(msg) != raeting.INITIATESTUFF_PACKER.size:
             emsg = "Invalid length of initiate stuff\n"
             console.terse(emsg)
@@ -1656,7 +1656,7 @@ class Allowent(Correspondent):
             return
 
         pubraw, vcipher, vnonce, fqdn = raeting.INITIATESTUFF_PACKER.unpack(msg)
-        if pubraw != remote.pubber.keyraw:
+        if pubraw != self.remote.pubber.keyraw:
             emsg = "Mismatch of long term public key in initiate stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
@@ -1671,8 +1671,8 @@ class Allowent(Correspondent):
             #self.remove()
             #return
 
-        vouch = self.stack.local.priver.decrypt(vcipher, vnonce, remote.pubber.key)
-        if vouch != remote.publee.keyraw or vouch != shortraw:
+        vouch = self.stack.local.priver.decrypt(vcipher, vnonce, self.remote.pubber.key)
+        if vouch != self.remote.publee.keyraw or vouch != shortraw:
             emsg = "Short term key vouch failed\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
@@ -1685,12 +1685,12 @@ class Allowent(Correspondent):
         '''
         Send ack to initiate request
         '''
-        if self.reid not in self.stack.remotes:
-            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         body = ""
         packet = packeting.TxPacket(stack=self.stack,
@@ -1715,8 +1715,8 @@ class Allowent(Correspondent):
         '''
         Perform allowment
         '''
-        remote = self.stack.remotes[self.reid]
-        remote.allowed = True
+        #remote = self.stack.remotes[self.reid]
+        self.remote.allowed = True
 
     def final(self):
         '''
@@ -1740,8 +1740,8 @@ class Allowent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.allowed = False
+        #remote = self.stack.remotes[self.reid]
+        self.remote.allowed = False
 
         self.remove()
         console.concise("Allowent {0}. Rejected at {1}\n".format(
@@ -1752,12 +1752,12 @@ class Allowent(Correspondent):
         '''
         Send nack to terminate allow transaction
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         body = ""
         packet = packeting.TxPacket(stack=self.stack,
