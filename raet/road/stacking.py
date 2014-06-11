@@ -400,14 +400,12 @@ class RoadStack(stacking.Stack):
         console.verbose("{0} received packet data\n{1}\n".format(self.name, received.data))
         console.verbose("{0} received packet index = '{1}'\n".format(self.name, received.index))
 
-        tk = received.data['tk']
         cf = received.data['cf']
         rsid = received.data['si']
-        reid = received.data['se']
-        remote = self.remotes.get(reid, None)
+        remote = self.remotes.get(received.data['se'], None)
 
         if rsid == 0:
-            if tk != raeting.trnsKinds.join:
+            if received.data['tk'] != raeting.trnsKinds.join:
                 emsg = "Invalid sid '{0}' in packet\n".format(rsid)
                 console.terse(emsg)
                 self.incStat('invalid_sid_attempt')
@@ -419,7 +417,7 @@ class RoadStack(stacking.Stack):
                     emsg = "Stale sid '{0}' in packet\n".format(rsid)
                     console.terse(emsg)
                     self.incStat('stale_sid_attempt')
-                    #self.stale(received) need correspondent stalent to nack
+                    #self.replyStale(received) need correspondent stalent to nack
                     return # should nack stale transaction
 
                 if rsid != remote.rsid:
@@ -440,34 +438,41 @@ class RoadStack(stacking.Stack):
             self.stale(received)
             return
 
-        self.reply(received) # new transaction initiated by remote
+        self.reply(received, remote) # new transaction initiated by remote
 
-    def reply(self, packet):
+    def reply(self, packet, remote):
         '''
         Reply to packet with corresponding transaction or action
         '''
         if (packet.data['tk'] == raeting.trnsKinds.join and
                 packet.data['pk'] == raeting.pcktKinds.request and
                 packet.data['si'] == 0):
-            self.replyJoin(packet)
+            self.replyJoin(packet, remote)
+            return
+
+        if not remote:
+            msg = "Invalid remote destination estate id '{0}'\n".format(packet['se'])
+            console.terse(emsg)
+            self.stack.incStat('invalid_remote_eid')
+            self.remove()
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.allow and
                 packet.data['pk'] == raeting.pcktKinds.hello and
                 packet.data['si'] != 0):
-            self.replyAllow(packet)
+            self.replyAllow(packet, remote)
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.alive and
                 packet.data['pk'] == raeting.pcktKinds.request and
                 packet.data['si'] != 0):
-            self.replyAlive(packet)
+            self.replyAlive(packet, remote)
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.message and
                 packet.data['pk'] == raeting.pcktKinds.message and
                 packet.data['si'] != 0):
-            self.replyMessage(packet)
+            self.replyMessage(packet, remote)
             return
 
         self.incStat('stale_packet')
@@ -520,16 +525,17 @@ class RoadStack(stacking.Stack):
                                     cascade=cascade)
         joiner.join()
 
-    def replyJoin(self, packet):
+    def replyJoin(self, packet, remote):
         '''
         Correspond to new join transaction
         '''
         data = odict(hk=self.Hk, bk=self.Bk)
         joinent = transacting.Joinent(stack=self,
-                                        sid=packet.data['si'],
-                                        tid=packet.data['ti'],
-                                        txData=data,
-                                        rxPacket=packet)
+                                      remote=remote,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
         joinent.join() #assigns .reid here
 
     def allow(self, deid=None, mha=None, timeout=None, cascade=False):
@@ -545,12 +551,13 @@ class RoadStack(stacking.Stack):
                                       cascade=cascade)
         allower.hello()
 
-    def replyAllow(self, packet):
+    def replyAllow(self, packet, remote):
         '''
         Correspond to new allow transaction
         '''
         data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
         allowent = transacting.Allowent(stack=self,
+                                        remote=remote,
                                         reid=packet.data['se'],
                                         sid=packet.data['si'],
                                         tid=packet.data['ti'],
@@ -571,18 +578,19 @@ class RoadStack(stacking.Stack):
                                     cascade=cascade)
         aliver.alive()
 
-    def replyAlive(self, packet):
+    def replyAlive(self, packet, remote):
         '''
         Correspond to new Alive transaction
         '''
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         alivent = transacting.Alivent(stack=self,
-                                        reid=packet.data['se'],
-                                        bcst=packet.data['bf'],
-                                        sid=packet.data['si'],
-                                        tid=packet.data['ti'],
-                                        txData=data,
-                                        rxPacket=packet)
+                                      remote=remote,
+                                      reid=packet.data['se'],
+                                      bcst=packet.data['bf'],
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
         alivent.alive()
 
     def message(self, body=None, duid=None):
@@ -597,17 +605,18 @@ class RoadStack(stacking.Stack):
                                           wait=self.Wf)
         messenger.message(body)
 
-    def replyMessage(self, packet):
+    def replyMessage(self, packet, remote):
         '''
         Correspond to new Message transaction
         '''
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         messengent = transacting.Messengent(stack=self,
-                                        reid=packet.data['se'],
-                                        bcst=packet.data['bf'],
-                                        sid=packet.data['si'],
-                                        tid=packet.data['ti'],
-                                        txData=data,
-                                        rxPacket=packet)
+                                            remote=remote,
+                                            reid=packet.data['se'],
+                                            bcst=packet.data['bf'],
+                                            sid=packet.data['si'],
+                                            tid=packet.data['ti'],
+                                            txData=data,
+                                            rxPacket=packet)
         messengent.message()
 
