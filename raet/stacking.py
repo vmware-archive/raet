@@ -56,6 +56,7 @@ class Stack(object):
                  rxes=None,
                  txes=None,
                  stats=None,
+                 clean=False,
                  ):
         '''
         Setup Stack instance
@@ -71,6 +72,11 @@ class Stack(object):
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
                                             stackname=self.name)
+
+        if clean: # clear persisted data so uses provided or default data
+            self.clearLocal()
+            self.clearRemoteKeeps()
+
         self.loadLocal(local=local, name=localname) # load local data from saved data else passed in local
         self.remotes = odict() # remotes indexed by uid
         self.uids = odict() # remote uids indexed by name
