@@ -1445,7 +1445,6 @@ class Allowent(Correspondent):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        #remote = self.stack.remotes[self.reid]
         self.oreo = None #keep locally generated oreo around for redos
         self.remote.rekey() # refresh short term keys and .allowed
         self.prep() # prepare .txData
@@ -1510,7 +1509,6 @@ class Allowent(Correspondent):
         '''
         Prepare .txData
         '''
-        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
                             dh=self.remote.host,
@@ -1528,7 +1526,6 @@ class Allowent(Correspondent):
         '''
         Process hello packet
         '''
-        #remote = self.stack.remotes[self.reid]
         if not self.remote.joined:
             emsg = "Allowent {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
@@ -1557,7 +1554,6 @@ class Allowent(Correspondent):
 
         plain, shortraw, cipher, nonce = raeting.HELLO_PACKER.unpack(body)
 
-        #remote = self.stack.remotes[self.reid]
         self.remote.publee = nacling.Publican(key=shortraw)
         msg = self.stack.local.priver.decrypt(cipher, nonce, self.remote.publee.key)
         if msg != plain :
@@ -1573,14 +1569,6 @@ class Allowent(Correspondent):
         '''
         Send Cookie Packet
         '''
-        #if self.reid not in self.stack.remotes:
-            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            #console.terse(emsg)
-            #self.stack.incStat('invalid_remote_eid')
-            #self.remove()
-            #return
-
-        #remote = self.stack.remotes[self.reid]
         oreo = self.stack.local.priver.nonce()
         self.oreo = binascii.hexlify(oreo)
 
@@ -1630,8 +1618,6 @@ class Allowent(Correspondent):
             return
 
         shortraw, oreo, cipher, nonce = raeting.INITIATE_PACKER.unpack(body)
-
-        #remote = self.stack.remotes[self.reid]
 
         if shortraw != self.remote.publee.keyraw:
             emsg = "Mismatch of short term public key in initiate packet\n"
@@ -1685,12 +1671,6 @@ class Allowent(Correspondent):
         '''
         Send ack to initiate request
         '''
-        #if self.reid not in self.stack.remotes:
-            #msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            #console.terse(emsg)
-            #self.stack.incStat('invalid_remote_eid')
-            #self.remove()
-            #return
 
         body = ""
         packet = packeting.TxPacket(stack=self.stack,
@@ -1715,7 +1695,6 @@ class Allowent(Correspondent):
         '''
         Perform allowment
         '''
-        #remote = self.stack.remotes[self.reid]
         self.remote.allowed = True
 
     def final(self):
@@ -1740,7 +1719,6 @@ class Allowent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        #remote = self.stack.remotes[self.reid]
         self.remote.allowed = False
 
         self.remove()
@@ -1752,13 +1730,6 @@ class Allowent(Correspondent):
         '''
         Send nack to terminate allow transaction
         '''
-        #if self.reid not in self.stack.remotes:
-            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            #console.terse(emsg)
-            #self.stack.incStat('invalid_remote_eid')
-            #self.remove()
-            #return
-
         body = ""
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=kind,
@@ -2019,7 +1990,6 @@ class Alivent(Correspondent):
             raise TypeError(emsg)
         super(Alivent, self).__init__(**kwa)
 
-        #remote = self.stack.remotes[self.reid]
         #self.remote.alive = None # reset alive status until done with transaction
         self.prep() # prepare .txData
         self.add(self.index)
@@ -2049,7 +2019,6 @@ class Alivent(Correspondent):
         '''
         Prepare .txData
         '''
-        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
                             dh=self.remote.host,
@@ -2071,8 +2040,6 @@ class Alivent(Correspondent):
             return
         data = self.rxPacket.data
         body = self.rxPacket.body.data
-
-        #remote = self.stack.remotes[self.reid]
 
         if not self.remote.joined:
             self.remote.refresh(alived=None) # indeterminate
@@ -2390,7 +2357,6 @@ class Messengent(Correspondent):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        #remote = self.stack.remotes[self.reid]
         self.prep() # prepare .txData
         self.tray = packeting.RxTray(stack=self.stack)
         self.add(self.index)
@@ -2441,7 +2407,6 @@ class Messengent(Correspondent):
         '''
         Prepare .txData
         '''
-        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
                             dh=self.remote.host,
@@ -2459,7 +2424,6 @@ class Messengent(Correspondent):
         '''
         Process message packet
         '''
-        #remote = self.stack.remotes[self.reid]
         self.remote.refresh(alived=True)
 
         if not self.remote.allowed:
@@ -2498,13 +2462,6 @@ class Messengent(Correspondent):
         '''
         Send ack to message
         '''
-        #if self.reid not in self.stack.remotes:
-            #msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            #console.terse(emsg)
-            #self.stack.incStat('invalid_remote_eid')
-            #self.remove()
-            #return
-
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.ack,
@@ -2526,13 +2483,6 @@ class Messengent(Correspondent):
         '''
         Send resend request(s) for missing packets
         '''
-        #if self.reid not in self.stack.remotes:
-            #msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            #console.terse(emsg)
-            #self.stack.incStat('invalid_remote_eid')
-            #self.remove()
-            #return
-
         while misseds:
             if len(misseds) > 64:
                 remainders = misseds[64:] # only do at most 64 at a time
@@ -2575,7 +2525,6 @@ class Messengent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        #remote = self.stack.remotes[self.reid]
         self.remote.refresh(alived=True)
 
         self.remove()
@@ -2587,13 +2536,6 @@ class Messengent(Correspondent):
         '''
         Send nack to terminate messenger transaction
         '''
-        #if self.reid not in self.stack.remotes:
-            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            #console.terse(emsg)
-            #self.stack.incStat('invalid_remote_eid')
-            #self.remove()
-            #return
-
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.nack,
