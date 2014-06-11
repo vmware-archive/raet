@@ -1792,6 +1792,389 @@ class Allowent(Correspondent):
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
+class Aliver(Initiator):
+    '''
+    RAET protocol Aliver Initiator class Dual of Alivent
+    Sends keep alive heatbeat messages to detect presence
+    '''
+    Timeout = 2.0
+    RedoTimeoutMin = 0.25 # initial timeout
+    RedoTimeoutMax = 1.0 # max timeout
+
+    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
+                cascade=False, **kwa):
+        '''
+        Setup instance
+        '''
+        kwa['kind'] = raeting.trnsKinds.alive
+        super(Aliver, self).__init__(**kwa)
+
+        self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
+        self.cascade = cascade
+
+        self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
+        self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
+        self.redoTimer = aiding.StoreTimer(self.stack.store,
+                                           duration=self.redoTimeoutMin)
+
+        if self.reid is None:
+            if not self.stack.remotes: # no remote estate so make one
+                remote = estating.RemoteEstate(stack=self.stack,
+                                               eid=0,
+                                               ha=self.mha,
+                                               period=self.stack.period,
+                                               offset=self.stack.offset)
+                self.stack.addRemote(remote)
+            self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
+        remote = self.stack.remotes[self.reid]
+        remote.alived = None # reset alive status until done with transaction
+        # .bcast set from packet by stack when created transaction
+        self.sid = remote.sid
+        self.tid = remote.nextTid()
+        self.prep() # prepare .txData
+        self.add(self.index)
+
+    def transmit(self, packet):
+        '''
+        Augment transmit with restart of redo timer
+        '''
+        super(Aliver, self).transmit(packet)
+        self.redoTimer.restart()
+
+    def receive(self, packet):
+        """
+        Process received packet belonging to this transaction
+        """
+        super(Aliver, self).receive(packet)
+
+        if packet.data['tk'] == raeting.trnsKinds.alive:
+            if packet.data['pk'] == raeting.pcktKinds.ack:
+                self.complete()
+            elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
+                self.refuse()
+            elif packet.data['pk'] == raeting.pcktKinds.unjoined: # rejected
+                self.unjoin()
+            elif packet.data['pk'] == raeting.pcktKinds.unallowed: # rejected
+                self.unallow()
+
+    def process(self):
+        '''
+        Perform time based processing of transaction
+        '''
+        if self.timeout > 0.0 and self.timer.expired:
+            console.concise("Aliver {0}. Timed out at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+            self.remove()
+            remote = self.stack.remotes[self.reid]
+            remote.refresh(alived=False) # mark as dead
+            #self.reap() #remote is dead so reap it
+            return
+
+        # need keep sending message until completed or timed out
+        if self.redoTimer.expired:
+            duration = min(
+                         max(self.redoTimeoutMin,
+                              self.redoTimer.duration * 2.0),
+                         self.redoTimeoutMax)
+            self.redoTimer.restart(duration=duration)
+            if self.txPacket:
+                if self.txPacket.data['pk'] == raeting.pcktKinds.request:
+                    self.transmit(self.txPacket) # redo
+                    console.concise("Aliver {0}. Redo at {1}\n".format(
+                        self.stack.name, self.stack.store.stamp))
+                    self.stack.incStat('redo_alive')
+
+    def prep(self):
+        '''
+        Prepare .txData
+        '''
+        remote = self.stack.remotes[self.reid]
+        self.txData.update( sh=self.stack.local.host,
+                            sp=self.stack.local.port,
+                            dh=remote.host,
+                            dp=remote.port,
+                            se=self.stack.local.uid,
+                            de=self.reid,
+                            tk=self.kind,
+                            cf=self.rmt,
+                            bf=self.bcst,
+                            wf=self.wait,
+                            si=self.sid,
+                            ti=self.tid,)
+
+    def alive(self, body=None):
+        '''
+        Send message
+        '''
+        if self.reid not in self.stack.remotes:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
+            self.stack.incStat('invalid_remote_eid')
+            self.remove()
+            return
+
+        remote = self.stack.remotes[self.reid]
+        if not remote.joined:
+            emsg = "Aliver {0}. Must be joined first\n".format(self.stack.name)
+            console.terse(emsg)
+            self.stack.incStat('unjoined_remote')
+            self.remove()
+            self.stack.join(deid=self.reid, cascade=self.cascade)
+            return
+
+        if not remote.allowed:
+            emsg = "Aliver {0}. Must be allowed first\n".format(self.stack.name)
+            console.terse(emsg)
+            self.stack.incStat('unallowed_remote')
+            self.remove()
+            self.stack.allow(deid=self.reid, cascade=self.cascade)
+            return
+
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.request,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove()
+            return
+        self.transmit(packet)
+        console.concise("Aliver {0}. Do Alive at {1}\n".format(self.stack.name,
+                                                    self.stack.store.stamp))
+    def complete(self):
+        '''
+        Process ack packet. Complete transaction and remove
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=True) # restart timer mark as alive
+        self.remove()
+        console.concise("Aliver {0}. Done at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+        self.stack.incStat("alive_complete")
+
+    def reap(self):
+        '''
+        Remote dead. Reap it.
+        '''
+        self.remove()
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=False) # mark as dead
+        console.concise("Aliver {0}. Reaping dead remote '{1}' at {2}\n".format(
+                self.stack.name, remote.name, self.stack.store.stamp))
+        self.stack.incStat("alive_reap")
+        self.stack.removeRemote(remote.uid)
+
+    def refuse(self):
+        '''
+        Process nack packet
+        terminate in response to nack
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=None) # restart timer mark as indeterminate
+        self.remove()
+        console.concise("Aliver {0}. Rejected at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
+    def unjoin(self):
+        '''
+        Process unjoin packet
+        terminate in response to unjoin
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=None) # restart timer mark as indeterminate
+        remote.joined = False
+        self.remove()
+        console.concise("Aliver {0}. Rejected at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.stack.join(deid=self.reid, cascade=self.cascade)
+
+    def unallow(self):
+        '''
+        Process unallow nack packet
+        terminate in response to unallow
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.remotes[self.reid]
+        remote.refresh(alived=None) # restart timer mark as indeterminate
+        remote.allowed = False
+        self.remove()
+        console.concise("Aliver {0}. Rejected at {1}\n".format(
+                self.stack.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.stack.allow(deid=self.reid, cascade=self.cascade)
+
+class Alivent(Correspondent):
+    '''
+    RAET protocol Alivent Correspondent class Dual of Aliver
+    Keep alive heartbeat
+    '''
+    Timeout = 10.0
+
+    def __init__(self, **kwa):
+        '''
+        Setup instance
+        '''
+        kwa['kind'] = raeting.trnsKinds.alive
+        if 'reid' not  in kwa:
+            emsg = "Missing required keyword argumens: '{0}'".format('reid')
+            raise TypeError(emsg)
+        super(Alivent, self).__init__(**kwa)
+
+        remote = self.stack.remotes[self.reid]
+        #remote.alive = None # reset alive status until done with transaction
+        # .bcast set from packet by stack when created transaction
+        #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
+        remote.rsid = self.sid #update last received rsid for estate
+        remote.rtid = self.tid #update last received rtid for estate
+        self.prep() # prepare .txData
+        self.add(self.index)
+
+    def receive(self, packet):
+        """
+        Process received packet belonging to this transaction
+        """
+        super(Alivent, self).receive(packet)
+
+        if packet.data['tk'] == raeting.trnsKinds.alive:
+            if packet.data['pk'] == raeting.pcktKinds.request:
+                self.alive()
+
+    def process(self):
+        '''
+        Perform time based processing of transaction
+
+        '''
+        if self.timeout > 0.0 and self.timer.expired:
+            self.nack()
+            console.concise("Alivent {0}. Timed out at {1}\n".format(
+                    self.stack.name, self.stack.store.stamp))
+            return
+
+    def prep(self):
+        '''
+        Prepare .txData
+        '''
+        remote = self.stack.remotes[self.reid]
+        self.txData.update( sh=self.stack.local.host,
+                            sp=self.stack.local.port,
+                            dh=remote.host,
+                            dp=remote.port,
+                            se=self.stack.local.uid,
+                            de=self.reid,
+                            tk=self.kind,
+                            cf=self.rmt,
+                            bf=self.bcst,
+                            wf=self.wait,
+                            si=self.sid,
+                            ti=self.tid,)
+
+    def alive(self):
+        '''
+        Process alive packet
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        data = self.rxPacket.data
+        body = self.rxPacket.body.data
+
+        remote = self.stack.remotes[self.reid]
+
+        if not remote.joined:
+            remote.refresh(alived=None) # indeterminate
+            emsg = "Alivent {0}. Must be joined first\n".format(self.stack.name)
+            console.terse(emsg)
+            self.stack.incStat('unjoined_alive_attempt')
+            self.nack(kind=raeting.pcktKinds.unjoined)
+            return
+
+        if not remote.allowed:
+            remote.refresh(alived=None) # indeterminate
+            emsg = "Alivent {0}. Must be allowed first\n".format(self.stack.name)
+            console.terse(emsg)
+            self.stack.incStat('unallowed_alive_attempt')
+            self.nack(kind=raeting.pcktKinds.unallowed)
+            return
+
+        #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
+        if not remote.validRsid(self.sid):
+            emsg = "Stale sid '{0}' in packet\n".format(self.sid)
+            console.terse(emsg)
+            self.stack.incStat('stale_sid_message_attempt')
+            self.remove()
+            return
+
+        if self.reid not in self.stack.remotes:
+            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
+            self.stack.incStat('invalid_remote_eid')
+            self.remove()
+            return
+
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.ack,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove(self.rxPacket.index)
+            return
+
+        self.transmit(packet)
+        console.concise("Alivent {0}. Do ack alive at {1}\n".format(self.stack.name,
+                                                        self.stack.store.stamp))
+        remote.refresh(alived=True)
+        self.remove()
+        console.concise("Alivent {0}. Done at {1}\n".format(
+                        self.stack.name, self.stack.store.stamp))
+        self.stack.incStat("alive_complete")
+
+    def nack(self, kind=raeting.pcktKinds.nack):
+        '''
+        Send nack to terminate alive transaction
+        '''
+        if self.reid not in self.stack.remotes:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
+            self.stack.incStat('invalid_remote_eid')
+            self.remove()
+            return
+
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=kind,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove()
+            return
+
+        self.transmit(packet)
+        self.remove()
+        console.concise("Alivent {0}. Reject at {1}\n".format(self.stack.name,
+                                                    self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
 class Messenger(Initiator):
     '''
     RAET protocol Messenger Initiator class Dual of Messengent
@@ -2267,385 +2650,3 @@ class Messengent(Correspondent):
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
-class Aliver(Initiator):
-    '''
-    RAET protocol Aliver Initiator class Dual of Alivent
-    Sends keep alive heatbeat messages to detect presence
-    '''
-    Timeout = 2.0
-    RedoTimeoutMin = 0.25 # initial timeout
-    RedoTimeoutMax = 1.0 # max timeout
-
-    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
-                cascade=False, **kwa):
-        '''
-        Setup instance
-        '''
-        kwa['kind'] = raeting.trnsKinds.alive
-        super(Aliver, self).__init__(**kwa)
-
-        self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
-        self.cascade = cascade
-
-        self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
-        self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
-                                           duration=self.redoTimeoutMin)
-
-        if self.reid is None:
-            if not self.stack.remotes: # no remote estate so make one
-                remote = estating.RemoteEstate(stack=self.stack,
-                                               eid=0,
-                                               ha=self.mha,
-                                               period=self.stack.period,
-                                               offset=self.stack.offset)
-                self.stack.addRemote(remote)
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
-        remote = self.stack.remotes[self.reid]
-        remote.alived = None # reset alive status until done with transaction
-        # .bcast set from packet by stack when created transaction
-        self.sid = remote.sid
-        self.tid = remote.nextTid()
-        self.prep() # prepare .txData
-        self.add(self.index)
-
-    def transmit(self, packet):
-        '''
-        Augment transmit with restart of redo timer
-        '''
-        super(Aliver, self).transmit(packet)
-        self.redoTimer.restart()
-
-    def receive(self, packet):
-        """
-        Process received packet belonging to this transaction
-        """
-        super(Aliver, self).receive(packet)
-
-        if packet.data['tk'] == raeting.trnsKinds.alive:
-            if packet.data['pk'] == raeting.pcktKinds.ack:
-                self.complete()
-            elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
-                self.refuse()
-            elif packet.data['pk'] == raeting.pcktKinds.unjoined: # rejected
-                self.unjoin()
-            elif packet.data['pk'] == raeting.pcktKinds.unallowed: # rejected
-                self.unallow()
-
-    def process(self):
-        '''
-        Perform time based processing of transaction
-        '''
-        if self.timeout > 0.0 and self.timer.expired:
-            console.concise("Aliver {0}. Timed out at {1}\n".format(
-                self.stack.name, self.stack.store.stamp))
-            self.remove()
-            remote = self.stack.remotes[self.reid]
-            remote.refresh(alived=False) # mark as dead
-            #self.reap() #remote is dead so reap it
-            return
-
-        # need keep sending message until completed or timed out
-        if self.redoTimer.expired:
-            duration = min(
-                         max(self.redoTimeoutMin,
-                              self.redoTimer.duration * 2.0),
-                         self.redoTimeoutMax)
-            self.redoTimer.restart(duration=duration)
-            if self.txPacket:
-                if self.txPacket.data['pk'] == raeting.pcktKinds.request:
-                    self.transmit(self.txPacket) # redo
-                    console.concise("Aliver {0}. Redo at {1}\n".format(
-                        self.stack.name, self.stack.store.stamp))
-                    self.stack.incStat('redo_alive')
-
-    def prep(self):
-        '''
-        Prepare .txData
-        '''
-        remote = self.stack.remotes[self.reid]
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
-                            se=self.stack.local.uid,
-                            de=self.reid,
-                            tk=self.kind,
-                            cf=self.rmt,
-                            bf=self.bcst,
-                            wf=self.wait,
-                            si=self.sid,
-                            ti=self.tid,)
-
-    def alive(self, body=None):
-        '''
-        Send message
-        '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
-
-        remote = self.stack.remotes[self.reid]
-        if not remote.joined:
-            emsg = "Aliver {0}. Must be joined first\n".format(self.stack.name)
-            console.terse(emsg)
-            self.stack.incStat('unjoined_remote')
-            self.remove()
-            self.stack.join(deid=self.reid, cascade=self.cascade)
-            return
-
-        if not remote.allowed:
-            emsg = "Aliver {0}. Must be allowed first\n".format(self.stack.name)
-            console.terse(emsg)
-            self.stack.incStat('unallowed_remote')
-            self.remove()
-            self.stack.allow(deid=self.reid, cascade=self.cascade)
-            return
-
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.request,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove()
-            return
-        self.transmit(packet)
-        console.concise("Aliver {0}. Do Alive at {1}\n".format(self.stack.name,
-                                                    self.stack.store.stamp))
-    def complete(self):
-        '''
-        Process ack packet. Complete transaction and remove
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=True) # restart timer mark as alive
-        self.remove()
-        console.concise("Aliver {0}. Done at {1}\n".format(
-                self.stack.name, self.stack.store.stamp))
-        self.stack.incStat("alive_complete")
-
-    def reap(self):
-        '''
-        Remote dead. Reap it.
-        '''
-        self.remove()
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=False) # mark as dead
-        console.concise("Aliver {0}. Reaping dead remote '{1}' at {2}\n".format(
-                self.stack.name, remote.name, self.stack.store.stamp))
-        self.stack.incStat("alive_reap")
-        self.stack.removeRemote(remote.uid)
-
-    def refuse(self):
-        '''
-        Process nack packet
-        terminate in response to nack
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=None) # restart timer mark as indeterminate
-        self.remove()
-        console.concise("Aliver {0}. Rejected at {1}\n".format(
-                self.stack.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-
-    def unjoin(self):
-        '''
-        Process unjoin packet
-        terminate in response to unjoin
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=None) # restart timer mark as indeterminate
-        remote.joined = False
-        self.remove()
-        console.concise("Aliver {0}. Rejected at {1}\n".format(
-                self.stack.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-        self.stack.join(deid=self.reid, cascade=self.cascade)
-
-    def unallow(self):
-        '''
-        Process unallow nack packet
-        terminate in response to unallow
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=None) # restart timer mark as indeterminate
-        remote.allowed = False
-        self.remove()
-        console.concise("Aliver {0}. Rejected at {1}\n".format(
-                self.stack.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-        self.stack.allow(deid=self.reid, cascade=self.cascade)
-
-class Alivent(Correspondent):
-    '''
-    RAET protocol Alivent Correspondent class Dual of Aliver
-    Keep alive heartbeat
-    '''
-    Timeout = 10.0
-
-    def __init__(self, **kwa):
-        '''
-        Setup instance
-        '''
-        kwa['kind'] = raeting.trnsKinds.alive
-        if 'reid' not  in kwa:
-            emsg = "Missing required keyword argumens: '{0}'".format('reid')
-            raise TypeError(emsg)
-        super(Alivent, self).__init__(**kwa)
-
-        remote = self.stack.remotes[self.reid]
-        #remote.alive = None # reset alive status until done with transaction
-        # .bcast set from packet by stack when created transaction
-        #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        remote.rsid = self.sid #update last received rsid for estate
-        remote.rtid = self.tid #update last received rtid for estate
-        self.prep() # prepare .txData
-        self.add(self.index)
-
-    def receive(self, packet):
-        """
-        Process received packet belonging to this transaction
-        """
-        super(Alivent, self).receive(packet)
-
-        if packet.data['tk'] == raeting.trnsKinds.alive:
-            if packet.data['pk'] == raeting.pcktKinds.request:
-                self.alive()
-
-    def process(self):
-        '''
-        Perform time based processing of transaction
-
-        '''
-        if self.timeout > 0.0 and self.timer.expired:
-            self.nack()
-            console.concise("Alivent {0}. Timed out at {1}\n".format(
-                    self.stack.name, self.stack.store.stamp))
-            return
-
-    def prep(self):
-        '''
-        Prepare .txData
-        '''
-        remote = self.stack.remotes[self.reid]
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
-                            se=self.stack.local.uid,
-                            de=self.reid,
-                            tk=self.kind,
-                            cf=self.rmt,
-                            bf=self.bcst,
-                            wf=self.wait,
-                            si=self.sid,
-                            ti=self.tid,)
-
-    def alive(self):
-        '''
-        Process alive packet
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        data = self.rxPacket.data
-        body = self.rxPacket.body.data
-
-        remote = self.stack.remotes[self.reid]
-
-        if not remote.joined:
-            remote.refresh(alived=None) # indeterminate
-            emsg = "Alivent {0}. Must be joined first\n".format(self.stack.name)
-            console.terse(emsg)
-            self.stack.incStat('unjoined_alive_attempt')
-            self.nack(kind=raeting.pcktKinds.unjoined)
-            return
-
-        if not remote.allowed:
-            remote.refresh(alived=None) # indeterminate
-            emsg = "Alivent {0}. Must be allowed first\n".format(self.stack.name)
-            console.terse(emsg)
-            self.stack.incStat('unallowed_alive_attempt')
-            self.nack(kind=raeting.pcktKinds.unallowed)
-            return
-
-        #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
-        if not remote.validRsid(self.sid):
-            emsg = "Stale sid '{0}' in packet\n".format(self.sid)
-            console.terse(emsg)
-            self.stack.incStat('stale_sid_message_attempt')
-            self.remove()
-            return
-
-        if self.reid not in self.stack.remotes:
-            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
-
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.ack,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove(self.rxPacket.index)
-            return
-
-        self.transmit(packet)
-        console.concise("Alivent {0}. Do ack alive at {1}\n".format(self.stack.name,
-                                                        self.stack.store.stamp))
-        remote.refresh(alived=True)
-        self.remove()
-        console.concise("Alivent {0}. Done at {1}\n".format(
-                        self.stack.name, self.stack.store.stamp))
-        self.stack.incStat("alive_complete")
-
-    def nack(self, kind=raeting.pcktKinds.nack):
-        '''
-        Send nack to terminate alive transaction
-        '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
-
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=kind,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove()
-            return
-
-        self.transmit(packet)
-        self.remove()
-        console.concise("Alivent {0}. Reject at {1}\n".format(self.stack.name,
-                                                    self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
