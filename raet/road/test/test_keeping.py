@@ -948,8 +948,6 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, True) # main still rememebers join from before
         self.assertEqual(len(other.transactions), 0)
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.joined, False)
         self.assertEqual(len(other.remotes), 0)
 
         self.allow(other, main)
@@ -958,8 +956,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0)
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.allowed, None)
 
         # now repeate with auto accept off on main
         # now forget the other data again
@@ -991,9 +987,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.joined, True) # unlost other remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.joined, False) # new other rejected by main so not joined
-        #self.assertEqual(remote.acceptance, None) # new other never been accepted
         self.assertEqual(len(other.remotes), 0)
 
 
@@ -1003,8 +996,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.allowed) # unlost other still there
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0)
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.allowed, None) # new other not joined so aborted allow
 
         # so try to send messages should fail since keys not match
         mains = [odict(content="Hello other body")]
@@ -1082,7 +1073,6 @@ class BasicTestCase(unittest.TestCase):
         #now forget the other data local only to simulate just changing other keys
         other.server.close()
         other.clearLocal()
-        #other.clearRemoteKeeps()
 
         # reload with new data
         data = self.createRoadData(name='other', base=self.base)
@@ -1106,8 +1096,6 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertTrue(remote.joined)
         self.assertEqual(len(other.transactions), 0)
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.joined,  False)
         self.assertEqual(len(other.remotes), 0)
 
         self.allow(other, main)
@@ -1116,14 +1104,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0)
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.allowed,  None)
 
         # now repeate with auto accept off on main
         # now forget the other data again
         other.server.close()
         other.clearLocal()
-        #other.clearRemoteKeeps()
 
         # reload with new data
         data = self.createRoadData(name='other', base=self.base)
@@ -1517,7 +1502,6 @@ class BasicTestCase(unittest.TestCase):
         #now forget the main local data only to simulate main changing keys
         main.server.close()
         main.clearLocal()
-        #main.clearRemoteKeeps()
 
         # reload with new local data and saved remote data
         auto = True
@@ -1569,10 +1553,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertNotEqual(len(mains), len(other.rxMsgs))
 
         # now restore original main keys to see if works
-        #now forget the new main data
+        # first forget the new main local data
         main.server.close()
         main.clearLocal()
-        #main.clearRemoteKeeps()
 
         # reload with original saved data
         auto = True
@@ -1695,10 +1678,8 @@ class BasicTestCase(unittest.TestCase):
         #now forget the local local data only to simulate both changing keys
         main.server.close()
         main.clearLocal()
-        #main.clearRemoteKeeps()
         other.server.close()
         other.clearLocal()
-        #other.clearRemoteKeeps()
 
         # reload with new local data and saved remote data
         auto = True
@@ -1742,9 +1723,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.joined, None) # Joinent will reject as name already in use
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.joined, False) # Joiner rejects main
-        #self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1752,8 +1730,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.allowed, None)
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.allowed, None) # new other not joined so aborted allow
 
         # so try to send messages should fail since keys not match
         mains = [odict(content="Hello other body")]
