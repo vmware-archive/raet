@@ -222,6 +222,27 @@ class RoadStack(stacking.Stack):
 
         return None
 
+    def retrieveRemote(self, duid, ha=None):
+        '''
+        Returnes remote at duid
+        If duid is None then creates remote with ha or uses default
+        '''
+
+        if duid is None:
+            if not self.remotes: # no remote estate so make one
+                if self.local.main:
+                    dha = ('127.0.0.1', raeting.RAET_TEST_PORT)
+                else:
+                    dha = ('127.0.0.1', raeting.RAET_PORT)
+                remote = estating.RemoteEstate(stack=self,
+                                               eid=0,
+                                               ha=ha if ha is not None else dha,
+                                               period=self.period,
+                                               offset=self.offset)
+                self.addRemote(remote)
+            duid = self.remotes.values()[0].uid # zeroth is default
+        return (self.remotes[duid])
+
     def dumpLocal(self):
         '''
         Dump keeps of local estate
@@ -513,13 +534,13 @@ class RoadStack(stacking.Stack):
                                     rxPacket=packet)
         staler.nack()
 
-    def join(self, deid=None, mha=None, timeout=None, cascade=False):
+    def join(self, duid=None, mha=None, timeout=None, cascade=False):
         '''
         Initiate join transaction
         '''
         data = odict(hk=self.Hk, bk=self.Bk)
         joiner = transacting.Joiner(stack=self,
-                                    reid=deid,
+                                    reid=duid,
                                     timeout=timeout,
                                     txData=data,
                                     mha=mha,
@@ -539,25 +560,20 @@ class RoadStack(stacking.Stack):
                                       rxPacket=packet)
         joinent.join() #assigns .reid here
 
-    def allow(self, deid=None, mha=None, timeout=None, cascade=False):
+    def allow(self, duid=None, mha=None, timeout=None, cascade=False):
         '''
         Initiate allow transaction
         '''
-        mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
-        if deid is None:
-            if not self.remotes: # no remote estate so make one
-                remote = estating.RemoteEstate(stack=self,
-                                               eid=0,
-                                               ha=mha,
-                                               period=self.period,
-                                               offset=self.offset)
-                self.addRemote(remote)
-            deid = self.remotes.values()[0].uid # zeroth is default
-        remote = self.remotes[deid]
+        remote = self.retrieveRemote(duid=duid, ha=mha)
+        if not remote:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            console.terse(emsg)
+            self.incStat('invalid_remote_eid')
+            return
         data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
         allower = transacting.Allower(stack=self,
                                       remote=remote,
-                                      reid=deid,
+                                      reid=duid,
                                       timeout=timeout,
                                       txData=data,
                                       mha=mha,
@@ -578,26 +594,21 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         allowent.hello()
 
-    def alive(self, deid=None,  mha=None, timeout=None, cascade=False):
+    def alive(self, duid=None,  mha=None, timeout=None, cascade=False):
         '''
         Initiate alive transaction
         '''
-        mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
-        if deid is None:
-            if not self.remotes: # no remote estate so make one
-                remote = estating.RemoteEstate(stack=self,
-                                               eid=0,
-                                               ha=mha,
-                                               period=self.period,
-                                               offset=self.offset)
-                self.addRemote(remote)
-            deid = self.remotes.values()[0].uid # zeroth is default
-        remote = self.remotes[deid]
+        remote = self.retrieveRemote(duid=duid, ha=mha)
+        if not remote:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            console.terse(emsg)
+            self.incStat('invalid_remote_eid')
+            return
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         aliver = transacting.Aliver(stack=self,
                                     remote=remote,
                                     timeout=timeout,
-                                    reid=deid,
+                                    reid=duid,
                                     txData=data,
                                     mha=mha,
                                     cascade=cascade)
@@ -622,17 +633,12 @@ class RoadStack(stacking.Stack):
         '''
         Initiate message transaction to remote at duid
         '''
-        mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
-        if duid is None:
-            if not self.remotes: # no remote estate so make one
-                remote = estating.RemoteEstate(stack=self,
-                                               eid=0,
-                                               ha=mha,
-                                               period=self.period,
-                                               offset=self.offset)
-                self.addRemote(remote)
-            duid = self.remotes.values()[0].uid # zeroth is default
-        remote = self.remotes[duid]
+        remote = self.retrieveRemote(duid=duid, ha=mha)
+        if not remote:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            console.terse(emsg)
+            self.incStat('invalid_remote_eid')
+            return
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         messenger = transacting.Messenger(stack=self,
                                           remote=remote,

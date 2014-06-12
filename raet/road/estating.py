@@ -192,5 +192,5 @@ class RemoteEstate(Estate):
         '''
         if immediate or self.timer.expired:
             self.timer.restart(duration=self.period)
-            self.stack.alive(deid=self.uid, cascade=cascade)
+            self.stack.alive(duid=self.uid, cascade=cascade)
 

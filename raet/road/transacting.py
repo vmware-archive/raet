@@ -547,7 +547,7 @@ class Joiner(Initiator):
                                                         self.stack.store.stamp))
         self.stack.incStat("join_initiate_complete")
         if self.cascade:
-            self.stack.allow(deid=self.reid, cascade=self.cascade)
+            self.stack.allow(duid=self.reid, cascade=self.cascade)
 
     def nackAccept(self):
         '''
@@ -1225,7 +1225,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
             self.remove()
-            self.stack.join(deid=self.reid, cascade=self.cascade)
+            self.stack.join(duid=self.reid, cascade=self.cascade)
             return
 
         remote = self.stack.remotes[self.reid]
@@ -1389,7 +1389,7 @@ class Allower(Initiator):
                                                         self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
         if self.cascade:
-            self.stack.alive(deid=self.reid, cascade=self.cascade)
+            self.stack.alive(duid=self.reid, cascade=self.cascade)
 
     def reject(self):
         '''
@@ -1419,7 +1419,7 @@ class Allower(Initiator):
         console.concise("Allower {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(deid=self.reid, cascade=self.cascade)
+        self.stack.join(duid=self.reid, cascade=self.cascade)
 
 class Allowent(Correspondent):
     '''
@@ -1876,7 +1876,7 @@ class Aliver(Initiator):
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
             self.remove()
-            self.stack.join(deid=self.reid, cascade=self.cascade)
+            self.stack.join(duid=self.reid, cascade=self.cascade)
             return
 
         if not remote.allowed:
@@ -1884,7 +1884,7 @@ class Aliver(Initiator):
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
             self.remove()
-            self.stack.allow(deid=self.reid, cascade=self.cascade)
+            self.stack.allow(duid=self.reid, cascade=self.cascade)
             return
 
         body = odict()
@@ -1955,7 +1955,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(deid=self.reid, cascade=self.cascade)
+        self.stack.join(duid=self.reid, cascade=self.cascade)
 
     def unallow(self):
         '''
@@ -1971,7 +1971,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.allow(deid=self.reid, cascade=self.cascade)
+        self.stack.allow(duid=self.reid, cascade=self.cascade)
 
 class Alivent(Correspondent):
     '''

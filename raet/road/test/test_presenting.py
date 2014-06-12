@@ -104,7 +104,7 @@ class BasicTestCase(unittest.TestCase):
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        initiator.join(deid=deid, mha=mha, cascade=cascade)
+        initiator.join(duid=deid, mha=mha, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
     def allow(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
@@ -113,7 +113,7 @@ class BasicTestCase(unittest.TestCase):
         Utility method to do allow. Call from test method.
         '''
         console.terse("\nAllow Transaction **************\n")
-        initiator.allow(deid=deid, mha=mha, cascade=cascade)
+        initiator.allow(duid=deid, mha=mha, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
     def alive(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
@@ -122,7 +122,7 @@ class BasicTestCase(unittest.TestCase):
         Utility method to do alive. Call from test method.
         '''
         console.terse("\nAlive Transaction **************\n")
-        initiator.alive(deid=deid, mha=mha, cascade=cascade)
+        initiator.alive(duid=deid, mha=mha, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
     def message(self, main,  other, mains, others, duration=2.0):
@@ -242,7 +242,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nDead Other from Main *********\n")
         self.assertTrue(otherRemote.alived)
         self.assertTrue(mainRemote.alived)
-        main.alive(deid=other.local.uid)
+        main.alive(duid=other.local.uid)
         self.serviceStack(main, duration=3.0)
         self.assertEqual(len(main.transactions), 0)
         self.assertFalse(otherRemote.alived)
@@ -250,7 +250,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nDead Main from Other *********\n")
         self.assertTrue(mainRemote.alived)
-        other.alive(deid=main.local.uid)
+        other.alive(duid=main.local.uid)
         self.serviceStack(other, duration=3.0)
         self.assertEqual(len(other.transactions), 0)
         self.assertFalse(mainRemote.alived)
@@ -743,8 +743,8 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nDead Other Alive Other1, from Main *********\n")
         self.assertTrue(main.remotes[other.local.uid].alived)
         self.assertTrue(main.remotes[other1.local.uid].alived)
-        main.alive(deid=other.local.uid)
-        main.alive(deid=other1.local.uid)
+        main.alive(duid=other.local.uid)
+        main.alive(duid=other1.local.uid)
         # don't service other stack so it appears to be dead
         self.serviceStacks([main, other1], duration=3.0)
         self.assertEqual(len(main.transactions), 0)
@@ -760,14 +760,14 @@ class BasicTestCase(unittest.TestCase):
 
         #bring it back to life
         console.terse("\nReliven other *********\n")
-        other.alive(deid=main.local.uid, cascade=True)
+        other.alive(duid=main.local.uid, cascade=True)
         self.serviceStacks([other, main], duration=3.0)
         self.assertIs(main.remotes[other.local.uid].alived, True)
         self.assertIs(other.remotes[main.local.uid].alived, True)
 
         console.terse("\nAlive Other Dead Other 1 from Main *********\n")
-        main.alive(deid=other.local.uid)
-        main.alive(deid=other1.local.uid)
+        main.alive(duid=other.local.uid)
+        main.alive(duid=other1.local.uid)
         self.serviceStacks([main, other], duration=3.0)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
@@ -781,7 +781,7 @@ class BasicTestCase(unittest.TestCase):
 
         #bring it back to life
         console.terse("\nReliven other1 *********\n")
-        other1.alive(deid=main.local.uid, cascade=True)
+        other1.alive(duid=main.local.uid, cascade=True)
         self.serviceStacks([other1, main], duration=3.0)
         self.assertIs(main.remotes[other1.local.uid].alived, True)
         self.assertIs(other1.remotes[main.local.uid].alived, True)
@@ -838,7 +838,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nMake all alive *********\n")
         stacks = [main, other, other1]
         for remote in main.remotes.values(): #make all alive
-            main.alive(deid=remote.uid)
+            main.alive(duid=remote.uid)
         self.serviceStacks(stacks, duration=3.0)
         for remote in main.remotes.values():
             self.assertTrue(remote.alived)
@@ -1085,7 +1085,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nMake all alive *********\n")
         stacks = [main, other, other1]
         for remote in main.remotes.values(): #make all alive
-            main.alive(deid=remote.uid)
+            main.alive(duid=remote.uid)
         self.serviceStacks(stacks, duration=3.0)
         for remote in main.remotes.values():
             self.assertTrue(remote.alived)
