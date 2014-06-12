@@ -224,10 +224,10 @@ class RoadStack(stacking.Stack):
 
     def retrieveRemote(self, duid, ha=None):
         '''
-        Returnes remote at duid
-        If duid is None then creates remote with ha or uses default
+        If duid is not None Then returns remote at duid if exists or None
+        If duid is None Then uses first remote unless no remotes then creates one
+           with ha or default if ha is None
         '''
-
         if duid is None:
             if not self.remotes: # no remote estate so make one
                 if self.local.main:
@@ -241,7 +241,7 @@ class RoadStack(stacking.Stack):
                                                offset=self.offset)
                 self.addRemote(remote)
             duid = self.remotes.values()[0].uid # zeroth is default
-        return (self.remotes[duid])
+        return (self.remotes.get(duid, None))
 
     def dumpLocal(self):
         '''
@@ -538,8 +538,15 @@ class RoadStack(stacking.Stack):
         '''
         Initiate join transaction
         '''
+        remote = self.retrieveRemote(duid=duid, ha=ha)
+        if not remote:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            console.terse(emsg)
+            self.incStat('invalid_remote_eid')
+            return
         data = odict(hk=self.Hk, bk=self.Bk)
         joiner = transacting.Joiner(stack=self,
+                                    remote=remote,
                                     reid=duid,
                                     timeout=timeout,
                                     txData=data,

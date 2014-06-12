@@ -258,7 +258,7 @@ class Joiner(Initiator):
         kwa['kind'] = raeting.trnsKinds.join
         super(Joiner, self).__init__(**kwa)
 
-        self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
+        #self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
         self.cascade = cascade
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -266,19 +266,19 @@ class Joiner(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        if self.reid is None:
-            if not self.stack.remotes: # no remote estate so make one
-                remote = estating.RemoteEstate(stack=self.stack,
-                                             eid=0,
-                                             ha=self.mha,
-                                             period=self.stack.period,
-                                             offset=self.stack.offset)
-                self.stack.addRemote(remote)
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is default
-        remote = self.stack.remotes[self.reid]
-        remote.joined = None
+        #if self.reid is None:
+            #if not self.stack.remotes: # no remote estate so make one
+                #remote = estating.RemoteEstate(stack=self.stack,
+                                             #eid=0,
+                                             #ha=self.mha,
+                                             #period=self.stack.period,
+                                             #offset=self.stack.offset)
+                #self.stack.addRemote(remote)
+            #self.reid = self.stack.remotes.values()[0].uid # zeroth is default
+        #remote = self.stack.remotes[self.reid]
+        self.remote.joined = None
         self.sid = 0
-        self.tid = remote.nextTid()
+        self.tid = self.remote.nextTid()
         self.prep()
         self.add(self.index)
         # don't dump remote yet since its ephemeral until we join and get valid eid
@@ -341,10 +341,10 @@ class Joiner(Initiator):
         '''
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=self.stack.remotes[self.reid].host,
-                            dp=self.stack.remotes[self.reid].port,
+                            dh=self.remote.host, #self.stack.remotes[self.reid].host,
+                            dp=self.remote.port, #self.stack.remotes[self.reid].port,
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.remote.uid, #self.reid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -358,12 +358,12 @@ class Joiner(Initiator):
         '''
         Send join request
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat(self.statKey())
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat(self.statKey())
+            #self.remove()
+            #return
 
         body = odict([('name', self.stack.local.name),
                       ('verhex', self.stack.local.signer.verhex),
@@ -390,15 +390,15 @@ class Joiner(Initiator):
             self.reject()
             return
 
-        if self.reid:
-            self.stack.removeRemote(self.reid)
+        if self.remote:
+            self.stack.removeRemote(self.remote.uid)
         self.stack.local.eid = 0
         self.stack.dumpLocal()
         self.remove(self.txPacket.index)
         console.terse("Joiner {0}. Refused at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(ha=self.mha)
+        self.stack.join(ha=self.remote.ha)
 
     def pend(self):
         '''
@@ -457,35 +457,35 @@ class Joiner(Initiator):
             self.remove(self.txPacket.index)
             return
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
 
         # we are assuming for now that the joiner cannot talk peer to peer only
         # to main estate otherwise we need to ensure unique eid, name, and ha on road
 
         # check if remote keys of main estate are accepted here
-        status = self.stack.safe.statusRemote(remote,
+        status = self.stack.safe.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
                                               main=self.stack.local.main)
 
         if status == raeting.acceptances.rejected:
-            remote.joined = False
+            self.remote.joined = False
             self.nackAccept()
             return
 
         if not self.stack.local.main: #only should do this if not main
-            if remote.uid != reid: #move remote estate to new index
+            if self.remote.uid != reid: #move remote estate to new index
                 try:
-                    self.stack.moveRemote(old=remote.uid, new=reid)
+                    self.stack.moveRemote(old=self.remote.uid, new=reid)
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
                     self.remove(self.txPacket.index)
                     return
 
-            if remote.name != name: # rename remote estate to new name
+            if self.remote.name != name: # rename remote estate to new name
                 try:
-                    self.stack.renameRemote(old=remote.name, new=name)
+                    self.stack.renameRemote(old=self.remote.name, new=name)
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
@@ -495,11 +495,11 @@ class Joiner(Initiator):
             self.stack.local.uid = leid
             self.stack.dumpLocal()
 
-        self.reid = reid
-        remote = self.stack.remotes[self.reid]
-        remote.nextSid()
-        self.stack.dumpRemote(remote)
-        remote.joined = True #accepted
+        #self.reid = reid
+        #remote = self.stack.remotes[self.reid]
+        self.remote.nextSid()
+        self.stack.dumpRemote(self.remote)
+        self.remote.joined = True #accepted
 
         self.ackAccept()
 
@@ -510,9 +510,9 @@ class Joiner(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.joined = False
-        self.stack.removeRemote(self.reid)
+        #remote = self.stack.remotes[self.reid]
+        self.remote.joined = False
+        self.stack.removeRemote(self.remote.uid)
         self.remove(self.txPacket.index)
         console.terse("Joiner {0}. Rejected at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
@@ -522,12 +522,12 @@ class Joiner(Initiator):
         '''
         Send ack to accept response
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove(self.txPacket.index)
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove(self.txPacket.index)
+            #return
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -548,18 +548,18 @@ class Joiner(Initiator):
                                                         self.stack.store.stamp))
         self.stack.incStat("join_initiate_complete")
         if self.cascade:
-            self.stack.allow(duid=self.reid, cascade=self.cascade)
+            self.stack.allow(duid=self.remote.uid, cascade=self.cascade)
 
     def nackAccept(self):
         '''
         Send nack to accept response
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove(self.txPacket.index)
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove(self.txPacket.index)
+            #return
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -1105,7 +1105,7 @@ class Allower(Initiator):
         kwa['kind'] = raeting.trnsKinds.allow
         super(Allower, self).__init__(**kwa)
 
-        self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
+        #self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
         self.cascade = cascade
 
         self.oreo = None # cookie from correspondent needed until handshake completed
@@ -1767,7 +1767,7 @@ class Aliver(Initiator):
         kwa['kind'] = raeting.trnsKinds.alive
         super(Aliver, self).__init__(**kwa)
 
-        self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
+        #self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
         self.cascade = cascade
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
