@@ -72,7 +72,8 @@ class Transaction(object):
         le = self.stack.local.uid
         if le == 0: # bootstrapping onto channel use ha
             le = self.stack.local.ha
-        re = self.reid
+        #re = self.reid
+        re = self.remote.uid if self.remote is not None else self.reid
         if re == 0: # bootstrapping onto channel use ha from zeroth remote
             re = self.stack.remotes[0].ha
         return ((self.rmt, le, re, self.sid, self.tid, self.bcst,))
@@ -94,7 +95,7 @@ class Transaction(object):
         Queue tx duple on stack transmit queue
         '''
         try:
-            self.stack.tx(packet.packed, self.reid)
+            self.stack.tx(packet.packed, self.remote.uid if self.remote is not None else self.reid)
         except raeting.StackError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat(self.statKey())
@@ -397,7 +398,7 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Refused at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(mha=self.mha)
+        self.stack.join(ha=self.mha)
 
     def pend(self):
         '''
@@ -1114,20 +1115,20 @@ class Allower(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        if self.reid is None:
-            if not self.stack.remotes: # no remote estate so make one
-                remote = estating.RemoteEstate(stack=self.stack,
-                                               eid=0,
-                                               ha=self.mha,
-                                               period=self.stack.period,
-                                               offset=self.stack.offset)
-                self.stack.addRemote(remote)
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is default
-        remote = self.stack.remotes[self.reid]
-        remote.rekey() # reset .allowed to None and refresh short term keys
+        #if self.reid is None:
+            #if not self.stack.remotes: # no remote estate so make one
+                #remote = estating.RemoteEstate(stack=self.stack,
+                                               #eid=0,
+                                               #ha=self.mha,
+                                               #period=self.stack.period,
+                                               #offset=self.stack.offset)
+                #self.stack.addRemote(remote)
+            #self.reid = self.stack.remotes.values()[0].uid # zeroth is default
+        #remote = self.stack.remotes[self.reid]
+        self.remote.rekey() # reset .allowed to None and refresh short term keys
 
-        self.sid = remote.sid
-        self.tid = remote.nextTid()
+        self.sid = self.remote.sid
+        self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
         self.add(self.index)
 
@@ -1194,13 +1195,13 @@ class Allower(Initiator):
         '''
         Prepare .txData
         '''
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
+                            dh=self.remote.host,
+                            dp=self.remote.port,
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.remote.uid, #self.reid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -1212,26 +1213,26 @@ class Allower(Initiator):
         '''
         Send hello request
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
-        remote = self.stack.remotes[self.reid]
-        if not remote.joined:
+        #remote = self.stack.remotes[self.reid]
+        if not self.remote.joined:
             emsg = "Allower {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
             self.remove()
-            self.stack.join(duid=self.reid, cascade=self.cascade)
+            self.stack.join(duid=self.remote.uid, cascade=self.cascade)
             return
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         plain = binascii.hexlify("".rjust(32, '\x00'))
-        cipher, nonce = remote.privee.encrypt(plain, remote.pubber.key)
-        body = raeting.HELLO_PACKER.pack(plain, remote.privee.pubraw, cipher, nonce)
+        cipher, nonce = self.remote.privee.encrypt(plain, self.remote.pubber.key)
+        body = raeting.HELLO_PACKER.pack(plain, self.remote.privee.pubraw, cipher, nonce)
 
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.hello,
@@ -1274,9 +1275,9 @@ class Allower(Initiator):
 
         cipher, nonce = raeting.COOKIE_PACKER.unpack(body)
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
 
-        msg = remote.privee.decrypt(cipher, nonce, remote.pubber.key)
+        msg = self.remote.privee.decrypt(cipher, nonce, self.remote.pubber.key)
         if len(msg) != raeting.COOKIESTUFF_PACKER.size:
             emsg = "Invalid length of cookie stuff\n"
             console.terse(emsg)
@@ -1286,7 +1287,7 @@ class Allower(Initiator):
 
         shortraw, seid, deid, oreo = raeting.COOKIESTUFF_PACKER.unpack(msg)
 
-        if seid != remote.uid or deid != self.stack.local.uid:
+        if seid != self.remote.uid or deid != self.stack.local.uid:
             emsg = "Invalid seid or deid fields in cookie stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
@@ -1294,7 +1295,7 @@ class Allower(Initiator):
             return
 
         self.oreo = binascii.hexlify(oreo)
-        remote.publee = nacling.Publican(key=shortraw)
+        self.remote.publee = nacling.Publican(key=shortraw)
 
         self.initiate()
 
@@ -1302,29 +1303,29 @@ class Allower(Initiator):
         '''
         Send initiate request to cookie response to hello request
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
 
-        vcipher, vnonce = self.stack.local.priver.encrypt(remote.privee.pubraw,
-                                                remote.pubber.key)
+        vcipher, vnonce = self.stack.local.priver.encrypt(self.remote.privee.pubraw,
+                                                self.remote.pubber.key)
 
-        fqdn = remote.fqdn.ljust(128, ' ')
+        fqdn = self.remote.fqdn.ljust(128, ' ')
 
         stuff = raeting.INITIATESTUFF_PACKER.pack(self.stack.local.priver.pubraw,
                                                   vcipher,
                                                   vnonce,
                                                   fqdn)
 
-        cipher, nonce = remote.privee.encrypt(stuff, remote.publee.key)
+        cipher, nonce = self.remote.privee.encrypt(stuff, self.remote.publee.key)
 
         oreo = binascii.unhexlify(self.oreo)
-        body = raeting.INITIATE_PACKER.pack(remote.privee.pubraw,
+        body = raeting.INITIATE_PACKER.pack(self.remote.privee.pubraw,
                                             oreo,
                                             cipher,
                                             nonce)
@@ -1354,8 +1355,8 @@ class Allower(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.allowed = True
+        #remote = self.stack.remotes[self.reid]
+        self.remote.allowed = True
         self.ackFinal()
 
     def ackFinal(self):
@@ -1363,12 +1364,12 @@ class Allower(Initiator):
         Send ack to ack Initiate to terminate transaction
         Why do we need this? could we just let transaction timeout on allowent
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         body = ""
         packet = packeting.TxPacket(stack=self.stack,
@@ -1389,7 +1390,7 @@ class Allower(Initiator):
                                                         self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
         if self.cascade:
-            self.stack.alive(duid=self.reid, cascade=self.cascade)
+            self.stack.alive(duid=self.remote.uid, cascade=self.cascade)
 
     def reject(self):
         '''
@@ -1399,8 +1400,8 @@ class Allower(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.allowed = False
+        #remote = self.stack.remotes[self.reid]
+        self.remote.allowed = False
         self.remove()
         console.concise("Allower {0}. Rejected at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
@@ -1413,13 +1414,13 @@ class Allower(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        remote = self.stack.remotes[self.reid]
-        remote.joined = False
+        #remote = self.stack.remotes[self.reid]
+        self.remote.joined = False
         self.remove()
         console.concise("Allower {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(duid=self.reid, cascade=self.cascade)
+        self.stack.join(duid=self.remote.uid, cascade=self.cascade)
 
 class Allowent(Correspondent):
     '''
@@ -1514,7 +1515,7 @@ class Allowent(Correspondent):
                             dh=self.remote.host,
                             dp=self.remote.port,
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.remote.uid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -1774,20 +1775,20 @@ class Aliver(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        if self.reid is None:
-            if not self.stack.remotes: # no remote estate so make one
-                remote = estating.RemoteEstate(stack=self.stack,
-                                               eid=0,
-                                               ha=self.mha,
-                                               period=self.stack.period,
-                                               offset=self.stack.offset)
-                self.stack.addRemote(remote)
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
-        remote = self.stack.remotes[self.reid]
-        remote.alived = None # reset alive status until done with transaction
+        #if self.reid is None:
+            #if not self.stack.remotes: # no remote estate so make one
+                #remote = estating.RemoteEstate(stack=self.stack,
+                                               #eid=0,
+                                               #ha=self.mha,
+                                               #period=self.stack.period,
+                                               #offset=self.stack.offset)
+                #self.stack.addRemote(remote)
+            #self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
+        #remote = self.stack.remotes[self.reid]
+        self.remote.alived = None # reset alive status until done with transaction
         # .bcast set from packet by stack when created transaction
-        self.sid = remote.sid
-        self.tid = remote.nextTid()
+        self.sid = self.remote.sid
+        self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
         self.add(self.index)
 
@@ -1822,8 +1823,8 @@ class Aliver(Initiator):
             console.concise("Aliver {0}. Timed out at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
             self.remove()
-            remote = self.stack.remotes[self.reid]
-            remote.refresh(alived=False) # mark as dead
+            #remote = self.stack.remotes[self.reid]
+            self.remote.refresh(alived=False) # mark as dead
             #self.reap() #remote is dead so reap it
             return
 
@@ -1845,13 +1846,13 @@ class Aliver(Initiator):
         '''
         Prepare .txData
         '''
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
+                            dh=self.remote.host,
+                            dp=self.remote.port,
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.remote.uid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -1863,28 +1864,28 @@ class Aliver(Initiator):
         '''
         Send message
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
-        remote = self.stack.remotes[self.reid]
-        if not remote.joined:
+        #remote = self.stack.remotes[self.reid]
+        if not self.remote.joined:
             emsg = "Aliver {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
             self.remove()
-            self.stack.join(duid=self.reid, cascade=self.cascade)
+            self.stack.join(duid=self.remote.uid, cascade=self.cascade)
             return
 
-        if not remote.allowed:
+        if not self.remote.allowed:
             emsg = "Aliver {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
             self.remove()
-            self.stack.allow(duid=self.reid, cascade=self.cascade)
+            self.stack.allow(duid=self.remote.uid, cascade=self.cascade)
             return
 
         body = odict()
@@ -1908,8 +1909,8 @@ class Aliver(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=True) # restart timer mark as alive
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=True) # restart timer mark as alive
         self.remove()
         console.concise("Aliver {0}. Done at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -1920,12 +1921,12 @@ class Aliver(Initiator):
         Remote dead. Reap it.
         '''
         self.remove()
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=False) # mark as dead
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=False) # mark as dead
         console.concise("Aliver {0}. Reaping dead remote '{1}' at {2}\n".format(
-                self.stack.name, remote.name, self.stack.store.stamp))
+                self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("alive_reap")
-        self.stack.removeRemote(remote.uid)
+        self.stack.removeRemote(self.remote.uid)
 
     def refuse(self):
         '''
@@ -1934,8 +1935,8 @@ class Aliver(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=None) # restart timer mark as indeterminate
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=None) # restart timer mark as indeterminate
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -1948,14 +1949,14 @@ class Aliver(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=None) # restart timer mark as indeterminate
-        remote.joined = False
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=None) # restart timer mark as indeterminate
+        self.remote.joined = False
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(duid=self.reid, cascade=self.cascade)
+        self.stack.join(duid=self.remote.uid, cascade=self.cascade)
 
     def unallow(self):
         '''
@@ -1964,14 +1965,14 @@ class Aliver(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=None) # restart timer mark as indeterminate
-        remote.allowed = False
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=None) # restart timer mark as indeterminate
+        self.remote.allowed = False
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.allow(duid=self.reid, cascade=self.cascade)
+        self.stack.allow(duid=self.remote.uid, cascade=self.cascade)
 
 class Alivent(Correspondent):
     '''
@@ -2024,7 +2025,7 @@ class Alivent(Correspondent):
                             dh=self.remote.host,
                             dp=self.remote.port,
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.remote.uid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -2090,12 +2091,12 @@ class Alivent(Correspondent):
         '''
         Send nack to terminate alive transaction
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -2137,11 +2138,11 @@ class Messenger(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        if self.reid is None:
-            self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
-        remote = self.stack.remotes[self.reid]
-        self.sid = remote.sid
-        self.tid = remote.nextTid()
+        #if self.reid is None:
+            #self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
+        #remote = self.stack.remotes[self.reid]
+        self.sid = self.remote.sid
+        self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
         self.tray = packeting.TxTray(stack=self.stack)
         self.add(self.index)
@@ -2195,13 +2196,13 @@ class Messenger(Initiator):
         '''
         Prepare .txData
         '''
-        remote = self.stack.remotes[self.reid]
+        #remote = self.stack.remotes[self.reid]
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=remote.host,
-                            dp=remote.port,
+                            dh=self.remote.host,
+                            dp=self.remote.port,
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.remote.uid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -2213,15 +2214,15 @@ class Messenger(Initiator):
         '''
         Send message
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
-            return
+        #if self.reid not in self.stack.remotes:
+            #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            #console.terse(emsg)
+            #self.stack.incStat('invalid_remote_eid')
+            #self.remove()
+            #return
 
-        remote = self.stack.remotes[self.reid]
-        if not remote.allowed:
+        #remote = self.stack.remotes[self.reid]
+        if not self.remote.allowed:
             emsg = "Messenger {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
@@ -2257,8 +2258,8 @@ class Messenger(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=True)
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=True)
 
         if self.tray.current >= len(self.tray.packets):
             self.complete()
@@ -2272,8 +2273,8 @@ class Messenger(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=True)
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=True)
 
         data = self.rxPacket.data
         body = self.rxPacket.body.data
@@ -2281,12 +2282,12 @@ class Messenger(Initiator):
         misseds = body.get('misseds')
         if misseds:
 
-            if self.reid not in self.stack.remotes:
-                emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-                console.terse(emsg)
-                self.stack.incStat('invalid_remote_eid')
-                self.remove()
-                return
+            #if self.reid not in self.stack.remotes:
+                #emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+                #console.terse(emsg)
+                #self.stack.incStat('invalid_remote_eid')
+                #self.remove()
+                #return
 
             if not self.tray.packets:
                 emsg = "Invalid resend request '{0}'\n".format(misseds)
@@ -2325,8 +2326,8 @@ class Messenger(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.refresh(alived=True)
+        #remote = self.stack.remotes[self.reid]
+        self.remote.refresh(alived=True)
 
         self.remove()
         console.concise("Messenger {0}. Rejected at {1}\n".format(
@@ -2412,7 +2413,7 @@ class Messengent(Correspondent):
                             dh=self.remote.host,
                             dp=self.remote.port,
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.remote.uid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
