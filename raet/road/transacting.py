@@ -748,7 +748,7 @@ class Joinent(Correspondent):
         self.reid = reid
 
         if self.stack.local.main:
-            if ((reid != 0 and not reid in self.stack.remotes) or
+            if ((reid != 0 and reid not in self.stack.remotes) or
                     (leid != 0 and leid != self.stack.local.uid)):
                 if self.stack.safe.auto:
                     emsg = "Estate '{0}' renew stale eid '{1}'\n".format(
