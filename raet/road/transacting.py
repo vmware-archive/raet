@@ -35,7 +35,7 @@ class Transaction(object):
     Timeout =  5.0 # default timeout
 
     def __init__(self, stack=None, remote=None, kind=None, timeout=None,
-                 reid=None, rmt=False, bcst=False, wait=False, sid=None, tid=None,
+                 rmt=False, bcst=False, wait=False, sid=None, tid=None,
                  txData=None, txPacket=None, rxPacket=None):
         '''
         Setup Transaction instance
@@ -50,12 +50,9 @@ class Transaction(object):
         self.timeout = timeout
         self.timer = aiding.StoreTimer(self.stack.store, duration=self.timeout)
 
-        # local estate is the .stack.estate
-        self.reid = reid  # remote estate eid
-
-        self.rmt = rmt
-        self.bcst = bcst
-        self.wait = wait
+        self.rmt = rmt # cf flag
+        self.bcst = bcst # bf flag
+        self.wait = wait # wf flag
 
         self.sid = sid
         self.tid = tid
@@ -72,8 +69,7 @@ class Transaction(object):
         le = self.stack.local.uid
         if le == 0: # bootstrapping onto channel use ha
             le = self.stack.local.ha
-        #re = self.reid
-        re = self.remote.uid if self.remote is not None else self.reid
+        re = self.remote.uid
         if re == 0: # bootstrapping onto channel use ha from zeroth remote
             re = self.stack.remotes[0].ha
         return ((self.rmt, le, re, self.sid, self.tid, self.bcst,))
@@ -95,7 +91,7 @@ class Transaction(object):
         Queue tx duple on stack transmit queue
         '''
         try:
-            self.stack.tx(packet.packed, self.remote.uid if self.remote is not None else self.reid)
+            self.stack.tx(packet.packed, self.remote.uid)
         except raeting.StackError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat(self.statKey())
@@ -180,7 +176,7 @@ class Staler(Initiator):
         '''
         Setup Transaction instance
         '''
-        for key in ['kind', 'reid', 'sid', 'tid', 'rxPacket']:
+        for key in ['kind', 'sid', 'tid', 'rxPacket']:
             if key not  in kwa:
                 emsg = "Missing required keyword arguments: '{0}'".format(key)
                 raise TypeError(emsg)
@@ -197,7 +193,7 @@ class Staler(Initiator):
                             dh=self.rxPacket.data['sh'],
                             dp=self.rxPacket.data['sp'],
                             se=self.stack.local.uid,
-                            de=self.reid,
+                            de=self.rxPacket.data['se'],
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -219,7 +215,7 @@ class Staler(Initiator):
         console.terse(emsg)
         self.stack.incStat('stale_correspondent_attempt')
 
-        if self.reid not in self.stack.remotes:
+        if self.rxPacket.data['se'] not in self.stack.remotes:
             emsg = "Unknown correspondent estate id '{0}'\n".format(self.reid)
             console.terse(emsg)
             self.stack.incStat('unknown_correspondent_eid')
@@ -613,11 +609,10 @@ class Joinent(Correspondent):
                 console.concise("Joinent Redo Accept at {0}\n".format(self.stack.store.stamp))
                 self.stack.incStat('redo_accept')
             else: #check to see if status has changed to accept
-                remote = self.stack.remotes[self.reid]
-                if remote:
-                    data = self.stack.safe.loadRemote(remote)
+                if self.remote:
+                    data = self.stack.safe.loadRemote(self.remote)
                     if data:
-                        status = self.stack.safe.statusRemote(remote,
+                        status = self.stack.safe.statusRemote(self.remote,
                                                               data['verhex'],
                                                               data['pubhex'],
                                                               main=self.stack.local.main)
@@ -710,8 +705,6 @@ class Joinent(Correspondent):
         reid = data['se']
         leid = data['de']
 
-        self.reid = reid
-
         if self.stack.local.main:
             if ((reid != 0 and reid not in self.stack.remotes) or
                     (leid != 0 and leid != self.stack.local.uid)):
@@ -728,10 +721,11 @@ class Joinent(Correspondent):
                 return
 
             if reid != 0:
-                remote = self.stack.remotes[reid]
-                if name != remote.name:
-                    if (verhex != remote.verfer.keyhex or
-                            pubhex != remote.pubber.keyhex):
+                if self.remote is None:
+                    self.remote = self.stack.remotes[reid]
+                if name != self.remote.name:
+                    if (verhex != self.remote.verfer.keyhex or
+                            pubhex != self.remote.pubber.keyhex):
                         emsg = "Estate '{0}' name key mismatch\n".format(name)
                         console.terse(emsg)
                         self.nack() #reject not the same estate because keys not match
@@ -743,9 +737,9 @@ class Joinent(Correspondent):
                             self.nack() # reject as name already in use by another estate
                             return
 
-                if (host != remote.host or port != remote.port):
-                    if (verhex != remote.verfer.keyhex or
-                            pubhex != remote.pubber.keyhex):
+                if (host != self.remote.host or port != self.remote.port):
+                    if (verhex != self.remote.verfer.keyhex or
+                            pubhex != self.remote.pubber.keyhex):
                         emsg = "Estate '{0}' name ha '{1}' mismatch\n".format(
                                 name, str((host, port)))
                         console.terse(emsg)
@@ -761,23 +755,23 @@ class Joinent(Correspondent):
                             # this may go to the wrong estate since potential ambiguous udp
                             # channel but in any event the transaction will fail
 
-                status = self.stack.safe.statusRemote(remote,
+                status = self.stack.safe.statusRemote(self.remote,
                                                       verhex=verhex,
                                                       pubhex=pubhex,
                                                       main=self.stack.local.main)
 
                 if status == raeting.acceptances.rejected:
                     "Estate '{0}' eid '{1}' keys rejected\n".format(
-                            name, remote.uid)
-                    self.stack.removeRemote(remote.uid) #reap remote
+                            name, self.remote.uid)
+                    self.stack.removeRemote(self.remote.uid) #reap remote
                     self.nack() # reject as keys rejected
                     return
 
-                remote.host = host
-                remote.port = port
-                remote.rsid = self.sid # fix this?
-                if name != remote.name:
-                    self.stack.renameRemote(old=remote.name, new=name)
+                self.remote.host = host
+                self.remote.port = port
+                self.remote.rsid = self.sid # fix this?
+                if name != self.remote.name:
+                    self.stack.renameRemote(old=self.remote.name, new=name)
 
             else: # reid == 0
                 if not self.stack.local.main: #not main so can't process vacuous join
@@ -792,6 +786,7 @@ class Joinent(Correspondent):
                             pubhex != remote.pubber.keyhex): # not same remote
                         emsg = "Estate '{0}' name unavailable\n".format(name)
                         console.terse(emsg)
+                        self.remote = None
                         self.nack()
                         return
 
@@ -800,6 +795,7 @@ class Joinent(Correspondent):
                     emsg = "Estate '{0}' ha '{1}' unavailable\n".format(
                                                     name,  str((host, port)))
                     console.terse(emsg)
+                    self.remote = None
                     self.nack()
                     return
 
@@ -823,25 +819,25 @@ class Joinent(Correspondent):
                         self.remove(self.rxPacket.index)
                         return
 
-                self.reid = remote.uid # auto generated at instance creation above
+                self.remote = remote # auto generated at instance creation above
 
-                status = self.stack.safe.statusRemote(remote,
+                status = self.stack.safe.statusRemote(self.remote,
                                                       verhex=verhex,
                                                       pubhex=pubhex,
                                                       main=self.stack.local.main)
 
                 if status == raeting.acceptances.rejected:
                     emsg = "Estate '{0}' eid '{1}' keys rejected\n".format(
-                            name, remote.uid)
+                            name, self.remote.uid)
                     console.terse(emsg)
-                    self.stack.removeRemote(remote.uid) #reap remote
+                    self.stack.removeRemote(self.remote.uid) #reap remote
                     self.nack() # reject as keys rejected
                     return
 
-            self.stack.dumpRemote(remote)
+            self.stack.dumpRemote(self.remote)
 
             if status == raeting.acceptances.accepted:
-                remote.joined = None
+                self.remote.joined = None
                 duration = min(
                                 max(self.redoTimeoutMin,
                                   self.redoTimer.duration * 2.0),
@@ -849,7 +845,7 @@ class Joinent(Correspondent):
                 self.redoTimer.restart(duration=duration)
                 self.accept()
             else: # status == None or status == raeting.acceptances.pending:
-                remote.joined = None
+                self.remote.joined = None
                 self.ackJoin()
 
         else: # not main stack
@@ -858,6 +854,7 @@ class Joinent(Correspondent):
                         "reid '{2}' from '{3}'\n".format(self.stack.local.name,
                                                          leid, reid, name))
                 console.terse(emsg)
+                self.remote = None
                 self.nack()
                 return
             if self.stack.remotes:
@@ -865,12 +862,13 @@ class Joinent(Correspondent):
                     emsg = "Estate '{0}' not primary main '{1}' join attempt \n".format(
                             self.stack.local.name, name)
                     console.terse(emsg)
+                    self.remote = None
                     self.nack()
                     return
                 else:
-                    remote = self.stack.remotes[reid]
+                    self.remote = self.stack.remotes[reid]
             else:
-                remote = estating.RemoteEstate(stack=self.stack,
+                self.remote = estating.RemoteEstate(stack=self.stack,
                                                eid=reid,
                                                name=name,
                                                host=host,
@@ -882,14 +880,14 @@ class Joinent(Correspondent):
                                                period=self.stack.period,
                                                offset=self.stack.offset,)
                 try:
-                    self.stack.addRemote(remote) #provisionally add .acceptance is None
+                    self.stack.addRemote(self.remote) #provisionally add .acceptance is None
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
                     self.remove(self.rxPacket.index)
                     return
 
-            status = self.stack.safe.statusRemote(remote,
+            status = self.stack.safe.statusRemote(self.remote,
                                                   verhex=verhex,
                                                   pubhex=pubhex,
                                                   main=self.stack.local.main)
@@ -897,7 +895,7 @@ class Joinent(Correspondent):
             if status == raeting.acceptances.rejected:
                 "Estate '{0}' eid '{1}' keys rejected\n".format(
                         name, remote.uid)
-                self.stack.removeRemote(remote.uid) #reap remote
+                self.stack.removeRemote(self.remote.uid) #reap remote
                 self.nack() # reject as keys rejected
                 return
 
@@ -905,13 +903,13 @@ class Joinent(Correspondent):
                 self.stack.local.uid = leid
                 self.stack.dumpLocal()
 
-            remote.host = host
-            remote.port = port
-            remote.rsid = self.sid # fix this ?
-            if name != remote.name:
-                self.stack.renameRemote(old=remote.name, new=name)
+            self.remote.host = host
+            self.remote.port = port
+            self.remote.rsid = self.sid # fix this ?
+            if name != self.remote.name:
+                self.stack.renameRemote(old=self.remote.name, new=name)
             #remote.nextSid() #set in complete method
-            self.stack.dumpRemote(remote)
+            self.stack.dumpRemote(self.remote)
             #remote.joined = True #accepted set in complete method
             duration = min(
                         max(self.redoTimeoutMin,
@@ -924,13 +922,6 @@ class Joinent(Correspondent):
         '''
         Send ack to join request
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove(self.rxPacket.index)
-            return
-
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.ack,
@@ -952,14 +943,7 @@ class Joinent(Correspondent):
         '''
         Send accept response to join request
         '''
-        if self.reid not in self.stack.remotes:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
-            console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove(self.rxPacket.index)
-            return
-
-        body = odict([ ('leid', self.reid),
+        body = odict([ ('leid', self.remote.uid),
                        ('reid', self.stack.local.uid),
                        ('name', self.stack.local.name),
                        ('verhex', self.stack.local.signer.verhex),
@@ -986,7 +970,7 @@ class Joinent(Correspondent):
         Sometimes nack occurs without remote being added so have to nack using ha.
         '''
         ha = None
-        if self.reid not in self.stack.remotes:
+        if not self.remote or self.remote.uid not in self.stack.remotes:
             self.txData.update( dh=self.rxPacket.data['sh'], dp=self.rxPacket.data['sp'],)
             ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
 
@@ -1026,10 +1010,9 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.joined = True # accepted
-        remote.nextSid()
-        self.stack.dumpRemote(remote)
+        self.remote.joined = True # accepted
+        self.remote.nextSid()
+        self.stack.dumpRemote(self.remote)
 
         self.remove(self.rxPacket.index)
         console.terse("Joinent {0}. Done at {1}\n".format(self.stack.name,
@@ -1043,8 +1026,7 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        remote = self.stack.remotes[self.reid]
-        remote.joined = False
+        self.remote.joined = False
         # use presence to remove remote
 
         self.remove(self.rxPacket.index)
@@ -1359,9 +1341,6 @@ class Allowent(Correspondent):
         Setup instance
         '''
         kwa['kind'] = raeting.trnsKinds.allow
-        if 'reid' not  in kwa:
-            emsg = "Missing required keyword argumens: '{0}'".format('reid')
-            raise TypeError(emsg)
         super(Allowent, self).__init__(**kwa)
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -1883,9 +1862,6 @@ class Alivent(Correspondent):
         Setup instance
         '''
         kwa['kind'] = raeting.trnsKinds.alive
-        if 'reid' not  in kwa:
-            emsg = "Missing required keyword argumens: '{0}'".format('reid')
-            raise TypeError(emsg)
         super(Alivent, self).__init__(**kwa)
 
         #self.remote.alive = None # reset alive status until done with transaction
@@ -2208,9 +2184,6 @@ class Messengent(Correspondent):
         Setup instance
         '''
         kwa['kind'] = raeting.trnsKinds.message
-        if 'reid' not  in kwa:
-            emsg = "Missing required keyword argumens: '{0}'".format('reid')
-            raise TypeError(emsg)
         super(Messengent, self).__init__(**kwa)
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax

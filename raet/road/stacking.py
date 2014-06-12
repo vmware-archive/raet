@@ -524,10 +524,18 @@ class RoadStack(stacking.Stack):
         '''
         Initiate stale transaction in order to nack a stale correspondent packet
         '''
+        duid = packet.data['se']
+        ha = (packet.data['sh'], packet.data['sp'])
+        remote = self.retrieveRemote(duid=duid, ha=ha)
+        if not remote:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            console.terse(emsg)
+            self.incStat('invalid_remote_eid')
+            return
         data = odict(hk=self.Hk, bk=self.Bk)
         staler = transacting.Staler(stack=self,
+                                    remote=remote,
                                     kind=packet.data['tk'],
-                                    reid=packet.data['se'],
                                     sid=packet.data['si'],
                                     tid=packet.data['ti'],
                                     txData=data,
@@ -563,7 +571,7 @@ class RoadStack(stacking.Stack):
                                       tid=packet.data['ti'],
                                       txData=data,
                                       rxPacket=packet)
-        joinent.join() #assigns .reid here
+        joinent.join() # may assing joinent.remote here
 
     def allow(self, duid=None, ha=None, timeout=None, cascade=False):
         '''
@@ -590,7 +598,6 @@ class RoadStack(stacking.Stack):
         data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
         allowent = transacting.Allowent(stack=self,
                                         remote=remote,
-                                        reid=packet.data['se'],
                                         sid=packet.data['si'],
                                         tid=packet.data['ti'],
                                         txData=data,
@@ -623,7 +630,6 @@ class RoadStack(stacking.Stack):
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         alivent = transacting.Alivent(stack=self,
                                       remote=remote,
-                                      reid=packet.data['se'],
                                       bcst=packet.data['bf'],
                                       sid=packet.data['si'],
                                       tid=packet.data['ti'],
@@ -657,7 +663,6 @@ class RoadStack(stacking.Stack):
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         messengent = transacting.Messengent(stack=self,
                                             remote=remote,
-                                            reid=packet.data['se'],
                                             bcst=packet.data['bf'],
                                             sid=packet.data['si'],
                                             tid=packet.data['ti'],
