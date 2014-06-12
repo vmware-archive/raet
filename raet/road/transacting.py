@@ -250,7 +250,7 @@ class Joiner(Initiator):
     RedoTimeoutMax = 4.0 # max timeout
 
 
-    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
+    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
                  cascade=False, **kwa):
         '''
         Setup Transaction instance
@@ -258,7 +258,6 @@ class Joiner(Initiator):
         kwa['kind'] = raeting.trnsKinds.join
         super(Joiner, self).__init__(**kwa)
 
-        #self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
         self.cascade = cascade
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -266,16 +265,6 @@ class Joiner(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        #if self.reid is None:
-            #if not self.stack.remotes: # no remote estate so make one
-                #remote = estating.RemoteEstate(stack=self.stack,
-                                             #eid=0,
-                                             #ha=self.mha,
-                                             #period=self.stack.period,
-                                             #offset=self.stack.offset)
-                #self.stack.addRemote(remote)
-            #self.reid = self.stack.remotes.values()[0].uid # zeroth is default
-        #remote = self.stack.remotes[self.reid]
         self.remote.joined = None
         self.sid = 0
         self.tid = self.remote.nextTid()
@@ -1097,7 +1086,7 @@ class Allower(Initiator):
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
 
-    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
+    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
                  cascade=False, **kwa):
         '''
         Setup instance
@@ -1105,7 +1094,6 @@ class Allower(Initiator):
         kwa['kind'] = raeting.trnsKinds.allow
         super(Allower, self).__init__(**kwa)
 
-        #self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
         self.cascade = cascade
 
         self.oreo = None # cookie from correspondent needed until handshake completed
@@ -1115,16 +1103,6 @@ class Allower(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        #if self.reid is None:
-            #if not self.stack.remotes: # no remote estate so make one
-                #remote = estating.RemoteEstate(stack=self.stack,
-                                               #eid=0,
-                                               #ha=self.mha,
-                                               #period=self.stack.period,
-                                               #offset=self.stack.offset)
-                #self.stack.addRemote(remote)
-            #self.reid = self.stack.remotes.values()[0].uid # zeroth is default
-        #remote = self.stack.remotes[self.reid]
         self.remote.rekey() # reset .allowed to None and refresh short term keys
 
         self.sid = self.remote.sid
@@ -1759,7 +1737,7 @@ class Aliver(Initiator):
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
 
-    def __init__(self, mha=None, redoTimeoutMin=None, redoTimeoutMax=None,
+    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
                 cascade=False, **kwa):
         '''
         Setup instance
@@ -1767,7 +1745,6 @@ class Aliver(Initiator):
         kwa['kind'] = raeting.trnsKinds.alive
         super(Aliver, self).__init__(**kwa)
 
-        #self.mha = mha if mha is not None else ('127.0.0.1', raeting.RAET_PORT)
         self.cascade = cascade
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -1775,16 +1752,6 @@ class Aliver(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        #if self.reid is None:
-            #if not self.stack.remotes: # no remote estate so make one
-                #remote = estating.RemoteEstate(stack=self.stack,
-                                               #eid=0,
-                                               #ha=self.mha,
-                                               #period=self.stack.period,
-                                               #offset=self.stack.offset)
-                #self.stack.addRemote(remote)
-            #self.reid = self.stack.remotes.values()[0].uid # zeroth is main estate
-        #remote = self.stack.remotes[self.reid]
         self.remote.alived = None # reset alive status until done with transaction
         # .bcast set from packet by stack when created transaction
         self.sid = self.remote.sid

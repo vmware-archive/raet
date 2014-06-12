@@ -547,10 +547,8 @@ class RoadStack(stacking.Stack):
         data = odict(hk=self.Hk, bk=self.Bk)
         joiner = transacting.Joiner(stack=self,
                                     remote=remote,
-                                    reid=duid,
                                     timeout=timeout,
                                     txData=data,
-                                    mha=ha,
                                     cascade=cascade)
         joiner.join()
 
@@ -580,10 +578,8 @@ class RoadStack(stacking.Stack):
         data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
         allower = transacting.Allower(stack=self,
                                       remote=remote,
-                                      reid=duid,
                                       timeout=timeout,
                                       txData=data,
-                                      mha=ha,
                                       cascade=cascade)
         allower.hello()
 
@@ -616,9 +612,7 @@ class RoadStack(stacking.Stack):
         aliver = transacting.Aliver(stack=self,
                                     remote=remote,
                                     timeout=timeout,
-                                    reid=duid,
                                     txData=data,
-                                    mha=ha,
                                     cascade=cascade)
         aliver.alive()
 
@@ -652,7 +646,6 @@ class RoadStack(stacking.Stack):
         messenger = transacting.Messenger(stack=self,
                                           remote=remote,
                                           txData=data,
-                                          reid=duid,
                                           bcst=self.Bf,
                                           wait=self.Wf)
         messenger.message(body)
