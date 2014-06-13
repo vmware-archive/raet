@@ -101,9 +101,9 @@ applications to work together over a network as part of a distributed applicatio
 The primary use case and motivating problem that resulted in the development of RAET
 was the need to enable SaltStack to scale better. SaltStack is a remote execution
 and configuration management platform written in Python. SaltStack uses ZeroMQ (0MQ)
-as is message bug or message queuing service. ZeroMQ is based on TCP/IP so suffers from
+as its message bus or message queuing service. ZeroMQ is based on TCP/IP so suffers from
 the aforementioned latency and non-asynchronicity issues of TCP/IP based architectures.
-Moreover because ZeroMQ integrates queue management and transport in monolithic way
+Moreover because ZeroMQ integrates queue management and transport in a monolithic way
 with special "sockets", tuning the performance of the queuing independent of the transport
 at scale becomes problematic. Tracing down bugs can also be problematic.
 
