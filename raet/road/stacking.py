@@ -478,8 +478,7 @@ class RoadStack(stacking.Stack):
         Reply to packet with corresponding transaction or action
         '''
         if (packet.data['tk'] == raeting.trnsKinds.join and
-                packet.data['pk'] == raeting.pcktKinds.request and
-                packet.data['si'] == 0):
+                packet.data['pk'] == raeting.pcktKinds.request): # and packet.data['si'] == 0
             self.replyJoin(packet, remote)
             return
 
@@ -490,20 +489,17 @@ class RoadStack(stacking.Stack):
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.allow and
-                packet.data['pk'] == raeting.pcktKinds.hello and
-                packet.data['si'] != 0):
+                packet.data['pk'] == raeting.pcktKinds.hello):
             self.replyAllow(packet, remote)
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.alive and
-                packet.data['pk'] == raeting.pcktKinds.request and
-                packet.data['si'] != 0):
+                packet.data['pk'] == raeting.pcktKinds.request):
             self.replyAlive(packet, remote)
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.message and
-                packet.data['pk'] == raeting.pcktKinds.message and
-                packet.data['si'] != 0):
+                packet.data['pk'] == raeting.pcktKinds.message):
             self.replyMessage(packet, remote)
             return
 
