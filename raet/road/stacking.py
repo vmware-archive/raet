@@ -222,14 +222,14 @@ class RoadStack(stacking.Stack):
 
         return None
 
-    def retrieveRemote(self, duid, ha=None):
+    def retrieveRemote(self, duid, ha=None, create=False):
         '''
         If duid is not None Then returns remote at duid if exists or None
         If duid is None Then uses first remote unless no remotes then creates one
            with ha or default if ha is None
         '''
         if duid is None:
-            if not self.remotes: # no remote estate so make one
+            if not self.remotes and create: # no remote estate so make one
                 if self.local.main:
                     dha = ('127.0.0.1', raeting.RAET_TEST_PORT)
                 else:
@@ -239,8 +239,15 @@ class RoadStack(stacking.Stack):
                                                ha=ha if ha is not None else dha,
                                                period=self.period,
                                                offset=self.offset)
-                self.addRemote(remote)
-            duid = self.remotes.values()[0].uid # zeroth is default
+
+                try:
+                    self.addRemote(remote) #provisionally add .accepted is None
+                except raeting.StackError as ex:
+                    console.terse(str(ex) + '\n')
+                    self.incStat("failed_addremote")
+                    return None
+            if self.remotes: # Get default if any
+                duid = self.remotes.values()[0].uid # zeroth is default
         return (self.remotes.get(duid, None))
 
     def dumpLocal(self):
@@ -426,8 +433,8 @@ class RoadStack(stacking.Stack):
         rsid = received.data['si']
         remote = self.remotes.get(received.data['se'], None)
 
-        if rsid == 0:
-            if received.data['tk'] != raeting.trnsKinds.join:
+        if rsid == 0: # can only use sid == 0 on join transaction
+            if received.data['tk'] != raeting.trnsKinds.join: # drop packet
                 emsg = "Invalid sid '{0}' in packet\n".format(rsid)
                 console.terse(emsg)
                 self.incStat('invalid_sid_attempt')
@@ -546,7 +553,7 @@ class RoadStack(stacking.Stack):
         '''
         Initiate join transaction
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha)
+        remote = self.retrieveRemote(duid=duid, ha=ha, create=True)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -571,7 +578,7 @@ class RoadStack(stacking.Stack):
                                       tid=packet.data['ti'],
                                       txData=data,
                                       rxPacket=packet)
-        joinent.join() # may assing joinent.remote here
+        joinent.join() # may assign or create joinent.remote here
 
     def allow(self, duid=None, ha=None, timeout=None, cascade=False):
         '''

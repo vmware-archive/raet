@@ -286,11 +286,26 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("\nBoth unjoined Alive Other to Main *********\n")
-        self.assertEqual(len(main.remotes), 0)
-        self.assertEqual(len(other.remotes), 0)
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes.values()[0]
+        self.assertTrue(otherRemote.joined)
+        self.assertTrue(mainRemote.joined)
 
-        self.alive(other, main, mha=('127.0.0.1', main.local.port))
+        otherRemote.joined = None
+        mainRemote.joined = None
+        main.dumpRemote(otherRemote)
+        other.dumpRemote(mainRemote)
+
+        console.terse("\nBoth unjoined Alive Other to Main *********\n")
+        self.assertEqual(len(main.remotes), 1)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertIs(otherRemote.joined, None)
+        self.assertIs(mainRemote.joined, None)
+
+        self.alive(other, main)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]
@@ -356,11 +371,26 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("\nBoth unjoined Allow Other to Main *********\n")
-        self.assertEqual(len(main.remotes), 0)
-        self.assertEqual(len(other.remotes), 0)
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes.values()[0]
+        self.assertTrue(otherRemote.joined)
+        self.assertTrue(mainRemote.joined)
 
-        self.allow(other, main, mha=('127.0.0.1', main.local.port))
+        otherRemote.joined = None
+        mainRemote.joined = None
+        main.dumpRemote(otherRemote)
+        other.dumpRemote(mainRemote)
+
+        console.terse("\nBoth unjoined Allow Other to Main *********\n")
+        self.assertEqual(len(main.remotes), 1)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertIs(otherRemote.joined, None)
+        self.assertIs(mainRemote.joined, None)
+
+        self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]
@@ -408,7 +438,21 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.remotes), 0)
         self.assertEqual(len(other.remotes), 0)
 
-        self.allow(other, main, mha=('127.0.0.1', main.local.port), cascade=True)
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        otherRemote = main.remotes[other.local.uid]
+        mainRemote = other.remotes.values()[0]
+        self.assertTrue(otherRemote.joined)
+        self.assertTrue(mainRemote.joined)
+
+        otherRemote.joined = None
+        mainRemote.joined = None
+        main.dumpRemote(otherRemote)
+        other.dumpRemote(mainRemote)
+
+
+        self.allow(other, main, cascade=True)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]
@@ -552,7 +596,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.remotes), 1)
         self.assertEqual(len(other.remotes), 0)
 
-        self.allow(main, other, mha=('127.0.0.1', other.local.port))
+        self.allow(main, other)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]
@@ -610,7 +654,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.remotes), 1)
         self.assertEqual(len(other.remotes), 0)
 
-        self.allow(main, other, mha=('127.0.0.1', other.local.port), cascade=True)
+        self.allow(main, other, cascade=True)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]
@@ -1209,6 +1253,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testAllowUnjoinedMain')
+    #runOne('testAliveUnjoinedOther')
