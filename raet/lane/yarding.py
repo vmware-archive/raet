@@ -203,9 +203,9 @@ class RemoteYard(Yard):
         If reset then reset sid sequence and remmove all books with nonzero si
         '''
         for index, book in self.books.items():
-                sid = index[0]
-                if (reset and sid != 0) or (not self.validRsid(sid)):
-                    self.removeBook(index, book)
-                    emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, self.name)
-                    console.terse(emsg)
-                    self.stack.incStat('stale_book')
+            sid = index[0]
+            if (reset and sid != 0) or (not reset and not self.validRsid(sid)):
+                self.removeBook(index, book)
+                emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, self.name)
+                console.terse(emsg)
+                self.stack.incStat('stale_book')

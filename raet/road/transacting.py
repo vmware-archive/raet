@@ -469,8 +469,8 @@ class Joiner(Initiator):
                     return
 
             if self.stack.local.uid != leid:
-               self.stack.local.uid = leid # change id of local estate
-               self.stack.dumpLocal() # only dump if changed
+                self.stack.local.uid = leid # change id of local estate
+                self.stack.dumpLocal() # only dump if changed
 
         self.remote.nextSid() # start new session
         self.stack.dumpRemote(self.remote)

@@ -440,6 +440,9 @@ class RoadStack(stacking.Stack):
                 self.incStat('invalid_sid_attempt')
                 return
 
+            if remote:
+                remote.removeStaleTransactions(reset=True)
+
         else: # rsid !=0
             if remote and not cf: # packet from remote initiated transaction
                 if not remote.validRsid(rsid): # invalid rsid
@@ -456,7 +459,7 @@ class RoadStack(stacking.Stack):
                                                     #rsid,
                                                     #raeting.TRNS_KIND_NAMES[received.data['tk']]))
                     remote.rsid = rsid
-                    # need to remove any stale correspondent transactions with this remote with older sid
+                    remote.removeStaleTransactions()
 
         trans = self.transactions.get(received.index, None)
         if trans:
