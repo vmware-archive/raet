@@ -199,7 +199,7 @@ class LaneStack(stacking.Stack):
 
         if si != remote.rsid:
             remote.rsid = si
-            remote.removeStaleBooks(reset=(si == 0))
+            remote.removeStaleBooks(renew=(si == 0))
 
         self.processRx(page, remote)
 

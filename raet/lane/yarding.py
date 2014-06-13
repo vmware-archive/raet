@@ -196,15 +196,15 @@ class RemoteYard(Yard):
             else:
                 del self.books[index]
 
-    def removeStaleBooks(self, reset=False):
+    def removeStaleBooks(self, renew=False):
         '''
         Remove stale books associated with remote when index si older than remote.rsid
         where index is tuple (si, bi)
-        If reset then reset sid sequence and remmove all books with nonzero si
+        If renew then remove all books with nonzero si
         '''
         for index, book in self.books.items():
             sid = index[0]
-            if (reset and sid != 0) or (not reset and not self.validRsid(sid)):
+            if (renew and sid != 0) or (not renew and not self.validRsid(sid)):
                 self.removeBook(index, book)
                 emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, self.name)
                 console.terse(emsg)

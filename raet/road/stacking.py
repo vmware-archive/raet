@@ -236,6 +236,7 @@ class RoadStack(stacking.Stack):
                     dha = ('127.0.0.1', raeting.RAET_PORT)
                 remote = estating.RemoteEstate(stack=self,
                                                eid=0,
+                                               sid=0,
                                                ha=ha if ha is not None else dha,
                                                period=self.period,
                                                offset=self.offset)
@@ -441,7 +442,7 @@ class RoadStack(stacking.Stack):
                 return
 
             if remote:
-                remote.removeStaleTransactions(reset=True)
+                remote.removeStaleTransactions(renew=True)
 
         else: # rsid !=0
             if remote and not cf: # packet from remote initiated transaction
@@ -483,10 +484,9 @@ class RoadStack(stacking.Stack):
             return
 
         if not remote:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(packet.data['se'])
+            emsg = "Unknown remote destination estate id '{0}'\n".format(packet.data['se'])
             console.terse(emsg)
-            self.stack.incStat('invalid_remote_eid')
-            self.remove()
+            self.incStat('unknown_remote_eid')
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.allow and

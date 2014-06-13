@@ -193,7 +193,7 @@ class RemoteEstate(Estate):
             self.timer.restart(duration=self.period)
             self.stack.alive(duid=self.uid, cascade=cascade)
 
-    def removeStaleTransactions(self, reset=False):
+    def removeStaleTransactions(self, renew=False):
         '''
         Remove stale remotely initiated transactions associated with remote
         when index sid older than remote.rsid
@@ -205,15 +205,15 @@ class RemoteEstate(Estate):
         ti = tid, Transaction ID, TID
         bf = Broadcast Flag, BcstFlag
 
-        If reset then reset sid sequence and remmove all transactions intiated from
-        this remote with nonzero si
+        If renew then remove all transactions intiated from
+        this remote with nonzero sid
         '''
         indexes = set(self.indexes) # make copy so not changed in place
 
         for index in indexes:
             sid = index[3]
             rf = index[0]
-            if rf and  ((reset and sid != 0) or (not reset and not self.validRsid(sid))):
+            if rf and  ((renew and sid != 0) or (not renew and not self.validRsid(sid))):
                 if index in self.stack.transactions:
                     self.transactions[index].nack()
                     self.removeTransaction(index) # this discards it from self.indexes

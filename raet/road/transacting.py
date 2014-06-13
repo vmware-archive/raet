@@ -262,7 +262,7 @@ class Joiner(Initiator):
                                            duration=self.redoTimeoutMin)
 
         self.remote.joined = None
-        self.sid = 0
+        self.sid = 0 #self.remote.sid # 0
         self.tid = self.remote.nextTid()
         self.prep()
         self.add(self.index)
