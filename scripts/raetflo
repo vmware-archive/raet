@@ -7,6 +7,8 @@ raet floscript runner CLI
 Runs floscript plan from command line shell
 
 example:
+raetflo -h
+raetflo -V
 raetflo -v concise -n raet -r -f ../raet/flo/plan/raet.flo -b raet.flo.behaving
 raetflo -v verbose -n raet -r -p 0.0625 ../raet/flo/plan/raet.flo -b raet.flo
 
@@ -24,10 +26,6 @@ def main():
     Main entry point for ioflo CLI
     '''
     args = ioflo.app.run.parseArgs()
-
-    if args.version:
-        print 'ioflo version {0}'.format(ioflo.__version__)
-        sys.exit(0)
 
     ioflo.app.run.run(  name=args.name,
                         period = float(args.period),

@@ -326,10 +326,10 @@ class Joiner(Initiator):
         '''
         self.txData.update( sh=self.stack.local.host,
                             sp=self.stack.local.port,
-                            dh=self.remote.host, #self.stack.remotes[self.reid].host,
-                            dp=self.remote.port, #self.stack.remotes[self.reid].port,
+                            dh=self.remote.host,
+                            dp=self.remote.port,
                             se=self.stack.local.uid,
-                            de=self.remote.uid, #self.reid,
+                            de=self.remote.uid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -396,16 +396,16 @@ class Joiner(Initiator):
         body = self.rxPacket.body.data
 
         leid = body.get('leid')
-        if not leid:
-            emsg = "Missing local estate id in accept packet\n"
+        if not leid: # None or zero
+            emsg = "Missing or invalid local estate id in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(self.txPacket.index)
             return
 
         reid = body.get('reid')
-        if not reid:
-            emsg = "Missing remote estate id in accept packet\n"
+        if not reid: # None or zero
+            emsg = "Missing or invalid remote estate id in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(self.txPacket.index)
@@ -435,12 +435,10 @@ class Joiner(Initiator):
             self.remove(self.txPacket.index)
             return
 
-        #remote = self.stack.remotes[self.reid]
-
         # we are assuming for now that the joiner cannot talk peer to peer only
         # to main estate otherwise we need to ensure unique eid, name, and ha on road
 
-        # check if remote keys of main estate are accepted here
+        # check if remote keys are accepted here
         status = self.stack.safe.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
@@ -452,7 +450,7 @@ class Joiner(Initiator):
             return
 
         if not self.stack.local.main: #only should do this if not main
-            if self.remote.uid != reid: #move remote estate to new index
+            if self.remote.uid != reid: #change id of remote estate
                 try:
                     self.stack.moveRemote(old=self.remote.uid, new=reid)
                 except raeting.StackError as ex:
@@ -470,10 +468,11 @@ class Joiner(Initiator):
                     self.remove(self.txPacket.index)
                     return
 
-            self.stack.local.uid = leid
-            self.stack.dumpLocal()
+            if self.stack.local.uid != leid:
+               self.stack.local.uid = leid # change id of local estate
+               self.stack.dumpLocal() # only dump if changed
 
-        self.remote.nextSid()
+        self.remote.nextSid() # start new session
         self.stack.dumpRemote(self.remote)
         self.remote.joined = True #accepted
 
@@ -857,17 +856,24 @@ class Joinent(Correspondent):
                 self.remote = None
                 self.nack()
                 return
-            if self.stack.remotes:
-                if reid not in self.stack.remotes:
-                    emsg = "Estate '{0}' not primary main '{1}' join attempt \n".format(
-                            self.stack.local.name, name)
+            if self.stack.remotes: # already a main since remotes
+                if not self.remote: # but reid not from preexisting main
+                    emsg = ("Estate '{0}': Received join attempt from non primary "
+                            "main remote '{1}'\n".format(self.stack.local.name, name))
                     console.terse(emsg)
-                    self.remote = None
                     self.nack()
                     return
-                else:
-                    self.remote = self.stack.remotes[reid]
-            else:
+
+                #if reid not in self.stack.remotes:
+                    #emsg = "Estate '{0}' not primary main '{1}' join attempt \n".format(
+                            #self.stack.local.name, name)
+                    #console.terse(emsg)
+                    #self.remote = None
+                    #self.nack()
+                    #return
+                #else:
+                    #self.remote = self.stack.remotes[reid]
+            else: # no remotes so could be initial join from main
                 self.remote = estating.RemoteEstate(stack=self.stack,
                                                eid=reid,
                                                name=name,
@@ -900,16 +906,18 @@ class Joinent(Correspondent):
                 return
 
             if self.stack.local.uid != leid:
-                self.stack.local.uid = leid
+                self.stack.local.uid = leid  # change local eid
                 self.stack.dumpLocal()
 
+            self.remote.rsid = self.sid # fix this ?
             self.remote.host = host
             self.remote.port = port
-            self.remote.rsid = self.sid # fix this ?
             if name != self.remote.name:
                 self.stack.renameRemote(old=self.remote.name, new=name)
             #remote.nextSid() #set in complete method
-            self.stack.dumpRemote(self.remote)
+
+            # we only want to dump once so should we wait until complete
+            #self.stack.dumpRemote(self.remote)
             #remote.joined = True #accepted set in complete method
             duration = min(
                         max(self.redoTimeoutMin,

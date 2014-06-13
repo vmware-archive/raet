@@ -72,7 +72,7 @@ class RoadStack(stacking.Stack):
         of the presence system. Defaults to 1.0
     '''
     Count = 0
-    Eid = 1 # class attribute
+    Eid = 1 # class attribute starting point for valid eids, eid == 0 is special
     Hk = raeting.headKinds.raet # stack default
     Bk = raeting.bodyKinds.json # stack default
     Fk = raeting.footKinds.nacl # stack default
@@ -90,7 +90,7 @@ class RoadStack(stacking.Stack):
                  basedirpath='',
                  local=None,
                  localname ='', #local estate name
-                 eid=None, #local estate eid
+                 eid=None, #local estate eid, none means generate it
                  ha=("", raeting.RAET_PORT),
                  bufcnt=2,
                  safe=None,
@@ -104,7 +104,7 @@ class RoadStack(stacking.Stack):
 
         stack.name and stack.local.name will match
         '''
-        self.neid = self.Eid # eid of initial next estate to add to road
+        self.neid = self.Eid # initialize eid used by .nextEid.
 
         if not name:
             name = "road{0}".format(RoadStack.Count)

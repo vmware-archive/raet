@@ -147,7 +147,6 @@ class RemoteEstate(Estate):
         self.pubber = nacling.Publican(pubkey) # correspondent long term key manager
 
         self.rsid = rsid # last sid received from remote when RmtFlag is True
-        #self.rtid = rtid # last tid received from remote when RmtFlag is True
         self.indexes = set() # indexes to outstanding transactions for this remote
 
         # persistence keep alive heatbeat timer. Initial duration has offset so
