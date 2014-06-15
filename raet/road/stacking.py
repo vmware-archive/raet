@@ -441,9 +441,6 @@ class RoadStack(stacking.Stack):
                 self.incStat('invalid_sid_attempt')
                 return
 
-            if remote:
-                remote.removeStaleTransactions(renew=True)
-
         else: # rsid !=0
             if remote and not cf: # packet from remote initiated transaction
                 if not remote.validRsid(rsid): # invalid rsid
@@ -454,11 +451,6 @@ class RoadStack(stacking.Stack):
                     return # should nack stale transaction
 
                 if rsid != remote.rsid:
-                    #console.verbose("Changing rsid of '{0}' from {1} to {2} in {3} "
-                            #"transaction.\n".format(remote.name,
-                                                    #remote.rsid,
-                                                    #rsid,
-                                                    #raeting.TRNS_KIND_NAMES[received.data['tk']]))
                     remote.rsid = rsid
                     remote.removeStaleTransactions()
 
@@ -548,11 +540,11 @@ class RoadStack(stacking.Stack):
                                     rxPacket=packet)
         staler.nack()
 
-    def join(self, duid=None, ha=None, timeout=None, cascade=False):
+    def join(self, duid=None, mha=None, timeout=None, cascade=False):
         '''
         Initiate join transaction
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha, create=True)
+        remote = self.retrieveRemote(duid=duid, ha=mha, create=True)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)

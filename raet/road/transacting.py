@@ -368,7 +368,7 @@ class Joiner(Initiator):
             self.reject()
             return
 
-        if self.remote:
+        if self.remote: # this forces sid to 0
             self.stack.removeRemote(self.remote.uid)
         self.stack.local.eid = 0
         self.stack.dumpLocal()
@@ -376,7 +376,7 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Refused at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(ha=self.remote.ha)
+        self.stack.join(mha=self.remote.ha)
 
     def pend(self):
         '''
@@ -472,9 +472,11 @@ class Joiner(Initiator):
                 self.stack.local.uid = leid # change id of local estate
                 self.stack.dumpLocal() # only dump if changed
 
+        self.remote.removeStaleTransactions(renew=(self.sid==0))
         self.remote.nextSid() # start new session
         self.stack.dumpRemote(self.remote)
         self.remote.joined = True #accepted
+
 
         self.ackAccept()
 
@@ -1018,6 +1020,7 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
+        self.remote.removeStaleTransactions(renew=(self.sid==0))
         self.remote.joined = True # accepted
         self.remote.nextSid()
         self.stack.dumpRemote(self.remote)
