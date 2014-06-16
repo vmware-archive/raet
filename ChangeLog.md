@@ -3,6 +3,15 @@ CHANGE LOG
 -------------------
 
 ---------
+20140616
+---------
+
+v0.0.18
+
+Lots of cleanup refactoring of how session ids are managed. Now more correctly
+handles stale sessions id checking and packet rejection.
+
+---------
 20140603
 ---------
 
