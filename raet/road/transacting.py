@@ -332,7 +332,6 @@ class Joiner(Initiator):
         self.sid = self.remote.sid # 0
         self.tid = self.remote.nextTid()
         self.prep()
-        self.add(self.index)
         # don't dump remote yet since its ephemeral until we join and get valid eid
 
     def transmit(self, packet):
@@ -410,6 +409,7 @@ class Joiner(Initiator):
         '''
         Send join request
         '''
+        self.add(self.index)
         body = odict([('name', self.stack.local.name),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex)])
@@ -629,8 +629,6 @@ class Joinent(Correspondent):
         self.redoTimer = aiding.StoreTimer(self.stack.store, duration=0.0)
 
         self.prep()
-        # Since corresponding bootstrap transaction use packet.index not self.index
-        self.add(self.rxPacket.index)
 
     def transmit(self, packet):
         '''
@@ -739,6 +737,8 @@ class Joinent(Correspondent):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        #self.add(self.rxPacket.index) # bootstrap so use packet.index not self.index
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
@@ -902,6 +902,7 @@ class Joinent(Correspondent):
                     self.nack() # reject as keys rejected
                     return
 
+            self.add(self.rxPacket.index) # bootstrap so use packet.index not self.index
             self.stack.dumpRemote(self.remote)
 
             if status == raeting.acceptances.accepted:
@@ -933,15 +934,6 @@ class Joinent(Correspondent):
                     self.nack()
                     return
 
-                #if reid not in self.stack.remotes:
-                    #emsg = "Estate '{0}' not primary main '{1}' join attempt \n".format(
-                            #self.stack.local.name, name)
-                    #console.terse(emsg)
-                    #self.remote = None
-                    #self.nack()
-                    #return
-                #else:
-                    #self.remote = self.stack.remotes[reid]
             else: # no remotes so could be initial join from main
                 self.remote = estating.RemoteEstate(stack=self.stack,
                                                eid=reid,
@@ -962,6 +954,7 @@ class Joinent(Correspondent):
                     self.remove(self.rxPacket.index)
                     return
 
+            self.add(self.rxPacket.index) # bootstrap so use packet.index not self.index
             status = self.stack.safe.statusRemote(self.remote,
                                                   verhex=verhex,
                                                   pubhex=pubhex,
@@ -1144,7 +1137,6 @@ class Allower(Initiator):
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
-        self.add(self.index)
 
     def transmit(self, packet):
         '''
@@ -1226,6 +1218,7 @@ class Allower(Initiator):
         '''
         Send hello request
         '''
+        self.add(self.index)
         if not self.remote.joined:
             emsg = "Allower {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
@@ -1429,7 +1422,6 @@ class Allowent(Correspondent):
         self.oreo = None #keep locally generated oreo around for redos
         self.remote.rekey() # refresh short term keys and .allowed
         self.prep() # prepare .txData
-        self.add(self.index)
 
     def transmit(self, packet):
         '''
@@ -1516,6 +1508,9 @@ class Allowent(Correspondent):
 
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        self.add(self.index)
+
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
@@ -1755,11 +1750,9 @@ class Aliver(Initiator):
                                            duration=self.redoTimeoutMin)
 
         self.remote.alived = None # reset alive status until done with transaction
-        # .bcast set from packet by stack when created transaction
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
-        self.add(self.index)
 
     def transmit(self, packet):
         '''
@@ -1831,6 +1824,7 @@ class Aliver(Initiator):
         '''
         Send message
         '''
+        self.add(self.index)
         if not self.remote.joined:
             emsg = "Aliver {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
@@ -1942,9 +1936,7 @@ class Alivent(Correspondent):
         kwa['kind'] = raeting.trnsKinds.alive
         super(Alivent, self).__init__(**kwa)
 
-        #self.remote.alive = None # reset alive status until done with transaction
         self.prep() # prepare .txData
-        self.add(self.index)
 
     def receive(self, packet):
         """
@@ -1988,11 +1980,6 @@ class Alivent(Correspondent):
         '''
         Process alive packet
         '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        data = self.rxPacket.data
-        body = self.rxPacket.body.data
-
         if not self.remote.joined:
             self.remote.refresh(alived=None) # indeterminate
             emsg = "Alivent {0}. Must be joined first\n".format(self.stack.name)
@@ -2008,6 +1995,15 @@ class Alivent(Correspondent):
             self.stack.incStat('unallowed_alive_attempt')
             self.nack(kind=raeting.pcktKinds.unallowed)
             return
+
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        self.add(self.index)
+
+        data = self.rxPacket.data
+        body = self.rxPacket.body.data
+
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -2079,7 +2075,6 @@ class Messenger(Initiator):
         self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
         self.tray = packeting.TxTray(stack=self.stack)
-        self.add(self.index)
 
     def transmit(self, packet):
         '''
@@ -2147,6 +2142,7 @@ class Messenger(Initiator):
         '''
         Send message
         '''
+        self.add(self.index)
         if not self.remote.allowed:
             emsg = "Messenger {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
@@ -2271,7 +2267,6 @@ class Messengent(Correspondent):
 
         self.prep() # prepare .txData
         self.tray = packeting.RxTray(stack=self.stack)
-        self.add(self.index)
 
     def transmit(self, packet):
         '''
@@ -2336,6 +2331,7 @@ class Messengent(Correspondent):
         '''
         Process message packet
         '''
+        self.add(self.index)
         self.remote.refresh(alived=True)
 
         if not self.remote.allowed:
