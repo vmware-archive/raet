@@ -9,15 +9,42 @@ See:
 python setup.py register sdist upload
 
 """
+import os
 import  sys
 from setuptools import setup, find_packages
 
 import raet
 
-PYTHON26_REQUIRES = []
+# Change to RAET's source's directory prior to running any command
+try:
+    SETUP_DIRNAME = os.path.dirname(__file__)
+except NameError:
+    # We're most likely being frozen and __file__ triggered this NameError
+    # Let's work around that
+    SETUP_DIRNAME = os.path.dirname(sys.argv[0])
+
+if SETUP_DIRNAME != '':
+    os.chdir(SETUP_DIRNAME)
+
+SETUP_DIRNAME = os.path.abspath(SETUP_DIRNAME)
+
+RAET_REQS = os.path.join(
+    os.path.abspath(SETUP_DIRNAME), 'requirements.txt'
+)
+
+REQUIREMENTS = []
+with open(RAET_REQS) as rfh:
+    for line in rfh.readlines():
+        if not line or line.startswith('#'):
+            continue
+        REQUIREMENTS.append(line.strip())
+
 if sys.version_info < (2, 7): #tuple comparison element by element
-    PYTHON26_REQUIRES.append('importlib>=1.0.3')
-    PYTHON26_REQUIRES.append('argparse>=1.2.1')
+    # Under Python 2.6, also install
+    REQUIREMENTS.extend([
+        'importlib>=1.0.3'
+        'argparse>=1.2.1'
+    ])
 
 setup(
     name='raet',
@@ -40,7 +67,7 @@ setup(
                    '*.css', '*.ico', '*.png', 'LICENSE', 'LEGAL'],
         'raet': ['flo/plan/*.flo', 'flo/plan/*/*.flo',
                   'flo/plan/*.txt', 'flo/plan/*/*.txt',],},
-    install_requires=([] + PYTHON26_REQUIRES),
+    install_requires=REQUIREMENTS,
     extras_require={},
     scripts=['scripts/raetflo'],)
 
