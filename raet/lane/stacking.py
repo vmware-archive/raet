@@ -226,7 +226,7 @@ class LaneStack(stacking.Stack):
         console.verbose("{0} received page index = '{1}'\n".format(self.name, received.index))
 
         if received.paginated:
-            index = (received.data['si'], received.data['bi'])
+            index = received.index #(received.data['si'], received.data['bi'])
             book = remote.books.get(index)
             if not book:
                 if received.data['pn'] != 0: # not first page to missed first page
