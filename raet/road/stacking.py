@@ -447,8 +447,8 @@ class RoadStack(stacking.Stack):
                     emsg = "Stale sid '{0}' in packet\n".format(rsid)
                     console.terse(emsg)
                     self.incStat('stale_sid_attempt')
-                    #self.replyStale(received) need correspondent stalent to nack
-                    return # should nack stale transaction
+                    self.replyStale(received, remote) # nack stale transaction
+                    return
 
                 if rsid != remote.rsid:
                     remote.rsid = rsid
@@ -539,6 +539,20 @@ class RoadStack(stacking.Stack):
                                     txData=data,
                                     rxPacket=packet)
         staler.nack()
+
+    def replyStale(self, packet, remote):
+        '''
+        Correspond to stale initiated transaction
+        '''
+        data = odict(hk=self.Hk, bk=self.Bk)
+        stalent = transacting.Stalent(stack=self,
+                                      remote=remote,
+                                      kind=packet.data['tk'],
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        stalent.nack()
 
     def join(self, duid=None, mha=None, timeout=None, cascade=False):
         '''

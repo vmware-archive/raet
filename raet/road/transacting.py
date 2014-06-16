@@ -216,7 +216,7 @@ class Staler(Initiator):
         self.stack.incStat('stale_correspondent_attempt')
 
         if self.rxPacket.data['se'] not in self.stack.remotes:
-            emsg = "Unknown correspondent estate id '{0}'\n".format(self.reid)
+            emsg = "Unknown correspondent estate id '{0}'\n".format(self.rxPacket.data['se'])
             console.terse(emsg)
             self.stack.incStat('unknown_correspondent_eid')
             #return #maybe we should return and not respond at all in this case
@@ -237,6 +237,73 @@ class Staler(Initiator):
         console.terse("Nack stale correspondent at {0}\n".format(self.stack.store.stamp))
         self.stack.incStat('stale_correspondent_nack')
 
+
+class Stalent(Correspondent):
+    '''
+    RAET protocol Stalent correspondent transaction class
+    '''
+    Requireds = ['kind', 'sid', 'tid', 'rxPacket']
+
+    def __init__(self, **kwa):
+        '''
+        Setup Transaction instance
+        '''
+        super(Stalent, self).__init__(**kwa)
+
+        self.prep()
+
+    def prep(self):
+        '''
+        Prepare .txData for nack to stale
+        '''
+        self.txData.update( sh=self.stack.local.host,
+                            sp=self.stack.local.port,
+                            dh=self.rxPacket.data['sh'],
+                            dp=self.rxPacket.data['sp'],
+                            se=self.stack.local.uid,
+                            de=self.rxPacket.data['se'],
+                            tk=self.kind,
+                            cf=self.rmt,
+                            bf=self.bcst,
+                            wf=self.wait,
+                            si=self.sid,
+                            ti=self.tid,
+                            ck=raeting.coatKinds.nada,
+                            fk=raeting.footKinds.nada)
+
+    def nack(self):
+        '''
+        Send nack to stale packet from initiator.
+        This is used when a initiator packet is received but with a stale session id
+        So create a dummy correspondent and send a nack packet back.
+        Do not add transaction so don't need to remove it.
+        '''
+        ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
+        emsg = "{0} Stale Transaction from {1} dropping ...\n".format(self.stack.name, ha )
+        console.terse(emsg)
+        self.stack.incStat('stale_initiator_attempt')
+
+        if self.rxPacket.data['se'] not in self.stack.remotes:
+            emsg = "Unknown initiator estate id '{0}'\n".format(self.rxPacket.data['se'])
+            console.terse(emsg)
+            self.stack.incStat('unknown_initiator_eid')
+            #return #maybe we should return and not respond at all in this case
+
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.nack,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            return
+
+        self.stack.txes.append((packet.packed, ha))
+        console.terse("Nack stale initiator at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat('stale_initiator_nack')
 
 class Joiner(Initiator):
     '''
