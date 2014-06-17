@@ -81,6 +81,8 @@ class RoadStack(stacking.Stack):
     Wf = False # stack default for waitflag
     Period = 1.0 # stack default for keep alive
     Offset = 0.5 # stack default for keep alive
+    JoinerTimeout = 5.0 # stack default for joiner transaction timeout
+    JoinentTimeout = 5.0 # stack default for joinent transaction timeout
 
     def __init__(self,
                  name='',
@@ -564,6 +566,8 @@ class RoadStack(stacking.Stack):
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return
+
+        timeout = timeout if timeout is not None else self.JoinerTimeout
         data = odict(hk=self.Hk, bk=self.Bk)
         joiner = transacting.Joiner(stack=self,
                                     remote=remote,
@@ -572,13 +576,15 @@ class RoadStack(stacking.Stack):
                                     cascade=cascade)
         joiner.join()
 
-    def replyJoin(self, packet, remote):
+    def replyJoin(self, packet, remote, timeout=None):
         '''
         Correspond to new join transaction
         '''
+        timeout = timeout if timeout is not None else self.JoinentTimeout
         data = odict(hk=self.Hk, bk=self.Bk)
         joinent = transacting.Joinent(stack=self,
                                       remote=remote,
+                                      timeout=timeout,
                                       sid=packet.data['si'],
                                       tid=packet.data['ti'],
                                       txData=data,
