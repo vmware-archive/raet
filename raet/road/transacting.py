@@ -1729,10 +1729,16 @@ class Aliver(Initiator):
     '''
     RAET protocol Aliver Initiator class Dual of Alivent
     Sends keep alive heatbeat messages to detect presence
+
+
+    update alived status of .remote
+    only use .remote.refresh to update
+
     '''
     Timeout = 2.0
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
+    ReapTimeout = 3600 # remove remote from memory if dead this long
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
                 cascade=False, **kwa):
@@ -1749,7 +1755,7 @@ class Aliver(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.remote.alived = None # reset alive status until done with transaction
+        self.remote.refresh(alived=None) #Restart timer but do not change alived status
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
@@ -1786,7 +1792,6 @@ class Aliver(Initiator):
                 self.stack.name, self.stack.store.stamp))
             self.remove()
             self.remote.refresh(alived=False) # mark as dead
-            #self.reap() #remote is dead so reap it
             return
 
         # need keep sending message until completed or timed out
@@ -1868,17 +1873,6 @@ class Aliver(Initiator):
                 self.stack.name, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
 
-    def reap(self):
-        '''
-        Remote dead. Reap it.
-        '''
-        self.remove()
-        self.remote.refresh(alived=False) # mark as dead
-        console.concise("Aliver {0}. Reaping dead remote '{1}' at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat("alive_reap")
-        self.stack.removeRemote(self.remote.uid)
-
     def refuse(self):
         '''
         Process nack packet
@@ -1886,7 +1880,7 @@ class Aliver(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        self.remote.refresh(alived=None) # restart timer mark as indeterminate
+        self.remote.refresh(alived=None) # restart timer do not change status
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
                 self.stack.name, self.stack.store.stamp))
@@ -1899,7 +1893,7 @@ class Aliver(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        self.remote.refresh(alived=None) # restart timer mark as indeterminate
+        self.remote.refresh(alived=None) # restart timer do not change status
         self.remote.joined = False
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
@@ -1914,7 +1908,7 @@ class Aliver(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        self.remote.refresh(alived=None) # restart timer mark as indeterminate
+        self.remote.refresh(alived=None) # restart timer do not change status
         self.remote.allowed = False
         self.remove()
         console.concise("Aliver {0}. Rejected at {1}\n".format(
@@ -1954,7 +1948,7 @@ class Alivent(Correspondent):
 
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.nack()
+            self.nack() #manage restarts alive later
             console.concise("Alivent {0}. Timed out at {1}\n".format(
                     self.stack.name, self.stack.store.stamp))
             return
@@ -1980,8 +1974,11 @@ class Alivent(Correspondent):
         '''
         Process alive packet
         '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
         if not self.remote.joined:
-            self.remote.refresh(alived=None) # indeterminate
+            self.remote.refresh(alived=None) # received signed packet so its alive
             emsg = "Alivent {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_alive_attempt')
@@ -1989,21 +1986,17 @@ class Alivent(Correspondent):
             return
 
         if not self.remote.allowed:
-            self.remote.refresh(alived=None) # indeterminate
+            self.remote.refresh(alived=None) # received signed packet so its alive
             emsg = "Alivent {0}. Must be allowed first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_alive_attempt')
             self.nack(kind=raeting.pcktKinds.unallowed)
             return
 
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
         self.add(self.index)
 
         data = self.rxPacket.data
         body = self.rxPacket.body.data
-
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,

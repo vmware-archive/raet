@@ -896,7 +896,7 @@ class BasicTestCase(unittest.TestCase):
         self.store.advanceStamp(estating.RemoteEstate.Period + estating.RemoteEstate.Offset)
         main.manage()
         for remote in main.remotes.values(): # should start
-            self.assertIs(remote.alived, None)
+            self.assertIs(remote.alived, True)
 
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
 
@@ -1136,8 +1136,8 @@ class BasicTestCase(unittest.TestCase):
 
         main.manage(immediate=True)
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
-        for remote in main.remotes.values(): # should reset alive to None
-            self.assertIs(remote.alived, None)
+        for remote in main.remotes.values():
+            self.assertIs(remote.alived, True)
 
         self.serviceStacks(stacks, duration=3.0)
         for stack in stacks:
@@ -1185,8 +1185,8 @@ class BasicTestCase(unittest.TestCase):
 
         main.manage(immediate=True, cascade=True)
         self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
-        for remote in main.remotes.values(): # should reset alive to None
-            self.assertIs(remote.alived, None)
+        for remote in main.remotes.values():
+            self.assertIs(remote.alived, True)
         self.serviceStacks(stacks, duration=3.0)
         for stack in stacks:
             self.assertEqual(len(stack.transactions), 0)

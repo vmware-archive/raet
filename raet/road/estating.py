@@ -120,12 +120,18 @@ class RemoteEstate(Estate):
     '''
     RAET protocol endpoint remote estate object
     Maintains verifier for verifying signatures and publican for encrypt/decrypt
+
+    .alived attribute is the dead or alive status of the remote
+
+    .alived = True, alive, recently have received valid signed packets from remote
+    .alive = False, dead, recently have not received valid signed packets from remote
     '''
     Period = 1.0
     Offset = 0.5
+    ReapTimeout = 3600.0
 
     def __init__(self, stack, verkey=None, pubkey=None, acceptance=None,
-                 rsid=0, period=None, offset=None, **kwa):
+                 rsid=0, period=None, offset=None, reapTimeout=None, **kwa):
         '''
         Setup Estate instance
 
@@ -133,6 +139,15 @@ class RemoteEstate(Estate):
 
         verkey is either nacl VerifyKey or raw or hex encoded key
         pubkey is either nacl PublicKey or raw or hex encoded key
+
+        acceptance is accepted state of remote on Road
+
+        rsid is last received session id used by remotely initiated transaction
+
+        period is timeout of keep alive heartbeat timer
+        offset is initial offset of keep alive heartbeat timer
+
+        reapTimeout is timeout of reapTimer (remove from memory if dead for reap time)
         '''
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
@@ -149,7 +164,7 @@ class RemoteEstate(Estate):
         self.rsid = rsid # last sid received from remote when RmtFlag is True
         self.indexes = set() # indexes to outstanding transactions for this remote
 
-        # persistence keep alive heatbeat timer. Initial duration has offset so
+        # persistence keep alive heartbeat timer. Initial duration has offset so
         # not synced with other side persistence heatbeet
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
@@ -160,6 +175,11 @@ class RemoteEstate(Estate):
             duration = self.period + self.offset
         self.timer = aiding.StoreTimer(store=self.stack.store,
                                        duration=duration)
+
+        self.reapTimeout = reapTimeout if reapTimeout is not None else self.ReapTimeout
+        self.reapTimer = aiding.StoreTimer(self.stack.store,
+                                           duration=self.reapTimeout)
+
 
     def rekey(self):
         '''
@@ -181,17 +201,41 @@ class RemoteEstate(Estate):
     def refresh(self, alived=True):
         '''
         Restart presence heartbeat timer
+        If alived is None then do not change .alived  but update timer
+        If alived is True then set .alived to True and handle implications
+        If alived is False the set .alived to False and handle implications
         '''
         self.timer.restart(duration=self.period)
+        if alived is None:
+            return
+
+        old = self.alived
+        #if self.alived is False:
+                    #if old: # was alive now dead
+                        #self.reapTimer.restart()
+
         self.alived = alived
+
 
     def manage(self, cascade=False, immediate=False):
         '''
         Perform time based processing of keep alive heatbeat
         '''
         if immediate or self.timer.expired:
-            self.timer.restart(duration=self.period)
+            # alive transaction restarts self.timer
             self.stack.alive(duid=self.uid, cascade=cascade)
+        if self.reapTimeout >  0.0 and self.reapTimer.expired:
+            self.reap()
+
+    def reap(self):
+        '''
+        Remote is dead, reap it.
+        '''
+        console.concise("Stack {0}: Reaping dead remote {1} at {2}\n".format(
+                self.stack.name, self.name, self.stack.store.stamp))
+        self.stack.incStat("remote_reap")
+        #self.stack.reapRemote(self.uid) #remove from memory but not disk
+
 
     def removeStaleTransactions(self, renew=False):
         '''
