@@ -1176,10 +1176,10 @@ class BasicTestCase(unittest.TestCase):
         other1 = stacking.RoadStack(dirpath=other1Dirpath, store=self.store)
         stacks = [main, other, other1]
 
-        self.assertIs(other.remotes[main.local.uid].joined, None)
+        self.assertIs(other.remotes[main.local.uid].joined, True)
         self.assertIs(other.remotes[main.local.uid].allowed, None)
         self.assertIs(other.remotes[main.local.uid].alived, None)
-        self.assertIs(other1.remotes[main.local.uid].joined, None)
+        self.assertIs(other1.remotes[main.local.uid].joined, True)
         self.assertIs(other1.remotes[main.local.uid].allowed, None)
         self.assertIs(other1.remotes[main.local.uid].alived, None)
 

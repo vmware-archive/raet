@@ -1370,6 +1370,8 @@ class Allower(Initiator):
         console.concise("Allower {0}. Ack Final at {1}\n".format(self.stack.name,
                                                         self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
+        self.remote.nextSid() # start new session
+        self.stack.dumpRemote(self.remote)
         if self.cascade:
             self.stack.alive(duid=self.remote.uid, cascade=self.cascade)
 
@@ -1675,6 +1677,8 @@ class Allowent(Correspondent):
         Perform allowment
         '''
         self.remote.allowed = True
+        self.remote.nextSid() # start new session
+        self.stack.dumpRemote(self.remote)
 
     def final(self):
         '''
