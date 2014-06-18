@@ -6,6 +6,16 @@ CHANGE LOG
 20140617
 ---------
 
+v0.0.20
+
+Fixed reaping of stale event yards
+Refactor RoadStack initiation method interfaces in preparation for later changes
+
+
+---------
+20140617
+---------
+
 v0.0.19
 
 Fixed issues with Raet in Salt that made minion joining problematic
