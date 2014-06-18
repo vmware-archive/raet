@@ -617,11 +617,10 @@ class Joinent(Correspondent):
     RedoTimeoutMin = 0.1 # initial timeout
     RedoTimeoutMax = 2.0 # max timeout
 
-    def __init__(self, timeout=None, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
+    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
         '''
         Setup Transaction instance
         '''
-        timeout = timeout if timeout is not None else self.stack.JoinentTimeout
         kwa['kind'] = raeting.trnsKinds.join
         super(Joinent, self).__init__(**kwa)
 
@@ -657,7 +656,7 @@ class Joinent(Correspondent):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             self.nack()
-            console.concise("Joinent {0}. Timed out at {0}\n".format(
+            console.concise("Joinent {0}. Timed out at {1}\n".format(
                     self.stack.name, self.stack.store.stamp))
             return
 
@@ -685,6 +684,8 @@ class Joinent(Correspondent):
                                                               main=self.stack.local.main)
                         if status == raeting.acceptances.accepted:
                             self.accept()
+                        #elif status == raeting.acceptances.rejected:
+                            #self.nack()
 
     def prep(self):
         '''

@@ -141,6 +141,14 @@ class SafeKeep(keeping.Keep):
         '''
         self.clearRemoteData(remote.uid)
 
+    def replaceRemote(self, remote, old):
+        '''
+        Replace the safe keep file if renaming should move it
+        This is provided for subclasses or mimic classes that store the
+        Safe data by name and need to move the Safe keep data file
+        '''
+        pass
+
     def statusRemote(self, remote, verhex, pubhex, main=True):
         '''
         Evaluate acceptance status of estate per its keys

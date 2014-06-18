@@ -156,20 +156,20 @@ class Stack(object):
         '''
         rename remote with old name to new name but keep same index
         '''
-        if new in self.uids or new == self.local.name:
-            emsg = "Cannot rename remote to '{0}', already exists".format(new)
-            raise raeting.StackError(emsg)
+        if new != old:
+            if new in self.uids or new == self.local.name:
+                emsg = "Cannot rename remote to '{0}', already exists".format(new)
+                raise raeting.StackError(emsg)
 
-        if old not in self.uids:
-            emsg = "Cannot rename remote '{0}', does not exist".format(old)
-            raise raeting.StackError(emsg)
+            if old not in self.uids:
+                emsg = "Cannot rename remote '{0}', does not exist".format(old)
+                raise raeting.StackError(emsg)
 
-        uid = self.uids[old]
-        remote = self.remotes[uid]
-        remote.name = new
-        index = self.uids.keys().index(old)
-        del self.uids[old]
-        self.uids.insert(index, remote.name, remote.uid)
+            remote = self.remotes[self.uids[old]]
+            remote.name = new
+            index = self.uids.keys().index(old)
+            del self.uids[old]
+            self.uids.insert(index, remote.name, remote.uid)
 
     def removeRemote(self, uid):
         '''
