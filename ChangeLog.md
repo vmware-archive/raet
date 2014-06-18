@@ -6,6 +6,15 @@ CHANGE LOG
 20140617
 ---------
 
+v0.0.22
+
+joined status persistence
+session restarts on allow
+
+---------
+20140617
+---------
+
 v0.0.21
 
 fix requirements.txt issue

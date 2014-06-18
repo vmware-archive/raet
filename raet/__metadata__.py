@@ -2,7 +2,7 @@
 Raet package metadata
 '''
 
-__version_info__ = (0, 0, 21)
+__version_info__ = (0, 0, 22)
 __version__ = '{0}.{1}.{2}'.format(*__version_info__)
 __author__ = "Samuel M. Smith"
 __license__ = "Apache2"
