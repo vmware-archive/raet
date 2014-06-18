@@ -256,12 +256,14 @@ class BasicTestCase(unittest.TestCase):
                             {'uid': 2,
                              'name': other1Data['name'],
                              'ha': ['127.0.0.1', 7531],
-                             'sid': 0},
+                             'sid': 0,
+                             'joined': None,},
                          '3':
                             {'uid': 3,
                              'name': other2Data['name'],
                              'ha': ['127.0.0.1', 7532],
-                             'sid': 0}
+                             'sid': 0,
+                             'joined': None,}
                         }
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -306,6 +308,7 @@ class BasicTestCase(unittest.TestCase):
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
+                                                ('joined', remote.joined),
                                                ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -356,6 +359,7 @@ class BasicTestCase(unittest.TestCase):
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
+                                                ('joined', remote.joined),
                                                ])
             validRemoteKeepData[remote.uid]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
@@ -1719,8 +1723,9 @@ class BasicTestCase(unittest.TestCase):
         # attempt to join to main with main auto accept enabled
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
+        #Joinent will reject as name already in use
         remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, None) # Joinent will reject as name already in use
+        self.assertIs(remote.joined, True) # Previous joined still there
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
 
@@ -1872,7 +1877,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testLostBothKeepLocal')
+    #runOne('testLostBothKeepLocal')
 

@@ -332,6 +332,7 @@ class RoadStack(stacking.Stack):
                                            name=keepData['name'],
                                            ha=keepData['ha'],
                                            sid=keepData['sid'],
+                                           joined=keepData['joined'],
                                            acceptance=safeData['acceptance'],
                                            verkey=safeData['verhex'],
                                            pubkey=safeData['pubhex'],

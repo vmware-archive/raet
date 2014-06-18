@@ -130,7 +130,7 @@ class RemoteEstate(Estate):
     Offset = 0.5
     ReapTimeout = 3600.0
 
-    def __init__(self, stack, verkey=None, pubkey=None, acceptance=None,
+    def __init__(self, stack, verkey=None, pubkey=None, acceptance=None, joined=None,
                  rsid=0, period=None, offset=None, reapTimeout=None, **kwa):
         '''
         Setup Estate instance
@@ -152,7 +152,7 @@ class RemoteEstate(Estate):
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
         super(RemoteEstate, self).__init__(stack, **kwa)
-        self.joined = None
+        self.joined = joined
         self.allowed = None
         self.alived = None
         self.acceptance = acceptance

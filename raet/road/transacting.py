@@ -1100,6 +1100,7 @@ class Joinent(Correspondent):
             return
 
         self.remote.joined = False
+        self.stack.dumpRemote(self.remote)
         # use presence to remove remote
 
         self.remove(self.rxPacket.index)

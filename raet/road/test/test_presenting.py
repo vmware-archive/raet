@@ -1152,7 +1152,7 @@ class BasicTestCase(unittest.TestCase):
         stacks = [main, other, other1]
 
         for remote in main.remotes.values():
-            self.assertIs(remote.joined, None)
+            self.assertIs(remote.joined, True) #joined status is persisted
             self.assertIs(remote.allowed, None)
             self.assertIs(remote.alived, None)
 
