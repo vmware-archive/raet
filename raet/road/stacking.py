@@ -565,11 +565,11 @@ class RoadStack(stacking.Stack):
                                       rxPacket=packet)
         stalent.nack()
 
-    def join(self, duid=None, mha=None, timeout=None, cascade=False):
+    def join(self, duid=None, ha=None, timeout=None, cascade=False, create=True):
         '''
         Initiate join transaction
         '''
-        remote = self.retrieveRemote(duid=duid, ha=mha, create=True)
+        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -600,11 +600,11 @@ class RoadStack(stacking.Stack):
                                       rxPacket=packet)
         joinent.join() # may assign or create joinent.remote here
 
-    def allow(self, duid=None, ha=None, timeout=None, cascade=False):
+    def allow(self, duid=None, ha=None, timeout=None, cascade=False, create=False):
         '''
         Initiate allow transaction
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha)
+        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -631,12 +631,12 @@ class RoadStack(stacking.Stack):
                                         rxPacket=packet)
         allowent.hello()
 
-    def alive(self, duid=None,  ha=None, timeout=None, cascade=False):
+    def alive(self, duid=None,  ha=None, timeout=None, cascade=False, create=False):
         '''
         Initiate alive transaction
         If duid is None then create remote at ha
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha)
+        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)

@@ -122,15 +122,21 @@ class LaneStack(stacking.Stack):
         '''
         head, tail = os.path.split(ha)
         if not tail:
+            emsg = "Invalid format for ha '{0}'. No file\n".format(ha)
+            console.concise(emsg)
             return None
 
         root, ext = os.path.splitext(tail)
 
         if ext != ".uxd":
+            emsg = "Invalid format for ha '{0}'. Ext not 'uxd'\n".format(ha)
+            console.concise(emsg)
             return None
 
         lanename, sep, yardname = root.rpartition('.')
         if not sep:
+            emsg = "Invalid format for ha '{0}'. No lane.name\n".format(ha)
+            console.concise(emsg)
             return None
 
         return self.fetchRemoteByName(yardname)
@@ -297,7 +303,7 @@ class LaneStack(stacking.Stack):
                 console.terse("socket.error = {0}\n".format(ex))
                 self.incStat("stale_transmit_yard")
 
-                yard = self.fetchYardFromHa(ta)
+                yard = self.fetchRemoteFromHa(ta)
                 if yard:
                     self.removeRemote(yard.uid)
                     console.terse("Reaped yard {0}\n".format(yard.name))

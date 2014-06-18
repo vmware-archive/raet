@@ -105,7 +105,7 @@ class BasicTestCase(unittest.TestCase):
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        initiator.join(duid=deid, mha=mha)
+        initiator.join(duid=deid, ha=mha)
         self.service(correspondent, initiator, duration=duration)
 
     def allow(self, other, main, duration=1.0):

@@ -198,7 +198,7 @@ class RaetRoadStackAllower(deeding.Deed):  # pylint: disable=W0232
         '''
         stack = self.stack.value
         if stack and isinstance(stack, RoadStack):
-            stack.allow()
+            stack.allow(cascade=True, create=True)
         return None
 
 class RaetRoadStackAllowed(deeding.Deed):  # pylint: disable=W0232

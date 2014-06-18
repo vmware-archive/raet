@@ -34,7 +34,7 @@ framer minionudpstack be active first start
         exit
             do raet road stack closer per inode ".raet.road.stack."
 
-framer bootstrap be active first join
+framer bootstrap be active first allow
     frame join
         print Joining Minion1...
         enter
@@ -91,7 +91,7 @@ framer minionudpstack be active first start
         exit
             do raet road stack closer per inode ".raet.road.stack."
 
-framer bootstrap be active first join
+framer bootstrap be active first allow
     frame join
         print Joining Minion2...
         enter

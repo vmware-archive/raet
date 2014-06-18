@@ -130,7 +130,7 @@ class Yard(lotting.Lot):
 
         lanename, sep, yardname = root.rpartition('.')
         if not sep:
-            emsg = "Invalid format for ha '{0}'. Not lane.name".format(ha)
+            emsg = "Invalid format for ha '{0}'. No lane.name".format(ha)
             raise  raeting.YardError(emsg)
 
         return (lanename, yardname)

@@ -443,7 +443,7 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Refused at {1}\n".format(self.stack.name,
                                                     self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(mha=self.remote.ha)
+        self.stack.join(ha=self.remote.ha)
 
     def pend(self):
         '''
