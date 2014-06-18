@@ -276,7 +276,11 @@ class LaneStack(stacking.Stack):
             if ex.errno == errno.ECONNREFUSED:
                 console.terse("socket.error = {0}\n".format(ex))
                 self.incStat("stale_transmit_yard")
-                yard = self.remotes.get(ta)
+                yard = None
+                for yid in self.remotes:
+                    if self.remotes[yid].ha == ta:
+                        yard = self.remotes[yid]
+                        break
                 if yard:
                     self.removeRemote(yard.uid)
                     console.terse("Reaped yard {0}\n".format(yard.name))
