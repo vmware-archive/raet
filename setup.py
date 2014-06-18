@@ -13,8 +13,6 @@ import os
 import  sys
 from setuptools import setup, find_packages
 
-import raet
-
 # Change to RAET's source's directory prior to running any command
 try:
     SETUP_DIRNAME = os.path.dirname(__file__)
@@ -32,6 +30,11 @@ RAET_REQS = os.path.join(
     os.path.abspath(SETUP_DIRNAME), 'requirements.txt'
 )
 
+RAET_METADATA = os.path.join(SETUP_DIRNAME, 'raet', '__metadata__.py')
+
+# Load the metadata using exec() in order not to trigger raet.__init__ import
+exec(compile(open(RAET_METADATA).read(), RAET_METADATA, 'exec'))
+
 REQUIREMENTS = []
 with open(RAET_REQS) as rfh:
     for line in rfh.readlines():
@@ -48,15 +51,15 @@ if sys.version_info < (2, 7): #tuple comparison element by element
 
 setup(
     name='raet',
-    version=raet.__version__,
+    version=__version__,
     description='Reliable Asynchronous Event Transport protocol',
     long_description='Asynchronous transaction based protocol'
                      ' using Ioflo. http://ioflo.com',
     url='https://github.com/saltstack/raet',
     download_url='https://github.com/saltstack/raet/archive/master.zip',
-    author=raet.__author__,
+    author=__author__,
     author_email='info@ioflo.com',
-    license=raet.__license__,
+    license=__license__,
     keywords=('UDP UXD Communications CurveCP Elliptic Curve Crypto'
               'Reliable Asynchronous Event Transport Protocol'),
     packages=find_packages(exclude=['test', 'test.*',
