@@ -3,6 +3,15 @@ CHANGE LOG
 -------------------
 
 ---------
+20140617
+---------
+
+v0.0.19
+
+Fixed issues with Raet in Salt that made minion joining problematic
+
+
+---------
 20140616
 ---------
 
