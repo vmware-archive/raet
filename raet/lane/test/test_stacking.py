@@ -385,6 +385,22 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.main.remotes), 0)
         self.assertEqual(self.main.stats['unaccepted_source_yard'], 1)
 
+    def testFetchRemoteFromHa(self):
+        '''
+        Fetching remote yard by HA
+        '''
+        console.terse("{0}\n".format(self.testFetchRemoteFromHa.__doc__))
+        self.bootstrap(kind=raeting.packKinds.json)
+
+        for remote in self.main.remotes.values():
+            fetched = self.main.fetchRemoteFromHa(remote.ha)
+            self.assertIs(remote, fetched)
+
+
+        for remote in self.other.remotes.values():
+            fetched = self.other.fetchRemoteFromHa(remote.ha)
+            self.assertIs(remote, fetched)
+
 
 
 def runOne(test):
@@ -405,7 +421,8 @@ def runSome():
              'testMessageSectionedJson',
              'testMessageSectionedMsgpack',
              'testAutoAccept',
-             'testAutoAcceptNot', ]
+             'testAutoAcceptNot',
+             'testFetchRemoteFromHa', ]
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -422,8 +439,8 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testAutoAcceptNot')
+    #runOne('testFetchRemoteFromHa')

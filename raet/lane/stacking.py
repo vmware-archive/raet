@@ -115,6 +115,26 @@ class LaneStack(stacking.Stack):
                             bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
+    def fetchRemoteFromHa(self, ha):
+        '''
+        Return the remote yard associated with the UXD host address filepath.
+        If not found return None
+        '''
+        head, tail = os.path.split(ha)
+        if not tail:
+            return None
+
+        root, ext = os.path.splitext(tail)
+
+        if ext != ".uxd":
+            return None
+
+        lanename, sep, yardname = root.rpartition('.')
+        if not sep:
+            return None
+
+        return self.fetchRemoteByName(yardname)
+
     def loadLocal(self, local=None, name=''):
         '''
         Load self.local from keep file else local or new
@@ -276,11 +296,8 @@ class LaneStack(stacking.Stack):
             if ex.errno == errno.ECONNREFUSED:
                 console.terse("socket.error = {0}\n".format(ex))
                 self.incStat("stale_transmit_yard")
-                yard = None
-                for yid in self.remotes:
-                    if self.remotes[yid].ha == ta:
-                        yard = self.remotes[yid]
-                        break
+
+                yard = self.fetchYardFromHa(ta)
                 if yard:
                     self.removeRemote(yard.uid)
                     console.terse("Reaped yard {0}\n".format(yard.name))
