@@ -328,7 +328,6 @@ class Joiner(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.remote.joined = None
         self.sid = self.remote.sid # 0
         self.tid = self.remote.nextTid()
         self.prep()
@@ -409,6 +408,7 @@ class Joiner(Initiator):
         '''
         Send join request
         '''
+        self.remote.joined = None
         self.add(self.index)
         body = odict([('name', self.stack.local.name),
                       ('verhex', self.stack.local.signer.verhex),
@@ -741,7 +741,7 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        #self.add(self.rxPacket.index) # bootstrap so use packet.index not self.index
+        #Don't add transaction yet wait till later until remote is not rejected
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
@@ -1129,17 +1129,14 @@ class Allower(Initiator):
 
         self.cascade = cascade
 
-        self.oreo = None # cookie from correspondent needed until handshake completed
-
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.remote.rekey() # reset .allowed to None and refresh short term keys
-
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
+        self.oreo = None # cookie from correspondent needed until handshake completed
         self.prep() # prepare .txData
 
     def transmit(self, packet):
@@ -1222,14 +1219,16 @@ class Allower(Initiator):
         '''
         Send hello request
         '''
-        self.add(self.index)
+        self.remote.allowed = None
         if not self.remote.joined:
             emsg = "Allower {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            self.remove()
             self.stack.join(duid=self.remote.uid, cascade=self.cascade)
             return
+
+        self.remote.rekey() # refresh short term keys and reset .allowed to None
+        self.add(self.index)
 
         plain = binascii.hexlify("".rjust(32, '\x00'))
         cipher, nonce = self.remote.privee.encrypt(plain, self.remote.pubber.key)
@@ -1434,7 +1433,6 @@ class Allowent(Correspondent):
                                            duration=self.redoTimeoutMin)
 
         self.oreo = None #keep locally generated oreo around for redos
-        self.remote.rekey() # refresh short term keys and .allowed
         self.prep() # prepare .txData
 
     def transmit(self, packet):
@@ -1513,6 +1511,11 @@ class Allowent(Correspondent):
         '''
         Process hello packet
         '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        self.remote.allowed = None
+
         if not self.remote.joined:
             emsg = "Allowent {0}. Must be joined with {1} first\n".format(
                 self.stack.name, self.remote.name)
@@ -1521,9 +1524,7 @@ class Allowent(Correspondent):
             self.nack(kind=raeting.pcktKinds.unjoined)
             return
 
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
+        self.remote.rekey() # refresh short term keys and .allowed
         self.add(self.index)
 
         data = self.rxPacket.data
@@ -1772,7 +1773,6 @@ class Aliver(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.remote.refresh(alived=None) #Restart timer but do not change alived status
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
         self.prep() # prepare .txData
@@ -1846,13 +1846,11 @@ class Aliver(Initiator):
         '''
         Send message
         '''
-        self.add(self.index)
         if not self.remote.joined:
             emsg = "Aliver {0}. Must be joined with {1} first\n".format(
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            self.remove()
             self.stack.join(duid=self.remote.uid, cascade=self.cascade)
             return
 
@@ -1861,9 +1859,11 @@ class Aliver(Initiator):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
-            self.remove()
             self.stack.allow(duid=self.remote.uid, cascade=self.cascade)
             return
+
+        self.remote.refresh(alived=None) #Restart timer but do not change alived status
+        self.add(self.index)
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -2154,9 +2154,9 @@ class Messenger(Initiator):
 
     def message(self, body=None):
         '''
-        Send message
+        Send message or part of message. So repeatedly called untill complete
         '''
-        self.add(self.index)
+
         if not self.remote.allowed:
             emsg = "Messenger {0}. Must be allowed with {1} first\n".format(
                     self.stack.name, self.remote.name)
@@ -2175,6 +2175,20 @@ class Messenger(Initiator):
                 return
 
         if self.tray.current >= len(self.tray.packets):
+            emsg = "Messenger {0}. Current packet {1} greater than num packets {2}\n".format(
+                                self.stack.name, self.tray.current, len(self.tray.packets))
+            console.terse(emsg)
+            self.remove()
+            return
+
+        if self.index not in self.stack.transactions:
+            self.add(self.index)
+        elif self.stack.transactions[self.index] != self:
+            emsg = "Messenger {0}. Index collision at {1}\n".format(
+                                self.stack.name,  self.index)
+            console.terse(emsg)
+            self.incStat('message_index_collision')
+            self.remove()
             return
 
         burst = 1 if self.wait else len(self.tray.packets) - self.tray.current
@@ -2344,11 +2358,8 @@ class Messengent(Correspondent):
 
     def message(self):
         '''
-        Process message packet
+        Process message packet. Called repeatedly for each packet in message
         '''
-        self.add(self.index)
-        self.remote.refresh(alived=True)
-
         if not self.remote.allowed:
             emsg = "Messengent {0}. Must be allowed with {1} first\n".format(
                     self.stack.name,  self.remote.name)
@@ -2362,8 +2373,20 @@ class Messengent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.incStat('parsing_message_error')
-            self.remove()
+            self.nack()
             return
+
+        if self.index not in self.stack.transactions:
+            self.add(self.index)
+        elif self.stack.transactions[self.index] != self:
+            emsg = "Messengent {0}. Index collision at {1}\n".format(
+                                self.stack.name,  self.index)
+            console.terse(emsg)
+            self.incStat('message_index_collision')
+            self.nack()
+            return
+
+        self.remote.refresh(alived=True)
 
         self.stack.incStat("message_segment_rx")
 
