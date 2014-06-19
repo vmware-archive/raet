@@ -52,7 +52,7 @@ from ..road import packeting, estating
 from ..lane import paging, yarding
 
 
-class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStack(deeding.Deed):
     '''
     Initialize and run raet road stack
     FloScript:
@@ -114,7 +114,65 @@ class RaetRoadStack(deeding.Deed):  # pylint: disable=W0232
         '''
         self.stack.value.serviceAll()
 
-class RaetRoadStackCloser(deeding.Deed):  # pylint: disable=W0232
+
+class RaetRoadStackSetup(deeding.Deed):
+    '''
+    Initialize  raet road stack
+    FloScript:
+
+    do raet road stack setup
+
+    '''
+    Ioinits = odict(
+        inode="raet.road.stack.",
+        stack='stack',
+        txmsgs=odict(ipath='txmsgs', ival=deque()),
+        rxmsgs=odict(ipath='rxmsgs', ival=deque()),
+        local=odict(ipath='local', ival=odict(   name='master',
+                                                 basedirpath='/tmp/raet/keep',
+                                                 main=False,
+                                                 auto=True,
+                                                 eid=None,
+                                                 localname='master',
+                                                 host='0.0.0.0',
+                                                 port=raeting.RAET_PORT,
+                                                 sigkey=None,
+                                                 prikey=None)),)
+
+    def postinitio(self):
+        '''
+        Setup stack instance
+        '''
+        sigkey = self.local.data.sigkey
+        prikey = self.local.data.prikey
+        name = self.local.data.name
+        localname = self.local.data.localname
+        basedirpath = os.path.abspath(os.path.expanduser(self.local.data.basedirpath))
+        auto = self.local.data.auto
+        main = self.local.data.main
+        ha = (self.local.data.host, self.local.data.port)
+
+        eid = self.local.data.eid
+        local = estating.LocalEstate(  eid=eid,
+                                        name=localname,
+                                        ha=ha,
+                                        sigkey=sigkey,
+                                        prikey=prikey,)
+        txMsgs = self.txmsgs.value
+        rxMsgs = self.rxmsgs.value
+
+        self.stack.value = RoadStack(  local=local,
+                                       store=self.store,
+                                       name=name,
+                                       localname=localname,
+                                       auto=auto,
+                                       main=main,
+                                       basedirpath=basedirpath,
+                                       txMsgs=txMsgs,
+                                       rxMsgs=rxMsgs, )
+
+
+class RaetRoadStackCloser(deeding.Deed):
     '''
     Closes road stack server socket connection
     FloScript:
@@ -133,7 +191,43 @@ class RaetRoadStackCloser(deeding.Deed):  # pylint: disable=W0232
         if self.stack.value and isinstance(self.stack.value, RoadStack):
             self.stack.value.server.close()
 
-class RaetRoadStackJoiner(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackRxServicer(deeding.Deed):
+    '''
+    Serive inbound packets and process
+
+    FloScript:
+        do raet road stack rx servicer
+
+    '''
+    Ioinits = odict(
+        inode=".raet.road.stack.",
+        stack='stack', )
+
+    def action(self):
+        '''
+        Process inboud queues
+        '''
+        self.stack.value.serviceAllRx()
+
+class RaetRoadStackTxServicer(deeding.Deed):
+    '''
+    Service outbound packets
+
+    FloScript:
+        do raet road stack tx servicer
+
+    '''
+    Ioinits = odict(
+        inode=".raet.road.stack.",
+        stack='stack', )
+
+    def action(self):
+        '''
+        Process inbound queues
+        '''
+        self.stack.value.serviceAllTx()
+
+class RaetRoadStackJoiner(deeding.Deed):
     '''
     Initiates join transaction with zeroth remote estate (main)
     FloScript:
@@ -153,7 +247,7 @@ class RaetRoadStackJoiner(deeding.Deed):  # pylint: disable=W0232
         if stack and isinstance(stack, RoadStack):
             stack.join()
 
-class RaetRoadStackJoined(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackJoined(deeding.Deed):
     '''
     Updates status field in share with .joined of zeroth remote estate (main)
     FloScript:
@@ -179,7 +273,7 @@ class RaetRoadStackJoined(deeding.Deed):  # pylint: disable=W0232
                 joined = stack.remotes.values()[0].joined
         self.status.update(joined=joined)
 
-class RaetRoadStackAllower(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackAllower(deeding.Deed):
     '''
     Initiates allow (CurveCP handshake) transaction with zeroth remote estate (main)
     FloScript:
@@ -199,9 +293,8 @@ class RaetRoadStackAllower(deeding.Deed):  # pylint: disable=W0232
         stack = self.stack.value
         if stack and isinstance(stack, RoadStack):
             stack.allow(cascade=True)
-        return None
 
-class RaetRoadStackAllowed(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackAllowed(deeding.Deed):
     '''
     Updates status field in share with .allowed of zeroth remote estate (main)
     FloScript:
@@ -228,7 +321,7 @@ class RaetRoadStackAllowed(deeding.Deed):  # pylint: disable=W0232
                 allowed = stack.remotes.values()[0].allowed
         self.status.update(allowed=allowed)
 
-class RaetRoadStackIdled(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackIdled(deeding.Deed):
     '''
     Updates idle status field in shate to true if there are no outstanding
     transactions in the associated stack
@@ -257,7 +350,27 @@ class RaetRoadStackIdled(deeding.Deed):  # pylint: disable=W0232
                 idled = True
         self.status.update(idled=idled)
 
-class RaetRoadStackMessenger(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackManager(deeding.Deed):
+    '''
+    Initiates allow (CurveCP handshake) transaction with zeroth remote estate (main)
+    FloScript:
+
+    do raet road stack allower at enter
+
+    '''
+    Ioinits = odict(
+        inode=".raet.road.stack.",
+        stack='stack', )
+
+    def action(self, **kwa):
+        '''
+        Manage the presence of any remotes
+        '''
+        stack = self.stack.value
+        if stack and isinstance(stack, RoadStack):
+            stack.manage()
+
+class RaetRoadStackMessenger(deeding.Deed):
     '''
     Message is composed of fields that are parameters to action method
     and is sent to remote estate deid by putting message on txMsgs deque
@@ -283,7 +396,7 @@ class RaetRoadStackMessenger(deeding.Deed):  # pylint: disable=W0232
                 stack.transmit(msg=msg, duid=deid)
 
 
-class RaetRoadStackPrinter(deeding.Deed):  # pylint: disable=W0232
+class RaetRoadStackPrinter(deeding.Deed):
     '''
     Prints out messages on rxMsgs queue for associated stack
     FloScript:
@@ -304,7 +417,7 @@ class RaetRoadStackPrinter(deeding.Deed):  # pylint: disable=W0232
             msg = rxMsgs.popleft()
             console.terse("\nReceived....\n{0}\n".format(msg))
 
-class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStack(deeding.Deed):
     '''
     Initialize and run raet lane stack
     FloScript:
@@ -348,7 +461,7 @@ class RaetLaneStack(deeding.Deed):  # pylint: disable=W0232
         '''
         self.stack.value.serviceAll()
 
-class RaetLaneStackCloser(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackCloser(deeding.Deed):
     '''
     Closes lane stack server socket connection
     FloScript:
@@ -367,7 +480,7 @@ class RaetLaneStackCloser(deeding.Deed):  # pylint: disable=W0232
         if self.stack.value and isinstance(self.stack.value, LaneStack):
             self.stack.value.server.close()
 
-class RaetLaneStackYardAdd(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackYardAdd(deeding.Deed):
     '''
     Adds yard to lane stack.
     Where lane is the lane name and name is the yard name in the parameters
@@ -392,7 +505,7 @@ class RaetLaneStackYardAdd(deeding.Deed):  # pylint: disable=W0232
             stack.addRemote(yard)
             self.local.value = yard
 
-class RaetLaneStackTransmit(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackTransmit(deeding.Deed):
     '''
     Message is composed of fields that are parameters to action method
     and is sent to remote estate deid by putting on txMsgs deque
@@ -418,7 +531,7 @@ class RaetLaneStackTransmit(deeding.Deed):  # pylint: disable=W0232
                 stack.transmit(msg=msg, duid=stack.uids.get(name))
 
 
-class RaetLaneStackPrinter(deeding.Deed):  # pylint: disable=W0232
+class RaetLaneStackPrinter(deeding.Deed):
     '''
     Prints out messages on rxMsgs queue
     FloScript:

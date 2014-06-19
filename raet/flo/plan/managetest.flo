@@ -1,4 +1,4 @@
-# Raet Test FloScript
+# Mange Test FloScript
 
 house master
 
@@ -18,10 +18,11 @@ framer servicerx be active first start
         do raet road stack rx servicer per inode ".raet.road.stack"
 
 
-framer receiver be active first start
+framer manage be active first start
     frame start
         do raet road stack printer per inode ".raet.road.stack."
-        timeout 5
+        do raet road stack manager per inode ".raet.road.stack."
+        timeout 20
 
     frame abort
         bid stop all
@@ -77,7 +78,7 @@ framer bootstrap be active first join
         enter
             do raet road stack messenger to contents "Minion 1 Hello" code 15 \
                 per inode ".raet.road.stack."
-        go next
+        go next if elapsed >= 10
 
     frame idle
         print Idling Minion1...
@@ -134,7 +135,7 @@ framer bootstrap be active first join
         enter
             do raet road stack messenger to contents "Minion 2 Hello" code 15 \
                 per inode ".raet.road.stack."
-        go next
+        go next if elapsed >= 10
 
     frame idle
         print Idling Minion2...
