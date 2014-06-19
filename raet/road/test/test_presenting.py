@@ -1502,7 +1502,44 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.allowed, True)
                 self.assertIs(remote.alived, True)
 
+        # now close down all and reload from saved data but loose joined status
+        console.terse("\nMake all alive with cascade after all reboot and lose join *********\n")
+        main.server.close()
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        other.server.close()
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+        other1.server.close()
+        other1 = stacking.RoadStack(dirpath=other1Dirpath, store=self.store)
 
+        stacks = [main, other, other1]
+
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                remote.joined = None
+                self.assertIs(remote.joined, None) #joined status is persisted
+                self.assertIs(remote.allowed, None) # None on reload from file
+                self.assertIs(remote.alived, None) # None on reload from file
+
+        main.manage(immediate=True, cascade=True)
+        other.manage(immediate=True, cascade=True)
+        other1.manage(immediate=True, cascade=True)
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+        self.assertEqual(len(other.transactions), 1) # started 1 alive transactions
+        self.assertEqual(len(other1.transactions), 1) # started 1 alive transactions
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, None) #joined status is persisted
+                self.assertIs(remote.allowed, None) # None on reload from file
+                self.assertIs(remote.alived, None) # None on reload from file
+
+        self.serviceManageStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
 
         main.server.close()
         main.clearLocal()
