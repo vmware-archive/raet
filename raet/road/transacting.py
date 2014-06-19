@@ -1227,6 +1227,12 @@ class Allower(Initiator):
             self.stack.join(duid=self.remote.uid, cascade=self.cascade)
             return
 
+        if self.remote.allowInProcess() and self.stack.local.main:
+            emsg = "Allower {0}. Allow with {1} already in process\n".format(
+                    self.stack.name, self.remote.name)
+            console.concise(emsg)
+            return
+
         self.remote.rekey() # refresh short term keys and reset .allowed to None
         self.add(self.index)
 
@@ -1522,6 +1528,14 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('unjoined_allow_attempt')
             self.nack(kind=raeting.pcktKinds.unjoined)
+            return
+
+        if self.remote.allowInProcess() and not self.stack.local.main:
+            emsg = "Allowent {0}. Allow with {1} already in process\n".format(
+                    self.stack.name, self.remote.name)
+            console.terse(emsg)
+            self.stack.incStat('duplicate_allow_attempt')
+            self.nack()
             return
 
         self.remote.rekey() # refresh short term keys and .allowed

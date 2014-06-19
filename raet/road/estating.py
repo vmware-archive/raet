@@ -266,3 +266,13 @@ class RemoteEstate(Estate):
                     self.stack.incStat('stale_transaction')
                 else:
                     self.indexes.discard(index)
+
+    def allowInProcess(self):
+        '''
+        Returns True if an allow transaction with this remote is already in process
+        '''
+        for index in self.indexes:
+            transaction = self.stack.transactions[index]
+            if transaction.kind == raeting.trnsKinds.allow:
+                return True
+        return False

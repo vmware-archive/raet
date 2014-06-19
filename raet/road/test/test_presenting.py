@@ -1493,14 +1493,14 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.allowed, None) # None on reload from file
                 self.assertIs(remote.alived, None) # None on reload from file
 
-        #self.serviceManageStacks(stacks, duration=10.0)
-        #for stack in stacks:
-            #self.assertEqual(len(stack.transactions), 0)
-        #for stack in stacks:
-            #for remote in stack.remotes.values():
-                #self.assertIs(remote.joined, True)
-                #self.assertIs(remote.allowed, True)
-                #self.assertIs(remote.alived, True)
+        self.serviceManageStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
 
 
 
@@ -1562,6 +1562,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testManageRebootCascadeBothSides')
+    runOne('testManageRebootCascadeBothSides')
