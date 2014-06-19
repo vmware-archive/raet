@@ -79,23 +79,25 @@ class Yard(lotting.Lot):
         self.lanename = lanename or 'lane'
         self.bid = bid #current book id
 
-        if not dirpath:
-            dirpath = YARD_UXD_DIR
-        self.dirpath = os.path.abspath(os.path.expanduser(dirpath))
-        if not os.path.exists(dirpath):
-            try:
-                os.makedirs(dirpath)
-            except OSError as ex:
-                dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
-                if not os.path.exists(dirpath):
+        if not ha:
+            if not dirpath:
+                dirpath = YARD_UXD_DIR
+            self.dirpath = os.path.abspath(os.path.expanduser(dirpath))
+            if not os.path.exists(dirpath):
+                try:
                     os.makedirs(dirpath)
-        else:
-            if not os.access(dirpath, os.R_OK | os.W_OK):
-                dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
-                if not os.path.exists(dirpath):
-                    os.makedirs(dirpath)
+                except OSError as ex:
+                    dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
+                    if not os.path.exists(dirpath):
+                        os.makedirs(dirpath)
+            else:
+                if not os.access(dirpath, os.R_OK | os.W_OK):
+                    dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
+                    if not os.path.exists(dirpath):
+                        os.makedirs(dirpath)
+            ha = os.path.join(dirpath, "{0}.{1}.uxd".format(self.lanename, self.name))
 
-        self.ha = ha or os.path.join(dirpath, "{0}.{1}.uxd".format(self.lanename, self.name))
+        self.ha = ha
 
     @property
     def uid(self):
