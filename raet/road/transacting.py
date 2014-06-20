@@ -1770,7 +1770,6 @@ class Aliver(Initiator):
     Timeout = 2.0
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
-    ReapTimeout = 3600 # remove remote from memory if dead this long
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
                 cascade=False, **kwa):
