@@ -6,6 +6,17 @@ CHANGE LOG
 20140617
 ---------
 
+v0.0.25
+
+Fixed race condisitons with two way join transactions now detects if join in
+progress added nack refuse so do not delete remote and transactions
+
+now works better with key managment when rejecting remotes.
+
+---------
+20140617
+---------
+
 v0.0.24
 
 fixed error in lane yard transmit

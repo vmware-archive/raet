@@ -708,6 +708,9 @@ class Joinent(Correspondent):
                         if status == raeting.acceptances.accepted:
                             self.accept()
                         elif status == raeting.acceptances.rejected:
+                            "Estate '{0}' eid '{1}' keys rejected\n".format(
+                                            self.remote.name, self.remote.uid)
+                            self.stack.removeRemote(self.remote.uid) #reap remote
                             self.nack()
 
     def prep(self):
@@ -1085,11 +1088,15 @@ class Joinent(Correspondent):
             return
 
         if kind == raeting.pcktKinds.renew:
+            console.terse("Joinent {0}. Renew '{1}' at {2}\n".format(
+                            self.stack.name, ha, self.stack.store.stamp))
+        elif kind==raeting.pcktKinds.refuse:
             console.terse("Joinent {0}. Refuse '{1}' at {2}\n".format(
                             self.stack.name, ha, self.stack.store.stamp))
         else:
             console.terse("Joinent {0}. Reject '{1}' at {2}\n".format(
-                self.stack.name, ha, self.stack.store.stamp))
+                        self.stack.name, ha, self.stack.store.stamp))
+
         self.stack.incStat(self.statKey())
 
         if ha:
