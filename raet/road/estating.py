@@ -259,8 +259,8 @@ class RemoteEstate(Estate):
             rf = index[0]
             if rf and  ((renew and sid != 0) or (not renew and not self.validRsid(sid))):
                 if index in self.stack.transactions:
-                    self.transactions[index].nack()
-                    self.removeTransaction(index) # this discards it from self.indexes
+                    self.stack.transactions[index].nack()
+                    self.stack.removeTransaction(index) # this discards it from self.indexes
                     emsg = "Stale transation at '{0}' from remote {1}\n".format(index, self.name)
                     console.terse(emsg)
                     self.stack.incStat('stale_transaction')
@@ -274,5 +274,15 @@ class RemoteEstate(Estate):
         for index in self.indexes:
             transaction = self.stack.transactions[index]
             if transaction.kind == raeting.trnsKinds.allow:
+                return True
+        return False
+
+    def joinInProcess(self):
+        '''
+        Returns True if join transaction with this remote is already in process
+        '''
+        for index in self.indexes:
+            transaction = self.stack.transactions[index]
+            if transaction.kind == raeting.trnsKinds.join:
                 return True
         return False

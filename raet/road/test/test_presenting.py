@@ -1391,7 +1391,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
 
         for stack in [other, other1]:
-             for remote in stack.remotes.values():
+            for remote in stack.remotes.values():
                  self.assertIs(remote.joined, True) #joined status is persisted
                  self.assertIs(remote.allowed, True)
                  self.assertIs(remote.alived, True)
@@ -1599,6 +1599,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testManageRebootCascadeBothSides')
+    #runOne('testManageRebootCascadeBothSides')
