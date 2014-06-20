@@ -6,6 +6,15 @@ CHANGE LOG
 20140617
 ---------
 
+v0.0.23
+
+Better support for two way presence checking
+
+
+---------
+20140617
+---------
+
 v0.0.22
 
 joined status persistence
