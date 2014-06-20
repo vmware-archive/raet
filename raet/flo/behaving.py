@@ -352,10 +352,10 @@ class RaetRoadStackIdled(deeding.Deed):
 
 class RaetRoadStackManager(deeding.Deed):
     '''
-    Initiates allow (CurveCP handshake) transaction with zeroth remote estate (main)
+    Runs the presence manage method of RoadStack
+    
     FloScript:
-
-    do raet road stack allower at enter
+        do raet road stack manager
 
     '''
     Ioinits = odict(
