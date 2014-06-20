@@ -299,21 +299,22 @@ class LaneStack(stacking.Stack):
         try:
             self.server.send(tx, ta)
         except Exception as ex:
+            console.concise("Error sending to '{0}' from '{1}: {2}\n".format(
+                ta, self.local.ha, ex))
             if ex.errno == errno.ECONNREFUSED or ex.errno == errno.ENOENT:
-                console.terse("socket.error = {0}\n".format(ex))
                 self.incStat("stale_transmit_yard")
-
                 yard = self.fetchRemoteFromHa(ta)
                 if yard:
                     self.removeRemote(yard.uid)
                     console.terse("Reaped yard {0}\n".format(yard.name))
             elif ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
+                self.incStat("busy_transmit_yard")
                 #busy with last message save it for later
                 laters.append((tx, ta))
                 blocks.append(ta)
 
             else:
-                console.terse("Sending to '{0}' from '{1}\n".format(ta, self.local.ha))
+                self.incStat("error_transmit_yard")
                 raise
 
     def message(self, body, duid):

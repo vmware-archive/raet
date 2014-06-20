@@ -6,6 +6,14 @@ CHANGE LOG
 20140617
 ---------
 
+v0.0.24
+
+fixed error in lane yard transmit
+
+---------
+20140617
+---------
+
 v0.0.23
 
 Better support for two way presence checking
