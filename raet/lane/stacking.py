@@ -298,8 +298,8 @@ class LaneStack(stacking.Stack):
 
         try:
             self.server.send(tx, ta)
-        except socket.error as ex:
-            if ex.errno == errno.ECONNREFUSED:
+        except Exception as ex:
+            if ex.errno == errno.ECONNREFUSED or ex.errno == errno.ENOENT:
                 console.terse("socket.error = {0}\n".format(ex))
                 self.incStat("stale_transmit_yard")
 
