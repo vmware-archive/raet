@@ -10,6 +10,7 @@ framer masterroadstack be active first start
     frame start
         enter
             do raet road stack setup per inode ".raet.road.stack"
+            do raet road stack manager immediate per inode ".raet.road.stack"
         exit
             do raet road stack closer per inode ".raet.road.stack."
 
@@ -20,9 +21,10 @@ framer servicerx be active first start
 
 framer manage be active first start
     frame start
+        print Managing Master...
         do raet road stack printer per inode ".raet.road.stack."
         do raet road stack manager per inode ".raet.road.stack."
-        timeout 20
+        timeout 10
 
     frame abort
         bid stop all
@@ -47,7 +49,20 @@ framer servicerx be active first start
     frame start
         do raet road stack rx servicer per inode ".raet.road.stack"
 
-framer bootstrap be active first join
+framer bootstrap be active first checkjoin
+
+    frame checkjoin
+        print Checking Join Minion1...
+        enter
+            do raet road stack joined per inode ".raet.road.stack."
+
+        go alreadyjoined if joined in .raet.road.stack.status
+        go join
+
+    frame alreadyjoined
+        print Already Joined Minion1...
+        go checkallow
+
     frame join
         print Joining Minion1...
         enter
@@ -56,11 +71,23 @@ framer bootstrap be active first join
             do raet road stack joined per inode ".raet.road.stack."
 
         go next if joined in .raet.road.stack.status
-        go abort if elapsed >= 5
+        go abort if elapsed >= 2
 
     frame joined
-        print Joined Minion1
+        print Joined Minion1...
         go next
+
+    frame checkallow
+        print Checking allow Minion1...
+        enter
+            do raet road stack allowed per inode ".raet.road.stack."
+
+        go alreadyallowed if allowed in .raet.road.stack.status
+        go allow
+
+    frame alreadyallowed
+        print Already allowed Minion1...
+        go message
 
     frame allow
         print Allowing Minion1...
@@ -70,10 +97,10 @@ framer bootstrap be active first join
             do raet road stack allowed per inode ".raet.road.stack."
 
         go next if allowed in .raet.road.stack.status
-        go abort if elapsed >= 5
+        go abort if elapsed >= 2
 
     frame allowed
-        print Allowed Minion1
+        print Allowed Minion1...
         go next
 
     frame message
@@ -86,7 +113,7 @@ framer bootstrap be active first join
     frame manage
         print Managing Minion1...
         do raet road stack manager per inode ".raet.road.stack."
-        go next if elapsed >= 10
+        go next if elapsed >= 5
 
     frame idle
         print Idling Minion1...
@@ -117,7 +144,19 @@ framer servicerx be active first start
         do raet road stack rx servicer per inode ".raet.road.stack"
 
 
-framer bootstrap be active first join
+framer bootstrap be active first checkjoin
+   frame checkjoin
+        print Checking Join Minion2...
+        enter
+            do raet road stack joined per inode ".raet.road.stack."
+
+        go alreadyjoined if joined in .raet.road.stack.status
+        go join
+
+    frame alreadyjoined
+        print Already Joined Minion2...
+        go checkallow
+
     frame join
         print Joining Minion2...
         enter
@@ -129,8 +168,20 @@ framer bootstrap be active first join
         go abort if elapsed >= 5
 
     frame joined
-        print Joined Minion2
+        print Joined Minion2...
         go next
+
+    frame checkallow
+        print Checking allow Minion2...
+        enter
+            do raet road stack allowed per inode ".raet.road.stack."
+
+        go alreadyallowed if allowed in .raet.road.stack.status
+        go allow
+
+    frame alreadyallowed
+        print Already allowed Minion2...
+        go message
 
     frame allow
         print Allowing Minion2...
@@ -143,7 +194,7 @@ framer bootstrap be active first join
         go abort if elapsed >= 5
 
     frame allowed
-        print Allowed Minion2
+        print Allowed Minion2...
         go next
 
     frame message
@@ -154,9 +205,9 @@ framer bootstrap be active first join
         go next
 
     frame manage
-        print Managing Minion1...
+        print Managing Minion2...
         do raet road stack manager per inode ".raet.road.stack."
-        go next if elapsed >= 15
+        go next if elapsed >= 7
 
     frame idle
         print Idling Minion2...

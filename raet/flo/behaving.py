@@ -368,7 +368,27 @@ class RaetRoadStackManager(deeding.Deed):
         '''
         stack = self.stack.value
         if stack and isinstance(stack, RoadStack):
-            stack.manage()
+            stack.manage(cascade=True)
+
+class RaetRoadStackManagerImmediate(deeding.Deed):
+    '''
+    Initiates allow (CurveCP handshake) transaction with zeroth remote estate (main)
+    FloScript:
+
+    do raet road stack allower at enter
+
+    '''
+    Ioinits = odict(
+        inode=".raet.road.stack.",
+        stack='stack', )
+
+    def action(self, **kwa):
+        '''
+        Manage the presence of any remotes
+        '''
+        stack = self.stack.value
+        if stack and isinstance(stack, RoadStack):
+            stack.manage(cascade=True, immediate=True)
 
 class RaetRoadStackMessenger(deeding.Deed):
     '''
