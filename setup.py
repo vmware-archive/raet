@@ -38,7 +38,7 @@ REQUIREMENTS = ['ioflo>=0.9.35',
 if sys.version_info < (2, 7): #tuple comparison element by element
     # Under Python 2.6, also install
     REQUIREMENTS.extend([
-        'importlib>=1.0.3'
+        'importlib>=1.0.3',
         'argparse>=1.2.1'
     ])
 
