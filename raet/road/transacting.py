@@ -2289,7 +2289,7 @@ class Messenger(Initiator):
 
                 self.transmit(packet)
                 self.stack.incStat("message_segment_tx")
-                console.concise("Messenger {0}. Resend Message Segment {1} with {2) at {3}\n".format(
+                console.concise("Messenger {0}. Resend Message Segment {1} with {2} at {3}\n".format(
                         self.stack.name, m, self.remote.name, self.stack.store.stamp))
 
     def complete(self):
