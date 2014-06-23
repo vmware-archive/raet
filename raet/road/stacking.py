@@ -148,6 +148,7 @@ class RoadStack(stacking.Stack):
                                         **kwa)
 
         self.transactions = odict() #transactions
+        self.alloweds = odict() # allowed remotes
 
     def nextEid(self):
         '''
@@ -364,8 +365,12 @@ class RoadStack(stacking.Stack):
 
         immediate indicates to run first attempt immediately and not wait for timer
         '''
+        alloweds = odict()
         for remote in self.remotes.values(): # should not start anything
             remote.manage(cascade=cascade, immediate=immediate)
+            if remote.allowed:
+                alloweds[remote.name] = remote
+        self.alloweds = alloweds
 
     def addTransaction(self, index, transaction):
         '''
