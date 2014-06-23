@@ -3,6 +3,15 @@ CHANGE LOG
 -------------------
 
 ---------
+20140623
+---------
+
+v0.0.26
+
+RoadStack.manage now provide underlying support needed for presence events
+and filtering of remote targets based on availabilty (allowed) status
+
+---------
 20140617
 ---------
 
