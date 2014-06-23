@@ -364,13 +364,22 @@ class RoadStack(stacking.Stack):
         failure or alive success
 
         immediate indicates to run first attempt immediately and not wait for timer
+
         '''
         alloweds = odict()
         for remote in self.remotes.values(): # should not start anything
             remote.manage(cascade=cascade, immediate=immediate)
             if remote.allowed:
                 alloweds[remote.name] = remote
+
+        old = set(self.alloweds.keys())
+        current = set(alloweds.keys())
+        plus = current.difference(old)
+        minus = old.difference(current)
+        self.changeds = odict(plus=plus, minus=minus)
         self.alloweds = alloweds
+
+
 
     def addTransaction(self, index, transaction):
         '''
