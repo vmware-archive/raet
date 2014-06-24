@@ -128,10 +128,10 @@ class RemoteEstate(Estate):
     '''
     Period = 1.0
     Offset = 0.5
-    ReapTimeout = 3600.0
+    Interim = 3600.0
 
     def __init__(self, stack, verkey=None, pubkey=None, acceptance=None, joined=None,
-                 rsid=0, period=None, offset=None, reapTimeout=None, **kwa):
+                 rsid=0, period=None, offset=None, interim=None, **kwa):
         '''
         Setup Estate instance
 
@@ -147,7 +147,7 @@ class RemoteEstate(Estate):
         period is timeout of keep alive heartbeat timer
         offset is initial offset of keep alive heartbeat timer
 
-        reapTimeout is timeout of reapTimer (remove from memory if dead for reap time)
+        interim is timeout of reapTimer (remove from memory if dead for reap time)
         '''
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
@@ -176,9 +176,9 @@ class RemoteEstate(Estate):
         self.timer = aiding.StoreTimer(store=self.stack.store,
                                        duration=duration)
 
-        self.reapTimeout = reapTimeout if reapTimeout is not None else self.ReapTimeout
+        self.interim = interim if interim is not None else self.Interim
         self.reapTimer = aiding.StoreTimer(self.stack.store,
-                                           duration=self.reapTimeout)
+                                           duration=self.interim)
 
 
     def rekey(self):
@@ -221,7 +221,7 @@ class RemoteEstate(Estate):
         if immediate or self.timer.expired:
             # alive transaction restarts self.timer
             self.stack.alive(duid=self.uid, cascade=cascade)
-        if self.reapTimeout >  0.0 and self.reapTimer.expired:
+        if self.interim >  0.0 and self.reapTimer.expired:
             self.reap()
 
     def reap(self):

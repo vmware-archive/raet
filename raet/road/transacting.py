@@ -810,13 +810,22 @@ class Joinent(Correspondent):
         leid = data['de']
 
         if self.stack.local.main:
-            if ((reid != 0 and reid not in self.stack.remotes) or
-                    (leid != 0 and leid != self.stack.local.uid)):
-                emsg = "Estate '{0}' renew stale reid '{1}'\n".format(
-                                            name, reid)
+            if ((leid != 0 and leid != self.stack.local.uid)):
+                emsg = "Estate '{0}' renew stale main leid '{1}'\n".format(
+                                            name, leid)
                 console.terse(emsg)
                 self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
                 return
+
+            elif (reid != 0 and reid not in self.stack.remotes):
+                remote = self.stack.restoreRemote(reid) # see if still on disk
+                if not remote:
+                    emsg = "Estate '{0}' renew stale reid '{1}'\n".format(
+                                                name, reid)
+                    console.terse(emsg)
+                    self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+                    return
+                self.remote = remote
 
             if reid != 0:
                 if self.remote is None:

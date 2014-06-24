@@ -68,8 +68,12 @@ class RoadStack(stacking.Stack):
     auto
         <Incomplete Doc>
     period
-        The default itteration timeframe to use for the background management
+        The default iteration timeframe to use for the background management
         of the presence system. Defaults to 1.0
+    offset
+        The default offset to the start of period
+    interim
+        The default timeout to reap a dead remote
     '''
     Count = 0
     Eid = 1 # class attribute starting point for valid eids, eid == 0 is special
@@ -81,6 +85,7 @@ class RoadStack(stacking.Stack):
     Wf = False # stack default for waitflag
     Period = 1.0 # stack default for keep alive
     Offset = 0.5 # stack default for keep alive
+    Interim = 3600 # stack default for reap timeout
     JoinerTimeout = 5.0 # stack default for joiner transaction timeout
     JoinentTimeout = 5.0 # stack default for joinent transaction timeout
 
@@ -99,6 +104,7 @@ class RoadStack(stacking.Stack):
                  auto=None,
                  period=None,
                  offset=None,
+                 interim=None,
                  **kwa
                  ):
         '''
@@ -137,6 +143,7 @@ class RoadStack(stacking.Stack):
 
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
+        self.interim = interim if interim is not None else self.Interim
 
         super(RoadStack, self).__init__(name=name,
                                         keep=keep,
@@ -335,7 +342,8 @@ class RoadStack(stacking.Stack):
                                                verkey=safeData['verhex'],
                                                pubkey=safeData['pubhex'],
                                                period=self.period,
-                                               offset=self.offset)
+                                               offset=self.offset,
+                                               interim=self.interim)
                 self.addRemote(remote)
         return remote
 
@@ -364,7 +372,8 @@ class RoadStack(stacking.Stack):
                                            verkey=safeData['verhex'],
                                            pubkey=safeData['pubhex'],
                                            period=self.period,
-                                           offset=self.offset)
+                                           offset=self.offset,
+                                           interim=self.interim)
             self.addRemote(remote)
 
     def clearRemote(self, remote):
