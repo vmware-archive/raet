@@ -248,6 +248,22 @@ class Stack(object):
         for remote in self.remotes.values():
             self.dumpRemote(remote)
 
+    def restoreRemote(self, uid):
+        '''
+        Load, add, and return remote with uid if any
+        Otherwise return None
+        '''
+        remote = None
+        data = self.keep.loadRemoteData(uid)
+        if data and self.keep.verifyRemoteData(data):
+            remote = lotting.Lot(stack=self,
+                              uid=data['uid'],
+                              name=data['name'],
+                              ha=data['ha'],
+                              sid=data['sid'])
+            self.addRemote(remote)
+        return remote
+
     def restoreRemotes(self):
         '''
         Load and add remote for each remote file
@@ -255,7 +271,7 @@ class Stack(object):
         datadict = self.keep.loadAllRemoteData()
         for data in datadict.values():
             if self.keep.verifyRemoteData(data):
-                lot = lotting.Lot(stack=self,
+                remote = lotting.Lot(stack=self,
                                   uid=data['uid'],
                                   name=data['name'],
                                   ha=data['ha'],

@@ -165,6 +165,22 @@ class LaneStack(stacking.Stack):
         else:
             self.local = yarding.LocalYard(stack=self, name=name)
 
+    def restoreRemote(self, uid):
+        '''
+        Load, add, and return remote with uid if any
+        Otherwise return None
+        '''
+        remote = None
+        data = self.keep.loadRemoteData(uid)
+        if data and self.keep.verifyRemoteData(data):
+            remote = yarding.RemoteYard(stack=self,
+                                        yid=data['uid'],
+                                        name=data['name'],
+                                        ha=data['ha'],
+                                        sid=data['sid'],)
+            self.addRemote(remote)
+        return remote
+
     def restoreRemotes(self):
         '''
         Load and add remote for each remote file

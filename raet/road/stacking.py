@@ -314,6 +314,31 @@ class RoadStack(stacking.Stack):
         self.keep.dumpRemote(remote)
         self.safe.dumpRemote(remote)
 
+    def restoreRemote(self, uid):
+        '''
+        Load, add, and return remote with uid if any
+        Otherwise return None
+        '''
+        remote = None
+        keepData = self.keep.loadRemoteData(uid)
+        safeData = self.keep.loadRemoteData(uid)
+        if keepData and safeData:
+            if (self.keep.verifyRemoteData(keepData) and
+                self.safe.verifyRemoteData(safeData)):
+                remote = estating.RemoteEstate(stack=self,
+                                               eid=keepData['uid'],
+                                               name=keepData['name'],
+                                               ha=keepData['ha'],
+                                               sid=keepData['sid'],
+                                               joined=keepData['joined'],
+                                               acceptance=safeData['acceptance'],
+                                               verkey=safeData['verhex'],
+                                               pubkey=safeData['pubhex'],
+                                               period=self.period,
+                                               offset=self.offset)
+                self.addRemote(remote)
+        return remote
+
     def restoreRemotes(self):
         '''
         Load .remotes from valid keep and safe data if any
