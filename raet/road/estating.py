@@ -226,12 +226,13 @@ class RemoteEstate(Estate):
 
     def reap(self):
         '''
-        Remote is dead, reap it.
+        Remote is dead, reap it if main estate.
         '''
-        console.concise("Stack {0}: Reaping dead remote {1} at {2}\n".format(
-                self.stack.name, self.name, self.stack.store.stamp))
-        self.stack.incStat("remote_reap")
-        self.stack.removeRemote(self.uid, clear=False) #remove from memory but not disk
+        if self.stack.local.main: #only reap main remotes
+            console.concise("Stack {0}: Reaping dead remote {1} at {2}\n".format(
+                    self.stack.name, self.name, self.stack.store.stamp))
+            self.stack.incStat("remote_reap")
+            self.stack.removeRemote(self.uid, clear=False) #remove from memory but not disk
 
 
     def removeStaleTransactions(self, renew=False):
