@@ -209,13 +209,10 @@ class RemoteEstate(Estate):
         if alived is None:
             return
 
-        old = self.alived
-        #if self.alived is False:
-                    #if old: # was alive now dead
-                        #self.reapTimer.restart()
-
+        if self.alived or alived: # alive before or after
+            self.reapTimer.restart()
+        #otherwise let timer run both before and after are still dead
         self.alived = alived
-
 
     def manage(self, cascade=False, immediate=False):
         '''
