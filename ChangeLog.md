@@ -6,6 +6,16 @@ CHANGE LOG
 20140623
 ---------
 
+v0.0.27XX
+
+Support for reaping and restoring dead remotes on main estate road stack
+
+
+
+---------
+20140623
+---------
+
 v0.0.26
 
 RoadStack.manage now provide underlying support needed for presence events
