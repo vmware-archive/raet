@@ -165,7 +165,7 @@ class LaneStack(stacking.Stack):
         else:
             self.local = yarding.LocalYard(stack=self, name=name)
 
-    def loadRemotes(self):
+    def restoreRemotes(self):
         '''
         Load and add remote for each remote file
         '''

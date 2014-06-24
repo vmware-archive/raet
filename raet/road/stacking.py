@@ -314,7 +314,7 @@ class RoadStack(stacking.Stack):
         self.keep.dumpRemote(remote)
         self.safe.dumpRemote(remote)
 
-    def loadRemotes(self):
+    def restoreRemotes(self):
         '''
         Load .remotes from valid keep and safe data if any
         '''

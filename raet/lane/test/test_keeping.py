@@ -238,7 +238,7 @@ class BasicTestCase(unittest.TestCase):
         #stack.removeAllRemotes()
         stack.remotes = odict()
         stack.uids = odict()
-        stack.loadRemotes()
+        stack.restoreRemotes()
         self.assertDictEqual(stack.remotes, {})
 
         # round trip with non empty remote data
@@ -288,7 +288,7 @@ class BasicTestCase(unittest.TestCase):
         #stack.removeAllRemotes()
         stack.remotes = odict()
         stack.uids = odict()
-        stack.loadRemotes()
+        stack.restoreRemotes()
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.uid] = odict([

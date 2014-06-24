@@ -80,7 +80,7 @@ class Stack(object):
         self.loadLocal(local=local, name=localname) # load local data from saved data else passed in local
         self.remotes = odict() # remotes indexed by uid
         self.uids = odict() # remote uids indexed by name
-        self.loadRemotes() # load remotes from saved data
+        self.restoreRemotes() # load remotes from saved data
 
         for remote in self.remotes.values():
             remote.nextSid()
@@ -248,7 +248,7 @@ class Stack(object):
         for remote in self.remotes.values():
             self.dumpRemote(remote)
 
-    def loadRemotes(self):
+    def restoreRemotes(self):
         '''
         Load and add remote for each remote file
         '''

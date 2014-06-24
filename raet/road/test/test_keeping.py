@@ -224,7 +224,7 @@ class BasicTestCase(unittest.TestCase):
         #stack.removeAllRemotes()
         stack.remotes = odict()
         stack.uids = odict()
-        stack.loadRemotes()
+        stack.restoreRemotes()
         self.assertDictEqual(stack.remotes, {})
 
 
@@ -300,7 +300,7 @@ class BasicTestCase(unittest.TestCase):
         #stack.removeAllRemotes()
         stack.remotes = odict()
         stack.uids = odict()
-        stack.loadRemotes()
+        stack.restoreRemotes()
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.uid] = odict([
@@ -557,13 +557,13 @@ class BasicTestCase(unittest.TestCase):
         #main.removeAllRemotes()
         main.remotes = odict()
         main.uids = odict()
-        main.loadRemotes()
+        main.restoreRemotes()
         main.loadLocal()
 
         #other.removeAllRemotes()
         other.remotes = odict()
         other.uids = odict()
-        other.loadRemotes()
+        other.restoreRemotes()
         other.loadLocal()
 
         remote = main.remotes.values()[0]
