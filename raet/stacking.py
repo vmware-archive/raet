@@ -171,16 +171,18 @@ class Stack(object):
             del self.uids[old]
             self.uids.insert(index, remote.name, remote.uid)
 
-    def removeRemote(self, uid):
+    def removeRemote(self, uid, clear=True):
         '''
         Remove remote at key uid
+        If clear then also remove from disk
         '''
         if uid not in self.remotes:
             emsg = "Cannot remove remote '{0}', does not exist".format(uid)
             raise raeting.StackError(emsg)
 
         remote = self.remotes[uid]
-        self.clearRemote(remote)
+        if clear:
+            self.clearRemote(remote)
         del self.remotes[uid]
         del self.uids[remote.name]
 
