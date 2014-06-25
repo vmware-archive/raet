@@ -552,10 +552,8 @@ class Joiner(Initiator):
 
         self.remote.replaceStaleInitiators(renew=(self.sid==0))
         self.remote.nextSid() # start new session
-        #self.remote.requeueStaleMessages()
         self.stack.dumpRemote(self.remote)
         self.remote.joined = True #accepted
-
 
         self.ackAccept()
 
@@ -1427,7 +1425,7 @@ class Allower(Initiator):
         self.stack.incStat("allow_initiate_complete")
 
         self.remote.nextSid() # start new session
-        self.remote.requeueStaleMessages()
+        self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
         if self.cascade:
             self.stack.alive(duid=self.remote.uid, cascade=self.cascade)

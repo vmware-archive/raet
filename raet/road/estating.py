@@ -233,7 +233,6 @@ class RemoteEstate(Estate):
             self.stack.incStat("remote_reap")
             self.stack.removeRemote(self.uid, clear=False) #remove from memory but not disk
 
-
     def removeStaleCorrespondents(self, renew=False):
         '''
         Remove stale correspondent transactions associated with remote
@@ -251,8 +250,6 @@ class RemoteEstate(Estate):
             si = sid, Session ID, SID
             ti = tid, Transaction ID, TID
             bf = Broadcast Flag, BcstFlag
-
-
         '''
         indexes = set(self.indexes) # make copy so not changed in place
 
@@ -290,8 +287,6 @@ class RemoteEstate(Estate):
             si = sid, Session ID, SID
             ti = tid, Transaction ID, TID
             bf = Broadcast Flag, BcstFlag
-
-
         '''
         indexes = set(self.indexes) # make copy so not changed in place
 
@@ -311,45 +306,6 @@ class RemoteEstate(Estate):
                     self.stack.incStat('stale_transaction')
                 else:
                     self.indexes.discard(index)
-
-    def requeueStaleMessages(self):
-        '''
-        Requeue and remove any stale messages from messenger transactions initiated locally
-        with remote
-
-        Stale means the sid in the transaction is older than the current .sid
-        or if renew (rejoining with .sid == zero)
-
-        When sid in index is older than remote.sid
-        Where index is tuple: (rf, le, re, si, ti, bf,)
-            rf = Remotely Initiated Flag, RmtFlag
-            le = leid, Local estate ID, LEID
-            re = reid, Remote estate ID, REID
-            si = sid, Session ID, SID
-            ti = tid, Transaction ID, TID
-            bf = Broadcast Flag, BcstFlag
-
-        If renew Then remove all initiators from this remote with nonzero sid
-        '''
-        indexes = set(self.indexes) # make copy so not changed in place
-
-        for index in indexes:
-            sid = index[3]
-            rf = index[0]
-            if not rf and not self.validSid(sid):
-                if index in self.stack.transactions:
-                    transaction = self.stack.transactions[index]
-                    if transaction.kind in [raeting.trnsKinds.message]:
-                        #requeue here
-                        transaction.nack()
-                        self.stack.removeTransaction(index) # this discards it from self.indexes
-                        emsg = ("Stack {0}: Stale messege with remote {1} requeued "
-                                "at {2}\n".format(self.stack.name, index, self.name))
-                        console.terse(emsg)
-                        self.stack.incStat('stale_transaction')
-                else:
-                    self.indexes.discard(index)
-
 
     def allowInProcess(self):
         '''
