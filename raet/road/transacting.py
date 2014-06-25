@@ -386,22 +386,22 @@ class Joiner(Initiator):
                 console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
                          self.stack.name, self.remote.name, self.stack.store.stamp))
                 self.stack.incStat('redo_join')
-            #else: #check to see if status has changed to accept after other kind
-                #if self.local.main: #only if joiner initiated by main stack
-                    #if self.remote:
-                        #data = self.stack.safe.loadRemote(self.remote)
-                        #if data:
-                            #status = self.stack.safe.statusRemote(self.remote,
-                                                                  #data['verhex'],
-                                                                  #data['pubhex'],
-                                                                  #main=self.stack.local.main)
-                            #if status == raeting.acceptances.accepted:
-                                #self.join() # trigger remote to resend accept packet
-                            #elif status == raeting.acceptances.rejected:
-                                #"Stack {0}: Estate '{1}' eid '{2}' keys rejected\n".format(
-                                    #self.stack.name, self.remote.name, self.remote.uid)
-                                #self.remote.joined = False
-                                #self.nackAccept()
+            else: #check to see if status has changed to accept after other kind
+                if self.local.main: #only if joiner initiated by main stack
+                    if self.remote:
+                        data = self.stack.safe.loadRemote(self.remote)
+                        if data:
+                            status = self.stack.safe.statusRemote(self.remote,
+                                                                  data['verhex'],
+                                                                  data['pubhex'],
+                                                                  main=self.stack.local.main)
+                            if status == raeting.acceptances.accepted:
+                                self.join() # trigger remote to resend accept packet
+                            elif status == raeting.acceptances.rejected:
+                                "Stack {0}: Estate '{1}' eid '{2}' keys rejected\n".format(
+                                    self.stack.name, self.remote.name, self.remote.uid)
+                                self.remote.joined = False
+                                self.nackAccept()
 
 
     def prep(self):
