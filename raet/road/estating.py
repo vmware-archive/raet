@@ -7,6 +7,8 @@ estating.py raet protocol estate classes
 
 import socket
 
+from collections import deque
+
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
@@ -179,6 +181,7 @@ class RemoteEstate(Estate):
         self.interim = interim if interim is not None else self.Interim
         self.reapTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.interim)
+        self.messages = deque() # deque of saved stale message body data to remote.uid
 
     def rekey(self):
         '''
@@ -269,7 +272,7 @@ class RemoteEstate(Estate):
 
     def replaceStaleInitiators(self, renew=False):
         '''
-        Requeue and remove any messages from messenger transactions initiated locally
+        Save and remove any messages from messenger transactions initiated locally
         with remote
 
         Remove non message stale initiator transactions associated with remote
@@ -297,7 +300,7 @@ class RemoteEstate(Estate):
                 if index in self.stack.transactions:
                     transaction = self.stack.transactions[index]
                     if transaction.kind in [raeting.trnsKinds.message]:
-                        pass #requeue here
+                        self.saveMessage(transaction)
                     transaction.nack()
                     self.stack.removeTransaction(index) # this discards it from self.indexes
                     emsg = ("Stack {0}: Stale transation with remote {1} at {2}"
@@ -306,6 +309,29 @@ class RemoteEstate(Estate):
                     self.stack.incStat('stale_transaction')
                 else:
                     self.indexes.discard(index)
+
+    def saveMessage(self, messenger):
+        '''
+        Message is Messenger compatible transaction
+        Save copy of body data from stale initiated message on .messages deque
+        for retransmitting later after new session is established
+        '''
+        self.messages.append(odict(messenger.tray.body))
+        emsg = ("Stack {0}: Saved stale message with remote {1} at {2}"
+                                                "\n".format(self.stack.name, index, self.name))
+        console.concise(emsg)
+
+    def sendSavedMessages(self):
+        '''
+        Message is Messenger compatible transaction
+        Save stale initiated message for retransmitting later after new session is established
+        '''
+        while self.messages:
+            body = self.messages.popleft()
+            self.stack.message(body=body, duid=self.uid)
+            emsg = ("Stack {0}: Resent saved message with remote {1} at {2}"
+                                        "\n".format(self.stack.name, index, self.name))
+            console.concise(emsg)
 
     def allowInProcess(self):
         '''

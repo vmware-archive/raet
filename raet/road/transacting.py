@@ -1427,6 +1427,7 @@ class Allower(Initiator):
         self.remote.nextSid() # start new session
         self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
+        self.remote.sendSavedMessages() # could include messages saved on rejoin
         if self.cascade:
             self.stack.alive(duid=self.remote.uid, cascade=self.cascade)
 
@@ -1760,6 +1761,7 @@ class Allowent(Correspondent):
         console.concise("Allowent {0}. Do Final with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_correspond_complete")
+        self.remote.sendSavedMessages() # could include messages saved on rejoin
 
     def reject(self):
         '''

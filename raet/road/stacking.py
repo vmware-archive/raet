@@ -414,8 +414,6 @@ class RoadStack(stacking.Stack):
         self.changeds = odict(plus=plus, minus=minus)
         self.alloweds = alloweds
 
-
-
     def addTransaction(self, index, transaction):
         '''
         Safely add transaction at index If not already there
