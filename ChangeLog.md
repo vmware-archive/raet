@@ -3,12 +3,15 @@ CHANGE LOG
 -------------------
 
 ---------
-20140623
+20140625
 ---------
 
-v0.0.27XX
+v0.0.27
 
 Support for reaping and restoring dead remotes on main estate road stack
+Support for saving and resending stale messages when session changes on rejoin
+or reallow
+Some other fixes
 
 
 
