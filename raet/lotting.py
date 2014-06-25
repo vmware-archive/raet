@@ -74,11 +74,20 @@ class Lot(object):
         '''
         self.sid += 1
         if self.sid > raeting.SID_ROLLOVER: #0xffffffff
-            self.sid = 1  # rollover to 1
+            self.sid = 1  # rollover to 1 as 0 is special
         return self.sid
 
+    def validSid(self, sid):
+        '''
+        Compare new sid to old .sid and return True
+        If new is >= old modulo N where N is 2^32 = 0x100000000
+        And >= means the difference is less than N//2 = 0x80000000
+        (((new - old) % 0x100000000) < (0x100000000 // 2))
+        '''
+        return self.validateSid(new=sid, old=self.sid)
+
     @staticmethod
-    def validSid(new, old):
+    def validateSid(new, old):
         '''
         Compare new sid to old sid and return True
         If new is >= old modulo N where N is 2^32 = 0x100000000

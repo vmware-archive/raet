@@ -511,9 +511,9 @@ class RoadStack(stacking.Stack):
                     self.replyStale(received, remote) # nack stale transaction
                     return
 
-                if rsid != remote.rsid:
+                if rsid != remote.rsid: # updated valid rsid so change remote.rsid
                     remote.rsid = rsid
-                    remote.removeStaleTransactions()
+                    remote.removeStaleCorrespondents()
 
         trans = self.transactions.get(received.index, None)
         if trans:

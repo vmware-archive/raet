@@ -550,8 +550,9 @@ class Joiner(Initiator):
                 self.stack.local.uid = leid # change id of local estate
                 self.stack.dumpLocal() # only dump if changed
 
-        self.remote.removeStaleTransactions(renew=(self.sid==0))
+        self.remote.replaceStaleInitiators(renew=(self.sid==0))
         self.remote.nextSid() # start new session
+        #self.remote.requeueStaleMessages()
         self.stack.dumpRemote(self.remote)
         self.remote.joined = True #accepted
 
@@ -1125,9 +1126,10 @@ class Joinent(Correspondent):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("join_correspond_complete")
 
-        self.remote.removeStaleTransactions(renew=(self.sid==0))
+        self.remote.removeStaleCorrespondents(renew=(self.sid==0))
         self.remote.joined = True # accepted
         self.remote.nextSid()
+        self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
         self.remove(self.rxPacket.index)
 
@@ -1423,7 +1425,9 @@ class Allower(Initiator):
         console.concise("Allower {0}. Ack Final of {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
+
         self.remote.nextSid() # start new session
+        self.remote.requeueStaleMessages()
         self.stack.dumpRemote(self.remote)
         if self.cascade:
             self.stack.alive(duid=self.remote.uid, cascade=self.cascade)
@@ -1742,6 +1746,7 @@ class Allowent(Correspondent):
         '''
         self.remote.allowed = True
         self.remote.nextSid() # start new session
+        self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
 
     def final(self):

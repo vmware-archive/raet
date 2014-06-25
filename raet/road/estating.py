@@ -180,7 +180,6 @@ class RemoteEstate(Estate):
         self.reapTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.interim)
 
-
     def rekey(self):
         '''
         Regenerate short term keys
@@ -196,7 +195,7 @@ class RemoteEstate(Estate):
         And >= means the difference is less than N//2 = 0x80000000
         (((new - old) % 0x100000000) < (0x100000000 // 2))
         '''
-        return self.validSid(new=rsid, old=self.rsid)
+        return self.validateSid(new=rsid, old=self.rsid)
 
     def refresh(self, alived=True):
         '''
@@ -235,20 +234,25 @@ class RemoteEstate(Estate):
             self.stack.removeRemote(self.uid, clear=False) #remove from memory but not disk
 
 
-    def removeStaleTransactions(self, renew=False):
+    def removeStaleCorrespondents(self, renew=False):
         '''
-        Remove stale remotely initiated transactions associated with remote
-        when index sid older than remote.rsid
-        where index is tuple: (rf, le, re, si, ti, bf,)
-        rf = Remotely Initiated Flag, RmtFlag
-        le = leid, Local estate ID, LEID
-        re = reid, Remote estate ID, REID
-        si = sid, Session ID, SID
-        ti = tid, Transaction ID, TID
-        bf = Broadcast Flag, BcstFlag
+        Remove stale correspondent transactions associated with remote
 
-        If renew then remove all transactions intiated from
-        this remote with nonzero sid
+        If renew then remove all correspondents from this remote with nonzero sid
+
+        Stale means the sid in the transaction is older than the current .rsid
+        or if renew (rejoining with .rsid == zero)
+
+        When sid in index is older than remote.rsid
+        Where index is tuple: (rf, le, re, si, ti, bf,)
+            rf = Remotely Initiated Flag, RmtFlag
+            le = leid, Local estate ID, LEID
+            re = reid, Remote estate ID, REID
+            si = sid, Session ID, SID
+            ti = tid, Transaction ID, TID
+            bf = Broadcast Flag, BcstFlag
+
+
         '''
         indexes = set(self.indexes) # make copy so not changed in place
 
@@ -259,11 +263,93 @@ class RemoteEstate(Estate):
                 if index in self.stack.transactions:
                     self.stack.transactions[index].nack()
                     self.stack.removeTransaction(index) # this discards it from self.indexes
-                    emsg = "Stale transation at '{0}' from remote {1}\n".format(index, self.name)
+                    emsg = ("Stack {0}: Stale transation from remote {1} at {2}"
+                            "\n".format(self.stack.name, index, self.name))
                     console.terse(emsg)
                     self.stack.incStat('stale_transaction')
                 else:
                     self.indexes.discard(index)
+
+    def replaceStaleInitiators(self, renew=False):
+        '''
+        Requeue and remove any messages from messenger transactions initiated locally
+        with remote
+
+        Remove non message stale initiator transactions associated with remote
+
+        If renew Then remove all initiators from this remote with nonzero sid
+
+        Stale means the sid in the transaction is older than the current .sid
+        or if renew (rejoining with .sid == zero)
+
+        When sid in index is older than remote.sid
+        Where index is tuple: (rf, le, re, si, ti, bf,)
+            rf = Remotely Initiated Flag, RmtFlag
+            le = leid, Local estate ID, LEID
+            re = reid, Remote estate ID, REID
+            si = sid, Session ID, SID
+            ti = tid, Transaction ID, TID
+            bf = Broadcast Flag, BcstFlag
+
+
+        '''
+        indexes = set(self.indexes) # make copy so not changed in place
+
+        for index in indexes:
+            sid = index[3]
+            rf = index[0]
+            if not rf and ((renew and sid != 0) or (not renew and not self.validSid(sid))):
+                if index in self.stack.transactions:
+                    transaction = self.stack.transactions[index]
+                    if transaction.kind in [raeting.trnsKinds.message]:
+                        pass #requeue here
+                    transaction.nack()
+                    self.stack.removeTransaction(index) # this discards it from self.indexes
+                    emsg = ("Stack {0}: Stale transation with remote {1} at {2}"
+                            "\n".format(self.stack.name, index, self.name))
+                    console.terse(emsg)
+                    self.stack.incStat('stale_transaction')
+                else:
+                    self.indexes.discard(index)
+
+    def requeueStaleMessages(self):
+        '''
+        Requeue and remove any stale messages from messenger transactions initiated locally
+        with remote
+
+        Stale means the sid in the transaction is older than the current .sid
+        or if renew (rejoining with .sid == zero)
+
+        When sid in index is older than remote.sid
+        Where index is tuple: (rf, le, re, si, ti, bf,)
+            rf = Remotely Initiated Flag, RmtFlag
+            le = leid, Local estate ID, LEID
+            re = reid, Remote estate ID, REID
+            si = sid, Session ID, SID
+            ti = tid, Transaction ID, TID
+            bf = Broadcast Flag, BcstFlag
+
+        If renew Then remove all initiators from this remote with nonzero sid
+        '''
+        indexes = set(self.indexes) # make copy so not changed in place
+
+        for index in indexes:
+            sid = index[3]
+            rf = index[0]
+            if not rf and not self.validSid(sid):
+                if index in self.stack.transactions:
+                    transaction = self.stack.transactions[index]
+                    if transaction.kind in [raeting.trnsKinds.message]:
+                        #requeue here
+                        transaction.nack()
+                        self.stack.removeTransaction(index) # this discards it from self.indexes
+                        emsg = ("Stack {0}: Stale messege with remote {1} requeued "
+                                "at {2}\n".format(self.stack.name, index, self.name))
+                        console.terse(emsg)
+                        self.stack.incStat('stale_transaction')
+                else:
+                    self.indexes.discard(index)
+
 
     def allowInProcess(self):
         '''
