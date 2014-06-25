@@ -386,6 +386,23 @@ class Joiner(Initiator):
                 console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
                          self.stack.name, self.remote.name, self.stack.store.stamp))
                 self.stack.incStat('redo_join')
+            else: #check to see if status has changed to accept after other kind
+                if self.local.main: #only if joiner initiated by main stack
+                    if self.remote:
+                        data = self.stack.safe.loadRemote(self.remote)
+                        if data:
+                            status = self.stack.safe.statusRemote(self.remote,
+                                                                  data['verhex'],
+                                                                  data['pubhex'],
+                                                                  main=self.stack.local.main)
+                            if status == raeting.acceptances.accepted:
+                                self.join() # trigger remote to resend accept packet
+                            elif status == raeting.acceptances.rejected:
+                                "Stack {0}: Estate '{1}' eid '{2}' keys rejected\n".format(
+                                    self.stack.name, self.remote.name, self.remote.uid)
+                                self.remote.joined = False
+                                self.nackAccept()
+
 
     def prep(self):
         '''
@@ -527,7 +544,11 @@ class Joiner(Initiator):
             self.nackAccept()
             return
 
-        if not self.stack.local.main: #only should do this if not main
+        if self.stack.local.main: # only if main
+            if status == raeting.acceptances.pending: # pending so ignore
+                return # forces retry of accept packet so may be accepted later
+
+        else: #not main
             if self.remote.uid != reid: #change id of remote estate
                 try:
                     self.stack.moveRemote(old=self.remote.uid, new=reid)
@@ -549,6 +570,7 @@ class Joiner(Initiator):
             if self.stack.local.uid != leid:
                 self.stack.local.uid = leid # change id of local estate
                 self.stack.dumpLocal() # only dump if changed
+
 
         self.remote.replaceStaleInitiators(renew=(self.sid==0))
         self.remote.nextSid() # start new session
@@ -690,13 +712,12 @@ class Joinent(Correspondent):
             self.redoTimer.restart(duration=duration)
 
             if (self.txPacket and
-                    self.txPacket.data['pk'] == raeting.pcktKinds.response):
-
+                    self.txPacket.data['pk'] == raeting.pcktKinds.response): #accept packet
                 self.transmit(self.txPacket) #redo
                 console.concise("Joinent {0}. Redo Accept with {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
                 self.stack.incStat('redo_accept')
-            else: #check to see if status has changed to accept
+            else: #check to see if status has changed to accept after other kind
                 if self.remote:
                     data = self.stack.safe.loadRemote(self.remote)
                     if data:
@@ -707,8 +728,8 @@ class Joinent(Correspondent):
                         if status == raeting.acceptances.accepted:
                             self.accept()
                         elif status == raeting.acceptances.rejected:
-                            "Estate '{0}' eid '{1}' keys rejected\n".format(
-                                            self.remote.name, self.remote.uid)
+                            "Stack {0}: Estate '{0}' eid '{1}' keys rejected\n".format(
+                                    self.stack.name, self.remote.name, self.remote.uid)
                             self.stack.removeRemote(self.remote.uid) #reap remote
                             self.nack()
 
