@@ -338,19 +338,21 @@ class RemoteEstate(Estate):
         Returns transaction if an allow transaction with this remote is already in process
         Otherwise returns None
         '''
+        transactions = []
         for index in self.indexes:
             transaction = self.stack.transactions[index]
             if transaction.kind == raeting.trnsKinds.allow:
-                return transaction
-        return None
+                transactions.append(transaction)
+        return transactions
 
     def joinInProcess(self):
         '''
         Returns transaction if join transaction with this remote is already in process
         Otherwise returns None
         '''
+        transactions = []
         for index in self.indexes:
             transaction = self.stack.transactions[index]
             if transaction.kind == raeting.trnsKinds.join:
-                return transaction
-        return None
+                transactions.append(transaction)
+        return transactions
