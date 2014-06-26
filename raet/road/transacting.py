@@ -429,11 +429,39 @@ class Joiner(Initiator):
         '''
         Send join request
         '''
-        if self.remote and self.remote.joinInProcess() and self.stack.local.main:
-            emsg = "Joiner {0}. Join with {1} already in process\n".format(
-                    self.stack.name, self.remote.name)
-            console.concise(emsg)
-            return
+        if self.remote:
+            joins = self.remote.joinInProcess()
+            if joins:
+                if self.stack.local.main:
+                    emsg = "Joiner {0}. Join with {1} already in process\n".format(
+                            self.stack.name, self.remote.name)
+                    console.concise(emsg)
+                    return
+                else: # not main so remove any correspondent joins
+                    already = False
+                    for join in joins:
+                        if join.rmt:
+                            emsg = ("Joiner {0}. Removing correspondent join with"
+                                    " {1} already in process\n".format(
+                                                self.stack.name,
+                                                self.remote.name))
+                            console.concise(emsg)
+                            join.nack()
+                        else: # already initiated
+                            already = True
+                    if already:
+                        emsg = ("Joiner {0}. Initiator join with"
+                                " {1} already in process\n".format(
+                                            self.stack.name,
+                                            self.remote.name))
+                        console.concise(emsg)
+                        return
+
+        #if self.remote and self.remote.joinInProcess() and self.stack.local.main:
+            #emsg = "Joiner {0}. Join with {1} already in process\n".format(
+                    #self.stack.name, self.remote.name)
+            #console.concise(emsg)
+            #return
 
         self.remote.joined = None
         self.add(self.index)
@@ -804,13 +832,41 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.remote and self.remote.joinInProcess() and not self.stack.local.main:
-            emsg = "Joinent {0}. Join with {1} already in process\n".format(
-                    self.stack.name, self.remote.name)
-            console.terse(emsg)
-            self.stack.incStat('duplicate_join_attempt')
-            self.nack(kind=raeting.pcktKinds.refuse)
-            return
+        if self.remote:
+            joins = self.remote.joinInProcess()
+            if joins:
+                if not self.stack.local.main:
+                    emsg = "Joinent {0}. Join with {1} already in process\n".format(
+                            self.stack.name, self.remote.name)
+                    console.concise(emsg)
+                    return
+                else: # main so remove any initiator joins
+                    already = False
+                    for join in joins:
+                        if not join.rmt:
+                            emsg = ("Joinent {0}. Removing initiator join with"
+                                    " {1} already in process\n".format(
+                                                self.stack.name,
+                                                self.remote.name))
+                            console.concise(emsg)
+                            join.nack()
+                        else: # already correspondent
+                            already = True
+                    if already:
+                        emsg = ("Joinent {0}. Correspondent join with"
+                                " {1} already in process\n".format(
+                                            self.stack.name,
+                                            self.remote.name))
+                        console.concise(emsg)
+                        return
+
+        #if self.remote and self.remote.joinInProcess() and not self.stack.local.main:
+            #emsg = "Joinent {0}. Join with {1} already in process\n".format(
+                    #self.stack.name, self.remote.name)
+            #console.terse(emsg)
+            #self.stack.incStat('duplicate_join_attempt')
+            #self.nack(kind=raeting.pcktKinds.refuse)
+            #return
 
         #Don't add transaction yet wait till later until remote is not rejected
         data = self.rxPacket.data
@@ -1324,18 +1380,45 @@ class Allower(Initiator):
         '''
         Send hello request
         '''
+        allows = self.remote.allowInProcess()
+        if allows:
+            if self.stack.local.main:
+                emsg = "Allower {0}. Allow with {1} already in process\n".format(
+                        self.stack.name, self.remote.name)
+                console.concise(emsg)
+                return
+            else: # not main so remove any correspondent allows
+                already = False
+                for allow in allows:
+                    if allow.rmt:
+                        emsg = ("Allower {0}. Removing correspondent allow with"
+                                " {1} already in process\n".format(
+                                            self.stack.name,
+                                            self.remote.name))
+                        console.concise(emsg)
+                        allow.nack()
+                    else: # already initiated
+                        already = True
+                if already:
+                    emsg = ("Allower {0}. Initiator allow with"
+                            " {1} already in process\n".format(
+                                        self.stack.name,
+                                        self.remote.name))
+                    console.concise(emsg)
+                    return
+
+        #if self.remote.allowInProcess() and self.stack.local.main:
+            #emsg = "Allower {0}. Allow with {1} already in process\n".format(
+                    #self.stack.name, self.remote.name)
+            #console.concise(emsg)
+            #return
+
         self.remote.allowed = None
         if not self.remote.joined:
             emsg = "Allower {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
             self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
-            return
-
-        if self.remote.allowInProcess() and self.stack.local.main:
-            emsg = "Allower {0}. Allow with {1} already in process\n".format(
-                    self.stack.name, self.remote.name)
-            console.concise(emsg)
             return
 
         self.remote.rekey() # refresh short term keys and reset .allowed to None
@@ -1374,14 +1457,16 @@ class Allower(Initiator):
             emsg = "Invalid format of cookie packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         if len(body) != raeting.COOKIE_PACKER.size:
             emsg = "Invalid length of cookie packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         cipher, nonce = raeting.COOKIE_PACKER.unpack(body)
@@ -1392,14 +1477,16 @@ class Allower(Initiator):
             emsg = "Invalid cookie stuff: '{0}'\n".format(str(ex))
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         if len(msg) != raeting.COOKIESTUFF_PACKER.size:
             emsg = "Invalid length of cookie stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         shortraw, seid, deid, oreo = raeting.COOKIESTUFF_PACKER.unpack(msg)
@@ -1408,7 +1495,8 @@ class Allower(Initiator):
             emsg = "Invalid seid or deid fields in cookie stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         self.oreo = binascii.hexlify(oreo)
@@ -1496,6 +1584,33 @@ class Allower(Initiator):
         self.remote.sendSavedMessages() # could include messages saved on rejoin
         if self.cascade:
             self.stack.alive(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+
+    def nack(self, kind=raeting.pcktKinds.nack):
+        '''
+        Send nack to accept response
+        '''
+        body = ""
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=kind,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove(self.index)
+            return
+
+        if kind==raeting.pcktKinds.refuse:
+            console.terse("Allower {0}. Do Refuse of {1} at {2}\n".format(
+                    self.stack.name, self.remote.name, self.stack.store.stamp))
+        else:
+            console.terse("Allower {0}. Do Reject of {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.transmit(packet)
+        self.remove(self.index)
 
     def reject(self):
         '''
@@ -1628,6 +1743,41 @@ class Allowent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
+        allows = self.remote.allowInProcess()
+        if allows:
+            if not self.stack.local.main:
+                emsg = "Allower {0}. Allow with {1} already in process\n".format(
+                        self.stack.name, self.remote.name)
+                console.concise(emsg)
+                return
+            else: # main so remove any initiator allows
+                already = False
+                for allow in allows:
+                    if not allow.rmt:
+                        emsg = ("Allower {0}. Removing initiator allow with"
+                                " {1} already in process\n".format(
+                                            self.stack.name,
+                                            self.remote.name))
+                        console.concise(emsg)
+                        allow.nack()
+                    else: # already correspondent
+                        already = True
+                if already:
+                    emsg = ("Allower {0}. Correspondent allow with"
+                            " {1} already in process\n".format(
+                                        self.stack.name,
+                                        self.remote.name))
+                    console.concise(emsg)
+                    return
+
+        #if self.remote.allowInProcess() and not self.stack.local.main:
+            #emsg = "Allowent {0}. Allow with {1} already in process\n".format(
+                    #self.stack.name, self.remote.name)
+            #console.terse(emsg)
+            #self.stack.incStat('duplicate_allow_attempt')
+            #self.nack()
+            #return
+
         self.remote.allowed = None
 
         if not self.remote.joined:
@@ -1636,14 +1786,6 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('unjoined_allow_attempt')
             self.nack(kind=raeting.pcktKinds.unjoined)
-            return
-
-        if self.remote.allowInProcess() and not self.stack.local.main:
-            emsg = "Allowent {0}. Allow with {1} already in process\n".format(
-                    self.stack.name, self.remote.name)
-            console.terse(emsg)
-            self.stack.incStat('duplicate_allow_attempt')
-            self.nack()
             return
 
         self.remote.rekey() # refresh short term keys and .allowed
@@ -1656,14 +1798,16 @@ class Allowent(Correspondent):
             emsg = "Invalid format of hello packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         if len(body) != raeting.HELLO_PACKER.size:
             emsg = "Invalid length of hello packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         plain, shortraw, cipher, nonce = raeting.HELLO_PACKER.unpack(body)
@@ -1674,7 +1818,8 @@ class Allowent(Correspondent):
             emsg = "Invalid plain not match decrypted cipher\n"
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         self.cookie()
@@ -1721,14 +1866,16 @@ class Allowent(Correspondent):
             emsg = "Invalid format of initiate packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         if len(body) != raeting.INITIATE_PACKER.size:
             emsg = "Invalid length of initiate packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         shortraw, oreo, cipher, nonce = raeting.INITIATE_PACKER.unpack(body)
@@ -1737,14 +1884,16 @@ class Allowent(Correspondent):
             emsg = "Mismatch of short term public key in initiate packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         if (binascii.hexlify(oreo) != self.oreo):
             emsg = "Stale or invalid cookie in initiate packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         msg = self.remote.privee.decrypt(cipher, nonce, self.remote.publee.key)
@@ -1752,7 +1901,8 @@ class Allowent(Correspondent):
             emsg = "Invalid length of initiate stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         pubraw, vcipher, vnonce, fqdn = raeting.INITIATESTUFF_PACKER.unpack(msg)
@@ -1760,7 +1910,8 @@ class Allowent(Correspondent):
             emsg = "Mismatch of long term public key in initiate stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         fqdn = fqdn.rstrip(' ')
@@ -1776,7 +1927,8 @@ class Allowent(Correspondent):
             emsg = "Short term key vouch failed\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
-            self.remove()
+            #self.remove()
+            self.nack()
             return
 
         self.ackInitiate()
@@ -1838,7 +1990,6 @@ class Allowent(Correspondent):
             return
 
         self.remote.allowed = False
-
         self.remove()
         console.concise("Allowent {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
