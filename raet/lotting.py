@@ -90,10 +90,13 @@ class Lot(object):
     def validateSid(new, old):
         '''
         Compare new sid to old sid and return True
+        If old is zero Then new is always valid
         If new is >= old modulo N where N is 2^32 = 0x100000000
         And greater means the difference is less than N//2 = 0x80000000
 
         '''
+        if not old:
+            return True
         return (((new - old) % raeting.SID_WRAP_MODULO) <
                                              (raeting.SID_WRAP_DELTA))
 

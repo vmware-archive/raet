@@ -201,12 +201,13 @@ class RoadStack(stacking.Stack):
         If clear then also remove from disk
         '''
         remote = self.remotes.get(uid)
-        super(RoadStack, self).removeRemote(uid, clear=clear)
         if remote:
             for index in remote.indexes:
                 if index in self.transactions:
                     self.transactions[index].nack()
                     self.removeTransaction(index)
+        super(RoadStack, self).removeRemote(uid, clear=clear)
+
 
     def fetchRemoteByHostPort(self, host, port):
         '''
