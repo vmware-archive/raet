@@ -505,7 +505,8 @@ class Joiner(Initiator):
             self.remote.sid = 0
             self.remote.tid = 0
             self.remote.rsid = 0
-            self.stack.moveRemote(old=self.remote.uid, new=0)
+            if self.remote.uid != 0:
+                self.stack.moveRemote(old=self.remote.uid, new=0)
             self.stack.dumpRemote(self.remote)
         self.stack.local.eid = 0
         self.stack.dumpLocal()
