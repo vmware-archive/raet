@@ -6,6 +6,15 @@ CHANGE LOG
 20140625
 ---------
 
+v0.0.30
+
+Reverted semantics of join wrt removing remotes. No longer removes rejected remotes
+out of band or future presence expire mechanism is needed to remove rejected remotes
+
+---------
+20140625
+---------
+
 v0.0.29
 
 Fixed a bug on renew in Joiner transaction
