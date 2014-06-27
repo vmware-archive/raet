@@ -202,7 +202,7 @@ class RoadStack(stacking.Stack):
         '''
         remote = self.remotes.get(uid)
         if remote:
-            for index in remote.indexes:
+            for index in set(remote.indexes): # make copy
                 if index in self.transactions:
                     self.transactions[index].nack()
                     self.removeTransaction(index)

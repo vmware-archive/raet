@@ -405,6 +405,7 @@ class Joiner(Initiator):
                                 "Stack {0}: Estate '{1}' eid '{2}' keys rejected\n".format(
                                     self.stack.name, self.remote.name, self.remote.uid)
                                 self.remote.joined = False
+                                self.stack.dumpRemote(self.remote)
                                 self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
@@ -457,12 +458,6 @@ class Joiner(Initiator):
                                             self.remote.name))
                         console.concise(emsg)
                         return
-
-        #if self.remote and self.remote.joinInProcess() and self.stack.local.main:
-            #emsg = "Joiner {0}. Join with {1} already in process\n".format(
-                    #self.stack.name, self.remote.name)
-            #console.concise(emsg)
-            #return
 
         self.remote.joined = None
         self.add(self.index)
@@ -588,7 +583,7 @@ class Joiner(Initiator):
             if status == raeting.acceptances.pending: # pending so ignore
                 return # forces retry of accept packet so may be accepted later
 
-        else: #not main
+        else: #not main accepted
             if self.remote.uid != reid: #change id of remote estate
                 try:
                     self.stack.moveRemote(old=self.remote.uid, new=reid)
@@ -640,8 +635,10 @@ class Joiner(Initiator):
                  self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.remote.joined = False
+        self.stack.dumpRemote(self.remote)
         self.remove(self.txPacket.index)
-        self.stack.removeRemote(self.remote.uid)
+        #self.remote.reap() # remove remote from memory if main
+        #self.stack.removeRemote(self.remote.uid)
 
     def ackAccept(self):
         '''
@@ -778,7 +775,9 @@ class Joinent(Correspondent):
                         elif status == raeting.acceptances.rejected:
                             "Stack {0}: Estate '{1}' eid '{2}' keys rejected\n".format(
                                     self.stack.name, self.remote.name, self.remote.uid)
-                            self.stack.removeRemote(self.remote.uid) #reap remote
+                            self.remote.joined = False
+                            self.stack.dumpRemote(self.remote)
+                            #self.stack.removeRemote(self.remote.uid) #reap remote
                             self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
@@ -841,6 +840,8 @@ class Joinent(Correspondent):
                     emsg = "Joinent {0}. Join with {1} already in process\n".format(
                             self.stack.name, self.remote.name)
                     console.concise(emsg)
+                    self.stack.incStat('duplicate_join_attempt')
+                    self.nack(kind=raeting.pcktKinds.refuse)
                     return
                 else: # main so remove any initiator joins
                     already = False
@@ -861,14 +862,6 @@ class Joinent(Correspondent):
                                             self.remote.name))
                         console.concise(emsg)
                         return
-
-        #if self.remote and self.remote.joinInProcess() and not self.stack.local.main:
-            #emsg = "Joinent {0}. Join with {1} already in process\n".format(
-                    #self.stack.name, self.remote.name)
-            #console.terse(emsg)
-            #self.stack.incStat('duplicate_join_attempt')
-            #self.nack(kind=raeting.pcktKinds.refuse)
-            #return
 
         #Don't add transaction yet wait till later until remote is not rejected
         data = self.rxPacket.data
@@ -976,7 +969,9 @@ class Joinent(Correspondent):
                 if status == raeting.acceptances.rejected:
                     "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
                             self.stack.name, name, self.remote.uid)
-                    self.stack.removeRemote(self.remote.uid) #reap remote
+                    self.remote.joined = False
+                    self.stack.dumpRemote(self.remote)
+                    #self.stack.removeRemote(self.remote.uid) #reap remote
                     # reject as keys rejected
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
@@ -1048,7 +1043,9 @@ class Joinent(Correspondent):
                     emsg = "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
                             self.stack.name, name, self.remote.uid)
                     console.terse(emsg)
-                    self.stack.removeRemote(self.remote.uid) #reap remote
+                    self.remote.joined = False
+                    self.stack.dumpRemote(self.remote)
+                    #self.stack.removeRemote(self.remote.uid) #reap remote
                     # reject as keys rejected
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
@@ -1115,7 +1112,9 @@ class Joinent(Correspondent):
             if status == raeting.acceptances.rejected:
                 "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
                         self.stack.name, name, remote.uid)
-                self.stack.removeRemote(self.remote.uid) #reap remote
+                self.remote.joined = False
+                self.stack.dumpRemote(self.remote)
+                #self.stack.removeRemote(self.remote.uid) #reap remote
                 # reject as keys rejected
                 self.nack(kind=raeting.pcktKinds.refuse)
                 return
@@ -1129,11 +1128,7 @@ class Joinent(Correspondent):
             self.remote.port = port
             if name != self.remote.name:
                 self.stack.renameRemote(old=self.remote.name, new=name)
-            #remote.nextSid() #set in complete method
-
-            # we only want to dump once so should we wait until complete
-            #self.stack.dumpRemote(self.remote)
-            #remote.joined = True #accepted set in complete method
+            #update session id and joined in complete method below
             duration = min(
                         max(self.redoTimeoutMin,
                              self.redoTimer.duration * 2.0),
@@ -1248,7 +1243,7 @@ class Joinent(Correspondent):
 
     def reject(self):
         '''
-        Process reject nack  because keys rejected
+        Process reject nack because keys rejected
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -1260,7 +1255,8 @@ class Joinent(Correspondent):
         self.remote.joined = False
         self.stack.dumpRemote(self.remote)
         self.remove(self.rxPacket.index)
-        self.stack.removeRemote(self.remote.uid) #reap remote
+        #self.remote.reap() #remove from memory if main
+        #self.stack.removeRemote(self.remote.uid)
 
     def refuse(self):
         '''
@@ -1408,12 +1404,6 @@ class Allower(Initiator):
                                         self.remote.name))
                     console.concise(emsg)
                     return
-
-        #if self.remote.allowInProcess() and self.stack.local.main:
-            #emsg = "Allower {0}. Allow with {1} already in process\n".format(
-                    #self.stack.name, self.remote.name)
-            #console.concise(emsg)
-            #return
 
         self.remote.allowed = None
         if not self.remote.joined:
@@ -1751,6 +1741,8 @@ class Allowent(Correspondent):
                 emsg = "Allower {0}. Allow with {1} already in process\n".format(
                         self.stack.name, self.remote.name)
                 console.concise(emsg)
+                self.stack.incStat('duplicate_allow_attempt')
+                self.nack()
                 return
             else: # main so remove any initiator allows
                 already = False
@@ -1771,14 +1763,6 @@ class Allowent(Correspondent):
                                         self.remote.name))
                     console.concise(emsg)
                     return
-
-        #if self.remote.allowInProcess() and not self.stack.local.main:
-            #emsg = "Allowent {0}. Allow with {1} already in process\n".format(
-                    #self.stack.name, self.remote.name)
-            #console.terse(emsg)
-            #self.stack.incStat('duplicate_allow_attempt')
-            #self.nack()
-            #return
 
         self.remote.allowed = None
 

@@ -885,6 +885,9 @@ class BasicTestCase(unittest.TestCase):
         self.join(main, other, mha=('127.0.0.1', other.local.port))
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertIs(remote.joined, False) # vacuuous join from main is rejected
+        main.removeRemote(remote.uid)
         self.assertEqual(len(main.remotes), 0)
         self.assertEqual(len(other.remotes), 0)
 
