@@ -6,6 +6,15 @@ CHANGE LOG
 20140625
 ---------
 
+v0.0.28
+
+Fixed some race conditions
+
+
+---------
+20140625
+---------
+
 v0.0.27
 
 Support for reaping and restoring dead remotes on main estate road stack
