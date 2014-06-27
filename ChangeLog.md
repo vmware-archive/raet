@@ -6,6 +6,14 @@ CHANGE LOG
 20140625
 ---------
 
+v0.0.29
+
+Fixed a bug on renew in Joiner transaction
+
+---------
+20140625
+---------
+
 v0.0.28
 
 Fixed some race conditions
