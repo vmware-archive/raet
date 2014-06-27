@@ -263,10 +263,13 @@ class RemoteEstate(Estate):
                 if index in self.stack.transactions:
                     self.stack.transactions[index].nack()
                     self.stack.removeTransaction(index) # this discards it from self.indexes
-                    emsg = ("Stack {0}: Stale transation from remote {1} at {2}"
-                            "\n".format(self.stack.name, index, self.name))
+                    emsg = ("Stack {0}: Stale correspondent {1} from remote {1} at {2}"
+                            "\n".format(self.stack.name,
+                                        index,
+                                        self.name,
+                                        self.stack.store.stamp))
                     console.terse(emsg)
-                    self.stack.incStat('stale_transaction')
+                    self.stack.incStat('stale_correspondent')
                 else:
                     self.indexes.discard(index)
 
@@ -303,10 +306,13 @@ class RemoteEstate(Estate):
                         self.saveMessage(transaction)
                     transaction.nack()
                     self.stack.removeTransaction(index) # this discards it from self.indexes
-                    emsg = ("Stack {0}: Stale transation with remote {1} at {2}"
-                            "\n".format(self.stack.name, index, self.name))
+                    emsg = ("Stack {0}: Stale initiator {1} to remote {2} at {3}"
+                            "\n".format(self.stack.name,
+                                        index,
+                                        self.name,
+                                        self.stack.store.stamp))
                     console.terse(emsg)
-                    self.stack.incStat('stale_transaction')
+                    self.stack.incStat('stale_initiator')
                 else:
                     self.indexes.discard(index)
 

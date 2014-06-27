@@ -211,7 +211,7 @@ class Staler(Initiator):
         a nack packet back. Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        emsg = "{0} Stale Transaction from {1} dropping ...\n".format(self.stack.name, ha )
+        emsg = "Staler {0}. Stale transaction from {1} nacking...\n".format(self.stack.name, ha )
         console.terse(emsg)
         self.stack.incStat('stale_correspondent_attempt')
 
@@ -234,7 +234,7 @@ class Staler(Initiator):
             return
 
         self.stack.txes.append((packet.packed, ha))
-        console.terse("{0} Do Nack stale correspondent {1} at {2}\n".format(
+        console.terse("Staler {0}. Do Nack stale correspondent {1} at {2}\n".format(
                 self.stack.name, ha, self.stack.store.stamp))
         self.stack.incStat('stale_correspondent_nack')
 
@@ -280,7 +280,7 @@ class Stalent(Correspondent):
         Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        emsg = "{0} Stale Transaction from {1} dropping ...\n".format(self.stack.name, ha )
+        emsg = "Stalent {0}. Stale transaction from '{1}' nacking ...\n".format(self.stack.name, ha )
         console.terse(emsg)
         self.stack.incStat('stale_initiator_attempt')
 
@@ -303,7 +303,8 @@ class Stalent(Correspondent):
             return
 
         self.stack.txes.append((packet.packed, ha))
-        console.terse("Nack stale initiator at {0}\n".format(self.stack.store.stamp))
+        console.terse("Stalent {0}. Nack stale initiator from '{1}' at {2}\n".format(
+                self.stack.name, ha, self.stack.store.stamp))
         self.stack.incStat('stale_initiator_nack')
 
 class Joiner(Initiator):

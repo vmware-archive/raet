@@ -504,7 +504,8 @@ class RoadStack(stacking.Stack):
         else: # rsid !=0
             if remote and not cf: # packet from remote initiated transaction
                 if not remote.validRsid(rsid): # invalid rsid
-                    emsg = "Stale sid '{0}' in packet\n".format(rsid)
+                    emsg = "{0} Stale sid '{1}' in packet from {2}\n".format(
+                             self.name, rsid, remote.name)
                     console.terse(emsg)
                     self.incStat('stale_sid_attempt')
                     self.replyStale(received, remote) # nack stale transaction
@@ -582,6 +583,14 @@ class RoadStack(stacking.Stack):
         '''
         Initiate stale transaction in order to nack a stale correspondent packet
         '''
+        if packet.data['pk'] in [raeting.pcktKinds.nack,
+                                         raeting.pcktKinds.unjoined,
+                                         raeting.pcktKinds.unallowed,
+                                         raeting.pcktKinds.renew,
+                                         raeting.pcktKinds.refuse,
+                                         raeting.pcktKinds.reject,]:
+            return # ignore stale nacks
+
         duid = packet.data['se']
         ha = (packet.data['sh'], packet.data['sp'])
         remote = self.retrieveRemote(duid=duid, ha=ha)
@@ -604,6 +613,13 @@ class RoadStack(stacking.Stack):
         '''
         Correspond to stale initiated transaction
         '''
+        if packet.data['pk'] in [raeting.pcktKinds.nack,
+                                 raeting.pcktKinds.unjoined,
+                                 raeting.pcktKinds.unallowed,
+                                 raeting.pcktKinds.renew,
+                                 raeting.pcktKinds.refuse,
+                                 raeting.pcktKinds.reject,]:
+            return # ignore stale nacks
         data = odict(hk=self.Hk, bk=self.Bk)
         stalent = transacting.Stalent(stack=self,
                                       remote=remote,
