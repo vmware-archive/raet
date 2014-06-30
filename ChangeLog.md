@@ -6,6 +6,15 @@ CHANGE LOG
 20140625
 ---------
 
+v0.0.31
+
+Fixed roadstack .manage method to used aliveds
+
+
+---------
+20140625
+---------
+
 v0.0.30
 
 Reverted semantics of join wrt removing remotes. No longer removes rejected remotes
