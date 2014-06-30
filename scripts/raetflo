@@ -35,6 +35,7 @@ def main():
                         username=args.username,
                         password=args.password,
                         verbose = args.verbose,
+                        consolepath=args.console,
                         statistics=args.statistics)
 
 if __name__ == '__main__':
