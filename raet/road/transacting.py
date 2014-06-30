@@ -2140,6 +2140,7 @@ class Aliver(Initiator):
         self.transmit(packet)
         console.concise("Aliver {0}. Do Alive with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
+
     def complete(self):
         '''
         Process ack packet. Complete transaction and remove

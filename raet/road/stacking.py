@@ -155,7 +155,9 @@ class RoadStack(stacking.Stack):
                                         **kwa)
 
         self.transactions = odict() #transactions
-        self.alloweds = odict() # allowed remotes
+        self.alloweds = odict() # allowed remotes keyed by name
+        self.aliveds =  odict() # alived remotes keyed by name
+        self.availables = set() # set of available remote names
 
     def nextEid(self):
         '''
@@ -207,7 +209,6 @@ class RoadStack(stacking.Stack):
                     self.transactions[index].nack()
                     self.removeTransaction(index)
         super(RoadStack, self).removeRemote(uid, clear=clear)
-
 
     def fetchRemoteByHostPort(self, host, port):
         '''
@@ -401,19 +402,26 @@ class RoadStack(stacking.Stack):
 
         immediate indicates to run first attempt immediately and not wait for timer
 
+        availables = dict of remotes that are both alive and allowed
         '''
         alloweds = odict()
+        aliveds = odict()
         for remote in self.remotes.values(): # should not start anything
             remote.manage(cascade=cascade, immediate=immediate)
             if remote.allowed:
                 alloweds[remote.name] = remote
+            if remote.alived:
+                aliveds[remote.name] = remote
 
-        old = set(self.alloweds.keys())
-        current = set(alloweds.keys())
+        old = set(self.aliveds.keys())
+        current = set(aliveds.keys())
         plus = current.difference(old)
         minus = old.difference(current)
+        self.availables = current
         self.changeds = odict(plus=plus, minus=minus)
         self.alloweds = alloweds
+        self.aliveds =  aliveds
+
 
     def addTransaction(self, index, transaction):
         '''
