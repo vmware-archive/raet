@@ -1236,7 +1236,7 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeep.__doc__))
-        self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        #self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
@@ -1577,7 +1577,7 @@ class BasicTestCase(unittest.TestCase):
         their local keys but keeping their remote data
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
-        self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        #self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data

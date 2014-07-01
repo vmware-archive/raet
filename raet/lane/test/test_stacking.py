@@ -41,9 +41,8 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.baseDirpath = os.path.join(
-                tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp'),
-                'lane', 'keep')
+        self.tempDirPath = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        self.baseDirpath = os.path.join(self.tempDirPath,'lane', 'keep')
 
         # main stack
         self.main = stacking.LaneStack(name='main',
@@ -65,8 +64,11 @@ class BasicTestCase(unittest.TestCase):
         self.main.server.close()
         self.other.server.close()
 
-        if os.path.exists(self.baseDirpath):
-            shutil.rmtree(self.baseDirpath)
+        self.main.clearAllDir()
+        self.other.clearAllDir()
+
+        if os.path.exists(self.tempDirPath):
+            shutil.rmtree(self.tempDirPath)
 
     def service(self, duration=1.0, real=True):
         '''
@@ -443,4 +445,4 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
-    #runOne('testFetchRemoteFromHa')
+    #runOne('testMessageJson')

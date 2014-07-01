@@ -273,6 +273,13 @@ class RoadStack(stacking.Stack):
                 duid = self.remotes.values()[0].uid # zeroth is default
         return (self.remotes.get(duid, None))
 
+    def clearAllDir(self):
+        '''
+        Clear out and remove the keep dir and contents
+        '''
+        super(RoadStack, self).clearAllDir()
+        self.safe.clearAllDir()
+
     def dumpLocal(self):
         '''
         Dump keeps of local estate

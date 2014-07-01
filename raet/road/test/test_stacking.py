@@ -91,10 +91,13 @@ class BasicTestCase(unittest.TestCase):
         self.main.server.close()
         self.other.server.close()
 
-        self.main.clearLocal()
-        self.main.clearRemoteKeeps()
-        self.other.clearLocal()
-        self.other.clearRemoteKeeps()
+        #self.main.clearLocal()
+        #self.main.clearRemoteKeeps()
+        #self.other.clearLocal()
+        #self.other.clearRemoteKeeps()
+
+        self.main.clearAllDir()
+        self.other.clearAllDir()
 
         if os.path.exists(self.baseDirpath):
             shutil.rmtree(self.baseDirpath)
@@ -310,12 +313,8 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nMessages Bidirectional *********\n")
         for msg in mains:
             self.main.transmit(msg)
-            #self.main.txMsgs.append((msg, None))
-            #self.main.message(body=msg, deid=self.other.local.uid)
         for msg in others:
             self.other.transmit(msg)
-            #self.other.txMsgs.append((msg, None))
-            #self.other.message(body=msg, deid=self.main.local.uid)
 
         self.service(duration=duration)
 

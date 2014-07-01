@@ -201,6 +201,14 @@ class Stack(object):
         '''
         return self.remotes.get(self.uids.get(name))
 
+    def clearAllDir(self):
+        '''
+        Clear out and remove the keep dir and contents
+        '''
+        console.terse("Stack {0}: Clearing keep dir '{1}'\n".format(
+                      self.name, self.keep.dirpath))
+        self.keep.clearAllDir()
+
     def dumpLocal(self):
         '''
         Dump keeps of local

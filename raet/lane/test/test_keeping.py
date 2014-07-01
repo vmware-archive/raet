@@ -249,7 +249,7 @@ class BasicTestCase(unittest.TestCase):
         stack.addRemote(yarding.RemoteYard(stack=stack,
                                            name=other1Data['name'],
                                            lanename=other1Data['lanename'],
-                                           dirpath=other1Data['dirpath']))
+                                           dirpath=self.base)) #other1Data['dirpath']
 
         other2Data = self.createLaneData(name='other2',
                                          yid=0,
@@ -258,7 +258,7 @@ class BasicTestCase(unittest.TestCase):
         stack.addRemote(yarding.RemoteYard(stack=stack,
                                            name=other2Data['name'],
                                            lanename=other2Data['lanename'],
-                                           dirpath=other2Data['dirpath']))
+                                           dirpath=self.base )) #other2Data['dirpath']
 
         stack.dumpRemotes()
         remoteKeepData = stack.keep.loadAllRemoteData()
@@ -330,8 +330,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
-        stack.clearLocal()
-        stack.clearRemoteKeeps()
+        stack.clearAllDir()
+        #stack.clearLocal()
+        #stack.clearRemoteKeeps()
 
     def testRestart(self):
         '''
