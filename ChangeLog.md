@@ -1,6 +1,13 @@
 ------------------
 CHANGE LOG
 -------------------
+---------
+20140701
+---------
+
+v0.1.00
+
+Minor fixup prepping for release with SaltStack Release Candidate
 
 ---------
 20140625
