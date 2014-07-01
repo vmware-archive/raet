@@ -1111,7 +1111,7 @@ class Joinent(Correspondent):
 
             if status == raeting.acceptances.rejected:
                 "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
-                        self.stack.name, name, remote.uid)
+                        self.stack.name, name, self.remote.uid)
                 self.remote.joined = False
                 self.stack.dumpRemote(self.remote)
                 #self.stack.removeRemote(self.remote.uid) #reap remote

@@ -205,8 +205,8 @@ class Stack(object):
         '''
         Clear out and remove the keep dir and contents
         '''
-        console.terse("Stack {0}: Clearing keep dir '{1}'\n".format(
-                      self.name, self.keep.dirpath))
+        console.verbose("Stack {0}: Clearing keep dir '{1}'\n".format(
+                                  self.name, self.keep.dirpath))
         self.keep.clearAllDir()
 
     def dumpLocal(self):
