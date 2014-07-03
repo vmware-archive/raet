@@ -219,6 +219,22 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(demsg), 50)
         self.assertEqual(demsg, enmsg)
 
+    def testUuid(self):
+        '''
+        Test uuid generation
+        '''
+        console.terse("{0}\n".format(self.testUuid.__doc__))
+        uuid = nacling.uuid(16)
+        self.assertEqual(len(uuid), 16)
+        uuid = nacling.uuid(12)
+        self.assertEqual(len(uuid), 16)
+        uuid = nacling.uuid(20)
+        self.assertEqual(len(uuid), 20)
+
+        uuids = [nacling.uuid(16) for i in range(1024)]
+        self.assertEqual(len(uuids), 1024)
+        self.assertEqual(len(set(uuids)), len(uuids))
+
 class PartTestCase(unittest.TestCase):
     """
     Test encrytion of handshake parts
@@ -298,14 +314,13 @@ class PartTestCase(unittest.TestCase):
 def runSome():
     """ Unittest runner """
     tests = []
-    names = []
-    names.append('testSign')
-    names.append('testEncrypt')
+    names = ['testSign',
+             'testEncrypt'
+             'testUuid', ]
     tests.extend(map(BasicTestCase, names))
 
-    names = []
-    names.append('testBlank')
-    names.append('testInitiate')
+    names = ['testBlank',
+             'testInitiate', ]
     tests.extend(map(PartTestCase, names))
 
     suite = unittest.TestSuite(tests)

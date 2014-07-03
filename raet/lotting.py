@@ -100,7 +100,6 @@ class Lot(object):
         return (((new - old) % raeting.SID_WRAP_MODULO) <
                                              (raeting.SID_WRAP_DELTA))
 
-
 class LocalLot(Lot):
     '''
     Raet protocol local endpoint

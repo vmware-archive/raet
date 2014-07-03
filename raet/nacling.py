@@ -5,7 +5,7 @@ nacling.py raet protocol nacl (crypto) management classes
 
 # Import python libs
 import time
-
+import binascii
 import six
 import libnacl
 
@@ -544,3 +544,16 @@ class Privateer(object):
         if dehex and len(nonce) != box.NONCE_SIZE:
             nonce = decoder.decode(nonce)
         return box.decrypt(cipher, nonce, decoder)
+
+
+def uuid(size=16):
+    '''
+    Generate univerally unique id hex string with size characters
+    Timebased with random bytes
+    Minimum size is 16
+    '''
+    size = max(int(size), 16)
+    front =  "{:0x}".format(int(time.time() * 1000000)) # microseconds
+    extra = size - len(front)
+    back = binascii.hexlify(libnacl.randombytes(extra // 2 + extra % 2))
+    return ((front + back)[:size])
