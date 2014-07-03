@@ -1,6 +1,15 @@
 ------------------
 CHANGE LOG
 -------------------
+
+---------
+20140701
+---------
+
+v0.1.01
+
+Added nacling.uuid function to allow unique yard names
+
 ---------
 20140701
 ---------
