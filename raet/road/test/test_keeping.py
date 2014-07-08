@@ -1212,12 +1212,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(others), len(main.rxMsgs))
         for i, msg in enumerate(main.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
-            self.assertDictEqual(others[i], msg)
+            self.assertDictEqual(others[i], msg[0])
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(mains), len(other.rxMsgs))
         for i, msg in enumerate(other.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+            self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
         main.clearLocal()
@@ -1382,12 +1382,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(others), len(main.rxMsgs))
         for i, msg in enumerate(main.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
-            self.assertDictEqual(others[i], msg)
+            self.assertDictEqual(others[i], msg[0])
         self.assertEqual(len(other.transactions), 0) #not allowed so aborted
         self.assertEqual(len(mains), len(other.rxMsgs))
         for i, msg in enumerate(other.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+            self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
         main.clearLocal()
@@ -1552,12 +1552,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(others), len(main.rxMsgs))
         for i, msg in enumerate(main.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
-            self.assertDictEqual(others[i], msg)
+            self.assertDictEqual(others[i], msg[0])
         self.assertEqual(len(other.transactions), 0) #not allowed so aborted
         self.assertEqual(len(mains), len(other.rxMsgs))
         for i, msg in enumerate(other.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+            self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
         main.clearLocal()
@@ -1770,12 +1770,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(others), len(main.rxMsgs))
         for i, msg in enumerate(main.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
-            self.assertDictEqual(others[i], msg)
+            self.assertDictEqual(others[i], msg[0])
         self.assertEqual(len(other.transactions), 0) #not allowed so aborted
         self.assertEqual(len(mains), len(other.rxMsgs))
         for i, msg in enumerate(other.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+            self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
         main.clearLocal()
