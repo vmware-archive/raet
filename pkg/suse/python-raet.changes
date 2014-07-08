@@ -1,0 +1,42 @@
+-------------------------------------------------------------------
+Wed Jul  2 18:25:59 UTC 2014 - aboe76@gmail.com
+
+- Major release 0.1.0
+  - Minor fixup prepping for release with SaltStack Release Candidate
+
+-------------------------------------------------------------------
+Tue Jul  1 18:56:32 UTC 2014 - aboe76@gmail.com
+
+- Updated to version 0.0.31:
+  - Fixed roadstack .manage method to used aliveds
+- From versions in between
+  - No longer removes rejected remotes out of band or future presence expire mechanism is needed to 
+  remove rejected remotes 0.0.30
+  - Fixed a bug on renew in Joiner transaction 0.0.29
+  - Fixed some race conditions 0.0.28
+  - Support for reaping and restoring dead remotes on main estate road stack Support for saving and 
+  resending stale messages when session changes on rejoin or reallow Some other fixes 0.0.27
+  - RoadStack.manage now provide underlying support needed for presence events and filtering of remote 
+  targets based on availabilty (allowed) status 0.0.26
+
+-------------------------------------------------------------------
+Sat Jun 21 07:12:41 UTC 2014 - aboe76@gmail.com
+
+- Updated to version 0.0.25
+  fix install_requirements error
+
+-------------------------------------------------------------------
+Fri Jun 20 08:33:21 UTC 2014 - aboe76@gmail.com
+
+- updated to version 0.0.23
+
+-------------------------------------------------------------------
+Wed Jun 18 19:52:44 UTC 2014 - aboe76@gmail.com
+
+- Update to version 0.0.19
+
+-------------------------------------------------------------------
+Mon Jun  9 10:05:11 UTC 2014 - aboe76@gmail.com
+
+- Initial package version 0.0.18
+
