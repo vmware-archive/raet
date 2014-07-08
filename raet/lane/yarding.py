@@ -129,6 +129,13 @@ class Yard(lotting.Lot):
 
         return (lanename, yardname)
 
+    def nextSid(self):
+        '''
+        Generates next unique sid number.
+        '''
+        self.sid = nacling.uuid(size=24)
+        return self.sid
+
     def nextBid(self):
         '''
         Generates next book id number.
@@ -185,11 +192,9 @@ class RemoteYard(Yard):
     def validRsid(self, rsid):
         '''
         Compare new rsid to old .rsid and return True
-        If new is >= old modulo N where N is 2^32 = 0x100000000
-        And >= means the difference is less than N//2 = 0x80000000
-        (((new - old) % 0x100000000) < (0x100000000 // 2))
+        if new != old
         '''
-        return self.validateSid(new=rsid, old=self.rsid)
+        return (new != self.rsid)
 
     def addBook(self, index, book):
         '''
@@ -212,7 +217,7 @@ class RemoteYard(Yard):
 
     def removeStaleBooks(self, renew=False):
         '''
-        Remove stale books associated with remote when index si older than remote.rsid
+        Remove stale books associated with remote when index si different than remote.rsid
         where index is tuple (ln, rn, si, bi)       (si, bi)
         If renew then remove all books with nonzero si
         '''
