@@ -295,7 +295,7 @@ class VerifyKey(encoding.Encodable, StringFixer, object):
         """
         Verifies the signature of a signed message, returning the message
         if it has not been tampered with else raising
-        :class:`~BadSignatureError`.
+        :class:`~ValueError`.
 
         :param smessage: [:class:`bytes`] Either the original messaged or a
             signature and message concated together.
@@ -442,7 +442,7 @@ class Verifier(object):
             return False
         try:
             self.key.verify(signature + msg)
-        except BadSignatureError:
+        except ValueError:
             return False
         return True
 
