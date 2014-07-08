@@ -267,7 +267,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.main.transactions), 0)
         for msg in self.main.rxMsgs:
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.main.local.name, msg))
-        self.assertDictEqual(body, self.main.rxMsgs[0])
+        self.assertDictEqual(body, self.main.rxMsgs[0][0])
 
         console.terse("\nMessage: main to other *********\n")
         body = odict(what="This is a message to the other estate. Get to Work", extra="Fix the fence.")
@@ -279,7 +279,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.other.transactions), 0)
         for msg in self.other.rxMsgs:
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
-        self.assertDictEqual(body, self.other.rxMsgs[0])
+        self.assertDictEqual(body, self.other.rxMsgs[0][0])
 
     def bidirectional(self, bk=raeting.bodyKinds.json, mains=None, others=None, duration=3.0):
         '''
@@ -323,14 +323,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(others), len(self.main.rxMsgs))
         for i, msg in enumerate(self.main.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.main.local.name, msg))
-            self.assertDictEqual(others[i], msg)
+            self.assertDictEqual(others[i], msg[0])
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
         self.assertEqual(len(self.other.transactions), 0)
         self.assertEqual(len(mains), len(self.other.rxMsgs))
         for i, msg in enumerate(self.other.rxMsgs):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+            self.assertDictEqual(mains[i], msg[0])
 
     def testBootstrapJson(self):
         '''

@@ -2655,7 +2655,8 @@ class Messengent(Correspondent):
             self.ackMessage()
             console.verbose("{0} received message body\n{1}\n".format(
                     self.stack.name, body))
-            self.stack.rxMsgs.append(body)
+            # application layer authorizaiton needs to know who sent the message
+            self.stack.rxMsgs.append((body, self.remote.name))
             self.complete()
 
         elif self.wait:
