@@ -27,7 +27,7 @@ from ioflo.base import aiding
 from ioflo.base import storing
 
 from .. import raeting, nacling, stacking
-from . import paging, yarding, keeping
+from . import paging, yarding
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
@@ -37,16 +37,12 @@ class LaneStack(stacking.Stack):
     RAET protocol UXD (unix domain) socket stack object
     '''
     Count = 0
-    Yid = 1
     Pk = raeting.packKinds.json # serialization pack kind of Uxd message
     Accept = True # accept any uxd messages if True from yards not already in lanes
 
     def __init__(self,
                  name='',
                  main=None,
-                 keep=None,
-                 dirpath='',
-                 basedirpath='',
                  local=None,
                  lanename='lane',
                  yid=None,
@@ -61,7 +57,6 @@ class LaneStack(stacking.Stack):
 
         stack.name and stack.local.name will match
         '''
-        self.nyid = self.Yid # yid of initial next estate to add to road
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
         if not name:
             name = "lane{0}".format(LaneStack.Count)
@@ -80,27 +75,10 @@ class LaneStack(stacking.Stack):
             if main is not None:
                 local.main = True if main else False
 
-        if not keep:
-            keep = keeping.LaneKeep(dirpath=dirpath,
-                                    basedirpath=basedirpath,
-                                    stackname=name)
-
         super(LaneStack, self).__init__(name=name,
-                                        keep=keep,
-                                        dirpath=dirpath,
-                                        basedirpath=basedirpath,
                                         local=local,
                                         bufcnt=bufcnt,
                                         **kwa)
-
-    def nextYid(self):
-        '''
-        Generates next yard id number.
-        '''
-        self.nyid += 1
-        if self.nyid > 0xffffffffL:
-            self.nyid = 1  # rollover to 1
-        return self.nyid
 
     def serverFromLocal(self):
         '''
@@ -138,60 +116,6 @@ class LaneStack(stacking.Stack):
             return None
 
         return self.fetchRemoteByName(yardname)
-
-    def restoreLocal(self, local=None, name=''):
-        '''
-        Load self.local from keep file else local or new
-        '''
-        data = self.keep.loadLocalData()
-        if data and self.keep.verifyLocalData(data):
-            self.local = yarding.LocalYard(stack=self,
-                                           yid=data['uid'],
-                                           name=data['name'],
-                                           ha=data['ha'],
-                                           main=data['main'],
-                                           sid=data['sid'],
-                                           lanename=data['lanename'])
-            self.name = data['stack']
-            self.nyid = data['nyid']
-            self.accept = data['accept']
-
-        elif local:
-            local.stack = self
-            self.local = local
-
-        else:
-            self.local = yarding.LocalYard(stack=self, name=name)
-
-    def restoreRemote(self, uid):
-        '''
-        Load, add, and return remote with uid if any
-        Otherwise return None
-        '''
-        remote = None
-        data = self.keep.loadRemoteData(uid)
-        if data and self.keep.verifyRemoteData(data):
-            remote = yarding.RemoteYard(stack=self,
-                                        yid=data['uid'],
-                                        name=data['name'],
-                                        ha=data['ha'],
-                                        sid=data['sid'],)
-            self.addRemote(remote)
-        return remote
-
-    def restoreRemotes(self):
-        '''
-        Load and add remote for each remote file
-        '''
-        datadict = self.keep.loadAllRemoteData()
-        for data in datadict.values():
-            if self.keep.verifyRemoteData(data):
-                remote = yarding.RemoteYard(stack=self,
-                                            yid=data['uid'],
-                                            name=data['name'],
-                                            ha=data['ha'],
-                                            sid=data['sid'],)
-                self.addRemote(remote)
 
     def _handleOneRx(self):
         '''

@@ -40,7 +40,6 @@ class Estate(lotting.Lot):
         Setup Estate instance
         '''
         self.eid = eid if eid is not None else self.Eid # estate ID
-
         name = name or "estate{0}".format(self.uid)
 
         super(Estate, self).__init__(stack=stack, name=name, ha=ha, **kwa)

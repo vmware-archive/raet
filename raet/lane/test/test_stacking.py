@@ -47,7 +47,6 @@ class BasicTestCase(unittest.TestCase):
         # main stack
         self.main = stacking.LaneStack(name='main',
                                        yid=1,
-                                       localname='main',
                                        lanename='cherry',
                                        basedirpath=self.baseDirpath,
                                        sockdirpath=self.baseDirpath)
@@ -55,7 +54,6 @@ class BasicTestCase(unittest.TestCase):
         #other stack
         self.other = stacking.LaneStack(name='other',
                                         yid=1,
-                                        localname='other',
                                         lanename='cherry',
                                         basedirpath=self.baseDirpath,
                                         sockdirpath=self.baseDirpath)
@@ -63,12 +61,6 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.main.server.close()
         self.other.server.close()
-
-        self.main.clearAllDir()
-        self.other.clearAllDir()
-
-        if os.path.exists(self.tempDirPath):
-            shutil.rmtree(self.tempDirPath)
 
     def service(self, duration=1.0, real=True):
         '''
@@ -441,8 +433,8 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
     #runOne('testMessageJson')

@@ -41,15 +41,7 @@ class Yard(lotting.Lot):
         '''
         Initialize instance
         '''
-        if yid is None:
-            if stack:
-                yid = stack.nextYid()
-                while yid in stack.remotes:
-                    yid = stack.nextYid()
-            else:
-                yid = Yard.Yid
-                Yard.Yid += 1
-        self.yid = yid # yard ID
+        self.yid = yid if yid is not None else self.Yid # yard ID
 
         if lanename and  " " in lanename:
             emsg = "Invalid lanename '{0}'".format(lanename)
@@ -150,22 +142,43 @@ class LocalYard(Yard):
     '''
     RAET UXD Protocol endpoint local Yard
     '''
-    def __init__(self, stack=None, name='', main=None, **kwa):
+    def __init__(self, stack=None, name='', yid=None, nyid=None, main=None, **kwa):
         '''
         Setup Yard instance
         '''
-        super(LocalYard, self).__init__(stack=stack, name=name, **kwa)
+        self.nyid = nyid if nyid is not None else self.Yid # next yid
+        if yid is None:
+            yid = self.nextYid()
+
+        super(LocalYard, self).__init__(stack=stack, name=name, yid=yid, **kwa)
         self.main = main # main yard on lane
+
+    def nextYid(self):
+        '''
+        Generates next yard id number.
+        '''
+        self.nyid += 1
+        if self.nyid > 0xffffffffL:
+            self.nyid = 1  # rollover to 1
+        return self.nyid
 
 class RemoteYard(Yard):
     '''
     RAET protocol endpoint remote yard
     '''
-    def __init__(self, rsid=0, **kwa):
+    def __init__(self, stack=None, yid=None, rsid=0, **kwa):
         '''
         Setup Yard instance
         '''
-        super(RemoteYard, self).__init__(**kwa)
+        if yid is None:
+            if stack:
+                yid = stack.local.nextYid()
+                while yid in stack.remotes or yid == stack.local.yid:
+                    yid = stack.local.nextYid()
+            else:
+                yid = 0
+
+        super(RemoteYard, self).__init__(stack=stack, yid=yid, **kwa)
         self.rsid = rsid # last sid received from remote
         self.books = odict()
 
