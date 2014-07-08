@@ -3,6 +3,17 @@ CHANGE LOG
 -------------------
 
 ---------
+20140708
+---------
+
+v0.1.02
+
+Fixed bug in nacling catching wrong exception on verify
+
+Changed rxMsgs queue to be duple of (msg, name)
+so that application layer has access to remote name that sent the msg.
+
+---------
 20140701
 ---------
 
