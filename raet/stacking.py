@@ -124,7 +124,7 @@ class Stack(object):
         '''
         if uid is None:
             uid = remote.uid
-        if uid and (uid in self.remotes or uid == self.local.uid):
+        if uid in self.remotes or uid == self.local.uid:
             emsg = "Cannot add remote at uid '{0}', alreadys exists".format(uid)
             raise raeting.StackError(emsg)
         remote.stack = self
