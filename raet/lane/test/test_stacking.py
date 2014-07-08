@@ -42,20 +42,18 @@ class BasicTestCase(unittest.TestCase):
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
         self.tempDirPath = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
-        self.baseDirpath = os.path.join(self.tempDirPath,'lane', 'keep')
+        self.baseDirpath = os.path.join(self.tempDirPath, 'lane', 'keep')
 
         # main stack
         self.main = stacking.LaneStack(name='main',
                                        yid=1,
                                        lanename='cherry',
-                                       basedirpath=self.baseDirpath,
                                        sockdirpath=self.baseDirpath)
 
         #other stack
         self.other = stacking.LaneStack(name='other',
                                         yid=1,
                                         lanename='cherry',
-                                        basedirpath=self.baseDirpath,
                                         sockdirpath=self.baseDirpath)
 
     def tearDown(self):
@@ -95,7 +93,6 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.1)
             if real:
                 time.sleep(0.1)
-
 
     def bootstrap(self, kind=raeting.packKinds.json):
         '''
@@ -150,6 +147,134 @@ class BasicTestCase(unittest.TestCase):
         for i, msg in enumerate(self.other.rxMsgs):
             console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
             self.assertDictEqual(mains[i], msg)
+
+    def createLaneData(self, name, yid, base, lanename, localname=''):
+        '''
+        Creates odict and populates with data to setup lane stack
+        {
+            name: stack name
+            dirpath: dirpath for keep files
+            lanename: name of yard
+        }
+        '''
+        data = odict()
+        data['name'] = name
+        data['yid'] = yid
+        data['sockdirpath'] = os.path.join(base, name)
+        data['lanename'] = lanename
+        data['localname'] = localname or name
+
+        return data
+
+    def createLaneStack(self, data, main=None):
+        '''
+        Creates stack and local yard from data
+        returns stack
+
+        '''
+        stack = stacking.LaneStack(name=data['name'],
+                                   yid=data['yid'],
+                                   main=main,
+                                   lanename=data['lanename'],
+                                   sockdirpath=data['sockdirpath'])
+
+        return stack
+
+    def serviceMainOther(self, main, other, duration=1.0):
+        '''
+        Utility method to service queues. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            other.serviceAll()
+            main.serviceAll()
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
+
+
+    def messageMainOther(self, main,  other, mains, others, duration=1.0):
+        '''
+        Utility to send messages both ways
+        '''
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+        for msg in others:
+            other.transmit(msg,  duid=other.uids[main.local.name])
+
+        self.serviceMainOther(main, other, duration=duration)
+
+        self.assertEqual(len(main.rxMsgs), len(others))
+        for i, msg in enumerate(main.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
+            self.assertDictEqual(others[i], msg)
+
+        self.assertEqual(len(other.rxMsgs), len(mains))
+        for i, msg in enumerate(other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
+            self.assertDictEqual(mains[i], msg)
+
+    def serviceStackOneTx(self, stack):
+        '''
+        Utility method to service one packet on Tx queues. Call from test method.
+        '''
+        stack.serviceOneAllTx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceStackOneRx(self, stack):
+        '''
+        Utility method to service one packet on Rx queues. Call from test method.
+        '''
+        stack.serviceOneAllRx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceOneTx(self, main, other):
+        '''
+        Utility method to service one packet on Tx queues. Call from test method.
+        '''
+        other.serviceOneAllTx()
+        main.serviceOneAllTx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceOneRx(self, main, other):
+        '''
+        Utility method to service one packet on Rx queues. Call from test method.
+        '''
+        other.serviceOneAllRx()
+        main.serviceOneAllRx()
+        time.sleep(0.1)
+        self.store.advanceStamp(0.1)
+
+    def serviceOneAll(self, main, other):
+        '''
+        Utility method to service one packet on all queues. Call from test method.
+        '''
+        self.serviceOneTx(main=main, other=other)
+        self.serviceOneRx(main=main, other=other)
+
+
+    def serviceStack(self, stack, duration=1.0):
+        '''
+        Utility method to service queues for one stack. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            stack.serviceAll()
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
+
+    def serviceStacks(self, stacks, duration=1.0):
+        '''
+        Utility method to service queues for list of stacks. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            for stack in stacks:
+                stack.serviceAll()
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
 
     def testMessageJson(self):
         '''
@@ -395,7 +520,326 @@ class BasicTestCase(unittest.TestCase):
             fetched = self.other.fetchRemoteFromHa(remote.ha)
             self.assertIs(remote, fetched)
 
+    def testRestart(self):
+        '''
+        Test messaging after restart
+        '''
+        console.terse("{0}\n".format(self.testRestart.__doc__))
 
+        stacking.LaneStack.Pk = raeting.packKinds.json
+
+        mainData = self.createLaneData(name='main',
+                                       yid=1,
+                                       base=self.baseDirpath,
+                                       lanename='apple')
+        main = self.createLaneStack(data=mainData, main=True)
+        self.assertTrue(main.local.ha.endswith('/lane/keep/main/apple.main.uxd'))
+        self.assertTrue(main.local.main)
+
+        otherData = self.createLaneData(name='other',
+                                        yid=1,
+                                        base=self.baseDirpath,
+                                        lanename='apple')
+        other = self.createLaneStack(data=otherData)
+        self.assertTrue(other.local.ha.endswith('/lane/keep/other/apple.other.uxd'))
+
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        self.assertTrue('other' in main.uids)
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        self.assertTrue('main' in other.uids)
+
+        src = ['mayor', main.local.name, None] # (house, yard, queue)
+        dst = ['citizen', other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my command"
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', other.local.name, None]
+        dst = ['mayor', main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my reply."
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        self.messageMainOther(main,  other, mains, others, duration=1.0)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
+        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+        #now close down  make new stacks
+        main.server.close()
+        other.server.close()
+        main = self.createLaneStack(data=mainData, main=True)
+        other = self.createLaneStack(data=otherData)
+
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        self.assertTrue('other' in main.uids)
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        self.assertTrue('main' in other.uids)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
+        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
+
+        self.messageMainOther(main, other, mains, others, duration=1.0)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+        #now close down  make new stacks
+        main.server.close()
+        other.server.close()
+        main = self.createLaneStack(data=mainData, main=True)
+        other = self.createLaneStack(data=otherData)
+
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        self.assertTrue('other' in main.uids)
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        self.assertTrue('main' in other.uids)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
+        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
+
+        # now send paginated messages
+        src = ['mayor', main.local.name, None] # (house, yard, queue)
+        dst = ['citizen', other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = ["Do as I say."]
+        for i in range(10000):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', other.local.name, None]
+        dst = ['mayor', main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = ["As you wish."]
+        for i in range(10000):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        self.messageMainOther(main, other, mains, others, duration=1.0)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+        #now close down  make new stacks send page at a time
+        main.server.close()
+        other.server.close()
+        main = self.createLaneStack(data=mainData, main=True)
+        other = self.createLaneStack(data=otherData)
+
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        self.assertTrue('other' in main.uids)
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        self.assertTrue('main' in other.uids)
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
+        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
+
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+        for msg in others:
+            other.transmit(msg,  duid=other.uids[main.local.name])
+
+
+        self.assertEqual(len(main.txMsgs), 1)
+        self.assertEqual(len(other.txMsgs), 1)
+        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
+        self.assertEqual(len(other.remotes[other.uids['main']].books), 0)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        # Now only send and receive one page to/from each side
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(len(main.txMsgs), 0)
+        self.assertEqual(len(other.txMsgs), 0)
+        self.assertEqual(len(main.txes), 1)
+        self.assertEqual(len(other.txes), 1)
+        self.assertEqual(len(main.remotes[main.uids['other']].books), 1)
+        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+        # save sids
+        mainSid = main.remotes[main.uids['other']].sid
+        otherSid = other.remotes[other.uids['main']].sid
+
+        #now close down one side only, make new stack
+        main.server.close()
+        main = self.createLaneStack(data=mainData, main=True)
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+
+        self.assertEqual(len(main.remotes), 1)
+        self.assertTrue('other' in main.uids)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertTrue('main' in other.uids)
+
+        self.assertNotEqual(main.remotes[main.uids['other']].sid, mainSid)
+        self.assertEqual(other.remotes[other.uids['main']].sid, otherSid)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, mainSid)
+
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 1)
+        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
+        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        # Now remaining page from other (there should be no pages from main)
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertNotEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 0)
+        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
+        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+        self.assertEqual(main.stats['missed_page'], 1)
+
+
+        #send a new message from main and reap stale book from other
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+
+        self.serviceMainOther(main, other, duration=1.0)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 0)
+        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
+        self.assertEqual(len(other.remotes[other.uids['main']].books), 0)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 1)
+        self.assertEqual(other.stats['stale_book'], 1)
+
+        self.assertEqual(len(other.rxMsgs), len(mains))
+        for i, msg in enumerate(other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
+            self.assertDictEqual(mains[i], msg)
+
+
+        # setup to test reset sid numbering by sending single pages to create stale books
+
+        other.rxMsgs.pop()
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+        for msg in others:
+            other.transmit(msg,  duid=other.uids[main.local.name])
+
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(main.remotes[main.uids['other']].rsid,
+                         other.remotes[other.uids['main']].sid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid,
+                         main.remotes[main.uids['other']].sid)
+
+
+        self.assertEqual(len(main.txes), 1)
+        self.assertEqual(len(other.txes), 1)
+        self.assertEqual(len(main.remotes[main.uids['other']].books), 1)
+        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.rxMsgs), 0)
+        self.assertEqual(len(other.rxMsgs), 0)
+
+        # simulate restart that loses msg in queue
+        main.txes.pop()
+        other.txes.pop()
+
+        src = ['mayor', main.local.name, None] # (house, yard, queue)
+        dst = ['citizen', other.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my command"
+        mains = []
+        mains.append(odict([('route', route), ('content', stuff)]))
+
+        src = ['citizen', other.local.name, None]
+        dst = ['mayor', main.local.name, None]
+        route = odict([('src', src), ('dst', dst)])
+        stuff = "This is my reply."
+        others = []
+        others.append(odict([('route', route), ('content', stuff)]))
+
+        mainSid = main.local.nextSid()
+        otherSid = other.local.nextSid()
+        main.remotes[main.uids['other']].sid = mainSid
+        other.remotes[other.uids['main']].sid = otherSid
+        for msg in mains:
+            main.transmit(msg, duid=main.uids[other.local.name])
+        for msg in others:
+            other.transmit(msg,  duid=other.uids[main.local.name])
+
+        self.serviceOneAll(main, other)
+
+        self.assertEqual(main.remotes[main.uids['other']].sid, mainSid)
+        self.assertEqual(other.remotes[other.uids['main']].sid, otherSid)
+        self.assertEqual(main.remotes[main.uids['other']].rsid, otherSid)
+        self.assertEqual(other.remotes[other.uids['main']].rsid, mainSid)
+
+        self.assertEqual(len(main.txes), 0)
+        self.assertEqual(len(other.txes), 0)
+        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
+        self.assertEqual(len(other.remotes[other.uids['main']].books), 0)
+        self.assertEqual(len(main.rxMsgs), 1)
+        self.assertEqual(len(other.rxMsgs), 1)
+        self.assertEqual(main.stats['stale_book'], 1)
+        self.assertEqual(other.stats['stale_book'], 2)
+
+        main.server.close()
+        other.server.close()
 
 def runOne(test):
     '''
@@ -416,7 +860,8 @@ def runSome():
              'testMessageSectionedMsgpack',
              'testAutoAccept',
              'testAutoAcceptNot',
-             'testFetchRemoteFromHa', ]
+             'testFetchRemoteFromHa',
+             'testRestart']
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -437,4 +882,6 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testMessageJson')
+    #runOne('testRestart')
+
+

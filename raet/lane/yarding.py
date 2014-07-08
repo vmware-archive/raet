@@ -34,6 +34,7 @@ class Yard(lotting.Lot):
                   yid=None,
                   name='',
                   ha='',
+                  sid=None,
                   dirpath='',
                   lanename='',
                   bid=0,
@@ -66,7 +67,9 @@ class Yard(lotting.Lot):
 
         name = name or "yard{0}".format(self.yid)
 
-        super(Yard, self).__init__(stack=stack, name=name, ha=ha, **kwa)
+        sid = sid if sid is not None else self.nextSid() #if not given unique sid
+
+        super(Yard, self).__init__(stack=stack, name=name, ha=ha, sid=sid, **kwa)
 
         self.lanename = lanename or 'lane'
         self.bid = bid #current book id
@@ -133,7 +136,7 @@ class Yard(lotting.Lot):
         '''
         Generates next unique sid number.
         '''
-        self.sid = nacling.uuid(size=24)
+        self.sid = nacling.uuid(size=18)
         return self.sid
 
     def nextBid(self):
@@ -189,13 +192,6 @@ class RemoteYard(Yard):
         self.rsid = rsid # last sid received from remote
         self.books = odict()
 
-    def validRsid(self, rsid):
-        '''
-        Compare new rsid to old .rsid and return True
-        if new != old
-        '''
-        return (new != self.rsid)
-
     def addBook(self, index, book):
         '''
         Safely add book at index,(si, bi) If not already there
@@ -215,15 +211,14 @@ class RemoteYard(Yard):
             else:
                 del self.books[index]
 
-    def removeStaleBooks(self, renew=False):
+    def removeStaleBooks(self):
         '''
         Remove stale books associated with remote when index si different than remote.rsid
         where index is tuple (ln, rn, si, bi)       (si, bi)
-        If renew then remove all books with nonzero si
         '''
         for index, book in self.books.items():
             sid = index[2]
-            if (renew and sid != 0) or (not renew and not self.validRsid(sid)):
+            if sid != self.rsid:
                 self.removeBook(index, book)
                 emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, self.name)
                 console.terse(emsg)

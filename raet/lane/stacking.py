@@ -155,15 +155,10 @@ class LaneStack(stacking.Stack):
 
         remote = self.remotes[self.uids[sn]]
         si = page.data['si']
-        if si != 0 and not remote.validRsid(si):
-            emsg = "Stale sid '{0}' in page from remote {1}\n".format(si, remote.name)
-            console.terse(emsg)
-            self.incStat('stale_sid_attempt')
-            return
 
         if si != remote.rsid:
             remote.rsid = si
-            remote.removeStaleBooks(renew=(si == 0))
+            remote.removeStaleBooks()
 
         self.processRx(page, remote)
 
