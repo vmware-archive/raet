@@ -26,6 +26,7 @@ from . import raeting
 class Lot(object):
     '''
     RAET protocol stack endpoint
+    way is group of lots
     '''
     Count = 0
 
@@ -104,8 +105,9 @@ class LocalLot(Lot):
     '''
     Raet protocol local endpoint
     '''
-    def  __init__(self, stack=None, name="", **kwa):
+    def  __init__(self, stack=None, name="", main=None, **kwa):
         '''
         Setup instance
         '''
         super(LocalLot, self).__init__(stack=stack, name=name, **kwa)
+        self.main = main # main lot on way

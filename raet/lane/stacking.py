@@ -48,7 +48,6 @@ class LaneStack(stacking.Stack):
                  dirpath='',
                  basedirpath='',
                  local=None,
-                 localname='',
                  lanename='lane',
                  yid=None,
                  sockdirpath='',
@@ -72,7 +71,7 @@ class LaneStack(stacking.Stack):
             self.remotes = odict()
             local = yarding.LocalYard(  stack=self,
                                         yid=yid,
-                                        name=localname,
+                                        name=name,
                                         main=main,
                                         ha=ha,
                                         dirpath=sockdirpath,
@@ -91,7 +90,6 @@ class LaneStack(stacking.Stack):
                                         dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         local=local,
-                                        localname=localname,
                                         bufcnt=bufcnt,
                                         **kwa)
 
@@ -141,7 +139,7 @@ class LaneStack(stacking.Stack):
 
         return self.fetchRemoteByName(yardname)
 
-    def loadLocal(self, local=None, name=''):
+    def restoreLocal(self, local=None, name=''):
         '''
         Load self.local from keep file else local or new
         '''

@@ -155,8 +155,7 @@ class LocalYard(Yard):
         Setup Yard instance
         '''
         super(LocalYard, self).__init__(stack=stack, name=name, **kwa)
-        self.main = True if main else False # main yard on lane
-
+        self.main = main # main yard on lane
 
 class RemoteYard(Yard):
     '''

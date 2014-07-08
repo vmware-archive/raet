@@ -42,13 +42,13 @@ class Stack(object):
 
     def __init__(self,
                  name='',
+                 main=None,
                  version=raeting.VERSION,
                  store=None,
                  keep=None,
                  dirpath='',
                  basedirpath='',
                  local=None,
-                 localname='',
                  bufcnt=2,
                  server=None,
                  rxMsgs=None,
@@ -57,33 +57,25 @@ class Stack(object):
                  txes=None,
                  stats=None,
                  clean=False,
-                 ):
+                ):
         '''
         Setup Stack instance
         '''
         if not name:
-            name = "stack{0}".format(Stack.Count)
+            name = "{0}{1}".format(self.__class__.__name__.lower(), Stack.Count)
             Stack.Count += 1
 
-        self.name = name
         self.version = version
         self.store = store or storing.Store(stamp=0.0)
+        self.local = local or lotting.LocalLot(stack=self,
+                                               name=name,
+                                               main=main,)
+        self.local.stack = self
+        if self.local.main is None and main is not None:
+            self.local.main = True if main else False
 
-        self.keep = keep or keeping.LotKeep(dirpath=dirpath,
-                                            basedirpath=basedirpath,
-                                            stackname=self.name)
-
-        if clean: # clear persisted data so uses provided or default data
-            self.clearLocal()
-            self.clearRemoteKeeps()
-
-        self.loadLocal(local=local, name=localname) # load local data from saved data else passed in local
         self.remotes = odict() # remotes indexed by uid
         self.uids = odict() # remote uids indexed by name
-        self.restoreRemotes() # load remotes from saved data
-
-        for remote in self.remotes.values():
-            remote.nextSid()
 
         self.bufcnt = bufcnt
         if not server:
@@ -106,8 +98,19 @@ class Stack(object):
         self.stats = stats if stats is not None else odict() # udp statistics
         self.statTimer = aiding.StoreTimer(self.store)
 
-        self.dumpLocal() # save local data
-        self.dumpRemotes() # save remote data
+    @property
+    def name(self):
+        '''
+        property that returns name of local interface
+        '''
+        return self.local.name
+
+    @name.setter
+    def name(self, value):
+        '''
+        setter for name property
+        '''
+        self.local.name = value
 
     def serverFromLocal(self):
         '''
@@ -145,7 +148,6 @@ class Stack(object):
             raise raeting.StackError(emsg)
 
         remote = self.remotes[old]
-        self.clearRemote(remote)
         index = self.remotes.keys().index(old)
         remote.uid = new
         self.uids[remote.name] = new
@@ -171,7 +173,7 @@ class Stack(object):
             del self.uids[old]
             self.uids.insert(index, remote.name, remote.uid)
 
-    def removeRemote(self, uid, clear=True):
+    def removeRemote(self, uid):
         '''
         Remove remote at key uid
         If clear then also remove from disk
@@ -181,8 +183,6 @@ class Stack(object):
             raise raeting.StackError(emsg)
 
         remote = self.remotes[uid]
-        if clear:
-            self.clearRemote(remote)
         del self.remotes[uid]
         del self.uids[remote.name]
 
@@ -200,110 +200,6 @@ class Stack(object):
         Return remote if found Otherwise return None
         '''
         return self.remotes.get(self.uids.get(name))
-
-    def clearAllDir(self):
-        '''
-        Clear out and remove the keep dir and contents
-        '''
-        console.verbose("Stack {0}: Clearing keep dir '{1}'\n".format(
-                                  self.name, self.keep.dirpath))
-        self.keep.clearAllDir()
-
-    def dumpLocal(self):
-        '''
-        Dump keeps of local
-        '''
-        self.keep.dumpLocal(self.local)
-
-    def loadLocal(self, local=None, name=''):
-        '''
-        Load self.local from keep file else local or new
-        '''
-        data = self.keep.loadLocalData()
-        if data and self.keep.verifyLocalData(data):
-            self.local = lotting.LocalLot(stack=self,
-                                          uid=data['uid'],
-                                          name=data['name'],
-                                          ha=data['ha'],
-                                          sid = data['sid'])
-            self.name = self.local.name
-
-        elif local:
-            local.stack = self
-            self.local = local
-
-        else:
-            self.local = lotting.LocalLot(stack=self, name=name)
-
-    def clearLocal(self):
-        '''
-        Clear local keep
-        '''
-        self.keep.clearLocalData()
-
-    def dumpRemote(self, remote):
-        '''
-        Dump keeps of remote
-        '''
-        self.keep.dumpRemote(remote)
-
-    def dumpRemotes(self):
-        '''
-        Dump all remotes data to keep files
-        '''
-        self.clearRemotes()
-        datadict = odict()
-        for remote in self.remotes.values():
-            self.dumpRemote(remote)
-
-    def restoreRemote(self, uid):
-        '''
-        Load, add, and return remote with uid if any
-        Otherwise return None
-        '''
-        remote = None
-        data = self.keep.loadRemoteData(uid)
-        if data and self.keep.verifyRemoteData(data):
-            remote = lotting.Lot(stack=self,
-                              uid=data['uid'],
-                              name=data['name'],
-                              ha=data['ha'],
-                              sid=data['sid'])
-            self.addRemote(remote)
-        return remote
-
-    def restoreRemotes(self):
-        '''
-        Load and add remote for each remote file
-        '''
-        datadict = self.keep.loadAllRemoteData()
-        for data in datadict.values():
-            if self.keep.verifyRemoteData(data):
-                remote = lotting.Lot(stack=self,
-                                  uid=data['uid'],
-                                  name=data['name'],
-                                  ha=data['ha'],
-                                  sid=data['sid'])
-                self.addRemote(remote)
-
-    def clearRemote(self, remote):
-        '''
-        Clear remote keep of remote
-        '''
-        self.keep.clearRemoteData(remote.uid)
-
-    def clearRemotes(self):
-        '''
-        Clear remote keeps of .remotes
-        '''
-        for remote in self.remotes.values():
-            self.clearRemote(remote)
-
-    def clearRemoteKeeps(self):
-        '''
-        Clear all remote keeps
-        '''
-        self.keep.clearAllRemoteData()
 
     def incStat(self, key, delta=1):
         '''
@@ -566,5 +462,193 @@ class Stack(object):
         '''
         pass
 
+class KeepStack(Stack):
+    '''
+    RAET protocol base stack object with persistance via Keep attribute.
+    Should be subclassed for specific transport type
+    '''
+    def __init__(self,
+                 name='',
+                 main=None,
+                 keep=None,
+                 dirpath='',
+                 basedirpath='',
+                 local=None,
+                 clean=False,
+                 **kwa
+                 ):
+        '''
+        Setup Stack instance
+        '''
+        self.keep = keep or keeping.LotKeep(dirpath=dirpath,
+                                            basedirpath=basedirpath,
+                                            stackname=name)
 
+        if clean: # clear persisted data so use provided or default data
+            self.clearLocalKeep()
+
+        local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
+                                                                 main=main,
+                                                                 name=name)
+        local.stack = self
+        if local.main is None and main is not None:
+            local.main = True if main else False
+
+        super(KeepStack, self).__init__(name=name,
+                                        main=main,
+                                        dirpath=dirpath,
+                                        basedirpath=basedirpath,
+                                        local=local,
+                                        **kwa)
+
+
+        if clean:
+            self.clearRemoteKeeps()
+        self.restoreRemotes() # load remotes from saved data
+
+        for remote in self.remotes.values():
+            remote.nextSid()
+
+        self.dumpLocal() # save local data
+        self.dumpRemotes() # save remote data
+
+    def addRemote(self, remote, uid=None, dump=False):
+        '''
+        Add a remote  to .remotes
+        '''
+        super(KeepStack, self).addRemote(remote=remote, uid=uid)
+        if dump:
+            self.dumpRemote(remote)
+
+    def moveRemote(self, old, new, clear=True, dump=False):
+        '''
+        Move remote at key old uid with key new uid and replace the odict key index
+        so order is the same.
+        If clear then clear the keep file for remote at old
+        If dump then dump the keep file for the remote at new
+        '''
+        super(KeepStack, self).moveRemote(old=old, new=new)
+        if clear:
+            self.keep.clearRemoteData(old)
+        if dump:
+            self.dumpRemote(remote=self.remotes[new])
+
+    def removeRemote(self, uid, clear=True):
+        '''
+        Remove remote at key uid
+        If clear then also remove from disk
+        '''
+        super(KeepStack, self).removeRemote(uid=uid)
+        if clear:
+            self.keep.clearRemoteData(uid)
+
+    def removeAllRemotes(self, clear=True):
+        '''
+        Remove all the remotes
+        If clear then also remove from disk
+        '''
+        uids = self.remotes.keys() #make copy since changing .remotes in-place
+        for uid in uids:
+            self.removeRemote(uid, clear=clear)
+
+    def clearAllDir(self):
+        '''
+        Clear out and remove the keep dir and contents
+        '''
+        console.verbose("Stack {0}: Clearing keep dir '{1}'\n".format(
+                                  self.name, self.keep.dirpath))
+        self.keep.clearAllDir()
+
+    def dumpLocal(self):
+        '''
+        Dump keeps of local
+        '''
+        self.keep.dumpLocal(self.local)
+
+    def restoreLocal(self):
+        '''
+        Load self.local from keep file if any and return local
+        Otherwise return None
+        '''
+        local = None
+        data = self.keep.loadLocalData()
+        if data and self.keep.verifyLocalData(data):
+            local = lotting.LocalLot(stack=self,
+                                     uid=data['uid'],
+                                     name=data['name'],
+                                     ha=data['ha'],
+                                     sid = data['sid'])
+            self.local = local
+        return local
+
+    def clearLocalKeep(self):
+        '''
+        Clear local keep
+        '''
+        self.keep.clearLocalData()
+
+    def dumpRemote(self, remote):
+        '''
+        Dump keeps of remote
+        '''
+        self.keep.dumpRemote(remote)
+
+    def dumpRemotes(self, clear=True):
+        '''
+        Dump all remotes data to keep files
+        If clear then clear all files first
+        '''
+        if clear:
+            self.clearRemotes()
+        for remote in self.remotes.values():
+            self.dumpRemote(remote)
+
+    def restoreRemote(self, uid):
+        '''
+        Load, add, and return remote with uid if any
+        Otherwise return None
+        '''
+        remote = None
+        data = self.keep.loadRemoteData(uid)
+        if data and self.keep.verifyRemoteData(data):
+            remote = lotting.Lot(stack=self,
+                              uid=data['uid'],
+                              name=data['name'],
+                              ha=data['ha'],
+                              sid=data['sid'])
+            self.addRemote(remote)
+        return remote
+
+    def restoreRemotes(self):
+        '''
+        Load and add remote for each remote file
+        '''
+        datadict = self.keep.loadAllRemoteData()
+        for data in datadict.values():
+            if self.keep.verifyRemoteData(data):
+                remote = lotting.Lot(stack=self,
+                                  uid=data['uid'],
+                                  name=data['name'],
+                                  ha=data['ha'],
+                                  sid=data['sid'])
+                self.addRemote(remote)
+
+    def clearRemote(self, remote):
+        '''
+        Clear remote keep of remote
+        '''
+        self.keep.clearRemoteData(remote.uid)
+
+    def clearRemotes(self):
+        '''
+        Clear remote keeps of .remotes
+        '''
+        for remote in self.remotes.values():
+            self.clearRemote(remote)
+
+    def clearRemoteKeeps(self):
+        '''
+        Clear all remote keeps
+        '''
+        self.keep.clearAllRemoteData()
 

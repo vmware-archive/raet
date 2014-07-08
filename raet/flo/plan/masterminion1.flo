@@ -25,7 +25,7 @@ framer receiver be active first start
 house minion1
 
 init .raet.road.stack.local to eid 0 name "minion1" host "" port 7531 \
-    basedirpath "/tmp/raet/test/keep/" localname "minion1"
+    basedirpath "/tmp/raet/test/keep/"
 
 
 framer minionudpstack be active first start

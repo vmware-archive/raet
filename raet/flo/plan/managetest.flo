@@ -36,7 +36,7 @@ framer servicetx be active first start
 house minion1
 
 init .raet.road.stack.local to eid 0 name "minion1" host "" port 7531 \
-    basedirpath "/tmp/raet/test/keep/" main False auto True localname "minion1"
+    basedirpath "/tmp/raet/test/keep/" main False auto True
 
 
 framer minionudpstack be active first start
@@ -130,7 +130,7 @@ framer servicetx be active first start
 house minion2
 
 init .raet.road.stack.local to eid 0 name "minion2" host "" port 7532 \
-    basedirpath "/tmp/raet/test/keep/" main False auto True localname "minion2"
+    basedirpath "/tmp/raet/test/keep/" main False auto True
 
 
 framer minionudpstack be active first start

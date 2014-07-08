@@ -25,6 +25,7 @@ class Estate(lotting.Lot):
     '''
     RAET protocol endpoint estate object
     '''
+    Eid = 1 # class attribute starting point for valid eids, eid == 0 is special
 
     def __init__(self,
                  stack=None,
@@ -38,14 +39,7 @@ class Estate(lotting.Lot):
         '''
         Setup Estate instance
         '''
-        if eid is None:
-            if stack:
-                eid = stack.nextEid()
-                while eid in stack.remotes:
-                    eid = stack.nextEid()
-            else:
-                eid = 0
-        self.eid = eid # estate ID
+        self.eid = eid if eid is not None else self.Eid # estate ID
 
         name = name or "estate{0}".format(self.uid)
 
@@ -105,7 +99,7 @@ class LocalEstate(Estate):
     RAET protocol endpoint local estate object
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
-    def __init__(self, stack=None, name="", main=None,
+    def __init__(self, stack=None, eid=None, name="", neid=None, main=None,
                  sigkey=None, prikey=None, **kwa):
         '''
         Setup Estate instance
@@ -113,10 +107,22 @@ class LocalEstate(Estate):
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
         '''
-        super(LocalEstate, self).__init__(stack=stack, name=name, **kwa)
-        self.main = True if main else False # main estate for road
+        self.neid = neid if neid is not None else self.Eid # initialize neid used by .nextEid.
+        if eid is None:
+            eid = self.nextEid()
+        super(LocalEstate, self).__init__(stack=stack, eid=eid, name=name, **kwa)
+        self.main = main # main estate on road
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
+
+    def nextEid(self):
+        '''
+        Generates next estate id number.
+        '''
+        self.neid += 1
+        if self.neid > 0xffffffffL:
+            self.neid = 1  # rollover to 1
+        return self.neid
 
 class RemoteEstate(Estate):
     '''
@@ -132,7 +138,7 @@ class RemoteEstate(Estate):
     Offset = 0.5
     Interim = 3600.0
 
-    def __init__(self, stack, verkey=None, pubkey=None, acceptance=None, joined=None,
+    def __init__(self, stack, eid=None, verkey=None, pubkey=None, acceptance=None, joined=None,
                  rsid=0, period=None, offset=None, interim=None, **kwa):
         '''
         Setup Estate instance
@@ -151,9 +157,17 @@ class RemoteEstate(Estate):
 
         interim is timeout of reapTimer (remove from memory if dead for reap time)
         '''
+        if eid is None:
+            if stack:
+                eid = stack.local.nextEid()
+                while eid in stack.remotes or eid == stack.local.eid:
+                    eid = stack.local.nextEid()
+            else:
+                eid = 0
+
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
-        super(RemoteEstate, self).__init__(stack, **kwa)
+        super(RemoteEstate, self).__init__(stack, eid=eid, **kwa)
         self.joined = joined
         self.allowed = None
         self.alived = None

@@ -191,7 +191,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(stack.local.ha.endswith('/lane/keep/main/apple.main.uxd'))
 
         # test round trip
-        stack.clearLocal()
+        stack.clearLocalKeep()
         stack.clearRemoteKeeps()
 
         stack.dumpLocal()
@@ -220,7 +220,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(remoteKeepData, {})
 
         # test round trip with stack methods
-        stack.loadLocal()
+        stack.restoreLocal()
         localKeepData = odict([
                                 ('uid', stack.local.uid),
                                 ('name', stack.local.name),
@@ -628,11 +628,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.stats['stale_book'], 2)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
 

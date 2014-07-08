@@ -37,7 +37,7 @@ from . import transacting
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-class RoadStack(stacking.Stack):
+class RoadStack(stacking.KeepStack):
     '''
     RAET protocol RoadStack for UDP communications. This is the primary
     network communication system in RAET. A stack does not work in the
@@ -75,8 +75,6 @@ class RoadStack(stacking.Stack):
     interim
         The default timeout to reap a dead remote
     '''
-    Count = 0
-    Eid = 1 # class attribute starting point for valid eids, eid == 0 is special
     Hk = raeting.headKinds.raet # stack default
     Bk = raeting.bodyKinds.json # stack default
     Fk = raeting.footKinds.nacl # stack default
@@ -96,7 +94,6 @@ class RoadStack(stacking.Stack):
                  dirpath='',
                  basedirpath='',
                  local=None,
-                 localname ='', #local estate name
                  eid=None, #local estate eid, none means generate it
                  ha=("", raeting.RAET_PORT),
                  bufcnt=2,
@@ -110,47 +107,35 @@ class RoadStack(stacking.Stack):
         '''
         Setup StackUdp instance
 
-        stack.name and stack.local.name will match
         '''
-        self.neid = self.Eid # initialize eid used by .nextEid.
-
-        if not name:
-            name = "road{0}".format(RoadStack.Count)
-            RoadStack.Count += 1
-
-        if not keep:
-            keep = keeping.RoadKeep(dirpath=dirpath,
+        keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                     basedirpath=basedirpath,
                                     stackname=name)
 
-        if not safe:
-            safe = keeping.SafeKeep(dirpath=dirpath,
-                                    basedirpath=basedirpath,
-                                    stackname=name,
-                                    auto=auto)
-        self.safe = safe
+        self.safe = safe or keeping.SafeKeep(dirpath=dirpath,
+                                             basedirpath=basedirpath,
+                                             stackname=name,
+                                             auto=auto)
 
-        if not local:
-            self.remotes = odict()
-            local = estating.LocalEstate(stack=self,
-                                         name=localname,
-                                         eid=eid,
-                                         main=main,
-                                         ha=ha)
-        else:
-            if main is not None:
-                local.main = True if main else False
+        local = local or estating.LocalEstate(stack=self,
+                                              name=name,
+                                              eid=eid,
+                                              main=main,
+                                              ha=ha)
+        local.stack = self
+        if local.main is None and main is not None:
+            local.main = True if main else False
 
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
         self.interim = interim if interim is not None else self.Interim
 
         super(RoadStack, self).__init__(name=name,
+                                        main=main,
                                         keep=keep,
                                         dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         local=local,
-                                        localname=localname,
                                         bufcnt=bufcnt,
                                         **kwa)
 
@@ -158,15 +143,6 @@ class RoadStack(stacking.Stack):
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
         self.availables = set() # set of available remote names
-
-    def nextEid(self):
-        '''
-        Generates next estate id number.
-        '''
-        self.neid += 1
-        if self.neid > 0xffffffffL:
-            self.neid = 1  # rollover to 1
-        return self.neid
 
     def serverFromLocal(self):
         '''
@@ -179,11 +155,11 @@ class RoadStack(stacking.Stack):
                         bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
-    def addRemote(self, remote, uid=None):
+    def addRemote(self, remote, uid=None, dump=False):
         '''
         Add a remote  to .remotes
         '''
-        super(RoadStack, self).addRemote(remote, uid)
+        super(RoadStack, self).addRemote(remote=remote, uid=uid, dump=dump)
         if remote.timer.store is not self.store:
             raise raeting.StackError("Store reference mismatch between remote"
                     " '{0}' and stack '{1}'".format(remote.name, stack.name))
@@ -284,43 +260,37 @@ class RoadStack(stacking.Stack):
         '''
         Dump keeps of local estate
         '''
-        self.keep.dumpLocal(self.local)
+        super(RoadStack, self).dumpLocal()
         self.safe.dumpLocal(self.local)
 
-    def loadLocal(self, local=None, name=''):
+    def restoreLocal(self):
         '''
-        Load local estate if keeps found and verified
-        otherwise use local if provided
-        otherwise create default local
+        Load local estate if keeps found and verified and return
+        otherwise return None
         '''
+        local = None
         keepData = self.keep.loadLocalData()
         safeData = self.safe.loadLocalData()
         if (keepData and self.keep.verifyLocalData(keepData) and
                 safeData and self.safe.verifyLocalData(safeData)):
-            self.local = estating.LocalEstate(stack=self,
+            local = estating.LocalEstate(stack=self,
                                           eid=keepData['uid'],
                                           name=keepData['name'],
                                           main=keepData['main'],
                                           ha=keepData['ha'],
                                           sid=keepData['sid'],
+                                          neid=keepData['neid'],
                                           sigkey=safeData['sighex'],
                                           prikey=safeData['prihex'],)
             self.safe.auto = safeData['auto']
-            self.name = keepData['stack']
-            self.neid = keepData['neid']
-
-        elif local:
-            local.stack = self
             self.local = local
-
-        else:
-            self.local = estating.LocalEstate(stack=self, name=name)
+        return local
 
     def clearLocal(self):
         '''
         Clear local keeps
         '''
-        super(RoadStack, self).clearLocal()
+        super(RoadStack, self).clearLocalKeep()
         self.safe.clearLocalData()
 
     def dumpRemote(self, remote):
