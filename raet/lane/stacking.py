@@ -147,7 +147,7 @@ class LaneStack(stacking.Stack):
                 return
 
             try:
-                self.addRemote(yarding.RemoteYard(ha=sa)) # sn and sa are assume compat
+                self.addRemote(yarding.RemoteYard(stack=self, ha=sa)) # sn and sa are assume compat
             except raeting.StackError as ex:
                 console.terse(str(ex) + '\n')
                 self.incStat('invalid_source_yard')
