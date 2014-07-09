@@ -34,6 +34,7 @@ class Yard(lotting.Lot):
                   yid=None,
                   name='',
                   ha='',
+                  sid=None,
                   dirpath='',
                   lanename='',
                   bid=0,
@@ -41,15 +42,7 @@ class Yard(lotting.Lot):
         '''
         Initialize instance
         '''
-        if yid is None:
-            if stack:
-                yid = stack.nextYid()
-                while yid in stack.remotes:
-                    yid = stack.nextYid()
-            else:
-                yid = Yard.Yid
-                Yard.Yid += 1
-        self.yid = yid # yard ID
+        self.yid = yid if yid is not None else self.Yid # yard ID
 
         if lanename and  " " in lanename:
             emsg = "Invalid lanename '{0}'".format(lanename)
@@ -74,7 +67,9 @@ class Yard(lotting.Lot):
 
         name = name or "yard{0}".format(self.yid)
 
-        super(Yard, self).__init__(stack=stack, name=name, ha=ha, **kwa)
+        sid = sid if sid is not None else self.nextSid() #if not given unique sid
+
+        super(Yard, self).__init__(stack=stack, name=name, ha=ha, sid=sid, **kwa)
 
         self.lanename = lanename or 'lane'
         self.bid = bid #current book id
@@ -137,6 +132,13 @@ class Yard(lotting.Lot):
 
         return (lanename, yardname)
 
+    def nextSid(self):
+        '''
+        Generates next unique sid number.
+        '''
+        self.sid = nacling.uuid(size=18)
+        return self.sid
+
     def nextBid(self):
         '''
         Generates next book id number.
@@ -150,34 +152,45 @@ class LocalYard(Yard):
     '''
     RAET UXD Protocol endpoint local Yard
     '''
-    def __init__(self, stack=None, name='', main=None, **kwa):
+    def __init__(self, stack=None, name='', yid=None, nyid=None, main=None, **kwa):
         '''
         Setup Yard instance
         '''
-        super(LocalYard, self).__init__(stack=stack, name=name, **kwa)
-        self.main = True if main else False # main yard on lane
+        self.nyid = nyid if nyid is not None else self.Yid # next yid
+        if yid is None:
+            yid = self.nextYid()
 
+        super(LocalYard, self).__init__(stack=stack, name=name, yid=yid, **kwa)
+        self.main = main # main yard on lane
+
+    def nextYid(self):
+        '''
+        Generates next yard id number.
+        '''
+        self.nyid += 1
+        if self.nyid > 0xffffffffL:
+            self.nyid = 1  # rollover to 1
+        return self.nyid
 
 class RemoteYard(Yard):
     '''
     RAET protocol endpoint remote yard
     '''
-    def __init__(self, rsid=0, **kwa):
+    def __init__(self, stack=None, yid=None, rsid=0, **kwa):
         '''
         Setup Yard instance
         '''
-        super(RemoteYard, self).__init__(**kwa)
+        if yid is None:
+            if stack:
+                yid = stack.local.nextYid()
+                while yid in stack.remotes or yid == stack.local.yid:
+                    yid = stack.local.nextYid()
+            else:
+                yid = 0
+
+        super(RemoteYard, self).__init__(stack=stack, yid=yid, **kwa)
         self.rsid = rsid # last sid received from remote
         self.books = odict()
-
-    def validRsid(self, rsid):
-        '''
-        Compare new rsid to old .rsid and return True
-        If new is >= old modulo N where N is 2^32 = 0x100000000
-        And >= means the difference is less than N//2 = 0x80000000
-        (((new - old) % 0x100000000) < (0x100000000 // 2))
-        '''
-        return self.validateSid(new=rsid, old=self.rsid)
 
     def addBook(self, index, book):
         '''
@@ -198,15 +211,14 @@ class RemoteYard(Yard):
             else:
                 del self.books[index]
 
-    def removeStaleBooks(self, renew=False):
+    def removeStaleBooks(self):
         '''
-        Remove stale books associated with remote when index si older than remote.rsid
+        Remove stale books associated with remote when index si different than remote.rsid
         where index is tuple (ln, rn, si, bi)       (si, bi)
-        If renew then remove all books with nonzero si
         '''
         for index, book in self.books.items():
             sid = index[2]
-            if (renew and sid != 0) or (not renew and not self.validRsid(sid)):
+            if sid != self.rsid:
                 self.removeBook(index, book)
                 emsg = "Stale book at '{0}' in page from remote {1}\n".format(index, self.name)
                 console.terse(emsg)

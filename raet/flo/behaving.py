@@ -70,7 +70,6 @@ class RaetRoadStack(deeding.Deed):
                                                  main=False,
                                                  auto=True,
                                                  eid=None,
-                                                 localname='master',
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
                                                  sigkey=None,
@@ -83,7 +82,6 @@ class RaetRoadStack(deeding.Deed):
         sigkey = self.local.data.sigkey
         prikey = self.local.data.prikey
         name = self.local.data.name
-        localname = self.local.data.localname
         basedirpath = os.path.abspath(os.path.expanduser(self.local.data.basedirpath))
         auto = self.local.data.auto
         main = self.local.data.main
@@ -91,7 +89,7 @@ class RaetRoadStack(deeding.Deed):
 
         eid = self.local.data.eid
         local = estating.LocalEstate(  eid=eid,
-                                        name=localname,
+                                        name=name,
                                         ha=ha,
                                         sigkey=sigkey,
                                         prikey=prikey,)
@@ -101,7 +99,6 @@ class RaetRoadStack(deeding.Deed):
         self.stack.value = RoadStack(  local=local,
                                        store=self.store,
                                        name=name,
-                                       localname=localname,
                                        auto=auto,
                                        main=main,
                                        basedirpath=basedirpath,
@@ -133,7 +130,6 @@ class RaetRoadStackSetup(deeding.Deed):
                                                  main=False,
                                                  auto=True,
                                                  eid=None,
-                                                 localname='master',
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
                                                  sigkey=None,
@@ -146,7 +142,6 @@ class RaetRoadStackSetup(deeding.Deed):
         sigkey = self.local.data.sigkey
         prikey = self.local.data.prikey
         name = self.local.data.name
-        localname = self.local.data.localname
         basedirpath = os.path.abspath(os.path.expanduser(self.local.data.basedirpath))
         auto = self.local.data.auto
         main = self.local.data.main
@@ -154,7 +149,7 @@ class RaetRoadStackSetup(deeding.Deed):
 
         eid = self.local.data.eid
         local = estating.LocalEstate(  eid=eid,
-                                        name=localname,
+                                        name=name,
                                         ha=ha,
                                         sigkey=sigkey,
                                         prikey=prikey,)
@@ -164,7 +159,6 @@ class RaetRoadStackSetup(deeding.Deed):
         self.stack.value = RoadStack(  local=local,
                                        store=self.store,
                                        name=name,
-                                       localname=localname,
                                        auto=auto,
                                        main=main,
                                        basedirpath=basedirpath,
@@ -353,7 +347,7 @@ class RaetRoadStackIdled(deeding.Deed):
 class RaetRoadStackManager(deeding.Deed):
     '''
     Runs the presence manage method of RoadStack
-    
+
     FloScript:
         do raet road stack manager
 
@@ -451,7 +445,6 @@ class RaetLaneStack(deeding.Deed):
         txmsgs=odict(ipath='txmsgs', ival=deque()),
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
         local=odict(ipath='local', ival=odict(name='minion',
-                                              localname='minion',
                                               lane="maple",
                                               basedirpath="/tmp/raet/test/lane/keep/")),)
 
@@ -461,7 +454,6 @@ class RaetLaneStack(deeding.Deed):
         '''
         name = self.local.data.name
         lane = self.local.data.lane
-        localname = self.local.data.localname
         basedirpath = self.local.data.basedirpath
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
@@ -469,7 +461,6 @@ class RaetLaneStack(deeding.Deed):
         self.stack.value = LaneStack(
                                        store=self.store,
                                        name=name,
-                                       localname=localname,
                                        basedirpath=basedirpath,
                                        lanename=lane,
                                        txMsgs=txMsgs,

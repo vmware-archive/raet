@@ -175,7 +175,6 @@ class BasicTestCase(unittest.TestCase):
                                         ('ha', ['0.0.0.0', 7530]),
                                         ('main', True),
                                         ('sid', 0),
-                                        ('stack', 'main'),
                                         ('neid', 1),
                                     ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -200,15 +199,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(remoteSafeData, {})
 
         # test round trip with stack methods
-        stack.loadLocal()
+        stack.restoreLocal()
         localKeepData = odict([
                                 ('uid', stack.local.uid),
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
-                                ('stack', stack.name),
-                                ('neid', stack.neid),
+                                ('neid', stack.local.neid),
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -336,8 +334,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
-                                ('stack', stack.name),
-                                ('neid', stack.neid)
+                                ('neid', stack.local.neid)
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -558,13 +555,13 @@ class BasicTestCase(unittest.TestCase):
         main.remotes = odict()
         main.uids = odict()
         main.restoreRemotes()
-        main.loadLocal()
+        main.restoreLocal()
 
         #other.removeAllRemotes()
         other.remotes = odict()
         other.uids = odict()
         other.restoreRemotes()
-        other.loadLocal()
+        other.restoreLocal()
 
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)

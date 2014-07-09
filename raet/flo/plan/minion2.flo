@@ -4,7 +4,7 @@
 house minion2
 
 init .raet.road.stack.local to eid 0 name "minion2" host "" port 7532 \
-    basedirpath "/tmp/raet/test/keep/" localname "minion2"
+    basedirpath "/tmp/raet/test/keep/"
 
 
 framer minionudpstack be active first start

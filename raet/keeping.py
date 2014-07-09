@@ -263,7 +263,7 @@ class Keep(object):
                         ('uid', local.uid),
                         ('name', local.name),
                         ('ha', local.ha),
-                        ('sid', local.sid)
+                        ('sid', local.sid),
                     ])
         if self.verifyLocalData(data):
             self.dumpLocalData(data)
