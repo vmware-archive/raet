@@ -6,6 +6,19 @@ CHANGE LOG
 20140708
 ---------
 
+v0.2.00
+
+Ephemeral Lane Yards
+Yards now use a uuid for the session id so that there is no need to persist
+any Lane data in order to resolve ambiguous multi-page messages should one
+side restart in the middle of a multi-page message.
+No more keep for LaneStack.
+
+
+---------
+20140708
+---------
+
 v0.1.03
 
 fixed python 2.6 bug
