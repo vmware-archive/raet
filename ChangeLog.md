@@ -3,6 +3,18 @@ CHANGE LOG
 -------------------
 
 ---------
+20140709
+---------
+
+v0.2.01
+
+rxMsgs queue on LaneStack now a duple (msg, sender)
+where
+msg is message body dict
+sender is unique name of remote yard that sent the message
+
+
+---------
 20140708
 ---------
 
