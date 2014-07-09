@@ -1317,7 +1317,7 @@ class Allower(Initiator):
             elif packet.data['pk'] == raeting.pcktKinds.ack:
                 self.allow()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
-                self.reject()
+                self.refuse()
             elif packet.data['pk'] == raeting.pcktKinds.refuse: # refused
                 self.refuse()
             elif packet.data['pk'] == raeting.pcktKinds.reject: #rejected
@@ -1398,7 +1398,7 @@ class Allower(Initiator):
                                             self.stack.name,
                                             self.remote.name))
                         console.concise(emsg)
-                        allow.nack()
+                        allow.nack(raeting.pcktKinds.refuse)
                     else: # already initiated
                         already = True
                 if already:
@@ -1454,7 +1454,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         if len(body) != raeting.COOKIE_PACKER.size:
@@ -1462,7 +1462,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         cipher, nonce = raeting.COOKIE_PACKER.unpack(body)
@@ -1474,7 +1474,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         if len(msg) != raeting.COOKIESTUFF_PACKER.size:
@@ -1482,7 +1482,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         shortraw, seid, deid, oreo = raeting.COOKIESTUFF_PACKER.unpack(msg)
@@ -1492,7 +1492,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         self.oreo = binascii.hexlify(oreo)
@@ -1692,7 +1692,7 @@ class Allowent(Correspondent):
             elif packet.data['pk'] == raeting.pcktKinds.ack:
                 self.final()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
-                self.reject()
+                self.refuse()
             elif packet.data['pk'] == raeting.pcktKinds.refuse: # refused
                 self.refuse()
             elif packet.data['pk'] == raeting.pcktKinds.reject: # rejected
@@ -1705,7 +1705,7 @@ class Allowent(Correspondent):
 
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.nack()
+            self.nack(raeting.pcktKinds.refuse)
             console.concise("Allowent {0}. Timed out with {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
             return
@@ -1758,11 +1758,11 @@ class Allowent(Correspondent):
         allows = self.remote.allowInProcess()
         if allows:
             if not self.stack.local.main:
-                emsg = "Allower {0}. Allow with {1} already in process\n".format(
+                emsg = "Allowent {0}. Allow with {1} already in process\n".format(
                         self.stack.name, self.remote.name)
                 console.concise(emsg)
                 self.stack.incStat('duplicate_allow_attempt')
-                self.nack()
+                self.nack(raeting.pcktKinds.refuse)
                 return
             else: # main so remove any initiator allows
                 already = False
@@ -1773,7 +1773,7 @@ class Allowent(Correspondent):
                                             self.stack.name,
                                             self.remote.name))
                         console.concise(emsg)
-                        allow.nack()
+                        allow.nack(raeting.pcktKinds.refuse)
                     else: # already correspondent
                         already = True
                 if already:
@@ -1805,7 +1805,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         if len(body) != raeting.HELLO_PACKER.size:
@@ -1813,7 +1813,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         plain, shortraw, cipher, nonce = raeting.HELLO_PACKER.unpack(body)
@@ -1825,7 +1825,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         self.cookie()
@@ -1873,7 +1873,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         if len(body) != raeting.INITIATE_PACKER.size:
@@ -1881,7 +1881,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         shortraw, oreo, cipher, nonce = raeting.INITIATE_PACKER.unpack(body)
@@ -1891,7 +1891,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         if (binascii.hexlify(oreo) != self.oreo):
@@ -1899,7 +1899,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         msg = self.remote.privee.decrypt(cipher, nonce, self.remote.publee.key)
@@ -1908,7 +1908,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         pubraw, vcipher, vnonce, fqdn = raeting.INITIATESTUFF_PACKER.unpack(msg)
@@ -1917,7 +1917,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         fqdn = fqdn.rstrip(' ')
@@ -1926,6 +1926,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             #self.stack.incStat('invalid_initiate')
             #self.remove()
+            #self.nack(raeting.pcktKinds.reject)
             #return
 
         vouch = self.stack.local.priver.decrypt(vcipher, vnonce, self.remote.pubber.key)
@@ -1934,7 +1935,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack()
+            self.nack(raeting.pcktKinds.reject)
             return
 
         self.ackInitiate()
@@ -2030,10 +2031,15 @@ class Allowent(Correspondent):
             self.remove()
             return
 
+        if kind==raeting.pcktKinds.refuse:
+            console.terse("Allowent {0}. Do Refuse of {1} at {2}\n".format(
+                    self.stack.name, self.remote.name, self.stack.store.stamp))
+        else:
+            console.concise("Allowent {0}. Do Reject {1} at {2}\n".format(
+                    self.stack.name, self.remote.name, self.stack.store.stamp))
+
         self.transmit(packet)
         self.remove()
-        console.concise("Allowent {0}. Reject {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
 class Aliver(Initiator):
