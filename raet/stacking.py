@@ -56,7 +56,6 @@ class Stack(object):
                  rxes=None,
                  txes=None,
                  stats=None,
-                 clean=False,
                 ):
         '''
         Setup Stack instance

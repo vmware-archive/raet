@@ -3,6 +3,16 @@ CHANGE LOG
 -------------------
 
 ---------
+201407XX
+---------
+
+v0.2.02
+
+refactor nack handling
+refactor moveRemote, removeRemote, renameRemote
+
+
+---------
 20140709
 ---------
 
