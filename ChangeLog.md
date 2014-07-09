@@ -6,6 +6,14 @@ CHANGE LOG
 20140708
 ---------
 
+v0.1.03
+
+fixed python 2.6 bug
+
+---------
+20140708
+---------
+
 v0.1.02
 
 Fixed bug in nacling catching wrong exception on verify
