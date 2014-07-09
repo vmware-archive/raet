@@ -180,16 +180,20 @@ class Stack(object):
             del self.uids[old]
             self.uids.insert(index, remote.name, remote.uid)
 
-    def removeRemote(self, uid):
+    def removeRemote(self, remote):
         '''
-        Remove remote at key uid
-        If clear then also remove from disk
+        Remove remote at key remote.uid
         '''
+        uid = remote.uid
         if uid not in self.remotes:
             emsg = "Cannot remove remote '{0}', does not exist".format(uid)
             raise raeting.StackError(emsg)
 
-        remote = self.remotes[uid]
+        if remote is not self.remotes[uid]:
+            emsg = "Cannot remove remote '{0}', not identical".format(uid)
+            raise raeting.StackError(emsg)
+
+        #remote = self.remotes[uid]
         del self.remotes[uid]
         del self.uids[remote.name]
 
@@ -197,9 +201,9 @@ class Stack(object):
         '''
         Remove all the remotes
         '''
-        uids = self.remotes.keys() #make copy since changing .remotes in-place
-        for uid in uids:
-            self.removeRemote(uid)
+        remotes = self.remotes.values() #make copy since changing .remotes in-place
+        for remote in remotes:
+            self.removeRemote(remote)
 
     def fetchRemoteByName(self, name):
         '''
@@ -541,23 +545,23 @@ class KeepStack(Stack):
         if dump:
             self.dumpRemote(remote=self.remotes[new])
 
-    def removeRemote(self, uid, clear=True):
+    def removeRemote(self, remote, clear=True):
         '''
         Remove remote at key uid
         If clear then also remove from disk
         '''
-        super(KeepStack, self).removeRemote(uid=uid)
+        super(KeepStack, self).removeRemote(remote=remote)
         if clear:
-            self.keep.clearRemoteData(uid)
+            self.keep.clearRemoteData(remote.uid)
 
     def removeAllRemotes(self, clear=True):
         '''
         Remove all the remotes
         If clear then also remove from disk
         '''
-        uids = self.remotes.keys() #make copy since changing .remotes in-place
-        for uid in uids:
-            self.removeRemote(uid, clear=clear)
+        remotes = self.remotes.values() #make copy since changing .remotes in-place
+        for remote in remotes:
+            self.removeRemote(remote, clear=clear)
 
     def clearAllDir(self):
         '''

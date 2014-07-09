@@ -173,18 +173,16 @@ class RoadStack(stacking.KeepStack):
             remote = self.remotes[self.uids[new]] # its already been renamed
             self.safe.replaceRemote(remote, old) # allows changing the safe keep file
 
-    def removeRemote(self, uid, clear=True):
+    def removeRemote(self, remote, clear=True):
         '''
         Remove remote at key uid.
         If clear then also remove from disk
         '''
-        remote = self.remotes.get(uid)
-        if remote:
-            for index in set(remote.indexes): # make copy
-                if index in self.transactions:
-                    self.transactions[index].nack()
-                    self.removeTransaction(index)
-        super(RoadStack, self).removeRemote(uid, clear=clear)
+        super(RoadStack, self).removeRemote(remote=remote, clear=clear)
+        for index in set(remote.indexes): # make copy
+            if index in self.transactions:
+                self.transactions[index].nack()
+                self.removeTransaction(index)
 
     def fetchRemoteByHostPort(self, host, port):
         '''

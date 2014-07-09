@@ -238,7 +238,7 @@ class LaneStack(stacking.Stack):
                 self.incStat("stale_transmit_yard")
                 yard = self.fetchRemoteFromHa(ta)
                 if yard:
-                    self.removeRemote(yard.uid)
+                    self.removeRemote(yard)
                     console.terse("Reaped yard {0}\n".format(yard.name))
             elif ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
                 self.incStat("busy_transmit_yard")

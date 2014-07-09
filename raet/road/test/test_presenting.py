@@ -887,7 +887,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, False) # vacuuous join from main is rejected
-        main.removeRemote(remote.uid)
+        main.removeRemote(remote)
         self.assertEqual(len(main.remotes), 0)
         self.assertEqual(len(other.remotes), 0)
 

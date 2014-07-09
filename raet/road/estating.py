@@ -247,7 +247,7 @@ class RemoteEstate(Estate):
             console.concise("Stack {0}: Reaping dead remote {1} at {2}\n".format(
                     self.stack.name, self.name, self.stack.store.stamp))
             self.stack.incStat("remote_reap")
-            self.stack.removeRemote(self.uid, clear=False) #remove from memory but not disk
+            self.stack.removeRemote(self, clear=False) #remove from memory but not disk
 
     def removeStaleCorrespondents(self, renew=False):
         '''

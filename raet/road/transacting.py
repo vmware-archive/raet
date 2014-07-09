@@ -638,7 +638,7 @@ class Joiner(Initiator):
         self.stack.dumpRemote(self.remote)
         self.remove(self.txPacket.index)
         #self.remote.reap() # remove remote from memory if main
-        #self.stack.removeRemote(self.remote.uid)
+        #self.stack.removeRemote(self.remote)
 
     def ackAccept(self):
         '''
@@ -780,7 +780,7 @@ class Joinent(Correspondent):
                                     self.stack.name, self.remote.name, self.remote.uid)
                             self.remote.joined = False
                             self.stack.dumpRemote(self.remote)
-                            #self.stack.removeRemote(self.remote.uid) #reap remote
+                            #self.stack.removeRemote(self.remote) #reap remote
                             self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
@@ -974,7 +974,7 @@ class Joinent(Correspondent):
                             self.stack.name, name, self.remote.uid)
                     self.remote.joined = False
                     self.stack.dumpRemote(self.remote)
-                    #self.stack.removeRemote(self.remote.uid) #reap remote
+                    #self.stack.removeRemote(self.remote) #reap remote
                     # reject as keys rejected
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
@@ -1048,7 +1048,7 @@ class Joinent(Correspondent):
                     console.terse(emsg)
                     self.remote.joined = False
                     self.stack.dumpRemote(self.remote)
-                    #self.stack.removeRemote(self.remote.uid) #reap remote
+                    #self.stack.removeRemote(self.remote) #reap remote
                     # reject as keys rejected
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
@@ -1117,7 +1117,7 @@ class Joinent(Correspondent):
                         self.stack.name, name, self.remote.uid)
                 self.remote.joined = False
                 self.stack.dumpRemote(self.remote)
-                #self.stack.removeRemote(self.remote.uid) #reap remote
+                #self.stack.removeRemote(self.remote) #reap remote
                 # reject as keys rejected
                 self.nack(kind=raeting.pcktKinds.refuse)
                 return
@@ -1262,7 +1262,7 @@ class Joinent(Correspondent):
         self.stack.dumpRemote(self.remote)
         self.remove(self.rxPacket.index)
         #self.remote.reap() #remove from memory if main
-        #self.stack.removeRemote(self.remote.uid)
+        #self.stack.removeRemote(self.remote)
 
     def refuse(self):
         '''
