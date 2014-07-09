@@ -501,7 +501,7 @@ class Joiner(Initiator):
             self.remote.tid = 0
             self.remote.rsid = 0
             if self.remote.uid != 0:
-                self.stack.moveRemote(old=self.remote.uid, new=0)
+                self.stack.moveRemote(self.remote, new=0)
             self.stack.dumpRemote(self.remote)
         self.stack.local.eid = 0
         self.stack.dumpLocal()
@@ -586,7 +586,7 @@ class Joiner(Initiator):
         else: #not main accepted
             if self.remote.uid != reid: #change id of remote estate
                 try:
-                    self.stack.moveRemote(old=self.remote.uid, new=reid)
+                    self.stack.moveRemote(self.remote, new=reid)
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())

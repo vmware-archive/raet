@@ -135,20 +135,26 @@ class Stack(object):
             raise raeting.StackError(emsg)
         self.uids[remote.name] = remote.uid
 
-    def moveRemote(self, old, new):
+    def moveRemote(self, remote, new):
         '''
-        Move remote at key old uid with key new uid and replace the odict key index
+        Move remote at key remote.uid to new uid and replace the odict key index
         so order is the same
         '''
+        old = remote.uid
+
         if new in self.remotes or new == self.local.uid:
             emsg = "Cannot move, remote to '{0}', already exists".format(new)
             raise raeting.StackError(emsg)
 
         if old not in self.remotes:
-            emsg = "Cannot move remote '{0}', does not exist".format(old)
+            emsg = "Cannot move remote at '{0}', does not exist".format(old)
             raise raeting.StackError(emsg)
 
-        remote = self.remotes[old]
+        if remote is not self.remotes[old]:
+            emsg = "Cannot move remote at '{0}', not identical".format(old)
+            raise raeting.StackError(emsg)
+
+        #remote = self.remotes[old]
         index = self.remotes.keys().index(old)
         remote.uid = new
         self.uids[remote.name] = new
@@ -521,14 +527,15 @@ class KeepStack(Stack):
         if dump:
             self.dumpRemote(remote)
 
-    def moveRemote(self, old, new, clear=True, dump=False):
+    def moveRemote(self, remote, new, clear=True, dump=False):
         '''
-        Move remote at key old uid with key new uid and replace the odict key index
+        Move remote with key remote.uid old to key new uid and replace the odict key index
         so order is the same.
         If clear then clear the keep file for remote at old
         If dump then dump the keep file for the remote at new
         '''
-        super(KeepStack, self).moveRemote(old=old, new=new)
+        old = remote.uid
+        super(KeepStack, self).moveRemote(remote, new=new)
         if clear:
             self.keep.clearRemoteData(old)
         if dump:
