@@ -139,14 +139,14 @@ class BasicTestCase(unittest.TestCase):
         self.service(duration=duration)
 
         self.assertEqual(len(self.main.rxMsgs), len(others))
-        for i, msg in enumerate(self.main.rxMsgs):
-            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.main.local.name, msg))
-            self.assertDictEqual(others[i], msg)
+        for i, duple in enumerate(self.main.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.main.local.name, duple))
+            self.assertDictEqual(others[i], duple[0])
 
         self.assertEqual(len(self.other.rxMsgs), len(mains))
-        for i, msg in enumerate(self.other.rxMsgs):
-            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+        for i, duple in enumerate(self.other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.other.local.name, duple))
+            self.assertDictEqual(mains[i], duple[0])
 
     def createLaneData(self, name, yid, base, lanename, localname=''):
         '''
@@ -204,14 +204,14 @@ class BasicTestCase(unittest.TestCase):
         self.serviceMainOther(main, other, duration=duration)
 
         self.assertEqual(len(main.rxMsgs), len(others))
-        for i, msg in enumerate(main.rxMsgs):
-            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(main.local.name, msg))
-            self.assertDictEqual(others[i], msg)
+        for i, duple in enumerate(main.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(main.local.name, duple))
+            self.assertDictEqual(others[i], duple[0])
 
         self.assertEqual(len(other.rxMsgs), len(mains))
-        for i, msg in enumerate(other.rxMsgs):
-            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+        for i, duple in enumerate(other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, duple))
+            self.assertDictEqual(mains[i], duple[0])
 
     def serviceStackOneTx(self, stack):
         '''
@@ -767,9 +767,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.stats['stale_book'], 1)
 
         self.assertEqual(len(other.rxMsgs), len(mains))
-        for i, msg in enumerate(other.rxMsgs):
-            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
-            self.assertDictEqual(mains[i], msg)
+        for i, duple in enumerate(other.rxMsgs):
+            console.terse("Yard '{0}' rxed:\n'{1}'\n".format(other.local.name, duple))
+            self.assertDictEqual(mains[i], duple[0])
 
 
         # setup to test reset sid numbering by sending single pages to create stale books

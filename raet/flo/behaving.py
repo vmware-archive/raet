@@ -428,7 +428,7 @@ class RaetRoadStackPrinter(deeding.Deed):
         '''
         rxMsgs = self.rxmsgs.value
         while rxMsgs:
-            msg = rxMsgs.popleft()
+            msg, name = rxMsgs.popleft()
             console.terse("\nReceived....\n{0}\n".format(msg))
 
 class RaetLaneStack(deeding.Deed):
@@ -562,5 +562,5 @@ class RaetLaneStackPrinter(deeding.Deed):
         rxMsgs = self.rxmsgs.value
         stack = self.stack.value
         while rxMsgs:
-            msg = rxMsgs.popleft()
+            msg, name = rxMsgs.popleft()
             console.terse("\n{0} Received....\n{1}\n".format(stack.name, msg))

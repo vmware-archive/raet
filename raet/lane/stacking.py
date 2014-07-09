@@ -205,7 +205,7 @@ class LaneStack(stacking.Stack):
             received.body.parse()
             body = received.body.data
 
-        self.rxMsgs.append(body)
+        self.rxMsgs.append((body, remote.name))
 
     def  _handleOneTxMsg(self):
         '''

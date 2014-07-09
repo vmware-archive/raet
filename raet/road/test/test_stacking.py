@@ -265,7 +265,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.main.name, self.main.local.uid))
         self.assertEqual(len(self.main.transactions), 0)
-        for msg in self.main.rxMsgs:
+        for msg, name in self.main.rxMsgs:
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.main.local.name, msg))
         self.assertDictEqual(body, self.main.rxMsgs[0][0])
 
@@ -277,7 +277,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
         self.assertEqual(len(self.other.transactions), 0)
-        for msg in self.other.rxMsgs:
+        for msg, name in self.other.rxMsgs:
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
         self.assertDictEqual(body, self.other.rxMsgs[0][0])
 
@@ -321,16 +321,16 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nStack '{0}' uid= {1}\n".format(self.main.name, self.main.local.uid))
         self.assertEqual(len(self.main.transactions), 0)
         self.assertEqual(len(others), len(self.main.rxMsgs))
-        for i, msg in enumerate(self.main.rxMsgs):
-            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.main.local.name, msg))
-            self.assertDictEqual(others[i], msg[0])
+        for i, duple in enumerate(self.main.rxMsgs):
+            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.main.local.name, duple))
+            self.assertDictEqual(others[i], duple[0])
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
         self.assertEqual(len(self.other.transactions), 0)
         self.assertEqual(len(mains), len(self.other.rxMsgs))
-        for i, msg in enumerate(self.other.rxMsgs):
-            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
-            self.assertDictEqual(mains[i], msg[0])
+        for i, duple in enumerate(self.other.rxMsgs):
+            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, duple))
+            self.assertDictEqual(mains[i], duple[0])
 
     def testBootstrapJson(self):
         '''
