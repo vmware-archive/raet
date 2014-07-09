@@ -164,14 +164,14 @@ class RoadStack(stacking.KeepStack):
             raise raeting.StackError("Store reference mismatch between remote"
                     " '{0}' and stack '{1}'".format(remote.name, stack.name))
 
-    def renameRemote(self, old, new):
+    def renameRemote(self, remote, new, dump=False):
         '''
         Clear remote keeps of remote estate
         '''
-        super(RoadStack, self).renameRemote(old, new)
+        old = remote.name
+        super(RoadStack, self).renameRemote(remote=remote, new=new, dump=dump)
         if new != old:
-            remote = self.remotes[self.uids[new]] # its already been renamed
-            self.safe.replaceRemote(remote, old) # allows changing the safe keep file
+            self.safe.replaceRemote(remote, old) # allows changing the safe keep
 
     def removeRemote(self, remote, clear=True):
         '''

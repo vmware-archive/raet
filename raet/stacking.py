@@ -161,10 +161,11 @@ class Stack(object):
         del self.remotes[old]
         self.remotes.insert(index, remote.uid, remote)
 
-    def renameRemote(self, old, new):
+    def renameRemote(self, remote, new):
         '''
-        rename remote with old name to new name but keep same index
+        rename remote with old remote.name to new name but keep same index
         '''
+        old = remote.name
         if new != old:
             if new in self.uids or new == self.local.name:
                 emsg = "Cannot rename remote to '{0}', already exists".format(new)
@@ -174,7 +175,11 @@ class Stack(object):
                 emsg = "Cannot rename remote '{0}', does not exist".format(old)
                 raise raeting.StackError(emsg)
 
-            remote = self.remotes[self.uids[old]]
+            if remote is not self.remotes[self.uids[old]]:
+                emsg = "Cannot rename remote '{0}', not identical".format(old)
+                raise raeting.StackError(emsg)
+
+            #remote = self.remotes[self.uids[old]]
             remote.name = new
             index = self.uids.keys().index(old)
             del self.uids[old]
@@ -543,7 +548,15 @@ class KeepStack(Stack):
         if clear:
             self.keep.clearRemoteData(old)
         if dump:
-            self.dumpRemote(remote=self.remotes[new])
+            self.dumpRemote(remote=remote)
+
+    def renameRemote(self, remote, new, dump=False):
+        '''
+        Rename remote with old remote.name to new name but keep same index
+        '''
+        super(KeepStack, self).renameRemote(remote=remote, new=new)
+        if dump:
+            self.dumpRemote(remote=remote)
 
     def removeRemote(self, remote, clear=True):
         '''

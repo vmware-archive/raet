@@ -595,7 +595,7 @@ class Joiner(Initiator):
 
             if self.remote.name != name: # rename remote estate to new name
                 try:
-                    self.stack.renameRemote(old=self.remote.name, new=name)
+                    self.stack.renameRemote(self.remote, new=name)
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
@@ -983,7 +983,7 @@ class Joinent(Correspondent):
                 self.remote.port = port
                 self.remote.rsid = self.sid # fix this?
                 if name != self.remote.name:
-                    self.stack.renameRemote(old=self.remote.name, new=name)
+                    self.stack.renameRemote(self.remote, new=name)
 
             else: # reid == 0
                 if not self.stack.local.main: #not main so can't process vacuous join
@@ -1130,7 +1130,7 @@ class Joinent(Correspondent):
             self.remote.host = host
             self.remote.port = port
             if name != self.remote.name:
-                self.stack.renameRemote(old=self.remote.name, new=name)
+                self.stack.renameRemote(self.remote, new=name)
             #update session id and joined in complete method below
             duration = min(
                         max(self.redoTimeoutMin,
