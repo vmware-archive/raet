@@ -1318,6 +1318,10 @@ class Allower(Initiator):
                 self.allow()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
                 self.reject()
+            elif packet.data['pk'] == raeting.pcktKinds.refuse: # refused
+                self.refuse()
+            elif packet.data['pk'] == raeting.pcktKinds.reject: #rejected
+                self.reject()
             elif packet.data['pk'] == raeting.pcktKinds.unjoined: # unjoined
                 self.unjoin()
 
@@ -1604,9 +1608,20 @@ class Allower(Initiator):
         self.transmit(packet)
         self.remove(self.index)
 
+    def refuse(self):
+        '''
+        Process nack refule to packet
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        console.concise("Allower {0}. Refusted by {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.remove()
+
     def reject(self):
         '''
-        Process nack packet
+        Process nack reject to packet
         terminate in response to nack
         '''
         if not self.stack.parseInner(self.rxPacket):
@@ -1678,6 +1693,11 @@ class Allowent(Correspondent):
                 self.final()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
                 self.reject()
+            elif packet.data['pk'] == raeting.pcktKinds.refuse: # refused
+                self.refuse()
+            elif packet.data['pk'] == raeting.pcktKinds.reject: # rejected
+                self.reject()
+
 
     def process(self):
         '''
@@ -1966,6 +1986,18 @@ class Allowent(Correspondent):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_correspond_complete")
         self.remote.sendSavedMessages() # could include messages saved on rejoin
+
+    def refuse(self):
+        '''
+        Process nack refuse packet
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        self.remove()
+        console.concise("Allowent {0}. Refused by {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
 
     def reject(self):
         '''
