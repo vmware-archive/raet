@@ -39,14 +39,16 @@ class RoadKeep(keeping.Keep):
                     estate.uid.ext
                     estate.uid.ext
     '''
-    LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid']
-    RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined']
+    LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid', 'sighex', 'prihex', 'auto']
+    RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined', 'acceptance', 'verhex', 'pubhex']
+    Auto = False #auto accept
 
-    def __init__(self, prefix='estate', **kwa):
+    def __init__(self, prefix='estate', auto=None, **kwa):
         '''
         Setup RoadKeep instance
         '''
         super(RoadKeep, self).__init__(prefix=prefix, **kwa)
+        self.auto = auto if auto is not None else self.Auto
 
     def dumpLocal(self, local):
         '''
@@ -59,6 +61,9 @@ class RoadKeep(keeping.Keep):
                         ('main', local.main),
                         ('sid', local.sid),
                         ('neid', local.neid),
+                        ('sighex', local.signer.keyhex),
+                        ('prihex', local.priver.keyhex),
+                        ('auto', self.auto),
                     ])
         if self.verifyLocalData(data):
             self.dumpLocalData(data)
@@ -73,81 +78,12 @@ class RoadKeep(keeping.Keep):
                         ('ha', remote.ha),
                         ('sid', remote.sid),
                         ('joined', remote.joined),
+                        ('acceptance', remote.acceptance),
+                        ('verhex', remote.verfer.keyhex),
+                        ('pubhex', remote.pubber.keyhex),
                     ])
         if self.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.uid)
-
-class SafeKeep(keeping.Keep):
-    '''
-    RAET protocol estate safe (key) data persistence and status
-    '''
-    LocalFields = ['uid', 'name', 'sighex', 'prihex', 'auto']
-    RemoteFields = ['uid', 'name', 'acceptance', 'verhex', 'pubhex']
-    Auto = False #auto accept
-
-    def __init__(self, prefix='key', auto=None, **kwa):
-        '''
-        Setup SafeKeep instance
-
-        keep/
-            local/
-                prefix.ext
-            remote/
-                prefix.uid.ext
-                prefix.uid.ext
-        '''
-        super(SafeKeep, self).__init__(prefix=prefix, **kwa)
-        self.auto = auto if auto is not None else self.Auto
-
-    def dumpLocal(self, local):
-        '''
-        Dump the local estate
-        '''
-        data = odict([
-                        ('uid', local.uid),
-                        ('name', local.name),
-                        ('sighex', local.signer.keyhex),
-                        ('prihex', local.priver.keyhex),
-                        ('auto', self.auto),
-                    ])
-        if self.verifyLocalData(data):
-            self.dumpLocalData(data)
-
-    def dumpRemote(self, remote):
-        '''
-        Dump the data from the remote estate
-        '''
-        data = odict([
-                ('uid', remote.uid),
-                ('name', remote.name),
-                ('acceptance', remote.acceptance),
-                ('verhex', remote.verfer.keyhex),
-                ('pubhex', remote.pubber.keyhex),
-                ])
-
-        if self.verifyRemoteData(data):
-            self.dumpRemoteData(data, remote.uid)
-
-    def loadRemote(self, remote):
-        '''
-        Load the data from file given by remote.uid
-        '''
-        return (self.loadRemoteData(remote.uid))
-
-    def clearRemote(self, remote):
-        '''
-        Clear the remote estate file
-        Override this in sub class to change uid
-        '''
-        self.clearRemoteData(remote.uid)
-
-    def replaceRemote(self, remote, old):
-        '''
-        Replace the safe keep file if renaming should move it
-        This is provided for subclasses or mimic classes that store the
-        Safe data by name and need to move the Safe keep data file
-        '''
-        pass
 
     def statusRemote(self, remote, verhex, pubhex, main=True):
         '''
@@ -239,13 +175,11 @@ class SafeKeep(keeping.Keep):
         remote.acceptance = raeting.acceptances.accepted
         self.dumpRemote(remote)
 
-def clearAllKeepSafe(dirpath):
+def clearAllKeep(dirpath):
     '''
-    Convenience function to clear all road and safe keep data in dirpath
+    Convenience function to clear all road keep data in dirpath
     '''
     road = RoadKeep(dirpath=dirpath)
     road.clearLocalData()
     road.clearAllRemoteData()
-    safe = SafeKeep(dirpath=dirpath)
-    safe.clearLocalData()
-    safe.clearAllRemoteData()
+

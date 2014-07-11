@@ -59,8 +59,8 @@ class BasicTestCase(unittest.TestCase):
         otherPriKeyHex = privateer.keyhex
 
 
-        keeping.clearAllKeepSafe(mainDirpath)
-        keeping.clearAllKeepSafe(otherDirpath)
+        keeping.clearAllKeep(mainDirpath)
+        keeping.clearAllKeep(otherDirpath)
 
         local = estating.LocalEstate(eid=1,
                                      name=mainName,

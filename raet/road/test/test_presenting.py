@@ -199,7 +199,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testAlive.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -207,7 +207,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -274,11 +274,11 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStack(main, duration=3.0)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testAliveUnjoinedOther(self):
@@ -288,7 +288,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testAliveUnjoinedOther.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -296,7 +296,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -359,11 +359,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(mainRemote.alived)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testAllowUnjoinedOther(self):
@@ -373,7 +373,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testAllowUnjoinedOther.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -381,7 +381,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -438,14 +438,14 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nBoth unjoined Allow Other to Main Cascade *********\n")
         main.server.close()
         other.server.close()
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
                                      auto=mainData['auto'],
                                      ha=None)
 
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -483,11 +483,11 @@ class BasicTestCase(unittest.TestCase):
 
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testAliveUnjoinedMain(self):
@@ -497,7 +497,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testAliveUnjoinedOther.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -505,7 +505,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -570,11 +570,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(mainRemote.alived)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testAllowUnjoinedMain(self):
@@ -584,7 +584,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testAllowUnjoinedMain.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -592,7 +592,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -644,14 +644,14 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nBoth unjoined Allow Main to Other Cascade *********\n")
         main.server.close()
         other.server.close()
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
                                      auto=mainData['auto'],
                                      ha=None)
 
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -684,11 +684,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(mainRemote.alived,  True)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
 
@@ -699,7 +699,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testAliveMultiple.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -707,7 +707,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -733,7 +733,7 @@ class BasicTestCase(unittest.TestCase):
 
 
         other1Data = self.createRoadData(name='other1', base=self.base)
-        keeping.clearAllKeepSafe(other1Data['dirpath'])
+        keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      eid=0,
                                      main=None,
@@ -848,15 +848,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(other1.remotes[main.local.uid].alived, True)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
         other1.server.close()
-        other1.clearLocal()
+        other1.clearLocalKeep()
         other1.clearRemoteKeeps()
 
     def testJoinFromMain(self):
@@ -866,7 +866,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinFromMain.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -874,7 +874,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -942,11 +942,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(mainRemote.alived)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testAliveUnjoinedFromMain(self):
@@ -956,7 +956,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testAliveUnjoinedOther.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -964,7 +964,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -1022,11 +1022,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(mainRemote.alived)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testManage(self):
@@ -1036,7 +1036,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testManage.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -1044,7 +1044,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -1052,7 +1052,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         other1Data = self.createRoadData(name='other1', base=self.base)
-        keeping.clearAllKeepSafe(other1Data['dirpath'])
+        keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      eid=0,
                                      main=None,
@@ -1094,15 +1094,15 @@ class BasicTestCase(unittest.TestCase):
 
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
         other1.server.close()
-        other1.clearLocal()
+        other1.clearLocalKeep()
         other1.clearRemoteKeeps()
 
     def testManageBothSides(self):
@@ -1112,7 +1112,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testManageBothSides.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -1120,7 +1120,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
 
         otherData = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -1128,7 +1128,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         other1Data = self.createRoadData(name='other1', base=self.base)
-        keeping.clearAllKeepSafe(other1Data['dirpath'])
+        keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      eid=0,
                                      main=None,
@@ -1180,15 +1180,15 @@ class BasicTestCase(unittest.TestCase):
 
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
         other1.server.close()
-        other1.clearLocal()
+        other1.clearLocalKeep()
         other1.clearRemoteKeeps()
 
     def testManageMainRebootCascade(self):
@@ -1199,7 +1199,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
         mainDirpath = mainData['dirpath']
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -1208,7 +1208,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other', base=self.base)
         otherDirpath = otherData['dirpath']
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -1217,7 +1217,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1', base=self.base)
         other1Dirpath = other1Data['dirpath']
-        keeping.clearAllKeepSafe(other1Data['dirpath'])
+        keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      eid=0,
                                      main=None,
@@ -1303,15 +1303,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(other1.remotes[main.local.uid].alived, True)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
         other1.server.close()
-        other1.clearLocal()
+        other1.clearLocalKeep()
         other1.clearRemoteKeeps()
 
     def testManageRebootCascadeBothSides(self):
@@ -1322,7 +1322,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
         mainDirpath = mainData['dirpath']
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
@@ -1331,7 +1331,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other', base=self.base)
         otherDirpath = otherData['dirpath']
-        keeping.clearAllKeepSafe(otherData['dirpath'])
+        keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      eid=0,
                                      main=None,
@@ -1340,7 +1340,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1', base=self.base)
         other1Dirpath = other1Data['dirpath']
-        keeping.clearAllKeepSafe(other1Data['dirpath'])
+        keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      eid=0,
                                      main=None,
@@ -1545,15 +1545,15 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, True)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
         other1.server.close()
-        other1.clearLocal()
+        other1.clearLocalKeep()
         other1.clearRemoteKeeps()
 
 def runOne(test):

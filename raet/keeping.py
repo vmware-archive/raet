@@ -282,6 +282,28 @@ class Keep(object):
         if self.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.uid)
 
+    def loadRemote(self, remote):
+        '''
+        Load the data from file given by remote.uid
+        '''
+        return (self.loadRemoteData(remote.uid))
+
+    def clearRemote(self, remote):
+        '''
+        Clear the remote estate file
+        Override this in sub class to change uid
+        '''
+        self.clearRemoteData(remote.uid)
+
+    def replaceRemote(self, remote, old):
+        '''
+        Replace keep file if renaming should move it
+        This is provided for subclasses or mimic classes that store the
+        Safe data by name and need to move that data
+        '''
+        pass
+
+
 class LotKeep(Keep):
     '''
     RAET protocol endpoint lot persistence

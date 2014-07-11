@@ -393,9 +393,9 @@ class Joiner(Initiator):
             else: #check to see if status has changed to accept after other kind
                 if self.local.main: #only if joiner initiated by main stack
                     if self.remote:
-                        data = self.stack.safe.loadRemote(self.remote)
+                        data = self.stack.keep.loadRemote(self.remote)
                         if data:
-                            status = self.stack.safe.statusRemote(self.remote,
+                            status = self.stack.keep.statusRemote(self.remote,
                                                                   data['verhex'],
                                                                   data['pubhex'],
                                                                   main=self.stack.local.main)
@@ -568,7 +568,7 @@ class Joiner(Initiator):
         # to main estate otherwise we need to ensure unique eid, name, and ha on road
 
         # check if remote keys are accepted here
-        status = self.stack.safe.statusRemote(self.remote,
+        status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
                                               main=self.stack.local.main)
@@ -767,9 +767,9 @@ class Joinent(Correspondent):
                 self.stack.incStat('redo_accept')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    data = self.stack.safe.loadRemote(self.remote)
+                    data = self.stack.keep.loadRemote(self.remote)
                     if data:
-                        status = self.stack.safe.statusRemote(self.remote,
+                        status = self.stack.keep.statusRemote(self.remote,
                                                               data['verhex'],
                                                               data['pubhex'],
                                                               main=self.stack.local.main)
@@ -964,7 +964,7 @@ class Joinent(Correspondent):
                             # this may go to the wrong estate since potential ambiguous udp
                             # channel but in any event the transaction will fail
 
-                status = self.stack.safe.statusRemote(self.remote,
+                status = self.stack.keep.statusRemote(self.remote,
                                                       verhex=verhex,
                                                       pubhex=pubhex,
                                                       main=self.stack.local.main)
@@ -1037,7 +1037,7 @@ class Joinent(Correspondent):
 
                 self.remote = remote # auto generated at instance creation above
 
-                status = self.stack.safe.statusRemote(self.remote,
+                status = self.stack.keep.statusRemote(self.remote,
                                                       verhex=verhex,
                                                       pubhex=pubhex,
                                                       main=self.stack.local.main)
@@ -1107,7 +1107,7 @@ class Joinent(Correspondent):
                     return
 
             self.add(self.rxPacket.index) # bootstrap so use packet.index not self.index
-            status = self.stack.safe.statusRemote(self.remote,
+            status = self.stack.keep.statusRemote(self.remote,
                                                   verhex=verhex,
                                                   pubhex=pubhex,
                                                   main=self.stack.local.main)

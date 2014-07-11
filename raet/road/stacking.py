@@ -52,7 +52,7 @@ class RoadStack(stacking.KeepStack):
         <Incomplete Doc>
     keep
         Pass in a keep object, this object can define how stack data is
-        persisted to disk
+        including keys is persisted to disk
     dirpath
         The location on the filesystem to use for stack cacheing
     eid
@@ -62,9 +62,6 @@ class RoadStack(stacking.KeepStack):
         be bound to by the stack
     bufcnt
         The number of messages to buffer, defaults to 2
-    safe
-        Pass in a safe object to manage the encryption keys, RAET ships with
-        the raet.road.keeping.SafeKeep class for simple management
     auto
         <Incomplete Doc>
     period
@@ -97,7 +94,6 @@ class RoadStack(stacking.KeepStack):
                  eid=None, #local estate eid, none means generate it
                  ha=("", raeting.RAET_PORT),
                  bufcnt=2,
-                 safe=None,
                  auto=None,
                  period=None,
                  offset=None,
@@ -109,13 +105,9 @@ class RoadStack(stacking.KeepStack):
 
         '''
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
-                                    basedirpath=basedirpath,
-                                    stackname=name)
-
-        self.safe = safe or keeping.SafeKeep(dirpath=dirpath,
-                                             basedirpath=basedirpath,
-                                             stackname=name,
-                                             auto=auto)
+                                        basedirpath=basedirpath,
+                                        stackname=name,
+                                        auto=auto)
 
         local = local or estating.LocalEstate(stack=self,
                                               name=name,
@@ -171,7 +163,7 @@ class RoadStack(stacking.KeepStack):
         old = remote.name
         super(RoadStack, self).renameRemote(remote=remote, new=new, dump=dump)
         if new != old:
-            self.safe.replaceRemote(remote, old) # allows changing the safe keep
+            self.keep.replaceRemote(remote, old) # support for external key mgmt
 
     def removeRemote(self, remote, clear=True):
         '''
@@ -247,20 +239,6 @@ class RoadStack(stacking.KeepStack):
                 duid = self.remotes.values()[0].uid # zeroth is default
         return (self.remotes.get(duid, None))
 
-    def clearAllDir(self):
-        '''
-        Clear out and remove the keep dir and contents
-        '''
-        super(RoadStack, self).clearAllDir()
-        self.safe.clearAllDir()
-
-    def dumpLocal(self):
-        '''
-        Dump keeps of local estate
-        '''
-        super(RoadStack, self).dumpLocal()
-        self.safe.dumpLocal(self.local)
-
     def restoreLocal(self):
         '''
         Load local estate if keeps found and verified and return
@@ -268,9 +246,7 @@ class RoadStack(stacking.KeepStack):
         '''
         local = None
         keepData = self.keep.loadLocalData()
-        safeData = self.safe.loadLocalData()
-        if (keepData and self.keep.verifyLocalData(keepData) and
-                safeData and self.safe.verifyLocalData(safeData)):
+        if (keepData and self.keep.verifyLocalData(keepData)):
             local = estating.LocalEstate(stack=self,
                                           eid=keepData['uid'],
                                           name=keepData['name'],
@@ -278,25 +254,11 @@ class RoadStack(stacking.KeepStack):
                                           ha=keepData['ha'],
                                           sid=keepData['sid'],
                                           neid=keepData['neid'],
-                                          sigkey=safeData['sighex'],
-                                          prikey=safeData['prihex'],)
-            self.safe.auto = safeData['auto']
+                                          sigkey=keepData['sighex'],
+                                          prikey=keepData['prihex'],)
+            self.keep.auto = keepData['auto']
             self.local = local
         return local
-
-    def clearLocal(self):
-        '''
-        Clear local keeps
-        '''
-        super(RoadStack, self).clearLocalKeep()
-        self.safe.clearLocalData()
-
-    def dumpRemote(self, remote):
-        '''
-        Dump keeps of remote estate
-        '''
-        self.keep.dumpRemote(remote)
-        self.safe.dumpRemote(remote)
 
     def restoreRemote(self, uid):
         '''
@@ -305,39 +267,31 @@ class RoadStack(stacking.KeepStack):
         '''
         remote = None
         keepData = self.keep.loadRemoteData(uid)
-        safeData = self.keep.loadRemoteData(uid)
-        if keepData and safeData:
-            if (self.keep.verifyRemoteData(keepData) and
-                self.safe.verifyRemoteData(safeData)):
-                remote = estating.RemoteEstate(stack=self,
-                                               eid=keepData['uid'],
-                                               name=keepData['name'],
-                                               ha=keepData['ha'],
-                                               sid=keepData['sid'],
-                                               joined=keepData['joined'],
-                                               acceptance=safeData['acceptance'],
-                                               verkey=safeData['verhex'],
-                                               pubkey=safeData['pubhex'],
-                                               period=self.period,
-                                               offset=self.offset,
-                                               interim=self.interim)
-                self.addRemote(remote)
+        if keepData and self.keep.verifyRemoteData(keepData):
+            remote = estating.RemoteEstate(stack=self,
+                                           eid=keepData['uid'],
+                                           name=keepData['name'],
+                                           ha=keepData['ha'],
+                                           sid=keepData['sid'],
+                                           joined=keepData['joined'],
+                                           acceptance=keepData['acceptance'],
+                                           verkey=keepData['verhex'],
+                                           pubkey=keepData['pubhex'],
+                                           period=self.period,
+                                           offset=self.offset,
+                                           interim=self.interim)
+            self.addRemote(remote)
         return remote
 
     def restoreRemotes(self):
         '''
-        Load .remotes from valid keep and safe data if any
+        Load .remotes from valid keep  data if any
         '''
         keeps = self.keep.loadAllRemoteData()
-        safes = self.safe.loadAllRemoteData()
-        if not keeps or not safes:
+        if not keeps:
             return
         for key, keepData in keeps.items():
-            if key not in safes:
-                continue
-            safeData = safes[key]
-            if (not self.keep.verifyRemoteData(keepData) or not
-                    self.safe.verifyRemoteData(safeData)):
+            if not self.keep.verifyRemoteData(keepData):
                 continue
             remote = estating.RemoteEstate(stack=self,
                                            eid=keepData['uid'],
@@ -345,27 +299,19 @@ class RoadStack(stacking.KeepStack):
                                            ha=keepData['ha'],
                                            sid=keepData['sid'],
                                            joined=keepData['joined'],
-                                           acceptance=safeData['acceptance'],
-                                           verkey=safeData['verhex'],
-                                           pubkey=safeData['pubhex'],
+                                           acceptance=keepData['acceptance'],
+                                           verkey=keepData['verhex'],
+                                           pubkey=keepData['pubhex'],
                                            period=self.period,
                                            offset=self.offset,
                                            interim=self.interim)
             self.addRemote(remote)
-
-    def clearRemote(self, remote):
-        '''
-        Clear remote keeps of remote estate
-        '''
-        super(RoadStack, self).clearRemote(remote)
-        self.safe.clearRemote(remote)
 
     def clearRemoteKeeps(self):
         '''
         Clear all remote keeps
         '''
         super(RoadStack, self).clearRemoteKeeps()
-        self.safe.clearAllRemoteData()
 
     def manage(self, cascade=False, immediate=False):
         '''

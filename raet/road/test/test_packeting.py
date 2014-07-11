@@ -393,8 +393,8 @@ class StackTestCase(unittest.TestCase):
         otherPriKeyHex = privateer.keyhex
         otherPubKeyHex = privateer.pubhex
 
-        keeping.clearAllKeepSafe(mainDirpath)
-        keeping.clearAllKeepSafe(otherDirpath)
+        keeping.clearAllKeep(mainDirpath)
+        keeping.clearAllKeep(otherDirpath)
 
         local = estating.LocalEstate(eid=1,
                                      name=mainName,
@@ -455,9 +455,9 @@ class StackTestCase(unittest.TestCase):
         self.main.server.close()
         self.other.server.close()
 
-        self.main.clearLocal()
+        self.main.clearLocalKeep()
         self.main.clearRemoteKeeps()
-        self.other.clearLocal()
+        self.other.clearLocalKeep()
         self.other.clearRemoteKeeps()
 
         if os.path.exists(self.dirpathBase):

@@ -142,26 +142,24 @@ class BasicTestCase(unittest.TestCase):
 
     def testBasic(self):
         '''
-        Basic keep setup for stack keep and safe persistence load and dump
+        Basic keep setup for stack keep  persistence load and dump
         '''
         console.terse("{0}\n".format(self.testBasic.__doc__))
         auto = True
         mainData = self.createRoadData(name='main', base=self.base, auto=auto)
-        keeping.clearAllKeepSafe(mainData['dirpath'])
+        keeping.clearAllKeep(mainData['dirpath'])
         stack = self.createRoadStack(data=mainData,
                                      eid=1,
                                      main=True,
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {2}\n".format(
-                stack.name, stack.keep.dirpath, stack.safe.dirpath))
+        #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
-        self.assertTrue(stack.safe.dirpath.endswith('road/keep/main'))
         self.assertTrue(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test round trip
-        stack.clearLocal()
+        stack.clearLocalKeep()
         stack.clearRemoteKeeps()
 
         stack.dumpLocal()
@@ -176,27 +174,15 @@ class BasicTestCase(unittest.TestCase):
                                         ('main', True),
                                         ('sid', 0),
                                         ('neid', 1),
+                                        ('sighex', mainData['sighex']),
+                                        ('prihex', mainData['prihex']),
+                                        ('auto', mainData['auto']),
                                     ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         remoteKeepData = stack.keep.loadAllRemoteData()
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
         self.assertDictEqual(remoteKeepData, {})
-
-        localSafeData = stack.safe.loadLocalData()
-        console.terse("Local safe data = '{0}'\n".format(localSafeData))
-        validLocalSafeData = odict([
-                                ('uid', 1),
-                                ('name', 'main'),
-                                ('sighex', mainData['sighex']),
-                                ('prihex', mainData['prihex']),
-                                ('auto', mainData['auto']),
-                              ])
-        self.assertDictEqual(localSafeData, validLocalSafeData)
-
-        remoteSafeData = stack.safe.loadAllRemoteData()
-        console.terse("Remote safe data = '{0}'\n".format(remoteSafeData))
-        self.assertDictEqual(remoteSafeData, {})
 
         # test round trip with stack methods
         stack.restoreLocal()
@@ -207,17 +193,11 @@ class BasicTestCase(unittest.TestCase):
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
                                 ('neid', stack.local.neid),
-                              ])
-        self.assertDictEqual(localKeepData, validLocalKeepData)
-
-        localSafeData = odict([
-                                ('uid', stack.local.uid),
-                                ('name', stack.local.name),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
-                                ('auto', stack.safe.auto),
+                                ('auto', stack.keep.auto),
                               ])
-        self.assertDictEqual(localSafeData, validLocalSafeData)
+        self.assertDictEqual(localKeepData, validLocalKeepData)
 
         #stack.removeAllRemotes()
         stack.remotes = odict()
@@ -255,32 +235,21 @@ class BasicTestCase(unittest.TestCase):
                              'name': other1Data['name'],
                              'ha': ['127.0.0.1', 7531],
                              'sid': 0,
-                             'joined': None,},
-                         '3':
-                            {'uid': 3,
-                             'name': other2Data['name'],
-                             'ha': ['127.0.0.1', 7532],
-                             'sid': 0,
-                             'joined': None,}
-                        }
-        self.assertDictEqual(remoteKeepData, validRemoteKeepData)
-
-        remoteSafeData = stack.safe.loadAllRemoteData()
-        console.terse("Remote safe data = '{0}'\n".format(remoteSafeData))
-        validRemoteSafeData = {'2':
-                            {'uid': 2,
-                             'name': other1Data['name'],
+                             'joined': None,
                              'acceptance': None,
                              'verhex': other1Data['verhex'],
                              'pubhex': other1Data['pubhex']},
                          '3':
                             {'uid': 3,
                              'name': other2Data['name'],
+                             'ha': ['127.0.0.1', 7532],
+                             'sid': 0,
+                             'joined': None,
                              'acceptance': None,
                              'verhex': other2Data['verhex'],
                              'pubhex': other2Data['pubhex']}
                         }
-        self.assertDictEqual(remoteSafeData, validRemoteSafeData)
+        self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         # stack method
 
@@ -289,11 +258,6 @@ class BasicTestCase(unittest.TestCase):
         validRemoteKeepData = odict()
         for uid in temp:
             validRemoteKeepData[int(uid)] = temp[uid]
-
-        temp = validRemoteSafeData
-        validRemoteSafeData = odict()
-        for uid in temp:
-            validRemoteSafeData[int(uid)] = temp[uid]
 
         #stack.removeAllRemotes()
         stack.remotes = odict()
@@ -307,23 +271,15 @@ class BasicTestCase(unittest.TestCase):
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
                                                 ('joined', remote.joined),
-                                               ])
-        self.assertDictEqual(remoteKeepData, validRemoteKeepData)
-
-        remoteSafeData = odict()
-        for remote in stack.remotes.values():
-            remoteSafeData[remote.uid] = odict([
-                                                ('uid', remote.uid),
-                                                ('name', remote.name),
                                                 ('acceptance', remote.acceptance),
                                                 ('verhex', remote.verfer.keyhex),
                                                 ('pubhex', remote.pubber.keyhex),
-                                               ])
-        self.assertDictEqual(remoteSafeData, validRemoteSafeData)
+                                              ])
+        self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
 
-        # bootstrap new stack from stored keep and safe data
+        # bootstrap new stack from stored keep data
         stack = stacking.RoadStack(name=mainData['name'],
                                    auto=mainData['auto'],
                                    dirpath=mainData['dirpath'],
@@ -334,20 +290,15 @@ class BasicTestCase(unittest.TestCase):
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
                                 ('sid', stack.local.sid),
-                                ('neid', stack.local.neid)
+                                ('neid', stack.local.neid),
+                                ('sighex', stack.local.signer.keyhex),
+                                ('prihex', stack.local.priver.keyhex),
+                                ('auto', stack.keep.auto),
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
-        localSafeData = odict([
-                                ('uid', stack.local.uid),
-                                ('name', stack.local.name),
-                                ('sighex', stack.local.signer.keyhex),
-                                ('prihex', stack.local.priver.keyhex),
-                                ('auto', stack.safe.auto),
-                              ])
-        console.terse("Local safe data = '{0}'\n".format(localSafeData))
-        self.assertDictEqual(localSafeData, validLocalSafeData)
+
 
         remoteKeepData = odict()
         for remote in stack.remotes.values():
@@ -357,23 +308,15 @@ class BasicTestCase(unittest.TestCase):
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
                                                 ('joined', remote.joined),
-                                               ])
-            validRemoteKeepData[remote.uid]['sid'] += 1 #increments on stack load
-        self.assertDictEqual(remoteKeepData, validRemoteKeepData)
-
-        remoteSafeData = odict()
-        for remote in stack.remotes.values():
-            remoteSafeData[remote.uid] = odict([
-                                                ('uid', remote.uid),
-                                                ('name', remote.name),
                                                 ('acceptance', remote.acceptance),
                                                 ('verhex', remote.verfer.keyhex),
                                                 ('pubhex', remote.pubber.keyhex),
                                                ])
-        self.assertDictEqual(remoteSafeData, validRemoteSafeData)
+            validRemoteKeepData[remote.uid]['sid'] += 1 #increments on stack load
+        self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
-        stack.clearLocal()
+        stack.clearLocalKeep()
         stack.clearRemoteKeeps()
 
 
@@ -386,7 +329,7 @@ class BasicTestCase(unittest.TestCase):
         base = '/var/cache/'
         auto = True
         data = self.createRoadData(name='main', base=base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         stack = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -394,21 +337,19 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                stack.name, stack.keep.dirpath, stack.safe.dirpath))
+        #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
         self.assertTrue(".raet/keep/main" in stack.keep.dirpath)
-        self.assertTrue(".raet/keep/main" in stack.safe.dirpath)
         self.assertEqual(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test can write
-        stack.clearLocal()
+        stack.clearLocalKeep()
         stack.clearRemoteKeeps()
 
         stack.dumpLocal()
         stack.dumpRemotes()
 
         stack.server.close()
-        stack.clearLocal()
+        stack.clearLocalKeep()
         stack.clearRemoteKeeps()
 
     def testPending(self):
@@ -418,7 +359,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
         auto = False #do not auto accept
         data = self.createRoadData(name='main', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -426,28 +367,20 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertFalse(main.safe.auto)
+        self.assertFalse(main.keep.auto)
 
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 1)
@@ -461,7 +394,7 @@ class BasicTestCase(unittest.TestCase):
 
         for remote in main.remotes.values():
             if remote.acceptance == raeting.acceptances.pending:
-                main.safe.acceptRemote(remote)
+                main.keep.acceptRemote(remote)
 
         self.service(main, other, duration=3.0)
         self.assertEqual(len(main.transactions), 0)
@@ -483,11 +416,11 @@ class BasicTestCase(unittest.TestCase):
 
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testPendingSavedKeep(self):
@@ -498,7 +431,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
         auto = False #do not auto accept
         data = self.createRoadData(name='main', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -506,15 +439,11 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         savedOtherData = data
         other = self.createRoadStack(data=data,
                                      eid=0,
@@ -522,13 +451,9 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertFalse(main.safe.auto)
+        self.assertFalse(main.keep.auto)
 
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 1)
@@ -548,7 +473,7 @@ class BasicTestCase(unittest.TestCase):
 
         for remote in main.remotes.values():
             if remote.acceptance == raeting.acceptances.pending:
-                main.safe.acceptRemote(remote)
+                main.keep.acceptRemote(remote)
 
         #now reload from keep data
         #main.removeAllRemotes()
@@ -633,11 +558,11 @@ class BasicTestCase(unittest.TestCase):
 
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testRejoin(self):
@@ -648,7 +573,7 @@ class BasicTestCase(unittest.TestCase):
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         mainDirpath = data['dirpath']
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -656,34 +581,25 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         self.assertEqual(main.name, 'main')
         self.assertEqual(main.local.name, main.name)
 
         data = self.createRoadData(name='other', base=self.base)
         otherDirpath = data['dirpath']
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertEqual(other.name, 'other')
         self.assertEqual(other.local.name, other.name)
-
-        self.assertTrue(main.safe.auto)
+        self.assertTrue(main.keep.auto)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -714,7 +630,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.local.name, other.name)
         self.assertEqual(main.name, 'main')
         self.assertEqual(main.local.name, main.name)
-        self.assertTrue(main.safe.auto)
+        self.assertTrue(main.keep.auto)
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -740,8 +656,8 @@ class BasicTestCase(unittest.TestCase):
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
 
         # attempt to join to main with main auto accept disabled
-        main.safe.auto = False
-        self.assertFalse(main.safe.auto)
+        main.keep.auto = False
+        self.assertFalse(main.keep.auto)
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -760,11 +676,11 @@ class BasicTestCase(unittest.TestCase):
 
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testRejoinFromMain(self):
@@ -775,7 +691,7 @@ class BasicTestCase(unittest.TestCase):
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         mainDirpath = data['dirpath']
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -783,34 +699,25 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         self.assertEqual(main.name, 'main')
         self.assertEqual(main.local.name, main.name)
 
         data = self.createRoadData(name='other', base=self.base)
         otherDirpath = data['dirpath']
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertEqual(other.name, 'other')
         self.assertEqual(other.local.name, other.name)
-
-        self.assertTrue(main.safe.auto)
+        self.assertTrue(main.keep.auto)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -860,11 +767,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.allowed)
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testLostOtherKeep(self):
@@ -875,7 +782,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
         auto = True
         data = self.createRoadData(name='main', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -883,28 +790,20 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertTrue(main.safe.auto)
+        self.assertTrue(main.keep.auto)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -924,7 +823,7 @@ class BasicTestCase(unittest.TestCase):
 
         #now forget the other data
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
         # reload with new data
@@ -935,15 +834,11 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept enabled
-        self.assertTrue(main.safe.auto)
+        self.assertTrue(main.keep.auto)
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -963,7 +858,7 @@ class BasicTestCase(unittest.TestCase):
         # now repeate with auto accept off on main
         # now forget the other data again
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
         # reload with new data
@@ -974,16 +869,12 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
-        main.safe.auto = False # turn off auto accept
-        self.assertIs(main.safe.auto, False)
+        main.keep.auto = False # turn off auto accept
+        self.assertIs(main.keep.auto, False)
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1012,11 +903,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertNotEqual(len(mains), len(other.rxMsgs))
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testLostOtherKeepLocal(self):
@@ -1027,7 +918,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testLostOtherKeepLocal.__doc__))
         auto = True
         data = self.createRoadData(name='main', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -1035,29 +926,21 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         savedOtherData = data
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertTrue(main.safe.auto)
+        self.assertTrue(main.keep.auto)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1077,7 +960,7 @@ class BasicTestCase(unittest.TestCase):
 
         #now forget the other data local only to simulate just changing other keys
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
 
         # reload with new data
         data = self.createRoadData(name='other', base=self.base)
@@ -1087,15 +970,11 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept enabled
-        self.assertTrue(main.safe.auto)
+        self.assertTrue(main.keep.auto)
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1115,7 +994,7 @@ class BasicTestCase(unittest.TestCase):
         # now repeate with auto accept off on main
         # now forget the other data again
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
 
         # reload with new data
         data = self.createRoadData(name='other', base=self.base)
@@ -1125,16 +1004,12 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
-        main.safe.auto = False # turn off auto accept
-        self.assertIs(main.safe.auto, False)
+        main.keep.auto = False # turn off auto accept
+        self.assertIs(main.keep.auto, False)
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1170,7 +1045,7 @@ class BasicTestCase(unittest.TestCase):
 
         # now reload original local other data and see if works
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         data = savedOtherData
         other = self.createRoadStack(data=data,
                                      eid=2,
@@ -1178,14 +1053,12 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
-        main.safe.auto = False # turn off auto accept
-        self.assertIs(main.safe.auto, False)
+        main.keep.auto = False # turn off auto accept
+        self.assertIs(main.keep.auto, False)
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1220,11 +1093,11 @@ class BasicTestCase(unittest.TestCase):
             self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testLostMainKeep(self):
@@ -1237,34 +1110,25 @@ class BasicTestCase(unittest.TestCase):
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
                                      auto=auto,
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
-
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
@@ -1285,7 +1149,7 @@ class BasicTestCase(unittest.TestCase):
 
         #now forget the main data only to simulate main changing all data
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         # reload with new data
@@ -1297,11 +1161,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -1337,7 +1197,7 @@ class BasicTestCase(unittest.TestCase):
         # now restore original main keys to see if works
         #now forget the new main data
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         # reload with original saved data
@@ -1350,11 +1210,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -1390,11 +1246,11 @@ class BasicTestCase(unittest.TestCase):
             self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
     def testLostMainKeepLocal(self):
@@ -1406,7 +1262,7 @@ class BasicTestCase(unittest.TestCase):
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -1414,26 +1270,18 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
@@ -1454,7 +1302,7 @@ class BasicTestCase(unittest.TestCase):
 
         #now forget the main local data only to simulate main changing keys
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
 
         # reload with new local data and saved remote data
         auto = True
@@ -1466,11 +1314,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
@@ -1508,7 +1352,7 @@ class BasicTestCase(unittest.TestCase):
         # now restore original main keys to see if works
         # first forget the new main local data
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
 
         # reload with original saved data
         auto = True
@@ -1520,11 +1364,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
@@ -1560,11 +1400,11 @@ class BasicTestCase(unittest.TestCase):
             self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
 
@@ -1578,7 +1418,7 @@ class BasicTestCase(unittest.TestCase):
         auto = True
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
@@ -1586,27 +1426,19 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         savedOtherData = data
-        keeping.clearAllKeepSafe(data['dirpath'])
+        keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      eid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
@@ -1630,9 +1462,9 @@ class BasicTestCase(unittest.TestCase):
 
         #now forget the local local data only to simulate both changing keys
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
 
         # reload with new local data and saved remote data
         auto = True
@@ -1651,20 +1483,12 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                        other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         remote = other.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
@@ -1701,9 +1525,9 @@ class BasicTestCase(unittest.TestCase):
         # now restore original local keys to see if works
         #now forget the new main data
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
 
         # reload with original saved data
         auto = True
@@ -1727,20 +1551,12 @@ class BasicTestCase(unittest.TestCase):
             #other.addRemote(remote)
         #other.dumpRemotes()
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                main.name, main.keep.dirpath, main.safe.dirpath))
-        self.assertEqual(main.keep.dirpath, main.safe.dirpath)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertTrue(main.safe.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
-        console.terse("{0} keep dirpath = {1} safe dirpath = {0}\n".format(
-                        other.name, other.keep.dirpath, other.safe.dirpath))
-        self.assertEqual(other.keep.dirpath, other.safe.dirpath)
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertTrue(other.safe.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         remote = other.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
@@ -1778,11 +1594,11 @@ class BasicTestCase(unittest.TestCase):
             self.assertDictEqual(mains[i], msg[0])
 
         main.server.close()
-        main.clearLocal()
+        main.clearLocalKeep()
         main.clearRemoteKeeps()
 
         other.server.close()
-        other.clearLocal()
+        other.clearLocalKeep()
         other.clearRemoteKeeps()
 
 
