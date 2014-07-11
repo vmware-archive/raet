@@ -6,6 +6,14 @@ CHANGE LOG
 201407XX
 ---------
 
+v0.2.03
+
+
+
+---------
+20140711
+---------
+
 v0.2.02
 
 refactor nack handling
