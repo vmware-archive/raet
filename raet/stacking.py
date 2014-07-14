@@ -46,8 +46,6 @@ class Stack(object):
                  version=raeting.VERSION,
                  store=None,
                  keep=None,
-                 dirpath='',
-                 basedirpath='',
                  local=None,
                  bufcnt=2,
                  server=None,
@@ -511,8 +509,6 @@ class KeepStack(Stack):
 
         super(KeepStack, self).__init__(name=name,
                                         main=main,
-                                        dirpath=dirpath,
-                                        basedirpath=basedirpath,
                                         local=local,
                                         **kwa)
 
