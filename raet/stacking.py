@@ -512,7 +512,6 @@ class KeepStack(Stack):
                                         local=local,
                                         **kwa)
 
-
         if clean:
             self.clearRemoteKeeps()
         self.restoreRemotes() # load remotes from saved data
