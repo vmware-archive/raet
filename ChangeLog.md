@@ -8,7 +8,7 @@ CHANGE LOG
 
 v0.2.03
 
-
+Added parameter to verify keep to allow passing in verify fields
 
 ---------
 20140711
