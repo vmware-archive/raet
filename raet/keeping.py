@@ -138,11 +138,12 @@ class Keep(object):
             data[field] = None
         return data
 
-    def verifyLocalData(self, data):
+    def verifyLocalData(self, data, localFields=None):
         '''
         Returns True if the fields in .LocalFields match the fields in data
         '''
-        return (set(self.LocalFields) == set(data.keys()))
+        localFields = localFields if localFields is not None else self.LocalFields
+        return (set(localFields) == set(data.keys()))
 
     def dumpLocalData(self, data):
         '''
@@ -173,11 +174,12 @@ class Keep(object):
         if os.path.exists(self.localdirpath):
             os.rmdir(self.localdirpath)
 
-    def verifyRemoteData(self, data):
+    def verifyRemoteData(self, data, remoteFields=None):
         '''
         Returns True if the fields in .RemoteFields match the fields in data
         '''
-        return (set(self.RemoteFields) == set(data.keys()))
+        remoteFields = remoteFields if remoteFields is not None else self.RemoteFields
+        return (set(remoteFields) == set(data.keys()))
 
     def dumpRemoteData(self, data, uid):
         '''
