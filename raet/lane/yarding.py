@@ -99,7 +99,7 @@ class Yard(lotting.Lot):
                         try:
                             os.makedirs(dirpath)
                         except OSError as ex:
-                            if ex.errno == errno.EEXIST
+                            if ex.errno == errno.EEXIST:
                                 pass # race condition
                             else:
                                 raise
