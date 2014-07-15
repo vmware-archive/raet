@@ -534,25 +534,28 @@ class KeepStack(Stack):
         if dump:
             self.dumpRemote(remote)
 
-    def moveRemote(self, remote, new, clear=True, dump=False):
+    def moveRemote(self, remote, new, clear=False, dump=False):
         '''
         Move remote with key remote.uid old to key new uid and replace the odict key index
         so order is the same.
         If clear then clear the keep file for remote at old
         If dump then dump the keep file for the remote at new
         '''
-        old = remote.uid
+        #old = remote.uid
         super(KeepStack, self).moveRemote(remote, new=new)
         if clear:
             self.keep.clearRemoteData(remote.name)
         if dump:
             self.dumpRemote(remote=remote)
 
-    def renameRemote(self, remote, new, dump=False):
+    def renameRemote(self, remote, new, clear=True, dump=False):
         '''
         Rename remote with old remote.name to new name but keep same index
         '''
+        old = remote.name
         super(KeepStack, self).renameRemote(remote=remote, new=new)
+        if clear:
+            self.keep.clearRemoteData(old)
         if dump:
             self.dumpRemote(remote=remote)
 

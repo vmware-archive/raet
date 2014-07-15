@@ -156,12 +156,12 @@ class RoadStack(stacking.KeepStack):
             raise raeting.StackError("Store reference mismatch between remote"
                     " '{0}' and stack '{1}'".format(remote.name, stack.name))
 
-    def renameRemote(self, remote, new, dump=False):
+    def renameRemote(self, remote, new, clear=True, dump=False):
         '''
         Clear remote keeps of remote estate
         '''
         old = remote.name
-        super(RoadStack, self).renameRemote(remote=remote, new=new, dump=dump)
+        super(RoadStack, self).renameRemote(remote=remote, new=new, clear=clear, dump=dump)
         if new != old:
             self.keep.replaceRemote(remote, old) # support for external key mgmt
 
