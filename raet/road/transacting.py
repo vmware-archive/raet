@@ -910,7 +910,7 @@ class Joinent(Correspondent):
                 return
 
             elif (reid != 0 and reid not in self.stack.remotes):
-                remote = self.stack.restoreRemote(reid) # see if still on disk
+                remote = self.stack.restoreRemote(name) # see if still on disk
                 if not remote:
                     emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
                                                 self.stack.name, reid, name)

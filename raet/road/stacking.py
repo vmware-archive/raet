@@ -147,11 +147,11 @@ class RoadStack(stacking.KeepStack):
                         bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
-    def addRemote(self, remote, uid=None, dump=False):
+    def addRemote(self, remote, dump=False):
         '''
         Add a remote  to .remotes
         '''
-        super(RoadStack, self).addRemote(remote=remote, uid=uid, dump=dump)
+        super(RoadStack, self).addRemote(remote=remote, dump=dump)
         if remote.timer.store is not self.store:
             raise raeting.StackError("Store reference mismatch between remote"
                     " '{0}' and stack '{1}'".format(remote.name, stack.name))
@@ -260,13 +260,13 @@ class RoadStack(stacking.KeepStack):
             self.local = local
         return local
 
-    def restoreRemote(self, uid):
+    def restoreRemote(self, name):
         '''
-        Load, add, and return remote with uid if any
+        Load, add, and return remote with name if any
         Otherwise return None
         '''
         remote = None
-        keepData = self.keep.loadRemoteData(uid)
+        keepData = self.keep.loadRemoteData(name)
         if keepData and self.keep.verifyRemoteData(keepData):
             remote = estating.RemoteEstate(stack=self,
                                            eid=keepData['uid'],
@@ -290,7 +290,7 @@ class RoadStack(stacking.KeepStack):
         keeps = self.keep.loadAllRemoteData()
         if not keeps:
             return
-        for key, keepData in keeps.items():
+        for keepData in keeps.values():
             if not self.keep.verifyRemoteData(keepData):
                 continue
             remote = estating.RemoteEstate(stack=self,

@@ -227,45 +227,47 @@ class BasicTestCase(unittest.TestCase):
                                               period=stack.period,
                                               offset=stack.offset))
 
+        self.assertEqual(len(stack.remotes), len(stack.names))
+        self.assertEqual(len(stack.remotes), len(stack.uids))
+        for uid, remote in stack.remotes.items():
+            self.assertEqual(stack.names[remote.uid], remote.name)
+            self.assertEqual(stack.uids[remote.name], remote.uid)
+            self.assertEqual(stack.remotes[uid].name, stack.names[uid])
+            self.assertEqual(stack.remotes[uid].uid, stack.uids[remote.name])
+
+
         stack.dumpRemotes()
         remoteKeepData = stack.keep.loadAllRemoteData()
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
-        validRemoteKeepData = {'2':
-                            {'uid': 2,
-                             'name': other1Data['name'],
-                             'ha': ['127.0.0.1', 7531],
-                             'sid': 0,
-                             'joined': None,
-                             'acceptance': None,
-                             'verhex': other1Data['verhex'],
-                             'pubhex': other1Data['pubhex']},
-                         '3':
-                            {'uid': 3,
-                             'name': other2Data['name'],
-                             'ha': ['127.0.0.1', 7532],
-                             'sid': 0,
-                             'joined': None,
-                             'acceptance': None,
-                             'verhex': other2Data['verhex'],
-                             'pubhex': other2Data['pubhex']}
-                        }
+        validRemoteKeepData = {
+                                'other1':
+                                    {'uid': 2,
+                                     'name': other1Data['name'],
+                                     'ha': ['127.0.0.1', 7531],
+                                     'sid': 0,
+                                     'joined': None,
+                                     'acceptance': None,
+                                     'verhex': other1Data['verhex'],
+                                     'pubhex': other1Data['pubhex']},
+                                'other2':
+                                    {'uid': 3,
+                                     'name': other2Data['name'],
+                                     'ha': ['127.0.0.1', 7532],
+                                     'sid': 0,
+                                     'joined': None,
+                                     'acceptance': None,
+                                     'verhex': other2Data['verhex'],
+                                     'pubhex': other2Data['pubhex']}
+                                }
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         # stack method
-
-        #convert string uid keys into int uid keys
-        temp = validRemoteKeepData
-        validRemoteKeepData = odict()
-        for uid in temp:
-            validRemoteKeepData[int(uid)] = temp[uid]
-
-        #stack.removeAllRemotes()
         stack.remotes = odict()
         stack.uids = odict()
         stack.restoreRemotes()
         remoteKeepData = odict()
         for remote in stack.remotes.values():
-            remoteKeepData[remote.uid] = odict([
+            remoteKeepData[remote.name] = odict([
                                                 ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
@@ -302,7 +304,7 @@ class BasicTestCase(unittest.TestCase):
 
         remoteKeepData = odict()
         for remote in stack.remotes.values():
-            remoteKeepData[remote.uid] = odict([
+            remoteKeepData[remote.name] = odict([
                                                 ('uid', remote.uid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
@@ -312,7 +314,7 @@ class BasicTestCase(unittest.TestCase):
                                                 ('verhex', remote.verfer.keyhex),
                                                 ('pubhex', remote.pubber.keyhex),
                                                ])
-            validRemoteKeepData[remote.uid]['sid'] += 1 #increments on stack load
+            validRemoteKeepData[remote.name]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()

@@ -52,8 +52,8 @@ class Keep(object):
                     local/
                         prefix.ext
                     remote/
-                        prefix.uid.ext
-                        prefix.uid.ext
+                        prefix.name.ext
+                        prefix.name.ext
         '''
         if not dirpath:
             if not basedirpath:
@@ -181,38 +181,44 @@ class Keep(object):
         remoteFields = remoteFields if remoteFields is not None else self.RemoteFields
         return (set(remoteFields) == set(data.keys()))
 
-    def dumpRemoteData(self, data, uid):
+    def dumpRemoteData(self, data, name):
         '''
-        Dump the remote data to file named with uid
+        Dump the remote data to file
         '''
+        #filepath = os.path.join(self.remotedirpath,
+                #"{0}.{1}.{2}".format(self.prefix, uid, self.ext))
         filepath = os.path.join(self.remotedirpath,
-                "{0}.{1}.{2}".format(self.prefix, uid, self.ext))
+                "{0}.{1}.{2}".format(self.prefix, name, self.ext))
 
         self.dump(data, filepath)
 
     def dumpAllRemoteData(self, datadict):
         '''
-        Dump the data in the datadict keyed by uid to remote data files
+        Dump the data in the datadict keyed by name to remote data files
         '''
-        for uid, data in datadict.items():
-            self.dumpRemoteData(data, uid)
+        for name, data in datadict.items():
+            self.dumpRemoteData(data, name)
 
-    def loadRemoteData(self, uid):
+    def loadRemoteData(self, name):
         '''
-        Load and Return the data from the remote file named with uid
+        Load and Return the data from the remote file
         '''
+        #filepath = os.path.join(self.remotedirpath,
+                        #"{0}.{1}.{2}".format(self.prefix, uid, self.ext))
         filepath = os.path.join(self.remotedirpath,
-                        "{0}.{1}.{2}".format(self.prefix, uid, self.ext))
+                "{0}.{1}.{2}".format(self.prefix, name, self.ext))
         if not os.path.exists(filepath):
             return None
         return (self.load(filepath))
 
-    def clearRemoteData(self, uid):
+    def clearRemoteData(self, name):
         '''
-        Clear data from the remote data file named with uid
+        Clear data from the remote data file
         '''
+        #filepath = os.path.join(self.remotedirpath,
+                        #"{0}.{1}.{2}".format(self.prefix, uid, self.ext))
         filepath = os.path.join(self.remotedirpath,
-                        "{0}.{1}.{2}".format(self.prefix, uid, self.ext))
+                "{0}.{1}.{2}".format(self.prefix, name, self.ext))
         if os.path.exists(filepath):
             os.remove(filepath)
 
@@ -227,18 +233,18 @@ class Keep(object):
     def loadAllRemoteData(self):
         '''
         Load and Return the datadict from the all the remote data files
-        indexed by uid in filenames
+        indexed by name in filenames
         '''
         datadict = odict()
         for filename in os.listdir(self.remotedirpath):
             root, ext = os.path.splitext(filename)
             if ext != '.json' or not root.startswith(self.prefix):
                 continue
-            prefix, sep, uid = root.partition('.')
-            if not uid or prefix != self.prefix:
+            prefix, sep, name = root.partition('.')
+            if not name or prefix != self.prefix:
                 continue
             filepath = os.path.join(self.remotedirpath, filename)
-            datadict[uid] = self.load(filepath)
+            datadict[name] = self.load(filepath)
         return datadict
 
     def clearAllRemoteData(self):
@@ -282,20 +288,19 @@ class Keep(object):
                     ])
 
         if self.verifyRemoteData(data):
-            self.dumpRemoteData(data, remote.uid)
+            self.dumpRemoteData(data, remote.name)
 
     def loadRemote(self, remote):
         '''
-        Load the data from file given by remote.uid
+        Load the data from file given by remote.name
         '''
-        return (self.loadRemoteData(remote.uid))
+        return (self.loadRemoteData(remote.name))
 
     def clearRemote(self, remote):
         '''
         Clear the remote estate file
-        Override this in sub class to change uid
         '''
-        self.clearRemoteData(remote.uid)
+        self.clearRemoteData(remote.name)
 
     def replaceRemote(self, remote, old):
         '''

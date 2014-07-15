@@ -73,6 +73,7 @@ class Stack(object):
 
         self.remotes = odict() # remotes indexed by uid
         self.uids = odict() # remote uids indexed by name
+        self.names = odict() # remote names indexed by uid
 
         self.bufcnt = bufcnt
         if not server:
@@ -115,12 +116,11 @@ class Stack(object):
         '''
         return None
 
-    def addRemote(self, remote, uid=None):
+    def addRemote(self, remote):
         '''
         Add a remote  to .remotes
         '''
-        if uid is None:
-            uid = remote.uid
+        uid = remote.uid
         # allow for condition where local.uid == 0 and remote.uid == 0
         if uid in self.remotes or (uid and uid == self.local.uid):
             emsg = "Cannot add remote at uid '{0}', alreadys exists".format(uid)
@@ -131,6 +131,7 @@ class Stack(object):
             emsg = "Cannot add remote with name '{0}', alreadys exists".format(remote.name)
             raise raeting.StackError(emsg)
         self.uids[remote.name] = remote.uid
+        self.names[remote.uid] = remote.name
 
     def moveRemote(self, remote, new):
         '''
@@ -151,12 +152,15 @@ class Stack(object):
             emsg = "Cannot move remote at '{0}', not identical".format(old)
             raise raeting.StackError(emsg)
 
-        #remote = self.remotes[old]
-        index = self.remotes.keys().index(old)
+
         remote.uid = new
         self.uids[remote.name] = new
+        index = self.remotes.keys().index(old)
         del self.remotes[old]
         self.remotes.insert(index, remote.uid, remote)
+        index = self.names.keys().index(old)
+        del self.names[old]
+        self.names.insert(index, remote.uid, remote.name)
 
     def renameRemote(self, remote, new):
         '''
@@ -176,8 +180,8 @@ class Stack(object):
                 emsg = "Cannot rename remote '{0}', not identical".format(old)
                 raise raeting.StackError(emsg)
 
-            #remote = self.remotes[self.uids[old]]
             remote.name = new
+            self.names[remote.uid] = new
             index = self.uids.keys().index(old)
             del self.uids[old]
             self.uids.insert(index, remote.name, remote.uid)
@@ -195,9 +199,9 @@ class Stack(object):
             emsg = "Cannot remove remote '{0}', not identical".format(uid)
             raise raeting.StackError(emsg)
 
-        #remote = self.remotes[uid]
         del self.remotes[uid]
         del self.uids[remote.name]
+        del self.names[remote.uid]
 
     def removeAllRemotes(self):
         '''
@@ -522,11 +526,11 @@ class KeepStack(Stack):
         self.dumpLocal() # save local data
         self.dumpRemotes() # save remote data
 
-    def addRemote(self, remote, uid=None, dump=False):
+    def addRemote(self, remote, dump=False):
         '''
         Add a remote  to .remotes
         '''
-        super(KeepStack, self).addRemote(remote=remote, uid=uid)
+        super(KeepStack, self).addRemote(remote=remote)
         if dump:
             self.dumpRemote(remote)
 
@@ -540,7 +544,7 @@ class KeepStack(Stack):
         old = remote.uid
         super(KeepStack, self).moveRemote(remote, new=new)
         if clear:
-            self.keep.clearRemoteData(old)
+            self.keep.clearRemoteData(remote.name)
         if dump:
             self.dumpRemote(remote=remote)
 
@@ -554,12 +558,12 @@ class KeepStack(Stack):
 
     def removeRemote(self, remote, clear=True):
         '''
-        Remove remote at key uid
+        Remove remote
         If clear then also remove from disk
         '''
         super(KeepStack, self).removeRemote(remote=remote)
         if clear:
-            self.keep.clearRemoteData(remote.uid)
+            self.clearRemote(remote)
 
     def removeAllRemotes(self, clear=True):
         '''
@@ -622,13 +626,13 @@ class KeepStack(Stack):
         for remote in self.remotes.values():
             self.dumpRemote(remote)
 
-    def restoreRemote(self, uid):
+    def restoreRemote(self, name):
         '''
-        Load, add, and return remote with uid if any
+        Load, add, and return remote with name if any
         Otherwise return None
         '''
         remote = None
-        data = self.keep.loadRemoteData(uid)
+        data = self.keep.loadRemoteData(name)
         if data and self.keep.verifyRemoteData(data):
             remote = lotting.Lot(stack=self,
                               uid=data['uid'],
@@ -656,7 +660,7 @@ class KeepStack(Stack):
         '''
         Clear remote keep of remote
         '''
-        self.keep.clearRemoteData(remote.uid)
+        self.keep.clearRemoteData(remote.name)
 
     def clearRemotes(self):
         '''
