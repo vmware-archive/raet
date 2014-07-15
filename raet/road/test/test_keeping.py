@@ -237,6 +237,10 @@ class BasicTestCase(unittest.TestCase):
 
 
         stack.dumpRemotes()
+        for remote in stack.remotes.values():
+            path = os.path.join(stack.keep.remotedirpath,
+                     "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
+            self.assertTrue(os.path.exists(path))
         remoteKeepData = stack.keep.loadAllRemoteData()
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
         validRemoteKeepData = {
