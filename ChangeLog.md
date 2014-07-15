@@ -3,6 +3,16 @@ CHANGE LOG
 -------------------
 
 ---------
+20140715
+---------
+
+v0.2.04
+
+Fixed race condition in Yarding makedirs
+
+Road Keep files are now stored by name not uid
+
+---------
 20140714
 ---------
 
