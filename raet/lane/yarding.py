@@ -84,12 +84,25 @@ class Yard(lotting.Lot):
                 except OSError as ex:
                     dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
                     if not os.path.exists(dirpath):
-                        os.makedirs(dirpath)
+                        try:
+                            os.makedirs(dirpath)
+                        except OSError as ex:
+                            if ex.errno == errno.EEXIST:
+                                pass # race condition
+                            else:
+                                raise
             else:
                 if not os.access(dirpath, os.R_OK | os.W_OK):
                     dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
                     if not os.path.exists(dirpath):
-                        os.makedirs(dirpath)
+                        try:
+                            os.makedirs(dirpath)
+                        except OSError as ex:
+                            if ex.errno == errno.EEXIST:
+                                pass # race condition
+                            else:
+                                raise
+
             ha = os.path.join(dirpath, "{0}.{1}.uxd".format(self.lanename, self.name))
 
         self.ha = ha
