@@ -7,6 +7,7 @@ yarding.py raet protocol estate classes
 # Import python libs
 import socket
 import os
+import errno
 
 # Import ioflo libs
 from ioflo.base.odicting import odict

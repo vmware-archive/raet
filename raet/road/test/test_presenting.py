@@ -889,7 +889,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.joined, False) # vacuuous join from main is rejected
         main.removeRemote(remote)
         self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(main.uids), 0)
+        self.assertEqual(len(main.names), 0)
+
         self.assertEqual(len(other.remotes), 0)
+        self.assertEqual(len(other.uids), 0)
+        self.assertEqual(len(other.names), 0)
 
         #now create remote for other and add to main
         main.addRemote(estating.RemoteEstate(stack=main,

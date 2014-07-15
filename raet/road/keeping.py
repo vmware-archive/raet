@@ -36,8 +36,8 @@ class RoadKeep(keeping.Keep):
                 local/
                     estate.ext
                 remote/
-                    estate.uid.ext
-                    estate.uid.ext
+                    estate.name.ext
+                    estate.name.ext
     '''
     LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid', 'sighex', 'prihex', 'auto']
     RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined', 'acceptance', 'verhex', 'pubhex']
@@ -83,14 +83,14 @@ class RoadKeep(keeping.Keep):
                         ('pubhex', remote.pubber.keyhex),
                     ])
         if self.verifyRemoteData(data):
-            self.dumpRemoteData(data, remote.uid)
+            self.dumpRemoteData(data, remote.name)
 
     def statusRemote(self, remote, verhex, pubhex, main=True):
         '''
         Evaluate acceptance status of estate per its keys
         persist key data differentially based on status
         '''
-        data = self.loadRemoteData(remote.uid)
+        data = self.loadRemoteData(remote.name)
         status = data.get('acceptance') if data else None # pre-existing status
 
         if main: #main estate logic
