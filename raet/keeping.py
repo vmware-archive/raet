@@ -238,7 +238,7 @@ class Keep(object):
         datadict = odict()
         for filename in os.listdir(self.remotedirpath):
             root, ext = os.path.splitext(filename)
-            if ext != '.json' or not root.startswith(self.prefix):
+            if ext not in ['.json', '.msgpack']:
                 continue
             prefix, sep, name = root.partition('.')
             if not name or prefix != self.prefix:
@@ -253,11 +253,10 @@ class Keep(object):
         '''
         for filename in os.listdir(self.remotedirpath):
             root, ext = os.path.splitext(filename)
-            if ext != '.json' or not root.startswith(self.prefix):
+            if ext not in ['.json', '.msgpack']:
                 continue
-            prefix, eid = os.path.splitext(root)
-            eid = eid.lstrip('.')
-            if not eid:
+            prefix, sep, name = root.partition('.')
+            if not name or prefix != self.prefix:
                 continue
             filepath = os.path.join(self.remotedirpath, filename)
             if os.path.exists(filepath):
