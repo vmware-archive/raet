@@ -3,6 +3,17 @@ CHANGE LOG
 -------------------
 
 ---------
+20140721
+---------
+
+v0.2.05
+
+Refactored odicts indexing access attributes for remotes so can now access
+by uid, by name, or by ha. Updated associated accessors
+Provides more consistent view onto Stack Road or Lane
+Prepatory to adding remote.role for key management
+
+---------
 20140715
 ---------
 
