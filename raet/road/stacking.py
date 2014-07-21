@@ -176,28 +176,6 @@ class RoadStack(stacking.KeepStack):
                 self.transactions[index].nack()
                 self.removeTransaction(index)
 
-    def fetchRemoteByHostPort(self, host, port):
-        '''
-        Search for remote with matching host and port
-        Return remote if found Otherwise return None
-        '''
-        for remote in self.remotes.values():
-            if remote.host == host and remote.port == port:
-                return remote
-
-        return None
-
-    def fetchRemoteByHa(self, ha):
-        '''
-        Search for remote with matching host address tuple, ha = (host, port)
-        Return remote if found Otherwise return None
-        '''
-        for remote in self.remotes.values():
-            if remote.ha == ha:
-                return remote
-
-        return None
-
     def fetchRemoteByKeys(self, sighex, prihex):
         '''
         Search for remote with matching (name, sighex, prihex)
@@ -353,8 +331,8 @@ class RoadStack(stacking.KeepStack):
         remote = None
         if re in self.remotes:
             remote = self.remotes[re]
-        else: # may be bootstrapping onto channel so using ha in index but 0th
-            remote = self.fetchRemoteByHa(ha=re)
+        else: # may be bootstrapping onto channel so using re = ha in index but 0th
+            remote = self.haRemotes.get(re)
         if remote is not None:
             remote.indexes.add(index)
 
@@ -377,8 +355,8 @@ class RoadStack(stacking.KeepStack):
             remote = None
             if re in self.remotes:
                 remote = self.remotes[re]
-            else: # may be bootstrapping onto channel so using ha in index but 0th
-                remote = self.fetchRemoteByHa(ha=re)
+            else: # may be bootstrapping onto channel so using re=ha in index but 0th
+                remote = self.haRemotes.get(re)
             if remote is not None:
                 remote.indexes.discard(index)
 

@@ -897,6 +897,7 @@ class Joinent(Correspondent):
         host = data['sh']
         port = data['sp']
         self.txData.update( dh=host, dp=port,) # responses use received host port
+        ha = (host, port)
 
         reid = data['se']
         leid = data['de']
@@ -932,7 +933,7 @@ class Joinent(Correspondent):
                         self.nack(kind=raeting.pcktKinds.reject)
                         return
                     else: # check new name unique
-                        if name in self.stack.uids:
+                        if name in self.stack.nameRemotes:
                             emsg = ("Joinent {0}. Name unavailable for remote "
                                     "'{1}'\n".format(self.stack.name, name))
                             console.terse(emsg)
@@ -940,22 +941,22 @@ class Joinent(Correspondent):
                             self.nack(kind=raeting.pcktKinds.reject)
                             return
 
-                if (host != self.remote.host or port != self.remote.port):
+                if (ha != self.remote.ha):
                     if (verhex != self.remote.verfer.keyhex or
                             pubhex != self.remote.pubber.keyhex):
                         emsg = ("Joinent {0}. Name ha '{1}' mismatch for remote"
                                 " {2}\n".format(self.stack.name,
-                                                str((host, port)),
+                                                str(ha),
                                                 name))
                         console.terse(emsg)
                         #reject not the same estate because keys not match
                         self.nack(kind=raeting.pcktKinds.reject)
                         return
                     else: # check new (host, port) unique
-                        if self.stack.fetchRemoteByHostPort(host, port):
+                        if ha in self.stack.haRemotes:
                             emsg = ("Joinent {0}. Ha '{1}' unavailable for remote"
                                     " {2}\n".format(self.stack.name,
-                                                    str((host, port)),
+                                                    str(ha),
                                                     name))
                             console.terse(emsg)
                             #reject as (host, port) already in use by another estate
@@ -979,11 +980,11 @@ class Joinent(Correspondent):
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
 
-                self.remote.host = host
-                self.remote.port = port
                 self.remote.rsid = self.sid # fix this?
                 if name != self.remote.name:
                     self.stack.renameRemote(self.remote, new=name)
+                if ha != self.remote.ha:
+                    self.stack.readdressRemote(self.remote, new=ha)
 
             else: # reid == 0
                 if not self.stack.local.main: #not main so can't process vacuous join
@@ -993,7 +994,7 @@ class Joinent(Correspondent):
                     self.nack(kind=raeting.pcktKinds.refuse)
                     return
 
-                remote = self.stack.fetchRemoteByName(name)
+                remote = self.stack.nameRemotes.get(name)
                 if remote: # remote with same name is it the same one
                     if (verhex != remote.verfer.keyhex or
                             pubhex != remote.pubber.keyhex): # not same remote
@@ -1005,10 +1006,10 @@ class Joinent(Correspondent):
                         self.nack(kind=raeting.pcktKinds.reject)
                         return
 
-                other = self.stack.fetchRemoteByHostPort(host, port)
+                other = self.stack.haRemotes.get(ha)
                 if other and other is not remote: # (host, port) already in use by another estate
                     emsg = "Joinent {0}. Ha '{1}' unavailable for remote {2}\n".format(
-                                self.stack.name, str((host, port)), name)
+                                self.stack.name, str(ha), name)
                     console.terse(emsg)
                     self.remote = None
                     # reject (host, port) already in use by another estate
@@ -1127,10 +1128,10 @@ class Joinent(Correspondent):
                 self.stack.dumpLocal()
 
             self.remote.rsid = self.sid # fix this ?
-            self.remote.host = host
-            self.remote.port = port
             if name != self.remote.name:
                 self.stack.renameRemote(self.remote, new=name)
+            if ha != self.remote.ha:
+                self.stack.readdressRemote(self.remote, new=ha)
             #update session id and joined in complete method below
             duration = min(
                         max(self.redoTimeoutMin,

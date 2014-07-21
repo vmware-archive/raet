@@ -109,8 +109,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(remote.name, 'other')
         self.assertTrue(remote.uid in self.main.remotes)
-        self.assertTrue(remote.name in self.main.uids)
-        self.assertIs(self.main.remotes[self.main.uids[remote.name]], remote)
+        self.assertTrue(remote.name in self.main.nameRemotes)
+        self.assertTrue(remote.ha in self.main.haRemotes)
+        self.assertIs(self.main.nameRemotes[remote.name], remote)
+        self.assertIs(self.main.haRemotes[remote.ha], remote)
 
 
         self.assertEqual(self.other.name, 'other')
@@ -121,8 +123,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(remote.name, 'main')
         self.assertTrue(remote.uid in self.other.remotes)
-        self.assertTrue(remote.name in self.other.uids)
-        self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
+        self.assertTrue(remote.name in self.other.nameRemotes)
+        self.assertTrue(remote.ha in self.other.haRemotes)
+        self.assertIs(self.other.nameRemotes[remote.name], remote)
+        self.assertIs(self.other.haRemotes[remote.ha], remote)
 
         stacking.LaneStack.Pk = kind
 
@@ -197,9 +201,9 @@ class BasicTestCase(unittest.TestCase):
         Utility to send messages both ways
         '''
         for msg in mains:
-            main.transmit(msg, duid=main.uids[other.local.name])
+            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg,  duid=other.uids[main.local.name])
+            other.transmit(msg,  duid=other.fetchUidByName(main.local.name))
 
         self.serviceMainOther(main, other, duration=duration)
 
@@ -436,8 +440,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(remote.name, 'main')
         self.assertTrue(remote.uid in self.other.remotes)
-        self.assertTrue(remote.name in self.other.uids)
-        self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
+        self.assertTrue(remote.name in self.other.nameRemotes)
+        self.assertTrue(remote.ha in self.other.haRemotes)
+        self.assertIs(self.other.nameRemotes[remote.name], remote)
+        self.assertIs(self.other.haRemotes[remote.ha], remote)
 
         stacking.LaneStack.Pk = raeting.packKinds.pack
 
@@ -451,8 +457,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(remote.name, 'other')
         self.assertTrue(remote.uid in self.main.remotes)
-        self.assertTrue(remote.name in self.main.uids)
-        self.assertIs(self.main.remotes[self.main.uids[remote.name]], remote)
+        self.assertTrue(remote.name in self.main.nameRemotes)
+        self.assertTrue(remote.ha in self.main.haRemotes)
+        self.assertIs(self.main.nameRemotes[remote.name], remote)
+        self.assertIs(self.main.haRemotes[remote.ha], remote)
 
         self.main.rxMsgs = deque()
         self.other.rxMsgs = deque()
@@ -486,9 +494,12 @@ class BasicTestCase(unittest.TestCase):
         remote = self.other.remotes.values()[0]
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(remote.name, 'main')
+
         self.assertTrue(remote.uid in self.other.remotes)
-        self.assertTrue(remote.name in self.other.uids)
-        self.assertIs(self.other.remotes[self.other.uids[remote.name]], remote)
+        self.assertTrue(remote.name in self.other.nameRemotes)
+        self.assertTrue(remote.ha in self.other.haRemotes)
+        self.assertIs(self.other.nameRemotes[remote.name], remote)
+        self.assertIs(self.other.haRemotes[remote.ha], remote)
 
         stacking.LaneStack.Pk = raeting.packKinds.pack
 
@@ -512,12 +523,12 @@ class BasicTestCase(unittest.TestCase):
         self.bootstrap(kind=raeting.packKinds.json)
 
         for remote in self.main.remotes.values():
-            fetched = self.main.fetchRemoteFromHa(remote.ha)
+            fetched = self.main.haRemotes.get(remote.ha)
             self.assertIs(remote, fetched)
 
 
         for remote in self.other.remotes.values():
-            fetched = self.other.fetchRemoteFromHa(remote.ha)
+            fetched = self.other.haRemotes.get(remote.ha)
             self.assertIs(remote, fetched)
 
     def testRestart(self):
@@ -544,9 +555,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(other.local.ha.endswith('/lane/keep/other/apple.other.uxd'))
 
         main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
-        self.assertTrue('other' in main.uids)
+        self.assertTrue('other' in main.nameRemotes)
+        self.assertTrue(other.local.ha in main.haRemotes)
         other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
-        self.assertTrue('main' in other.uids)
+        self.assertTrue('main' in other.nameRemotes)
+        self.assertTrue(main.local.ha in other.haRemotes)
 
         src = ['mayor', main.local.name, None] # (house, yard, queue)
         dst = ['citizen', other.local.name, None]
@@ -565,16 +578,16 @@ class BasicTestCase(unittest.TestCase):
         self.messageMainOther(main,  other, mains, others, duration=1.0)
 
         self.assertEqual(len(main.remotes), 1)
-        self.assertTrue('other' in main.uids)
+        self.assertTrue('other' in main.nameRemotes)
         self.assertEqual(len(other.remotes), 1)
-        self.assertTrue('main' in other.uids)
+        self.assertTrue('main' in other.nameRemotes)
 
-        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
-        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
-        self.assertEqual(main.remotes[main.uids['other']].rsid,
-                         other.remotes[other.uids['main']].sid)
-        self.assertEqual(other.remotes[other.uids['main']].rsid,
-                         main.remotes[main.uids['other']].sid)
+        self.assertNotEqual(main.nameRemotes['other'].sid, 0)
+        self.assertNotEqual(other.nameRemotes['main'].sid, 0)
+        self.assertEqual(main.nameRemotes['other'].rsid,
+                         other.nameRemotes['main'].sid)
+        self.assertEqual(other.nameRemotes['main'].rsid,
+                         main.nameRemotes['other'].sid)
 
         #now close down  make new stacks
         main.server.close()
@@ -583,26 +596,25 @@ class BasicTestCase(unittest.TestCase):
         other = self.createLaneStack(data=otherData)
 
         main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
-        self.assertTrue('other' in main.uids)
+        self.assertTrue('other' in main.nameRemotes)
         other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
-        self.assertTrue('main' in other.uids)
+        self.assertTrue('main' in other.nameRemotes)
 
         self.assertEqual(len(main.remotes), 1)
-        self.assertTrue('other' in main.uids)
         self.assertEqual(len(other.remotes), 1)
-        self.assertTrue('main' in other.uids)
 
-        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
-        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
-        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
+        self.assertNotEqual(main.nameRemotes['other'].sid, 0)
+        self.assertNotEqual(other.nameRemotes['main'].sid, 0)
+        self.assertEqual(main.nameRemotes['other'].rsid, 0)
+        self.assertEqual(other.nameRemotes['main'].rsid, 0)
 
         self.messageMainOther(main, other, mains, others, duration=1.0)
 
-        self.assertEqual(main.remotes[main.uids['other']].rsid,
-                         other.remotes[other.uids['main']].sid)
-        self.assertEqual(other.remotes[other.uids['main']].rsid,
-                         main.remotes[main.uids['other']].sid)
+        self.assertEqual(main.nameRemotes['other'].rsid,
+                         other.nameRemotes['main'].sid)
+        self.assertEqual(other.nameRemotes['main'].rsid,
+                         main.nameRemotes['other'].sid)
+
 
         #now close down  make new stacks
         main.server.close()
@@ -611,19 +623,17 @@ class BasicTestCase(unittest.TestCase):
         other = self.createLaneStack(data=otherData)
 
         main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
-        self.assertTrue('other' in main.uids)
+        self.assertTrue('other' in main.nameRemotes)
         other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
-        self.assertTrue('main' in other.uids)
+        self.assertTrue('main' in other.nameRemotes)
 
         self.assertEqual(len(main.remotes), 1)
-        self.assertTrue('other' in main.uids)
         self.assertEqual(len(other.remotes), 1)
-        self.assertTrue('main' in other.uids)
 
-        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
-        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
-        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
+        self.assertNotEqual(main.nameRemotes['other'].sid, 0)
+        self.assertNotEqual(other.nameRemotes['main'].sid, 0)
+        self.assertEqual(main.nameRemotes['other'].rsid, 0)
+        self.assertEqual(other.nameRemotes['main'].rsid, 0)
 
         # now send paginated messages
         src = ['mayor', main.local.name, None] # (house, yard, queue)
@@ -648,10 +658,10 @@ class BasicTestCase(unittest.TestCase):
 
         self.messageMainOther(main, other, mains, others, duration=1.0)
 
-        self.assertEqual(main.remotes[main.uids['other']].rsid,
-                         other.remotes[other.uids['main']].sid)
-        self.assertEqual(other.remotes[other.uids['main']].rsid,
-                         main.remotes[main.uids['other']].sid)
+        self.assertEqual(main.nameRemotes['other'].rsid,
+                          other.nameRemotes['main'].sid)
+        self.assertEqual(other.nameRemotes['main'].rsid,
+                          main.nameRemotes['other'].sid)
 
         #now close down  make new stacks send page at a time
         main.server.close()
@@ -660,30 +670,28 @@ class BasicTestCase(unittest.TestCase):
         other = self.createLaneStack(data=otherData)
 
         main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
-        self.assertTrue('other' in main.uids)
+        self.assertTrue('other' in main.nameRemotes)
         other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
-        self.assertTrue('main' in other.uids)
+        self.assertTrue('main' in other.nameRemotes)
 
         self.assertEqual(len(main.remotes), 1)
-        self.assertTrue('other' in main.uids)
         self.assertEqual(len(other.remotes), 1)
-        self.assertTrue('main' in other.uids)
 
-        self.assertNotEqual(main.remotes[main.uids['other']].sid, 0)
-        self.assertNotEqual(other.remotes[other.uids['main']].sid, 0)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
-        self.assertEqual(other.remotes[other.uids['main']].rsid, 0)
+        self.assertNotEqual(main.nameRemotes['other'].sid, 0)
+        self.assertNotEqual(other.nameRemotes['main'].sid, 0)
+        self.assertEqual(main.nameRemotes['other'].rsid, 0)
+        self.assertEqual(other.nameRemotes['main'].rsid, 0)
 
         for msg in mains:
-            main.transmit(msg, duid=main.uids[other.local.name])
+            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg,  duid=other.uids[main.local.name])
+            other.transmit(msg, duid=other.fetchUidByName(main.local.name))
 
 
         self.assertEqual(len(main.txMsgs), 1)
         self.assertEqual(len(other.txMsgs), 1)
-        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
-        self.assertEqual(len(other.remotes[other.uids['main']].books), 0)
+        self.assertEqual(len(main.nameRemotes['other'].books), 0)
+        self.assertEqual(len(other.nameRemotes['main'].books), 0)
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.rxMsgs), 0)
 
@@ -694,19 +702,19 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.txMsgs), 0)
         self.assertEqual(len(main.txes), 1)
         self.assertEqual(len(other.txes), 1)
-        self.assertEqual(len(main.remotes[main.uids['other']].books), 1)
-        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.nameRemotes['other'].books), 1)
+        self.assertEqual(len(other.nameRemotes['main'].books), 1)
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.rxMsgs), 0)
 
-        self.assertEqual(main.remotes[main.uids['other']].rsid,
-                         other.remotes[other.uids['main']].sid)
-        self.assertEqual(other.remotes[other.uids['main']].rsid,
-                         main.remotes[main.uids['other']].sid)
+        self.assertEqual(main.nameRemotes['other'].rsid,
+                          other.nameRemotes['main'].sid)
+        self.assertEqual(other.nameRemotes['main'].rsid,
+                          main.nameRemotes['other'].sid)
 
         # save sids
-        mainSid = main.remotes[main.uids['other']].sid
-        otherSid = other.remotes[other.uids['main']].sid
+        mainSid = main.nameRemotes['other'].sid
+        otherSid = other.nameRemotes['main'].sid
 
         #now close down one side only, make new stack
         main.server.close()
@@ -714,35 +722,33 @@ class BasicTestCase(unittest.TestCase):
         main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
 
         self.assertEqual(len(main.remotes), 1)
-        self.assertTrue('other' in main.uids)
         self.assertEqual(len(other.remotes), 1)
-        self.assertTrue('main' in other.uids)
 
-        self.assertNotEqual(main.remotes[main.uids['other']].sid, mainSid)
-        self.assertEqual(other.remotes[other.uids['main']].sid, otherSid)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, 0)
-        self.assertEqual(other.remotes[other.uids['main']].rsid, mainSid)
+        self.assertNotEqual(main.nameRemotes['other'].sid, mainSid)
+        self.assertEqual(other.nameRemotes['main'].sid, otherSid)
+        self.assertEqual(main.nameRemotes['other'].rsid, 0)
+        self.assertEqual(other.nameRemotes['main'].rsid, mainSid)
 
         self.assertEqual(len(main.txes), 0)
         self.assertEqual(len(other.txes), 1)
-        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
-        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.nameRemotes['other'].books), 0)
+        self.assertEqual(len(other.nameRemotes['main'].books), 1)
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.rxMsgs), 0)
 
         # Now remaining page from other (there should be no pages from main)
         self.serviceOneAll(main, other)
 
-        self.assertEqual(main.remotes[main.uids['other']].rsid,
-                         other.remotes[other.uids['main']].sid)
-        self.assertNotEqual(other.remotes[other.uids['main']].rsid,
-                         main.remotes[main.uids['other']].sid)
+        self.assertEqual(main.nameRemotes['other'].rsid,
+                          other.nameRemotes['main'].sid)
+        self.assertNotEqual(other.nameRemotes['main'].rsid,
+                          main.nameRemotes['other'].sid)
 
 
         self.assertEqual(len(main.txes), 0)
         self.assertEqual(len(other.txes), 0)
-        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
-        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.nameRemotes['other'].books), 0)
+        self.assertEqual(len(other.nameRemotes['main'].books), 1)
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.rxMsgs), 0)
         self.assertEqual(main.stats['missed_page'], 1)
@@ -750,18 +756,19 @@ class BasicTestCase(unittest.TestCase):
 
         #send a new message from main and reap stale book from other
         for msg in mains:
-            main.transmit(msg, duid=main.uids[other.local.name])
+            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
 
         self.serviceMainOther(main, other, duration=1.0)
 
-        self.assertEqual(main.remotes[main.uids['other']].rsid,
-                         other.remotes[other.uids['main']].sid)
-        self.assertEqual(other.remotes[other.uids['main']].rsid,
-                         main.remotes[main.uids['other']].sid)
+        self.assertEqual(main.nameRemotes['other'].rsid,
+                          other.nameRemotes['main'].sid)
+        self.assertEqual(other.nameRemotes['main'].rsid,
+                          main.nameRemotes['other'].sid)
         self.assertEqual(len(main.txes), 0)
         self.assertEqual(len(other.txes), 0)
-        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
-        self.assertEqual(len(other.remotes[other.uids['main']].books), 0)
+        self.assertEqual(len(main.nameRemotes['other'].books), 0)
+        self.assertEqual(len(other.nameRemotes['main'].books), 0)
+        self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.rxMsgs), 1)
         self.assertEqual(other.stats['stale_book'], 1)
@@ -776,22 +783,22 @@ class BasicTestCase(unittest.TestCase):
 
         other.rxMsgs.pop()
         for msg in mains:
-            main.transmit(msg, duid=main.uids[other.local.name])
+            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg,  duid=other.uids[main.local.name])
+            other.transmit(msg, duid=other.fetchUidByName(main.local.name))
 
         self.serviceOneAll(main, other)
 
-        self.assertEqual(main.remotes[main.uids['other']].rsid,
-                         other.remotes[other.uids['main']].sid)
-        self.assertEqual(other.remotes[other.uids['main']].rsid,
-                         main.remotes[main.uids['other']].sid)
+        self.assertEqual(main.nameRemotes['other'].rsid,
+                          other.nameRemotes['main'].sid)
+        self.assertEqual(other.nameRemotes['main'].rsid,
+                          main.nameRemotes['other'].sid)
 
 
         self.assertEqual(len(main.txes), 1)
         self.assertEqual(len(other.txes), 1)
-        self.assertEqual(len(main.remotes[main.uids['other']].books), 1)
-        self.assertEqual(len(other.remotes[other.uids['main']].books), 1)
+        self.assertEqual(len(main.nameRemotes['other'].books), 1)
+        self.assertEqual(len(other.nameRemotes['main'].books), 1)
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.rxMsgs), 0)
 
@@ -815,24 +822,24 @@ class BasicTestCase(unittest.TestCase):
 
         mainSid = main.local.nextSid()
         otherSid = other.local.nextSid()
-        main.remotes[main.uids['other']].sid = mainSid
-        other.remotes[other.uids['main']].sid = otherSid
+        main.nameRemotes['other'].sid = mainSid
+        other.nameRemotes['main'].sid = otherSid
         for msg in mains:
-            main.transmit(msg, duid=main.uids[other.local.name])
+            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg,  duid=other.uids[main.local.name])
+            other.transmit(msg,  duid=other.fetchUidByName(main.local.name))
 
         self.serviceOneAll(main, other)
 
-        self.assertEqual(main.remotes[main.uids['other']].sid, mainSid)
-        self.assertEqual(other.remotes[other.uids['main']].sid, otherSid)
-        self.assertEqual(main.remotes[main.uids['other']].rsid, otherSid)
-        self.assertEqual(other.remotes[other.uids['main']].rsid, mainSid)
+        self.assertEqual(main.nameRemotes['other'].sid, mainSid)
+        self.assertEqual(other.nameRemotes['main'].sid, otherSid)
+        self.assertEqual(main.nameRemotes['other'].rsid, otherSid)
+        self.assertEqual(other.nameRemotes['main'].rsid, mainSid)
 
         self.assertEqual(len(main.txes), 0)
         self.assertEqual(len(other.txes), 0)
-        self.assertEqual(len(main.remotes[main.uids['other']].books), 0)
-        self.assertEqual(len(other.remotes[other.uids['main']].books), 0)
+        self.assertEqual(len(main.nameRemotes['other'].books), 0)
+        self.assertEqual(len(other.nameRemotes['main'].books), 0)
         self.assertEqual(len(main.rxMsgs), 1)
         self.assertEqual(len(other.rxMsgs), 1)
         self.assertEqual(main.stats['stale_book'], 1)

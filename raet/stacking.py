@@ -71,9 +71,9 @@ class Stack(object):
         if self.local.main is None and main is not None:
             self.local.main = True if main else False
 
-        self.remotes = odict() # remotes indexed by uid
-        self.uids = odict() # remote uids indexed by name
-        self.names = odict() # remote names indexed by uid
+        self.remotes = self.uidRemotes = odict() # remotes indexed by uid
+        self.nameRemotes = odict() # remotes indexed by name
+        self.haRemotes = odict() # remotes indexed by ha host address
 
         self.bufcnt = bufcnt
         if not server:
@@ -118,20 +118,23 @@ class Stack(object):
 
     def addRemote(self, remote):
         '''
-        Add a remote  to .remotes
+        Add a remote to indexes
         '''
         uid = remote.uid
         # allow for condition where local.uid == 0 and remote.uid == 0
-        if uid in self.remotes or (uid and uid == self.local.uid):
+        if uid in self.uidRemotes or (uid and uid == self.local.uid):
             emsg = "Cannot add remote at uid '{0}', alreadys exists".format(uid)
             raise raeting.StackError(emsg)
-        remote.stack = self
-        self.remotes[uid] = remote
-        if remote.name in self.uids or remote.name == self.local.name:
-            emsg = "Cannot add remote with name '{0}', alreadys exists".format(remote.name)
+        if remote.name in  self.nameRemotes or remote.name == self.local.name:
+            emsg = "Cannot add remote at name '{0}', alreadys exists".format(remote.name)
             raise raeting.StackError(emsg)
-        self.uids[remote.name] = remote.uid
-        self.names[remote.uid] = remote.name
+        if remote.ha in self.haRemotes or remote.ha == self.local.ha:
+            emsg = "Cannot add remote at ha '{0}', alreadys exists".format(remote.ha)
+            raise raeting.StackError(emsg)
+        remote.stack = self
+        self.uidRemotes[uid] = remote
+        self.nameRemotes[remote.name] = remote
+        self.haRemotes[remote.ha] = remote
 
     def moveRemote(self, remote, new):
         '''
@@ -140,27 +143,22 @@ class Stack(object):
         '''
         old = remote.uid
 
-        if new in self.remotes or new == self.local.uid:
+        if new in self.uidRemotes or new == self.local.uid:
             emsg = "Cannot move, remote to '{0}', already exists".format(new)
             raise raeting.StackError(emsg)
 
-        if old not in self.remotes:
+        if old not in self.uidRemotes:
             emsg = "Cannot move remote at '{0}', does not exist".format(old)
             raise raeting.StackError(emsg)
 
-        if remote is not self.remotes[old]:
+        if remote is not self.uidRemotes[old]:
             emsg = "Cannot move remote at '{0}', not identical".format(old)
             raise raeting.StackError(emsg)
 
-
         remote.uid = new
-        self.uids[remote.name] = new
-        index = self.remotes.keys().index(old)
-        del self.remotes[old]
-        self.remotes.insert(index, remote.uid, remote)
-        index = self.names.keys().index(old)
-        del self.names[old]
-        self.names.insert(index, remote.uid, remote.name)
+        index = self.uidRemotes.keys().index(old)
+        del self.uidRemotes[old]
+        self.uidRemotes.insert(index, new, remote)
 
     def renameRemote(self, remote, new):
         '''
@@ -168,40 +166,62 @@ class Stack(object):
         '''
         old = remote.name
         if new != old:
-            if new in self.uids or new == self.local.name:
+            if new in self.nameRemotes or new == self.local.name:
                 emsg = "Cannot rename remote to '{0}', already exists".format(new)
                 raise raeting.StackError(emsg)
 
-            if old not in self.uids:
+            if old not in self.nameRemotes:
                 emsg = "Cannot rename remote '{0}', does not exist".format(old)
                 raise raeting.StackError(emsg)
 
-            if remote is not self.remotes[self.uids[old]]:
+            if remote is not self.nameRemotes[old]:
                 emsg = "Cannot rename remote '{0}', not identical".format(old)
                 raise raeting.StackError(emsg)
 
             remote.name = new
-            self.names[remote.uid] = new
-            index = self.uids.keys().index(old)
-            del self.uids[old]
-            self.uids.insert(index, remote.name, remote.uid)
+            index = self.nameRemotes.keys().index(old)
+            del self.nameRemotes[old]
+            self.nameRemotes.insert(index, new, remote)
+
+    def readdressRemote(self, remote, new):
+        '''
+        readdress remote with old remote.ha to new ha but keep same index
+        '''
+        old = remote.ha
+        if new != old:
+            if new in self.haRemotes or new == self.local.ha:
+                emsg = "Cannot readdress remote to '{0}', already exists".format(new)
+                raise raeting.StackError(emsg)
+
+            if old not in self.haRemotes:
+                emsg = "Cannot rename remote '{0}', does not exist".format(old)
+                raise raeting.StackError(emsg)
+
+            if remote is not self.haRemotes[old]:
+                emsg = "Cannot rename remote '{0}', not identical".format(old)
+                raise raeting.StackError(emsg)
+
+            remote.ha = new
+            index = self.haRemotes.keys().index(old)
+            del self.haRemotes[old]
+            self.haRemotes.insert(index, new, remote)
 
     def removeRemote(self, remote):
         '''
-        Remove remote at key remote.uid
+        Remove remote from all remotes dicts
         '''
         uid = remote.uid
-        if uid not in self.remotes:
+        if uid not in self.uidRemotes:
             emsg = "Cannot remove remote '{0}', does not exist".format(uid)
             raise raeting.StackError(emsg)
 
-        if remote is not self.remotes[uid]:
+        if remote is not self.uidRemotes[uid]:
             emsg = "Cannot remove remote '{0}', not identical".format(uid)
             raise raeting.StackError(emsg)
 
-        del self.remotes[uid]
-        del self.uids[remote.name]
-        del self.names[remote.uid]
+        del self.uidRemotes[uid]
+        del self.nameRemotes[remote.name]
+        del self.haRemotes[remote.ha]
 
     def removeAllRemotes(self):
         '''
@@ -211,12 +231,13 @@ class Stack(object):
         for remote in remotes:
             self.removeRemote(remote)
 
-    def fetchRemoteByName(self, name):
+    def fetchUidByName(self, name):
         '''
         Search for remote with matching name
         Return remote if found Otherwise return None
         '''
-        return self.remotes.get(self.uids.get(name))
+        remote = self.nameRemotes.get(name)
+        return (remote.uid if remote else None)
 
     def incStat(self, key, delta=1):
         '''

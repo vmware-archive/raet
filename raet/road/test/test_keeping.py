@@ -199,9 +199,7 @@ class BasicTestCase(unittest.TestCase):
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
-        #stack.removeAllRemotes()
-        stack.remotes = odict()
-        stack.uids = odict()
+        stack.removeAllRemotes(clear=False)
         stack.restoreRemotes()
         self.assertDictEqual(stack.remotes, {})
 
@@ -227,14 +225,12 @@ class BasicTestCase(unittest.TestCase):
                                               period=stack.period,
                                               offset=stack.offset))
 
-        self.assertEqual(len(stack.remotes), len(stack.names))
-        self.assertEqual(len(stack.remotes), len(stack.uids))
+        self.assertEqual(len(stack.remotes), len(stack.nameRemotes))
+        self.assertEqual(len(stack.remotes), len(stack.haRemotes))
         for uid, remote in stack.remotes.items():
-            self.assertEqual(stack.names[remote.uid], remote.name)
-            self.assertEqual(stack.uids[remote.name], remote.uid)
-            self.assertEqual(stack.remotes[uid].name, stack.names[uid])
-            self.assertEqual(stack.remotes[uid].uid, stack.uids[remote.name])
-
+            self.assertEqual(stack.nameRemotes[remote.name], remote)
+            self.assertEqual(stack.haRemotes[remote.ha], remote)
+            self.assertEqual(stack.uidRemotes[remote.uid], remote)
 
         stack.dumpRemotes()
         for remote in stack.remotes.values():
@@ -266,8 +262,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         # stack method
-        stack.remotes = odict()
-        stack.uids = odict()
+        stack.removeAllRemotes(clear=False)
         stack.restoreRemotes()
         remoteKeepData = odict()
         for remote in stack.remotes.values():
@@ -482,15 +477,11 @@ class BasicTestCase(unittest.TestCase):
                 main.keep.acceptRemote(remote)
 
         #now reload from keep data
-        #main.removeAllRemotes()
-        main.remotes = odict()
-        main.uids = odict()
+        main.removeAllRemotes(clear=False)
         main.restoreRemotes()
         main.restoreLocal()
 
-        #other.removeAllRemotes()
-        other.remotes = odict()
-        other.uids = odict()
+        other.removeAllRemotes(clear=False)
         other.restoreRemotes()
         other.restoreLocal()
 

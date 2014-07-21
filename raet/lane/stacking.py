@@ -91,32 +91,6 @@ class LaneStack(stacking.Stack):
                             bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
-    def fetchRemoteFromHa(self, ha):
-        '''
-        Return the remote yard associated with the UXD host address filepath.
-        If not found return None
-        '''
-        head, tail = os.path.split(ha)
-        if not tail:
-            emsg = "Invalid format for ha '{0}'. No file\n".format(ha)
-            console.concise(emsg)
-            return None
-
-        root, ext = os.path.splitext(tail)
-
-        if ext != ".uxd":
-            emsg = "Invalid format for ha '{0}'. Ext not 'uxd'\n".format(ha)
-            console.concise(emsg)
-            return None
-
-        lanename, sep, yardname = root.rpartition('.')
-        if not sep:
-            emsg = "Invalid format for ha '{0}'. No lane.name\n".format(ha)
-            console.concise(emsg)
-            return None
-
-        return self.fetchRemoteByName(yardname)
-
     def _handleOneRx(self):
         '''
         Handle on message from .rxes deque
@@ -132,14 +106,14 @@ class LaneStack(stacking.Stack):
             console.terse(str(ex) + '\n')
             self.incStat('invalid_page_header')
 
-        dn = page.data['dn']
+        dn = page.data['dn'] # destination yard name
         if dn != self.local.name:
             emsg = "Invalid destination yard name = {0}. Dropping packet...\n".format(dn)
             console.concise( emsg)
             self.incStat('invalid_destination')
 
-        sn = page.data['sn']
-        if sn not in self.uids:
+        sn = page.data['sn'] # source yard name
+        if sn not in self.nameRemotes:
             if not self.accept:
                 emsg = "Unaccepted source yard name = {0}. Dropping packet...\n".format(sn)
                 console.terse(emsg)
@@ -153,7 +127,7 @@ class LaneStack(stacking.Stack):
                 self.incStat('invalid_source_yard')
                 return
 
-        remote = self.remotes[self.uids[sn]]
+        remote = self.nameRemotes[sn]
         si = page.data['si']
 
         if si != remote.rsid:
@@ -236,7 +210,7 @@ class LaneStack(stacking.Stack):
                 ta, self.local.ha, ex))
             if ex.errno == errno.ECONNREFUSED or ex.errno == errno.ENOENT:
                 self.incStat("stale_transmit_yard")
-                yard = self.fetchRemoteFromHa(ta)
+                yard = self.haRemotes.get(ta)
                 if yard:
                     self.removeRemote(yard)
                     console.terse("Reaped yard {0}\n".format(yard.name))
