@@ -305,8 +305,6 @@ class BasicTestCase(unittest.TestCase):
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
-
-
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
