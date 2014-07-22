@@ -170,7 +170,6 @@ class Keep(object):
         '''
         Clear the local directory
         '''
-        # shutil.rmtree
         if os.path.exists(self.localdirpath):
             os.rmdir(self.localdirpath)
 
@@ -185,8 +184,6 @@ class Keep(object):
         '''
         Dump the remote data to file
         '''
-        #filepath = os.path.join(self.remotedirpath,
-                #"{0}.{1}.{2}".format(self.prefix, uid, self.ext))
         filepath = os.path.join(self.remotedirpath,
                 "{0}.{1}.{2}".format(self.prefix, name, self.ext))
 
@@ -203,8 +200,6 @@ class Keep(object):
         '''
         Load and Return the data from the remote file
         '''
-        #filepath = os.path.join(self.remotedirpath,
-                        #"{0}.{1}.{2}".format(self.prefix, uid, self.ext))
         filepath = os.path.join(self.remotedirpath,
                 "{0}.{1}.{2}".format(self.prefix, name, self.ext))
         if not os.path.exists(filepath):
@@ -215,8 +210,6 @@ class Keep(object):
         '''
         Clear data from the remote data file
         '''
-        #filepath = os.path.join(self.remotedirpath,
-                        #"{0}.{1}.{2}".format(self.prefix, uid, self.ext))
         filepath = os.path.join(self.remotedirpath,
                 "{0}.{1}.{2}".format(self.prefix, name, self.ext))
         if os.path.exists(filepath):
@@ -226,7 +219,6 @@ class Keep(object):
         '''
         Clear the remote directory
         '''
-        # shutil.rmtree
         if os.path.exists(self.remotedirpath):
             os.rmdir(self.remotedirpath)
 

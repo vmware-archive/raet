@@ -224,19 +224,22 @@ class RoadStack(stacking.KeepStack):
         '''
         local = None
         keepData = self.keep.loadLocalData()
-        if (keepData and self.keep.verifyLocalData(keepData)):
-            local = estating.LocalEstate(stack=self,
-                                          eid=keepData['uid'],
-                                          name=keepData['name'],
-                                          main=keepData['main'],
-                                          ha=keepData['ha'],
-                                          sid=keepData['sid'],
-                                          neid=keepData['neid'],
-                                          sigkey=keepData['sighex'],
-                                          prikey=keepData['prihex'],
-                                          role=keepData['role'])
-            self.keep.auto = keepData['auto']
-            self.local = local
+        if keepData:
+            if self.keep.verifyLocalData(keepData):
+                local = estating.LocalEstate(stack=self,
+                                              eid=keepData['uid'],
+                                              name=keepData['name'],
+                                              main=keepData['main'],
+                                              ha=keepData['ha'],
+                                              sid=keepData['sid'],
+                                              neid=keepData['neid'],
+                                              sigkey=keepData['sighex'],
+                                              prikey=keepData['prihex'],
+                                              role=keepData['role'])
+                self.keep.auto = keepData['auto']
+                self.local = local
+            else:
+                self.keep.clearLocalData()
         return local
 
     def restoreRemote(self, name):
@@ -246,21 +249,24 @@ class RoadStack(stacking.KeepStack):
         '''
         remote = None
         keepData = self.keep.loadRemoteData(name)
-        if keepData and self.keep.verifyRemoteData(keepData):
-            remote = estating.RemoteEstate(stack=self,
-                                           eid=keepData['uid'],
-                                           name=keepData['name'],
-                                           ha=keepData['ha'],
-                                           sid=keepData['sid'],
-                                           joined=keepData['joined'],
-                                           acceptance=keepData['acceptance'],
-                                           verkey=keepData['verhex'],
-                                           pubkey=keepData['pubhex'],
-                                           period=self.period,
-                                           offset=self.offset,
-                                           interim=self.interim,
-                                           role=keepData['role'])
-            self.addRemote(remote)
+        if keepData:
+            if self.keep.verifyRemoteData(keepData):
+                remote = estating.RemoteEstate(stack=self,
+                                               eid=keepData['uid'],
+                                               name=keepData['name'],
+                                               ha=keepData['ha'],
+                                               sid=keepData['sid'],
+                                               joined=keepData['joined'],
+                                               acceptance=keepData['acceptance'],
+                                               verkey=keepData['verhex'],
+                                               pubkey=keepData['pubhex'],
+                                               period=self.period,
+                                               offset=self.offset,
+                                               interim=self.interim,
+                                               role=keepData['role'])
+                self.addRemote(remote)
+            else:
+                self.keep.clearRemoteData(name)
         return remote
 
     def restoreRemotes(self):
@@ -268,25 +274,25 @@ class RoadStack(stacking.KeepStack):
         Load .remotes from valid keep  data if any
         '''
         keeps = self.keep.loadAllRemoteData()
-        if not keeps:
-            return
-        for keepData in keeps.values():
-            if not self.keep.verifyRemoteData(keepData):
-                continue
-            remote = estating.RemoteEstate(stack=self,
-                                           eid=keepData['uid'],
-                                           name=keepData['name'],
-                                           ha=keepData['ha'],
-                                           sid=keepData['sid'],
-                                           joined=keepData['joined'],
-                                           acceptance=keepData['acceptance'],
-                                           verkey=keepData['verhex'],
-                                           pubkey=keepData['pubhex'],
-                                           period=self.period,
-                                           offset=self.offset,
-                                           interim=self.interim,
-                                           role=keepData['role'])
-            self.addRemote(remote)
+        if keeps:
+            for name, keepData in keeps.items():
+                if self.keep.verifyRemoteData(keepData):
+                    remote = estating.RemoteEstate(stack=self,
+                                                   eid=keepData['uid'],
+                                                   name=keepData['name'],
+                                                   ha=keepData['ha'],
+                                                   sid=keepData['sid'],
+                                                   joined=keepData['joined'],
+                                                   acceptance=keepData['acceptance'],
+                                                   verkey=keepData['verhex'],
+                                                   pubkey=keepData['pubhex'],
+                                                   period=self.period,
+                                                   offset=self.offset,
+                                                   interim=self.interim,
+                                                   role=keepData['role'])
+                    self.addRemote(remote)
+                else:
+                    self.keep.clearRemoteData(name)
 
     def clearRemoteKeeps(self):
         '''

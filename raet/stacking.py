@@ -619,13 +619,16 @@ class KeepStack(Stack):
         '''
         local = None
         data = self.keep.loadLocalData()
-        if data and self.keep.verifyLocalData(data):
-            local = lotting.LocalLot(stack=self,
-                                     uid=data['uid'],
-                                     name=data['name'],
-                                     ha=data['ha'],
-                                     sid = data['sid'])
-            self.local = local
+        if data:
+            if self.keep.verifyLocalData(data):
+                local = lotting.LocalLot(stack=self,
+                                         uid=data['uid'],
+                                         name=data['name'],
+                                         ha=data['ha'],
+                                         sid = data['sid'])
+                self.local = local
+            else:
+                self.keep.clearLocalData()
         return local
 
     def clearLocalKeep(self):
@@ -657,21 +660,7 @@ class KeepStack(Stack):
         '''
         remote = None
         data = self.keep.loadRemoteData(name)
-        if data and self.keep.verifyRemoteData(data):
-            remote = lotting.Lot(stack=self,
-                              uid=data['uid'],
-                              name=data['name'],
-                              ha=data['ha'],
-                              sid=data['sid'])
-            self.addRemote(remote)
-        return remote
-
-    def restoreRemotes(self):
-        '''
-        Load and add remote for each remote file
-        '''
-        datadict = self.keep.loadAllRemoteData()
-        for data in datadict.values():
+        if data:
             if self.keep.verifyRemoteData(data):
                 remote = lotting.Lot(stack=self,
                                   uid=data['uid'],
@@ -679,6 +668,26 @@ class KeepStack(Stack):
                                   ha=data['ha'],
                                   sid=data['sid'])
                 self.addRemote(remote)
+            else:
+                self.keep.clearRemoteData(name)
+        return remote
+
+    def restoreRemotes(self):
+        '''
+        Load and add remote for each remote file
+        '''
+        keeps = self.keep.loadAllRemoteData()
+        if keeps:
+            for name, data in keeps.items():
+                if self.keep.verifyRemoteData(data):
+                    remote = lotting.Lot(stack=self,
+                                      uid=data['uid'],
+                                      name=data['name'],
+                                      ha=data['ha'],
+                                      sid=data['sid'])
+                    self.addRemote(remote)
+                else:
+                    self.keep.clearRemoteData(name)
 
     def clearRemote(self, remote):
         '''
