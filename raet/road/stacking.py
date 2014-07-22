@@ -46,24 +46,24 @@ class RoadStack(stacking.KeepStack):
     methods.
 
     name
-        The name to give the stack, if no name is given it will be
+        The name to give the stack and local estate, if no name is given it will be
         automatically assigned
     main
-        <Incomplete Doc>
+        Flag indicating if the local estate is a main estate on the road
     keep
-        Pass in a keep object, this object can define how stack data is
+        Pass in a keep object, this object can define how stack data
         including keys is persisted to disk
     dirpath
-        The location on the filesystem to use for stack cacheing
+        The location on the filesystem to use for stack caching
     eid
-        The estate id, if None is specified a default will be assigned
+        The local estate id, if None is specified a default will be assigned
     ha
-        The host address, this is a tuple of (network_addr, port) that will
+        The local estate host address, this is a tuple of (network_addr, port) that will
         be bound to by the stack
     bufcnt
         The number of messages to buffer, defaults to 2
     auto
-        <Incomplete Doc>
+        Flag indicating if by default keys should be auto accepted.
     period
         The default iteration timeframe to use for the background management
         of the presence system. Defaults to 1.0
@@ -71,6 +71,8 @@ class RoadStack(stacking.KeepStack):
         The default offset to the start of period
     interim
         The default timeout to reap a dead remote
+    role
+        The local estate role identifier for key management
     '''
     Hk = raeting.headKinds.raet # stack default
     Bk = raeting.bodyKinds.json # stack default
@@ -98,6 +100,7 @@ class RoadStack(stacking.KeepStack):
                  period=None,
                  offset=None,
                  interim=None,
+                 role=None,
                  **kwa
                  ):
         '''
@@ -113,7 +116,8 @@ class RoadStack(stacking.KeepStack):
                                               name=name,
                                               eid=eid,
                                               main=main,
-                                              ha=ha)
+                                              ha=ha,
+                                              role=role)
         local.stack = self
         if local.main is None and main is not None:
             local.main = True if main else False
