@@ -3,6 +3,16 @@ CHANGE LOG
 -------------------
 
 ---------
+20140722
+---------
+
+v0.2.06
+
+If verify keep fails then clear the keep file. This autoclears cache
+when upgrading format of keep file.
+Also more support for role.
+
+---------
 20140721
 ---------
 
