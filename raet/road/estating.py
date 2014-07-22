@@ -35,6 +35,7 @@ class Estate(lotting.Lot):
                  tid=0,
                  host="",
                  port=raeting.RAET_PORT,
+                 role=None,
                  **kwa):
         '''
         Setup Estate instance
@@ -55,6 +56,7 @@ class Estate(lotting.Lot):
         else:
             host = self.host
         self.fqdn = socket.getfqdn(host)
+        self.role = role if role is not None else self.name
 
     @property
     def uid(self):

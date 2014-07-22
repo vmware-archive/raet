@@ -169,7 +169,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         validLocalKeepData =  odict([
                                         ('uid', 1),
-                                        ('name', 'main'),
+                                        ('name', mainData['name']),
                                         ('ha', ['0.0.0.0', 7530]),
                                         ('main', True),
                                         ('sid', 0),
@@ -177,6 +177,7 @@ class BasicTestCase(unittest.TestCase):
                                         ('sighex', mainData['sighex']),
                                         ('prihex', mainData['prihex']),
                                         ('auto', mainData['auto']),
+                                        ('role', mainData['name'])
                                     ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -196,6 +197,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
                                 ('auto', stack.keep.auto),
+                                ('role', stack.local.role)
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -248,7 +250,8 @@ class BasicTestCase(unittest.TestCase):
                                      'joined': None,
                                      'acceptance': None,
                                      'verhex': other1Data['verhex'],
-                                     'pubhex': other1Data['pubhex']},
+                                     'pubhex': other1Data['pubhex'],
+                                     'role': other1Data['name'],},
                                 'other2':
                                     {'uid': 3,
                                      'name': other2Data['name'],
@@ -257,7 +260,8 @@ class BasicTestCase(unittest.TestCase):
                                      'joined': None,
                                      'acceptance': None,
                                      'verhex': other2Data['verhex'],
-                                     'pubhex': other2Data['pubhex']}
+                                     'pubhex': other2Data['pubhex'],
+                                     'role': other2Data['name'],}
                                 }
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -275,6 +279,7 @@ class BasicTestCase(unittest.TestCase):
                                                 ('acceptance', remote.acceptance),
                                                 ('verhex', remote.verfer.keyhex),
                                                 ('pubhex', remote.pubber.keyhex),
+                                                ('role', remote.role),
                                               ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -295,6 +300,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
                                 ('auto', stack.keep.auto),
+                                ('role', stack.local.role),
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -312,6 +318,7 @@ class BasicTestCase(unittest.TestCase):
                                                 ('acceptance', remote.acceptance),
                                                 ('verhex', remote.verfer.keyhex),
                                                 ('pubhex', remote.pubber.keyhex),
+                                                ('role', remote.role),
                                                ])
             validRemoteKeepData[remote.name]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)

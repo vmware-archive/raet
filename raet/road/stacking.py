@@ -233,7 +233,8 @@ class RoadStack(stacking.KeepStack):
                                           sid=keepData['sid'],
                                           neid=keepData['neid'],
                                           sigkey=keepData['sighex'],
-                                          prikey=keepData['prihex'],)
+                                          prikey=keepData['prihex'],
+                                          role=keepData['role'])
             self.keep.auto = keepData['auto']
             self.local = local
         return local
@@ -257,7 +258,8 @@ class RoadStack(stacking.KeepStack):
                                            pubkey=keepData['pubhex'],
                                            period=self.period,
                                            offset=self.offset,
-                                           interim=self.interim)
+                                           interim=self.interim,
+                                           role=keepData['role'])
             self.addRemote(remote)
         return remote
 
@@ -282,7 +284,8 @@ class RoadStack(stacking.KeepStack):
                                            pubkey=keepData['pubhex'],
                                            period=self.period,
                                            offset=self.offset,
-                                           interim=self.interim)
+                                           interim=self.interim,
+                                           role=keepData['role'])
             self.addRemote(remote)
 
     def clearRemoteKeeps(self):

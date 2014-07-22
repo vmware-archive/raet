@@ -39,8 +39,10 @@ class RoadKeep(keeping.Keep):
                     estate.name.ext
                     estate.name.ext
     '''
-    LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid', 'sighex', 'prihex', 'auto']
-    RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined', 'acceptance', 'verhex', 'pubhex']
+    LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid',
+                         'sighex','prihex', 'auto', 'role']
+    RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined',
+                         'acceptance', 'verhex', 'pubhex', 'role']
     Auto = False #auto accept
 
     def __init__(self, prefix='estate', auto=None, **kwa):
@@ -64,6 +66,7 @@ class RoadKeep(keeping.Keep):
                         ('sighex', local.signer.keyhex),
                         ('prihex', local.priver.keyhex),
                         ('auto', self.auto),
+                        ('role', local.role),
                     ])
         if self.verifyLocalData(data):
             self.dumpLocalData(data)
@@ -81,6 +84,7 @@ class RoadKeep(keeping.Keep):
                         ('acceptance', remote.acceptance),
                         ('verhex', remote.verfer.keyhex),
                         ('pubhex', remote.pubber.keyhex),
+                        ('role', remote.role),
                     ])
         if self.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.name)
