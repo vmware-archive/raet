@@ -6,6 +6,14 @@ CHANGE LOG
 20140722
 ---------
 
+v0.2.07
+
+bugfix
+
+---------
+20140722
+---------
+
 v0.2.06
 
 If verify keep fails then clear the keep file. This autoclears cache
