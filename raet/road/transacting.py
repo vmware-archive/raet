@@ -1218,10 +1218,11 @@ class Joinent(Correspondent):
         Send nack to join request.
         Sometimes nack occurs without remote being added so have to nack using ha.
         '''
-        ha = None
         if not self.remote or self.remote.uid not in self.stack.remotes:
             self.txData.update( dh=self.rxPacket.data['sh'], dp=self.rxPacket.data['sp'],)
             ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
+        else:
+            ha = self.remote.ha
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
