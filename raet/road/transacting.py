@@ -463,7 +463,8 @@ class Joiner(Initiator):
         self.add(self.index)
         body = odict([('name', self.stack.local.name),
                       ('verhex', self.stack.local.signer.verhex),
-                      ('pubhex', self.stack.local.priver.pubhex)])
+                      ('pubhex', self.stack.local.priver.pubhex),
+                      ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.request,
                                     embody=body,
@@ -564,6 +565,14 @@ class Joiner(Initiator):
             self.remove(self.txPacket.index)
             return
 
+        role = body.get('role')
+        if not role:
+            emsg = "Missing remote role in accept packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_accept')
+            self.remove(self.txPacket.index)
+            return
+
         # we are assuming for now that the joiner cannot talk peer to peer only
         # to main estate otherwise we need to ensure unique eid, name, and ha on road
 
@@ -583,7 +592,7 @@ class Joiner(Initiator):
             if status == raeting.acceptances.pending: # pending so ignore
                 return # forces retry of accept packet so may be accepted later
 
-        else: #not main accepted
+        else: #not main so accepted
             if self.remote.uid != reid: #change id of remote estate
                 try:
                     self.stack.moveRemote(self.remote, new=reid)
@@ -602,10 +611,12 @@ class Joiner(Initiator):
                     self.remove(self.txPacket.index)
                     return
 
+            if self.remote.role != role:
+                self.remote.role = role # change role of local estate
+
             if self.stack.local.uid != leid:
                 self.stack.local.uid = leid # change id of local estate
                 self.stack.dumpLocal() # only dump if changed
-
 
         self.remote.replaceStaleInitiators(renew=(self.sid==0))
         self.remote.nextSid() # start new session
@@ -894,6 +905,14 @@ class Joinent(Correspondent):
             self.remove(self.rxPacket.index)
             return
 
+        role = body.get('role')
+        if not role:
+            emsg = "Missing remote role in join packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_join')
+            self.remove(self.rxPacket.index)
+            return
+
         host = data['sh']
         port = data['sp']
         self.txData.update( dh=host, dp=port,) # responses use received host port
@@ -985,6 +1004,8 @@ class Joinent(Correspondent):
                     self.stack.renameRemote(self.remote, new=name)
                 if ha != self.remote.ha:
                     self.stack.readdressRemote(self.remote, new=ha)
+                if role != self.remote.role:
+                    self.remote.role = role
 
             else: # reid == 0
                 if not self.stack.local.main: #not main so can't process vacuous join
@@ -1026,7 +1047,8 @@ class Joinent(Correspondent):
                                                    pubkey=pubhex,
                                                    rsid=self.sid,
                                                    period=self.stack.period,
-                                                   offset=self.stack.offset,)
+                                                   offset=self.stack.offset,
+                                                   role=role)
 
                     try:
                         self.stack.addRemote(remote) #provisionally add .accepted is None
@@ -1098,7 +1120,8 @@ class Joinent(Correspondent):
                                                pubkey=pubhex,
                                                rsid=self.sid,
                                                period=self.stack.period,
-                                               offset=self.stack.offset,)
+                                               offset=self.stack.offset,
+                                               role=role)
                 try:
                     self.stack.addRemote(self.remote) #provisionally add .acceptance is None
                 except raeting.StackError as ex:
@@ -1132,6 +1155,9 @@ class Joinent(Correspondent):
                 self.stack.renameRemote(self.remote, new=name)
             if ha != self.remote.ha:
                 self.stack.readdressRemote(self.remote, new=ha)
+            if role != self.remote.role:
+                 self.remote.role = role
+
             #update session id and joined in complete method below
             duration = min(
                         max(self.redoTimeoutMin,
@@ -1169,7 +1195,8 @@ class Joinent(Correspondent):
                        ('reid', self.stack.local.uid),
                        ('name', self.stack.local.name),
                        ('verhex', self.stack.local.signer.verhex),
-                       ('pubhex', self.stack.local.priver.pubhex)])
+                       ('pubhex', self.stack.local.priver.pubhex),
+                       ('role', self.stack.local.role), ])
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.response,
                                     embody=body,
