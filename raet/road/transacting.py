@@ -583,7 +583,8 @@ class Joiner(Initiator):
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
-                                              main=self.stack.local.main)
+                                              main=self.stack.local.main,
+                                              dump=False)
 
         if status == raeting.acceptances.rejected:
             self.remote.joined = False
@@ -1134,10 +1135,15 @@ class Joinent(Correspondent):
                     return
 
             self.add(self.rxPacket.index) # bootstrap so use packet.index not self.index
+
+            if role != self.remote.role:
+                 self.remote.role = role
+
             status = self.stack.keep.statusRemote(self.remote,
                                                   verhex=verhex,
                                                   pubhex=pubhex,
-                                                  main=self.stack.local.main)
+                                                  main=self.stack.local.main,
+                                                  dump=False)
 
             if status == raeting.acceptances.rejected:
                 "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
@@ -1145,8 +1151,7 @@ class Joinent(Correspondent):
                 self.remote.joined = False
                 self.stack.dumpRemote(self.remote)
                 #self.stack.removeRemote(self.remote) #reap remote
-                # reject as keys rejected
-                self.nack(kind=raeting.pcktKinds.refuse)
+                self.nack(kind=raeting.pcktKinds.refuse) # keys rejected
                 return
 
             if self.stack.local.uid != leid:
@@ -1158,8 +1163,7 @@ class Joinent(Correspondent):
                 self.stack.renameRemote(self.remote, new=name)
             if ha != self.remote.ha:
                 self.stack.readdressRemote(self.remote, new=ha)
-            if role != self.remote.role:
-                 self.remote.role = role
+
 
             #update session id and joined in complete method below
             duration = min(
