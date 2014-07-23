@@ -44,6 +44,7 @@ class RoadKeep(keeping.Keep):
                          'sighex','prihex', 'auto', 'role']
     RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined',
                          'acceptance', 'verhex', 'pubhex', 'role']
+    RoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
     Auto = False #auto accept
 
     def __init__(self, prefix='estate', auto=None, **kwa):
@@ -93,6 +94,88 @@ class RoadKeep(keeping.Keep):
                     ])
         if self.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.name)
+
+    def verifyRoleData(self, data, roleFields=None):
+        '''
+        Returns True if the fields in .RoleFields match the fields in data
+        '''
+        roleFields = roleFields if roleFields is not None else self.RoleFields
+        return (set(roleFields) == set(data.keys()))
+
+    def dumpRoleData(self, data, role):
+        '''
+        Dump the role data to file
+        '''
+        filepath = os.path.join(self.roledirpath,
+                "{0}.{1}.{2}".format('role', role, self.ext))
+
+        self.dump(data, filepath)
+
+    def dumpAllRoleData(self, roles):
+        '''
+        Dump the data in the roles keyed by role to role data files
+        '''
+        for role, data in roles.items():
+            self.dumpRoleData(data, role)
+
+    def loadRoleData(self, role):
+        '''
+        Load and Return the data from the role file
+        '''
+        filepath = os.path.join(self.roledirpath,
+                "{0}.{1}.{2}".format('role', name, self.ext))
+        if not os.path.exists(filepath):
+            return None
+        return (self.load(filepath))
+
+    def loadAllRoleData(self):
+        '''
+        Load and Return the roles dict from the all the role data files
+        indexed by role in filenames
+        '''
+        roles = odict()
+        for filename in os.listdir(self.roledirpath):
+            root, ext = os.path.splitext(filename)
+            if ext not in ['.json', '.msgpack']:
+                continue
+            prefix, sep, role = root.partition('.')
+            if not role or prefix != 'role':
+                continue
+            filepath = os.path.join(self.roledirpath, filename)
+            roles[role] = self.load(filepath)
+        return roles
+
+    def clearRoleData(self, role):
+        '''
+        Clear data from the role data file
+        '''
+        filepath = os.path.join(self.roledirpath,
+                "{0}.{1}.{2}".format('role', role, self.ext))
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+    def clearAllRoleData(self):
+        '''
+        Remove all the role data files
+        '''
+        for filename in os.listdir(self.roledirpath):
+            root, ext = os.path.splitext(filename)
+            if ext not in ['.json', '.msgpack']:
+                continue
+            prefix, sep, role = root.partition('.')
+            if not role or prefix != 'role':
+                continue
+            filepath = os.path.join(self.roledirpath, filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+    def clearRoleDir(self):
+        '''
+        Clear the Role directory
+        '''
+        if os.path.exists(self.roledirpath):
+            os.rmdir(self.roledirpath)
+
 
     def statusRemote(self, remote, verhex, pubhex, main=True, dump=True):
         '''
