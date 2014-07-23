@@ -58,43 +58,6 @@ class RoadKeep(keeping.Keep):
         if not os.path.exists(self.roledirpath):
             os.makedirs(self.roledirpath)
 
-    def dumpLocal(self, local):
-        '''
-        Dump local estate
-        '''
-        data = odict([
-                        ('uid', local.uid),
-                        ('name', local.name),
-                        ('ha', local.ha),
-                        ('main', local.main),
-                        ('sid', local.sid),
-                        ('neid', local.neid),
-                        ('sighex', local.signer.keyhex),
-                        ('prihex', local.priver.keyhex),
-                        ('auto', self.auto),
-                        ('role', local.role),
-                    ])
-        if self.verifyLocalData(data):
-            self.dumpLocalData(data)
-
-    def dumpRemote(self, remote):
-        '''
-        Dump remote estate
-        '''
-        data = odict([
-                        ('uid', remote.uid),
-                        ('name', remote.name),
-                        ('ha', remote.ha),
-                        ('sid', remote.sid),
-                        ('joined', remote.joined),
-                        ('acceptance', remote.acceptance),
-                        ('verhex', remote.verfer.keyhex),
-                        ('pubhex', remote.pubber.keyhex),
-                        ('role', remote.role),
-                    ])
-        if self.verifyRemoteData(data):
-            self.dumpRemoteData(data, remote.name)
-
     def verifyRoleData(self, data, roleFields=None):
         '''
         Returns True if the fields in .RoleFields match the fields in data
@@ -176,6 +139,42 @@ class RoadKeep(keeping.Keep):
         if os.path.exists(self.roledirpath):
             os.rmdir(self.roledirpath)
 
+    def dumpLocal(self, local):
+        '''
+        Dump local estate
+        '''
+        data = odict([
+                        ('uid', local.uid),
+                        ('name', local.name),
+                        ('ha', local.ha),
+                        ('main', local.main),
+                        ('sid', local.sid),
+                        ('neid', local.neid),
+                        ('sighex', local.signer.keyhex),
+                        ('prihex', local.priver.keyhex),
+                        ('auto', self.auto),
+                        ('role', local.role),
+                    ])
+        if self.verifyLocalData(data):
+            self.dumpLocalData(data)
+
+    def dumpRemote(self, remote):
+        '''
+        Dump remote estate
+        '''
+        data = odict([
+                        ('uid', remote.uid),
+                        ('name', remote.name),
+                        ('ha', remote.ha),
+                        ('sid', remote.sid),
+                        ('joined', remote.joined),
+                        ('acceptance', remote.acceptance),
+                        ('verhex', remote.verfer.keyhex),
+                        ('pubhex', remote.pubber.keyhex),
+                        ('role', remote.role),
+                    ])
+        if self.verifyRemoteData(data):
+            self.dumpRemoteData(data, remote.name)
 
     def statusRemote(self, remote, verhex, pubhex, main=True, dump=True):
         '''
