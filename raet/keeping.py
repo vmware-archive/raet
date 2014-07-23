@@ -14,6 +14,11 @@ try:
 except ImportError:
     import json
 
+try:
+    import msgpack
+except ImportError:
+    mspack = None
+
 import shutil
 
 # Import ioflo libs
@@ -36,13 +41,14 @@ class Keep(object):
     '''
     LocalFields = ['uid', 'name', 'ha', 'sid']
     RemoteFields = ['uid', 'name', 'ha']
+    Ext = 'json' # default serialization type of json and msgpack
 
     def __init__(self,
                  dirpath='',
                  basedirpath='',
                  stackname='stack',
                  prefix='data',
-                 ext='json',
+                 ext='',
                  **kwa):
         '''
         Setup Keep instance
@@ -88,20 +94,35 @@ class Keep(object):
             os.makedirs(self.remotedirpath)
 
         self.prefix = prefix
-        self.ext = ext
+        self.ext = ext or self.Ext
+        if self.ext == 'msgpack' and not msgpack:
+            self.ext = 'json'
+
         self.localfilepath = os.path.join(self.localdirpath,
                 "{0}.{1}".format(self.prefix, self.ext))
 
     @staticmethod
     def dump(data, filepath):
         '''
-        Write data as json to filepath
+        Write data as as type self.ext to filepath. json or msgpack
         '''
         if ' ' in filepath:
-            raise raeting.KeepError("Invalid filepath '{0}' contains space")
+            raise raeting.KeepError("Invalid filepath '{0}' "
+                                    "contains space".format(filepath))
 
         with aiding.ocfn(filepath, "w+") as f:
-            json.dump(data, f, indent=2)
+            root, ext = os.path.splitext(filepath)
+            if ext == '.json':
+                json.dump(data, f, indent=2)
+            elif ext == '.msgpack':
+                if not msgpack:
+                    raise raeting.KeepError("Invalid filepath ext '{0}' "
+                                "needs msgpack installed".format(filepath))
+                msgpack.dump(data, f)
+            else:
+                raise raeting.KeepError("Invalid filepath ext '{0}' "
+                            "not '.json' or '.msgpack'".format(filepath))
+
             f.flush()
             os.fsync(f.fileno())
 
@@ -113,7 +134,16 @@ class Keep(object):
         '''
         with aiding.ocfn(filepath) as f:
             try:
-                it = json.load(f, object_pairs_hook=odict)
+                root, ext = os.path.splitext(filepath)
+                if ext == '.json':
+                    it = json.load(f, object_pairs_hook=odict)
+                elif ext == '.msgpack':
+                    if not msgpack:
+                        raise raeting.KeepError("Invalid filepath ext '{0}' "
+                                    "needs msgpack installed".format(filepath))
+                    it = msgpack.load(f, object_pairs_hook=odict)
+                else:
+                    it = None
             except EOFError:
                 return None
             except ValueError:

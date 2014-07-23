@@ -30,14 +30,15 @@ class RoadKeep(keeping.Keep):
     RAET protocol estate on road data persistence for a given estate
     road specific data but not key data
 
-    road/
-        keep/
-            stackname/
-                local/
-                    estate.ext
-                remote/
-                    estate.name.ext
-                    estate.name.ext
+    keep/
+        stackname/
+            local/
+                estate.ext
+            remote/
+                estate.name.ext
+                estate.name.ext
+            role/
+                role.name.ext
     '''
     LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid',
                          'sighex','prihex', 'auto', 'role']
@@ -51,6 +52,10 @@ class RoadKeep(keeping.Keep):
         '''
         super(RoadKeep, self).__init__(prefix=prefix, **kwa)
         self.auto = auto if auto is not None else self.Auto
+
+        self.roledirpath = os.path.join(self.dirpath, 'role')
+        if not os.path.exists(self.roledirpath):
+            os.makedirs(self.roledirpath)
 
     def dumpLocal(self, local):
         '''
