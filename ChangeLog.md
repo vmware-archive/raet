@@ -3,6 +3,16 @@ CHANGE LOG
 -------------------
 
 ---------
+20140723
+---------
+
+v0.2.08
+
+Support for msgpack in Keep files
+more support for role in Road estates
+fixes in join transaction
+
+---------
 20140722
 ---------
 
