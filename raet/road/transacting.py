@@ -442,7 +442,7 @@ class Joiner(Initiator):
                 else: # not main so remove any correspondent joins
                     already = False
                     for join in joins:
-                        if join.rmt:
+                        if join.rmt: # correspondent
                             emsg = ("Joiner {0}. Removing correspondent join with"
                                     " {1} already in process\n".format(
                                                 self.stack.name,
@@ -576,6 +576,9 @@ class Joiner(Initiator):
         # we are assuming for now that the joiner cannot talk peer to peer only
         # to main estate otherwise we need to ensure unique eid, name, and ha on road
 
+        if self.remote.role != role:
+            self.remote.role = role # change role of remote estate
+
         # check if remote keys are accepted here
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
@@ -612,7 +615,7 @@ class Joiner(Initiator):
                     return
 
             if self.remote.role != role:
-                self.remote.role = role # change role of local estate
+                self.remote.role = role # change role remote estate
 
             if self.stack.local.uid != leid:
                 self.stack.local.uid = leid # change id of local estate

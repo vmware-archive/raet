@@ -206,22 +206,6 @@ class Keep(object):
             return None
         return (self.load(filepath))
 
-    def clearRemoteData(self, name):
-        '''
-        Clear data from the remote data file
-        '''
-        filepath = os.path.join(self.remotedirpath,
-                "{0}.{1}.{2}".format(self.prefix, name, self.ext))
-        if os.path.exists(filepath):
-            os.remove(filepath)
-
-    def clearRemoteDir(self):
-        '''
-        Clear the remote directory
-        '''
-        if os.path.exists(self.remotedirpath):
-            os.rmdir(self.remotedirpath)
-
     def loadAllRemoteData(self):
         '''
         Load and Return the datadict from the all the remote data files
@@ -239,6 +223,15 @@ class Keep(object):
             datadict[name] = self.load(filepath)
         return datadict
 
+    def clearRemoteData(self, name):
+        '''
+        Clear data from the remote data file
+        '''
+        filepath = os.path.join(self.remotedirpath,
+                "{0}.{1}.{2}".format(self.prefix, name, self.ext))
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
     def clearAllRemoteData(self):
         '''
         Remove all the remote data files
@@ -253,6 +246,13 @@ class Keep(object):
             filepath = os.path.join(self.remotedirpath, filename)
             if os.path.exists(filepath):
                 os.remove(filepath)
+
+    def clearRemoteDir(self):
+        '''
+        Clear the remote directory
+        '''
+        if os.path.exists(self.remotedirpath):
+            os.rmdir(self.remotedirpath)
 
     def dumpLocal(self, local):
         '''
