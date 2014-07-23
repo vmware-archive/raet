@@ -89,7 +89,7 @@ class RoadKeep(keeping.Keep):
         if self.verifyRemoteData(data):
             self.dumpRemoteData(data, remote.name)
 
-    def statusRemote(self, remote, verhex, pubhex, main=True):
+    def statusRemote(self, remote, verhex, pubhex, main=True, dump=True):
         '''
         Evaluate acceptance status of estate per its keys
         persist key data differentially based on status
@@ -155,7 +155,8 @@ class RoadKeep(keeping.Keep):
             if (pubhex and pubhex != remote.pubber.keyhex):
                 remote.pubber = nacling.Publican(pubhex)
 
-        self.dumpRemote(remote)
+        if dump:
+            self.dumpRemote(remote)
         return status
 
     def rejectRemote(self, remote):
