@@ -34,11 +34,13 @@ class RoadKeep(keeping.Keep):
         stackname/
             local/
                 estate.ext
+                role.ext
             remote/
                 estate.name.ext
                 estate.name.ext
             role/
-                role.name.ext
+                role.role.ext
+                role.role.ext
     '''
     LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid',
                          'auto', 'role', 'sighex','prihex']
