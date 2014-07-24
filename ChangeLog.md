@@ -3,6 +3,14 @@ CHANGE LOG
 -------------------
 
 ---------
+20140724
+---------
+
+v0.2.09
+
+Finished support for role keep files in Road
+
+---------
 20140723
 ---------
 
