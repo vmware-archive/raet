@@ -157,6 +157,7 @@ class BasicTestCase(unittest.TestCase):
         #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
         self.assertTrue(stack.keep.localfilepath.endswith('/road/keep/main/local/estate.json'))
+        self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/local/role.json'))
         self.assertTrue(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test round trip
@@ -165,6 +166,12 @@ class BasicTestCase(unittest.TestCase):
 
         stack.dumpLocal()
         stack.dumpRemotes()
+
+        self.assertTrue(os.path.exists(stack.keep.localfilepath))
+        self.assertTrue(os.path.exists(stack.keep.localrolepath))
+        self.assertTrue(os.path.exists(stack.keep.localdirpath))
+        self.assertTrue(os.path.exists(stack.keep.remotedirpath))
+        self.assertTrue(os.path.exists(stack.keep.roledirpath))
 
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
@@ -206,7 +213,6 @@ class BasicTestCase(unittest.TestCase):
         stack.restoreRemotes()
         self.assertDictEqual(stack.remotes, {})
 
-
         # round trip with non empty remote data
         other1Data = self.createRoadData(name='other1', base=self.base)
         stack.addRemote(estating.RemoteEstate(stack=stack,
@@ -236,6 +242,23 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(stack.uidRemotes[remote.uid], remote)
 
         stack.dumpRemotes()
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
+                "{0}.{1}.{2}".format(stack.keep.prefix,
+                                     other1Data['name'],
+                                     stack.keep.ext))))
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
+                "{0}.{1}.{2}".format(stack.keep.prefix,
+                                     other2Data['name'],
+                                     stack.keep.ext))))
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+                "{0}.{1}.{2}".format('role',
+                                     other1Data['name'],
+                                     stack.keep.ext))))
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+                "{0}.{1}.{2}".format('role',
+                                     other2Data['name'],
+                                     stack.keep.ext))))
+
         for remote in stack.remotes.values():
             path = os.path.join(stack.keep.remotedirpath,
                      "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
@@ -344,6 +367,7 @@ class BasicTestCase(unittest.TestCase):
         #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
         self.assertTrue(stack.keep.localfilepath.endswith('/road/keep/main/local/estate.msgpack'))
+        self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/local/role.msgpack'))
         self.assertTrue(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test round trip
@@ -352,6 +376,12 @@ class BasicTestCase(unittest.TestCase):
 
         stack.dumpLocal()
         stack.dumpRemotes()
+
+        self.assertTrue(os.path.exists(stack.keep.localfilepath))
+        self.assertTrue(os.path.exists(stack.keep.localrolepath))
+        self.assertTrue(os.path.exists(stack.keep.localdirpath))
+        self.assertTrue(os.path.exists(stack.keep.remotedirpath))
+        self.assertTrue(os.path.exists(stack.keep.roledirpath))
 
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
@@ -393,7 +423,6 @@ class BasicTestCase(unittest.TestCase):
         stack.restoreRemotes()
         self.assertDictEqual(stack.remotes, {})
 
-
         # round trip with non empty remote data
         other1Data = self.createRoadData(name='other1', base=self.base)
         stack.addRemote(estating.RemoteEstate(stack=stack,
@@ -423,6 +452,23 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(stack.uidRemotes[remote.uid], remote)
 
         stack.dumpRemotes()
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
+                "{0}.{1}.{2}".format(stack.keep.prefix,
+                                     other1Data['name'],
+                                     stack.keep.ext))))
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
+                "{0}.{1}.{2}".format(stack.keep.prefix,
+                                     other2Data['name'],
+                                     stack.keep.ext))))
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+                "{0}.{1}.{2}".format('role',
+                                     other1Data['name'],
+                                     stack.keep.ext))))
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+                "{0}.{1}.{2}".format('role',
+                                     other2Data['name'],
+                                     stack.keep.ext))))
+
         for remote in stack.remotes.values():
             path = os.path.join(stack.keep.remotedirpath,
                      "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))

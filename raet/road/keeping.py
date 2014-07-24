@@ -41,10 +41,13 @@ class RoadKeep(keeping.Keep):
                 role.name.ext
     '''
     LocalFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid',
-                         'sighex','prihex', 'auto', 'role']
+                         'auto', 'role', 'sighex','prihex']
+    LocalDumpFields = ['uid', 'name', 'ha', 'main', 'sid', 'neid', 'auto', 'role']
+    LocalRoleFields = ['role', 'sighex','prihex']
     RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined',
-                         'acceptance', 'verhex', 'pubhex', 'role']
-    RoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
+                         'role', 'acceptance', 'verhex', 'pubhex']
+    RemoteDumpFields = ['uid', 'name', 'ha', 'sid', 'joined','role']
+    RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
     Auto = False #auto accept
 
     def __init__(self, prefix='estate', auto=None, **kwa):
@@ -54,18 +57,35 @@ class RoadKeep(keeping.Keep):
         super(RoadKeep, self).__init__(prefix=prefix, **kwa)
         self.auto = auto if auto is not None else self.Auto
 
+        self.localrolepath = os.path.join(self.localdirpath,
+                "{0}.{1}".format('role', self.ext))
+
         self.roledirpath = os.path.join(self.dirpath, 'role')
         if not os.path.exists(self.roledirpath):
             os.makedirs(self.roledirpath)
 
-    def verifyRoleData(self, data, roleFields=None):
+    def dumpLocalRoleData(self, data):
         '''
-        Returns True if the fields in .RoleFields match the fields in data
+        Dump the local role data to file
         '''
-        roleFields = roleFields if roleFields is not None else self.RoleFields
-        return (set(roleFields) == set(data.keys()))
+        self.dump(data, self.localrolepath)
 
-    def dumpRoleData(self, data, role):
+    def loadLocalRoleData(self):
+        '''
+        Load and Return the role data from the localrolefile
+        '''
+        if not os.path.exists(self.localrolepath):
+            return None
+        return (self.load(self.localrolepath))
+
+    def clearLocalRoleData(self):
+        '''
+        Clear the local file
+        '''
+        if os.path.exists(self.localrolepath):
+            os.remove(self.localrolepath)
+
+    def dumpRemoteRoleData(self, data, role):
         '''
         Dump the role data to file
         '''
@@ -74,24 +94,24 @@ class RoadKeep(keeping.Keep):
 
         self.dump(data, filepath)
 
-    def dumpAllRoleData(self, roles):
+    def dumpAllRemoteRoleData(self, roles):
         '''
         Dump the data in the roles keyed by role to role data files
         '''
         for role, data in roles.items():
-            self.dumpRoleData(data, role)
+            self.dumpRemoteRoleData(data, role)
 
-    def loadRoleData(self, role):
+    def loadRemoteRoleData(self, role):
         '''
         Load and Return the data from the role file
         '''
         filepath = os.path.join(self.roledirpath,
-                "{0}.{1}.{2}".format('role', name, self.ext))
+                "{0}.{1}.{2}".format('role', role, self.ext))
         if not os.path.exists(filepath):
             return None
         return (self.load(filepath))
 
-    def loadAllRoleData(self):
+    def loadAllRemoteRoleData(self):
         '''
         Load and Return the roles dict from the all the role data files
         indexed by role in filenames
@@ -108,7 +128,7 @@ class RoadKeep(keeping.Keep):
             roles[role] = self.load(filepath)
         return roles
 
-    def clearRoleData(self, role):
+    def clearRemoteRoleData(self, role):
         '''
         Clear data from the role data file
         '''
@@ -117,7 +137,7 @@ class RoadKeep(keeping.Keep):
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    def clearAllRoleData(self):
+    def clearAllRemoteRoleData(self):
         '''
         Remove all the role data files
         '''
@@ -132,12 +152,91 @@ class RoadKeep(keeping.Keep):
             if os.path.exists(filepath):
                 os.remove(filepath)
 
-    def clearRoleDir(self):
+    def clearRemoteRoleDir(self):
         '''
         Clear the Role directory
         '''
         if os.path.exists(self.roledirpath):
             os.rmdir(self.roledirpath)
+
+    def loadLocalData(self):
+        '''
+        Load and Return the data from the local estate
+        '''
+
+        data = super(RoadKeep, self).loadLocalData()
+        if not data:
+            return None
+        roleData = self.loadLocalRoleData() or {}
+        data.update(sighex=roleData.get('sighex'), prihex=roleData.get('prihex'))
+        return data
+
+    def clearLocalData(self):
+        '''
+        Clear the local files
+        '''
+        if os.path.exists(self.localfilepath):
+            os.remove(self.localfilepath)
+        if os.path.exists(self.localrolepath):
+            os.remove(self.localrolepath)
+
+    def loadRemoteData(self, name):
+        '''
+        Load and Return the data from the remote file
+        '''
+        data = super(RoadKeep, self).loadRemoteData(name)
+        if not data:
+            return None
+
+        role = data['role']
+        roleData = self.loadRemoteRoleData(role) or odict()
+
+        data.update(acceptance=roleData.get('acceptance'),
+                    verhex=roleData.get('verhex'),
+                    pubhex=roleData.get('pubhex'))
+        return data
+
+    def loadAllRemoteData(self):
+        '''
+        Load and Return the data from the all the remote estate files
+        '''
+        keeps = super(RoadKeep, self).loadAllRemoteData()
+        roles = self.loadAllRemoteRoleData()
+        for name, data in keeps.items():
+            role = data['role']
+            roleData = roles.get(role, odict(acceptance=None,
+                                             verhex=None,
+                                             pubhex=None))
+            keeps[name].update(acceptance=roleData['acceptance'],
+                               verhex=roleData['verhex'],
+                               pubhex=roleData['pubhex'])
+        return keeps
+
+    def clearAllRemoteData(self):
+        '''
+        Remove all the remote estate files
+        '''
+        super(RoadKeep, self).clearAllRemoteData()
+        self.clearAllRemoteRoleData()
+
+    def clearRemoteDir(self):
+        '''
+        Clear the remote directory
+        '''
+        super(RoadKeep, self).clearRemoteDir()
+        self.clearRemoteRoleDir()
+
+    def dumpLocalRole(self, local):
+        '''
+        Dump role data for local
+        '''
+        data = odict([
+                            ('role', local.role),
+                            ('sighex', local.signer.keyhex),
+                            ('prihex', local.priver.keyhex),
+                         ])
+        if self.verifyLocalData(data, localFields =self.LocalRoleFields):
+            self.dumpLocalRoleData(data)
 
     def dumpLocal(self, local):
         '''
@@ -150,13 +249,27 @@ class RoadKeep(keeping.Keep):
                         ('main', local.main),
                         ('sid', local.sid),
                         ('neid', local.neid),
-                        ('sighex', local.signer.keyhex),
-                        ('prihex', local.priver.keyhex),
                         ('auto', self.auto),
                         ('role', local.role),
                     ])
-        if self.verifyLocalData(data):
+        if self.verifyLocalData(data, localFields =self.LocalDumpFields):
             self.dumpLocalData(data)
+
+        self.dumpLocalRole(local)
+
+
+    def dumpRemoteRole(self, remote):
+        '''
+        Dump the role data for remote
+        '''
+        data = odict([
+                            ('role', remote.role),
+                            ('acceptance', remote.acceptance),
+                            ('verhex', remote.verfer.keyhex),
+                            ('pubhex', remote.pubber.keyhex),
+                        ])
+        if self.verifyRemoteData(data, remoteFields=self.RemoteRoleFields):
+            self.dumpRemoteRoleData(data, remote.role)
 
     def dumpRemote(self, remote):
         '''
@@ -168,13 +281,26 @@ class RoadKeep(keeping.Keep):
                         ('ha', remote.ha),
                         ('sid', remote.sid),
                         ('joined', remote.joined),
-                        ('acceptance', remote.acceptance),
-                        ('verhex', remote.verfer.keyhex),
-                        ('pubhex', remote.pubber.keyhex),
                         ('role', remote.role),
                     ])
-        if self.verifyRemoteData(data):
+        if self.verifyRemoteData(data, remoteFields=self.RemoteDumpFields):
             self.dumpRemoteData(data, remote.name)
+
+        self.dumpRemoteRole(remote)
+
+    def replaceRemoteRole(self, remote, old):
+        '''
+        Replace old role when remote.role has changed
+        '''
+        new = remote.role
+        if new != old:
+            data = odict(role=remote.role,
+                             acceptance=remote.acceptance,
+                             verhex=remote.verhex,
+                             pubhex=remote.pubhex)
+            self.dumpRemoteRoleData(data, remote.role)
+
+            self.clearRemoteRoleData(old) # now delete old role file
 
     def statusRemote(self, remote, verhex, pubhex, main=True, dump=True):
         '''
@@ -243,7 +369,7 @@ class RoadKeep(keeping.Keep):
                 remote.pubber = nacling.Publican(pubhex)
 
         if dump:
-            self.dumpRemote(remote)
+            self.dumpRemoteRole(remote)
         return status
 
     def rejectRemote(self, remote):
@@ -251,21 +377,21 @@ class RoadKeep(keeping.Keep):
         Set acceptance status to rejected
         '''
         remote.acceptance = raeting.acceptances.rejected
-        self.dumpRemote(remote)
+        self.dumpRemoteRole(remote)
 
     def pendRemote(self, remote):
         '''
         Set acceptance status to pending
         '''
         remote.acceptance = raeting.acceptances.pending
-        self.dumpRemote(remote)
+        self.dumpRemoteRole(remote)
 
     def acceptRemote(self, remote):
         '''
         Set acceptance status to accepted
         '''
         remote.acceptance = raeting.acceptances.accepted
-        self.dumpRemote(remote)
+        self.dumpRemoteRole(remote)
 
 def clearAllKeep(dirpath):
     '''

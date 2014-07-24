@@ -241,7 +241,7 @@ class Keep(object):
         Load and Return the datadict from the all the remote data files
         indexed by name in filenames
         '''
-        datadict = odict()
+        keeps = odict()
         for filename in os.listdir(self.remotedirpath):
             root, ext = os.path.splitext(filename)
             if ext not in ['.json', '.msgpack']:
@@ -250,8 +250,8 @@ class Keep(object):
             if not name or prefix != self.prefix:
                 continue
             filepath = os.path.join(self.remotedirpath, filename)
-            datadict[name] = self.load(filepath)
-        return datadict
+            keeps[name] = self.load(filepath)
+        return keeps
 
     def clearRemoteData(self, name):
         '''
