@@ -705,11 +705,19 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.joined, None)
         self.assertEqual(remote.acceptance, None)
 
-        #kill the transactions
-        for index in main.transactions:
-            main.removeTransaction(index)
-        for index in other.transactions:
-            other.removeTransaction(index)
+        #remove transactions
+        remote = main.remotes.values()[0]
+        for index in remote.transactions:
+            remote.removeTransaction(index)
+
+        remote = other.remotes.values()[0]
+        for index in remote.transactions:
+            remote.removeTransaction(index)
+
+        #for index in main.transactions:
+            #main.removeTransaction(index)
+        #for index in other.transactions:
+            #other.removeTransaction(index)
 
         for remote in main.remotes.values():
             if remote.acceptance == raeting.acceptances.pending:
@@ -1273,11 +1281,20 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         self.assertNotEqual(len(mains), len(other.rxMsgs))
 
-        for index in main.transactions:
-            main.removeTransaction(index)
+        #remove transactions
+        remote = main.remotes.values()[0]
+        for index in remote.transactions:
+            remote.removeTransaction(index)
 
-        for index in other.transactions:
-            other.removeTransaction(index)
+        remote = other.remotes.values()[0]
+        for index in remote.transactions:
+            remote.removeTransaction(index)
+
+        #for index in main.transactions:
+            #main.removeTransaction(index)
+
+        #for index in other.transactions:
+            #other.removeTransaction(index)
 
         # now reload original local other data and see if works
         other.server.close()

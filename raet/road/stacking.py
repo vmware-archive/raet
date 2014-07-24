@@ -135,10 +135,19 @@ class RoadStack(stacking.KeepStack):
                                         bufcnt=bufcnt,
                                         **kwa)
 
-        self.transactions = odict() #transactions
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
         self.availables = set() # set of available remote names
+
+    @property
+    def transactions(self):
+        '''
+        property that returns list of transactions in all remotes
+        '''
+        transactions = []
+        for remote in self.remotes.values():
+            transactions.extend(remote.transactions.values())
+        return transactions
 
     def serverFromLocal(self):
         '''
@@ -175,10 +184,8 @@ class RoadStack(stacking.KeepStack):
         If clear then also remove from disk
         '''
         super(RoadStack, self).removeRemote(remote=remote, clear=clear)
-        for index in set(remote.indexes): # make copy
-            if index in self.transactions:
-                self.transactions[index].nack()
-                self.removeTransaction(index)
+        for transaction in remote.transactions.values():
+            transaction.nack()
 
     def fetchRemoteByKeys(self, sighex, prihex):
         '''
@@ -334,12 +341,24 @@ class RoadStack(stacking.KeepStack):
         self.alloweds = alloweds
         self.aliveds =  aliveds
 
-
     def addTransaction(self, index, transaction):
         '''
         Safely add transaction at index If not already there
+
+        index of the form
+        (rf, le, re, si, ti, bf)
+
+        Where
+        rf = Remotely Initiated Flag, RmtFlag
+        le = leid, local estate id LEID
+        re = reid, remote estate id REID
+        si = sid, Session ID, SID
+        ti = tid, Transaction ID, TID
+        bf = Broadcast Flag, BcstFlag
         '''
-        self.transactions[index] = transaction
+        #self.transactions[index] = transaction
+        if index[5]: # broadcast transaction not yet supported
+            return
         re = index[2]
         remote = None
         if re in self.remotes:
@@ -347,31 +366,37 @@ class RoadStack(stacking.KeepStack):
         else: # may be bootstrapping onto channel so using re = ha in index but 0th
             remote = self.haRemotes.get(re)
         if remote is not None:
-            remote.indexes.add(index)
+            remote.addTransaction(index, transaction)
 
-        console.verbose( "Added {0} transaction to {1} at '{2}'\n".format(
-                transaction.__class__.__name__, self.name, index))
+            console.verbose( "Added {0} transaction to stack {1}  estate {2} at '{3}'\n".format(
+                    transaction.__class__.__name__, self.name, remote.name, index))
 
     def removeTransaction(self, index, transaction=None):
         '''
         Safely remove transaction at index If transaction identity same
         If transaction is None then remove without comparing identity
-        '''
-        if index in self.transactions:
-            if transaction:
-                if transaction is self.transactions[index]:
-                    del  self.transactions[index]
-            else:
-                del self.transactions[index]
 
-            re = index[2]
-            remote = None
-            if re in self.remotes:
-                remote = self.remotes[re]
-            else: # may be bootstrapping onto channel so using re=ha in index but 0th
-                remote = self.haRemotes.get(re)
-            if remote is not None:
-                remote.indexes.discard(index)
+        index of the form
+        (rf, le, re, si, ti, bf)
+
+        Where
+        rf = Remotely Initiated Flag, RmtFlag
+        le = leid, local estate id LEID
+        re = reid, remote estate id REID
+        si = sid, Session ID, SID
+        ti = tid, Transaction ID, TID
+        bf = Broadcast Flag, BcstFlag
+        '''
+        if index[5]: # broadcast transaction not yet supported
+            return
+        re = index[2]
+        remote = None
+        if re in self.remotes:
+            remote = self.remotes[re]
+        else: # may be bootstrapping onto channel so using re=ha in index but 0th
+            remote = self.haRemotes.get(re)
+        if remote is not None:
+            remote.removeTransaction(index, transaction)
 
     def _handleOneRx(self):
         '''
@@ -435,10 +460,17 @@ class RoadStack(stacking.KeepStack):
                     remote.rsid = rsid
                     remote.removeStaleCorrespondents()
 
-        trans = self.transactions.get(received.index, None)
-        if trans:
-            trans.receive(received)
-            return
+        bf = received.data['bf']
+        if bf:
+            return  # broadcast transaction not yet supported
+
+        remote = remote or self.haRemotes.get((received.data['sh'], received.data['sp']))
+
+        if remote:
+            trans = remote.transactions.get(received.index, None)
+            if trans:
+                trans.receive(received)
+                return
 
         if cf: #packet from correspondent to non-existent locally initiated transaction
             self.stale(received)
@@ -480,10 +512,13 @@ class RoadStack(stacking.KeepStack):
 
     def process(self):
         '''
-        Call .process or all transactions to allow timer based processing
+        Call .process or all remotes to allow timer based processing
+        of their transactions
         '''
-        for transaction in self.transactions.values():
-            transaction.process()
+        #for transaction in self.transactions.values():
+            #transaction.process()
+        for remote in self.remotes.values():
+            remote.process()
 
     def parseInner(self, packet):
         '''

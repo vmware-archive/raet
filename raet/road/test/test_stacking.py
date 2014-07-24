@@ -201,7 +201,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.main.nameRemotes), 1)
         self.assertTrue(len(self.main.haRemotes), 1)
         self.assertEqual(remote.name, 'other')
-        self.assertEqual(len(remote.indexes), 0)
+        self.assertEqual(len(remote.transactions), 0)
         self.assertTrue('other' in self.main.nameRemotes)
         self.assertIs(self.main.nameRemotes[remote.name], remote)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -220,7 +220,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.other.nameRemotes), 1)
         self.assertTrue(len(self.other.haRemotes), 1)
         self.assertEqual(remote.name, 'main')
-        self.assertEqual(len(remote.indexes), 0)
+        self.assertEqual(len(remote.transactions), 0)
         self.assertTrue('main' in self.other.nameRemotes)
         self.assertIs(self.other.nameRemotes[remote.name], remote)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -239,7 +239,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.main.nameRemotes), 1)
         self.assertTrue(len(self.main.haRemotes), 1)
         self.assertEqual(remote.name, 'other')
-        self.assertEqual(len(remote.indexes), 0)
+        self.assertEqual(len(remote.transactions), 0)
         self.assertTrue('other' in self.main.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' allowd with '{2}' = {3}\n".format(
                 self.main.name, self.main.local.name, remote.name, remote.allowed))
@@ -256,7 +256,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(len(self.other.nameRemotes), 1)
         self.assertTrue(len(self.other.haRemotes), 1)
         self.assertEqual(remote.name, 'main')
-        self.assertEqual(len(remote.indexes), 0)
+        self.assertEqual(len(remote.transactions), 0)
         self.assertTrue('main' in self.other.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' allowed with '{2}' = {3}\n".format(
                 self.other.name, self.other.local.name, remote.name, remote.allowed))
@@ -631,7 +631,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.main.transactions), 0) #completed
         self.assertEqual(len(self.other.transactions), 1) # waiting for ack
 
-        self.other.transactions = odict() #clear transactions so RX is stale correspondent
+        remote = self.other.remotes.values()[0]
+        remote.transactions = odict() #clear transactions so RX is stale correspondent
         self.assertEqual(len(self.other.transactions), 0) # no initated transaction
 
         self.timer.restart(duration=2.0)

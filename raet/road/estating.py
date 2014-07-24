@@ -57,6 +57,7 @@ class Estate(lotting.Lot):
             host = self.host
         self.fqdn = socket.getfqdn(host)
         self.role = role if role is not None else self.name
+        self.transactions = odict() # estate transactions keyed by transaction index
 
     @property
     def uid(self):
@@ -94,6 +95,49 @@ class Estate(lotting.Lot):
         if self.tid > 0xffffffffL:
             self.tid = 1  # rollover to 1
         return self.tid
+
+    def addTransaction(self, index, transaction):
+        '''
+        Safely add transaction at index, If not already there
+
+        index of the form
+        (rf, le, re, si, ti, bf)
+
+        Where
+        rf = Remotely Initiated Flag, RmtFlag
+        le = leid, local estate id LEID
+        re = reid, remote estate id REID
+        si = sid, Session ID, SID
+        ti = tid, Transaction ID, TID
+        bf = Broadcast Flag, BcstFlag
+        '''
+        self.transactions[index] = transaction
+        console.verbose( "Added transaction to {0} at '{1}'\n".format(self.name, index))
+
+    def removeTransaction(self, index, transaction=None):
+        '''
+        Safely remove transaction at index, If transaction identity same
+        If transaction is None then remove without comparing identity
+        '''
+        if index in self.transactions:
+            if transaction:
+                if transaction is self.transactions[index]:
+                    del  self.transactions[index]
+            else:
+                del self.transactions[index]
+
+    def removeStaleTransactions(self):
+        '''
+        Remove stale transactions associated with estate
+        '''
+        pass
+
+    def process(self):
+        '''
+        Call .process or all transactions to allow timer based processing
+        '''
+        for transaction in self.transactions.values():
+            transaction.process()
 
 class LocalEstate(Estate):
     '''
@@ -179,7 +223,6 @@ class RemoteEstate(Estate):
         self.pubber = nacling.Publican(pubkey) # correspondent long term key manager
 
         self.rsid = rsid # last sid received from remote when RmtFlag is True
-        self.indexes = set() # indexes to outstanding transactions for this remote
 
         # persistence keep alive heartbeat timer. Initial duration has offset so
         # not synced with other side persistence heatbeet
@@ -269,24 +312,19 @@ class RemoteEstate(Estate):
             ti = tid, Transaction ID, TID
             bf = Broadcast Flag, BcstFlag
         '''
-        indexes = set(self.indexes) # make copy so not changed in place
-
-        for index in indexes:
+        for index, transaction in self.transactions.items():
             sid = index[3]
             rf = index[0]
             if rf and  ((renew and sid != 0) or (not renew and not self.validRsid(sid))):
-                if index in self.stack.transactions:
-                    self.stack.transactions[index].nack()
-                    self.stack.removeTransaction(index) # this discards it from self.indexes
-                    emsg = ("Stack {0}: Stale correspondent {1} from remote {1} at {2}"
+                transaction.nack()
+                self.removeTransaction(index)
+                emsg = ("Stack {0}: Stale correspondent {1} from remote {1} at {2}"
                             "\n".format(self.stack.name,
                                         index,
                                         self.name,
                                         self.stack.store.stamp))
-                    console.terse(emsg)
-                    self.stack.incStat('stale_correspondent')
-                else:
-                    self.indexes.discard(index)
+                console.terse(emsg)
+                self.stack.incStat('stale_correspondent')
 
     def replaceStaleInitiators(self, renew=False):
         '''
@@ -309,27 +347,21 @@ class RemoteEstate(Estate):
             ti = tid, Transaction ID, TID
             bf = Broadcast Flag, BcstFlag
         '''
-        indexes = set(self.indexes) # make copy so not changed in place
-
-        for index in indexes:
+        for index, transaction in self.transactions.items():
             sid = index[3]
             rf = index[0]
             if not rf and ((renew and sid != 0) or (not renew and not self.validSid(sid))):
-                if index in self.stack.transactions:
-                    transaction = self.stack.transactions[index]
-                    if transaction.kind in [raeting.trnsKinds.message]:
-                        self.saveMessage(transaction)
-                    transaction.nack()
-                    self.stack.removeTransaction(index) # this discards it from self.indexes
-                    emsg = ("Stack {0}: Stale initiator {1} to remote {2} at {3}"
-                            "\n".format(self.stack.name,
-                                        index,
-                                        self.name,
-                                        self.stack.store.stamp))
-                    console.terse(emsg)
-                    self.stack.incStat('stale_initiator')
-                else:
-                    self.indexes.discard(index)
+                if transaction.kind in [raeting.trnsKinds.message]:
+                    self.saveMessage(transaction)
+                transaction.nack()
+                self.removeTransaction(index)
+                emsg = ("Stack {0}: Stale initiator {1} to remote {2} at {3}"
+                        "\n".format(self.stack.name,
+                                    index,
+                                    self.name,
+                                    self.stack.store.stamp))
+                console.terse(emsg)
+                self.stack.incStat('stale_initiator')
 
     def saveMessage(self, messenger):
         '''
@@ -356,24 +388,26 @@ class RemoteEstate(Estate):
 
     def allowInProcess(self):
         '''
-        Returns transaction if an allow transaction with this remote is already in process
-        Otherwise returns None
+        Returns list of transactions for all allow transactions with this remote
+        that are already in process
         '''
-        transactions = []
-        for index in self.indexes:
-            transaction = self.stack.transactions[index]
-            if transaction.kind == raeting.trnsKinds.allow:
-                transactions.append(transaction)
-        return transactions
+        return ([t for t in self.transactions.values()
+                     if t.kind == raeting.trnsKinds.allow])
+        #transactions = []
+        #for transaction in self.transactions.values():
+            #if transaction.kind == raeting.trnsKinds.allow:
+                #transactions.append(transaction)
+        #return transactions
 
     def joinInProcess(self):
         '''
-        Returns transaction if join transaction with this remote is already in process
-        Otherwise returns None
+        Returns  list of transactions for all join transaction with this remote
+        that are already in process
         '''
-        transactions = []
-        for index in self.indexes:
-            transaction = self.stack.transactions[index]
-            if transaction.kind == raeting.trnsKinds.join:
-                transactions.append(transaction)
-        return transactions
+        return ([t for t in self.transactions.values()
+                     if t.kind == raeting.trnsKinds.join])
+        #transactions = []
+        #for transaction in self.transactions.values():
+            #if transaction.kind == raeting.trnsKinds.join:
+                #transactions.append(transaction)
+        #return transactions
