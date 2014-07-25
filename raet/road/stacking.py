@@ -341,63 +341,6 @@ class RoadStack(stacking.KeepStack):
         self.alloweds = alloweds
         self.aliveds =  aliveds
 
-    #def addTransaction(self, index, transaction):
-        #'''
-        #Safely add transaction at index If not already there
-
-        #index of the form
-        #(rf, le, re, si, ti, bf)
-
-        #Where
-        #rf = Remotely Initiated Flag, RmtFlag
-        #le = leid, local estate id LEID
-        #re = reid, remote estate id REID
-        #si = sid, Session ID, SID
-        #ti = tid, Transaction ID, TID
-        #bf = Broadcast Flag, BcstFlag
-        #'''
-        ##self.transactions[index] = transaction
-        #if index[5]: # broadcast transaction not yet supported
-            #return
-        #re = index[2]
-        #remote = None
-        #if re in self.remotes:
-            #remote = self.remotes[re]
-        #else: # may be bootstrapping onto channel so using re = ha in index but 0th
-            #remote = self.haRemotes.get(re)
-        #if remote is not None:
-            #remote.addTransaction(index, transaction)
-
-            #console.verbose( "Added {0} transaction to stack {1}  estate {2} at '{3}'\n".format(
-                    #transaction.__class__.__name__, self.name, remote.name, index))
-
-    #def removeTransaction(self, index, transaction=None):
-        #'''
-        #Safely remove transaction at index If transaction identity same
-        #If transaction is None then remove without comparing identity
-
-        #index of the form
-        #(rf, le, re, si, ti, bf)
-
-        #Where
-        #rf = Remotely Initiated Flag, RmtFlag
-        #le = leid, local estate id LEID
-        #re = reid, remote estate id REID
-        #si = sid, Session ID, SID
-        #ti = tid, Transaction ID, TID
-        #bf = Broadcast Flag, BcstFlag
-        #'''
-        #if index[5]: # broadcast transaction not yet supported
-            #return
-        #re = index[2]
-        #remote = None
-        #if re in self.remotes:
-            #remote = self.remotes[re]
-        #else: # may be bootstrapping onto channel so using re=ha in index but 0th
-            #remote = self.haRemotes.get(re)
-        #if remote is not None:
-            #remote.removeTransaction(index, transaction)
-
     def _handleOneRx(self):
         '''
         Handle on message from .rxes deque
