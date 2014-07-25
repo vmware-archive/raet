@@ -6,6 +6,15 @@ CHANGE LOG
 20140724
 ---------
 
+v0.2.10
+
+Transactions now referenced and processed per remote not at stack.transactions
+sets stage for later doing broadcast transactions
+
+---------
+20140724
+---------
+
 v0.2.09
 
 Finished support for role keep files in Road
