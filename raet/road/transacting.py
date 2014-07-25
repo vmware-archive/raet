@@ -1016,13 +1016,6 @@ class Joinent(Correspondent):
                     self.remote.role = role
 
             else: # reid == 0
-                if not self.stack.local.main: #not main so can't process vacuous join
-                    emsg = ("Joinent {0}. Vacuous invalid for remote {0} eid {1}"
-                            "\n".format(self.stack.name, name, reid))
-                    console.terse(emsg)
-                    self.nack(kind=raeting.pcktKinds.refuse)
-                    return
-
                 remote = self.stack.nameRemotes.get(name)
                 if remote: # remote with same name is it the same one
                     if (verhex != remote.verfer.keyhex or
@@ -1143,7 +1136,7 @@ class Joinent(Correspondent):
             self.add(remote=self.remote, index=self.rxPacket.index)
 
             if role != self.remote.role:
-                 self.remote.role = role
+                self.remote.role = role
 
             status = self.stack.keep.statusRemote(self.remote,
                                                   verhex=verhex,
