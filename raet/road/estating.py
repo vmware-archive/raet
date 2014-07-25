@@ -112,6 +112,7 @@ class Estate(lotting.Lot):
         bf = Broadcast Flag, BcstFlag
         '''
         self.transactions[index] = transaction
+        transaction.remote = self
         console.verbose( "Added transaction to {0} at '{1}'\n".format(self.name, index))
 
     def removeTransaction(self, index, transaction=None):

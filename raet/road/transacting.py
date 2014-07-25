@@ -95,17 +95,9 @@ class Transaction(object):
         except raeting.StackError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat(self.statKey())
-            self.removeFromStack(packet.index)
+            self.removeFromRemote(remote=self.remote, index=packet.index)
             return
         self.txPacket = packet
-
-    def addToStack(self, index=None):
-        '''
-        Add self to stack transactions
-        '''
-        if not index:
-            index = self.index
-        self.stack.addTransaction(index, self)
 
     def addToRemote(self, remote=None, index=None):
         '''
@@ -117,14 +109,6 @@ class Transaction(object):
             remote = self.remote
         remote.addTransaction(index, self)
 
-    def removeFromStack(self, index=None):
-        '''
-        Remove self from stack transactions
-        '''
-        if not index:
-            index = self.index
-        self.stack.removeTransaction(index, transaction=self)
-
     def removeFromRemote(self, remote=None, index=None):
         '''
         Remove self from stack transactions
@@ -133,7 +117,8 @@ class Transaction(object):
             index = self.index
         if not remote:
             remote = self.remote
-        remote.removeTransaction(index, transaction=self)
+        if remote:
+            remote.removeTransaction(index, transaction=self)
 
     def statKey(self):
         '''
@@ -164,7 +149,7 @@ class Initiator(Transaction):
         Process time based handling of transaction like timeout or retries
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.removeFromStack()
+            self.removeFromRemote()
 
 class Correspondent(Transaction):
     '''
@@ -388,9 +373,11 @@ class Joiner(Initiator):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             if self.txPacket and self.txPacket.data['pk'] == raeting.pcktKinds.request:
-                self.removeFromStack(self.txPacket.index) #index changes after accept
+                #self.removeFromStack(self.txPacket.index) #index changes after accept
+                self.removeFromRemote(index=self.txPacket.index)#index changes after accept
             else:
-                self.removeFromStack(self.index) # in case never sent txPacket
+                #self.removeFromStack(self.index) # in case never sent txPacket
+                self.removeFromRemote(index=self.index) # in case never sent txPacket
 
             console.concise("Joiner {0}. Timed out with {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
@@ -493,7 +480,7 @@ class Joiner(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
         console.concise("Joiner {0}. Do Join with {1} at {2}\n".format(
                         self.stack.name, self.remote.name, self.stack.store.stamp))
@@ -508,12 +495,12 @@ class Joiner(Initiator):
             self.reject()
             return
 
-        who = (self.remote.name if self.remote else
-                 (self.rxPacket.data['sh'], self.rxPacket.data['sp']))
+        #who = (self.remote.name if self.remote else
+                 #(self.rxPacket.data['sh'], self.rxPacket.data['sp']))
         console.terse("Joiner {0}. Renew from {1} at {2}\n".format(
-                self.stack.name, who, self.stack.store.stamp))
+                self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.removeFromStack(self.txPacket.index)
+        self.removeFromRemote(index=self.txPacket.index)
         if self.remote: # don't want to lose the keys so don't remove
             # reset remote to default values and move to zero
             self.remote.replaceStaleInitiators(renew=True)
@@ -549,7 +536,7 @@ class Joiner(Initiator):
             emsg = "Missing or invalid local estate id in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         reid = body.get('reid')
@@ -557,7 +544,7 @@ class Joiner(Initiator):
             emsg = "Missing or invalid remote estate id in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         name = body.get('name')
@@ -565,7 +552,7 @@ class Joiner(Initiator):
             emsg = "Missing remote name in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         verhex = body.get('verhex')
@@ -573,7 +560,7 @@ class Joiner(Initiator):
             emsg = "Missing remote verifier key in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         pubhex = body.get('pubhex')
@@ -581,7 +568,7 @@ class Joiner(Initiator):
             emsg = "Missing remote crypt key in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         role = body.get('role')
@@ -589,7 +576,7 @@ class Joiner(Initiator):
             emsg = "Missing remote role in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         # we are assuming for now that the joiner cannot talk peer to peer only
@@ -622,7 +609,7 @@ class Joiner(Initiator):
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
-                    self.removeFromStack(self.txPacket.index)
+                    self.removeFromRemote(index=self.txPacket.index)
                     return
 
             if self.remote.name != name: # rename remote estate to new name
@@ -631,7 +618,7 @@ class Joiner(Initiator):
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
-                    self.removeFromStack(self.txPacket.index)
+                    self.removeFromRemote(index=self.txPacket.index)
                     return
 
             if self.remote.role != role:
@@ -657,7 +644,7 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Refused by {1} at {2}\n".format(
                  self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.removeFromStack(self.txPacket.index)
+        self.removeFromRemote(index=self.txPacket.index)
 
     def reject(self):
         '''
@@ -670,9 +657,7 @@ class Joiner(Initiator):
         self.stack.incStat(self.statKey())
         self.remote.joined = False
         self.stack.dumpRemote(self.remote)
-        self.removeFromStack(self.txPacket.index)
-        #self.remote.reap() # remove remote from memory if main
-        #self.stack.removeRemote(self.remote)
+        self.removeFromRemote(index=self.txPacket.index)
 
     def ackAccept(self):
         '''
@@ -688,7 +673,7 @@ class Joiner(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         console.concise("Joiner {0}. Do Accept of {1} at {2}\n".format(
@@ -696,7 +681,7 @@ class Joiner(Initiator):
         self.stack.incStat("join_initiate_complete")
 
         self.transmit(packet)
-        self.removeFromStack(self.rxPacket.index)
+        self.removeFromRemote(index=self.txPacket.index) # self.rxPacket.index
 
         if self.cascade:
             self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
@@ -715,7 +700,7 @@ class Joiner(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack(self.txPacket.index)
+            self.removeFromRemote(index=self.txPacket.index)
             return
 
         if kind==raeting.pcktKinds.refuse:
@@ -729,7 +714,7 @@ class Joiner(Initiator):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.transmit(packet)
-        self.removeFromStack(self.txPacket.index)
+        self.removeFromRemote(index=self.txPacket.index)
 
 class Joinent(Correspondent):
     '''
@@ -909,7 +894,7 @@ class Joinent(Correspondent):
             emsg = "Missing remote name in join packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_join')
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         verhex = body.get('verhex')
@@ -917,7 +902,7 @@ class Joinent(Correspondent):
             emsg = "Missing remote verifier key in join packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_join')
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         pubhex = body.get('pubhex')
@@ -925,7 +910,7 @@ class Joinent(Correspondent):
             emsg = "Missing remote crypt key in join packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_join')
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         role = body.get('role')
@@ -933,7 +918,7 @@ class Joinent(Correspondent):
             emsg = "Missing remote role in join packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_join')
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         host = data['sh']
@@ -1078,7 +1063,7 @@ class Joinent(Correspondent):
                     except raeting.StackError as ex:
                         console.terse(str(ex) + '\n')
                         self.stack.incStat(self.statKey())
-                        self.removeFromStack(self.rxPacket.index)
+                        self.removeFromRemote(index=self.rxPacket.index)
                         return
 
                 self.remote = remote # auto generated at instance creation above
@@ -1151,7 +1136,7 @@ class Joinent(Correspondent):
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
-                    self.removeFromStack(self.rxPacket.index)
+                    self.removeFromRemote(index=self.rxPacket.index)
                     return
 
             # bootstrapping so use packet.index not self.index
@@ -1208,7 +1193,7 @@ class Joinent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         console.concise("Joinent {0}. Pending Accept of {1} at {2}\n".format(
@@ -1234,7 +1219,7 @@ class Joinent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         console.concise("Joinent {0}. Do Accept of {1} at {2}\n".format(
@@ -1262,7 +1247,7 @@ class Joinent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         if kind == raeting.pcktKinds.renew:
@@ -1284,7 +1269,7 @@ class Joinent(Correspondent):
             self.stack.txes.append((packet.packed, ha))
         else:
             self.transmit(packet)
-        self.removeFromStack(self.rxPacket.index)
+        self.removeFromRemote(index=self.rxPacket.index)
 
     def complete(self):
         '''
@@ -1302,7 +1287,7 @@ class Joinent(Correspondent):
         self.remote.nextSid()
         self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
-        self.removeFromStack(self.rxPacket.index)
+        self.removeFromRemote(index=self.rxPacket.index)
 
     def reject(self):
         '''
@@ -1317,9 +1302,7 @@ class Joinent(Correspondent):
 
         self.remote.joined = False
         self.stack.dumpRemote(self.remote)
-        self.removeFromStack(self.rxPacket.index)
-        #self.remote.reap() #remove from memory if main
-        #self.stack.removeRemote(self.remote)
+        self.removeFromRemote(index=self.rxPacket.index)
 
     def refuse(self):
         '''
@@ -1330,7 +1313,7 @@ class Joinent(Correspondent):
         console.terse("Joinent {0}. Refused by {1} at {2}\n".format(
                  self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.removeFromStack(self.txPacket.index)
+        self.removeFromRemote(index=self.rxPacket.index)
 
 class Allower(Initiator):
     '''
@@ -1393,7 +1376,7 @@ class Allower(Initiator):
         Perform time based processing of transaction
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.removeFromStack()
+            self.removeFromRemote()
             console.concise("Allower {0}. Timed out with {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
             return
@@ -1496,7 +1479,7 @@ class Allower(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
         self.transmit(packet)
         console.concise("Allower {0}. Do Hello with {1} at {2}\n".format(
@@ -1594,7 +1577,7 @@ class Allower(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         self.transmit(packet)
@@ -1628,11 +1611,11 @@ class Allower(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         self.transmit(packet)
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Allower {0}. Ack Final of {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
@@ -1658,7 +1641,7 @@ class Allower(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack(self.index)
+            self.removeFromRemote()
             return
 
         if kind==raeting.pcktKinds.refuse:
@@ -1672,7 +1655,7 @@ class Allower(Initiator):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.transmit(packet)
-        self.removeFromStack(self.index)
+        self.removeFromRemote()
 
     def refuse(self):
         '''
@@ -1683,7 +1666,7 @@ class Allower(Initiator):
         console.concise("Allower {0}. Refusted by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.removeFromStack()
+        self.removeFromRemote()
 
     def reject(self):
         '''
@@ -1694,7 +1677,7 @@ class Allower(Initiator):
             return
 
         self.remote.allowed = False
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Allower {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -1707,7 +1690,7 @@ class Allower(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         self.remote.joined = False
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Allower {0}. Rejected unjoin by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -1919,7 +1902,7 @@ class Allowent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
         self.transmit(packet)
         console.concise("Allowent {0}. Do Cookie with {1} at {2}\n".format(
@@ -2021,7 +2004,7 @@ class Allowent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         self.transmit(packet)
@@ -2048,7 +2031,7 @@ class Allowent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Allowent {0}. Do Final with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_correspond_complete")
@@ -2061,7 +2044,7 @@ class Allowent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Allowent {0}. Refused by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2075,7 +2058,7 @@ class Allowent(Correspondent):
             return
 
         self.remote.allowed = False
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Allowent {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2094,7 +2077,7 @@ class Allowent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         if kind==raeting.pcktKinds.refuse:
@@ -2108,7 +2091,7 @@ class Allowent(Correspondent):
                     self.stack.name, self.remote.name, self.stack.store.stamp))
 
         self.transmit(packet)
-        self.removeFromStack()
+        self.removeFromRemote()
         self.stack.incStat(self.statKey())
 
 class Aliver(Initiator):
@@ -2178,7 +2161,7 @@ class Aliver(Initiator):
         if self.timeout > 0.0 and self.timer.expired:
             console.concise("Aliver {0}. Timed out with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
-            self.removeFromStack()
+            self.removeFromRemote()
             self.remote.refresh(alived=False) # mark as dead
             return
 
@@ -2246,7 +2229,7 @@ class Aliver(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
         self.transmit(packet)
         console.concise("Aliver {0}. Do Alive with {1} at {2}\n".format(
@@ -2259,7 +2242,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         self.remote.refresh(alived=True) # restart timer mark as alive
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Aliver {0}. Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
@@ -2272,7 +2255,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         self.remote.refresh(alived=None) # restart timer do not change status
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Aliver {0}. Refused by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2285,7 +2268,7 @@ class Aliver(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         self.remote.refresh(alived=False) # restart timer set status to False
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Aliver {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2299,7 +2282,7 @@ class Aliver(Initiator):
             return
         self.remote.refresh(alived=None) # restart timer do not change status
         self.remote.joined = False
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Aliver {0}. Refused unjoin by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2314,7 +2297,7 @@ class Aliver(Initiator):
             return
         self.remote.refresh(alived=None) # restart timer do not change status
         self.remote.allowed = False
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Aliver {0}. Refused unallow by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2414,14 +2397,14 @@ class Alivent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack(self.rxPacket.index)
+            self.removeFromRemote(index=self.rxPacket.index)
             return
 
         self.transmit(packet)
         console.concise("Alivent {0}. Do ack alive with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.remote.refresh(alived=True)
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Alivent {0}. Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
@@ -2440,7 +2423,7 @@ class Alivent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         if kind==raeting.pcktKinds.refuse:
@@ -2460,7 +2443,7 @@ class Alivent(Correspondent):
                     self.stack.name, self.remote.name, self.stack.store.stamp))
 
         self.transmit(packet)
-        self.removeFromStack()
+        self.removeFromRemote()
 
         self.stack.incStat(self.statKey())
 
@@ -2516,7 +2499,7 @@ class Messenger(Initiator):
         Perform time based processing of transaction
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.removeFromStack()
+            self.removeFromRemote()
             console.concise("Messenger {0}. Timed out with {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
             return
@@ -2562,7 +2545,7 @@ class Messenger(Initiator):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         if not self.tray.packets:
@@ -2571,14 +2554,14 @@ class Messenger(Initiator):
             except raeting.PacketError as ex:
                 console.terse(str(ex) + '\n')
                 self.stack.incStat("packing_error")
-                self.removeFromStack()
+                self.removeFromRemote()
                 return
 
         if self.tray.current >= len(self.tray.packets):
             emsg = "Messenger {0}. Current packet {1} greater than num packets {2}\n".format(
                                 self.stack.name, self.tray.current, len(self.tray.packets))
             console.terse(emsg)
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         if self.index not in self.remote.transactions:
@@ -2588,7 +2571,7 @@ class Messenger(Initiator):
                                 self.stack.name, self.remote.name,  self.index)
             console.terse(emsg)
             self.incStat('message_index_collision')
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         burst = 1 if self.wait else len(self.tray.packets) - self.tray.current
@@ -2653,7 +2636,7 @@ class Messenger(Initiator):
         '''
         Complete transaction and remove
         '''
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Messenger {0}. Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("message_initiate_complete")
@@ -2668,7 +2651,7 @@ class Messenger(Initiator):
 
         self.remote.refresh(alived=True)
 
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Messenger {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2687,11 +2670,11 @@ class Messenger(Initiator):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         self.transmit(packet)
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Messenger {0}. Do Reject {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2843,7 +2826,7 @@ class Messengent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
         self.transmit(packet)
         self.stack.incStat("message_segment_ack")
@@ -2871,7 +2854,7 @@ class Messengent(Correspondent):
             except raeting.PacketError as ex:
                 console.terse(str(ex) + '\n')
                 self.stack.incStat("packing_error")
-                self.removeFromStack()
+                self.removeFromRemote()
                 return
             self.transmit(packet)
             self.stack.incStat("message_resend")
@@ -2883,7 +2866,7 @@ class Messengent(Correspondent):
         '''
         Complete transaction and remove
         '''
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Messengent {0}. Complete with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("messagent_correspond_complete")
@@ -2898,7 +2881,7 @@ class Messengent(Correspondent):
 
         self.remote.refresh(alived=True)
 
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Messengent {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
@@ -2917,11 +2900,11 @@ class Messengent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.removeFromStack()
+            self.removeFromRemote()
             return
 
         self.transmit(packet)
-        self.removeFromStack()
+        self.removeFromRemote()
         console.concise("Messagent {0}. Do Reject {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
