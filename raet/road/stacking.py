@@ -362,7 +362,8 @@ class RoadStack(stacking.KeepStack):
         packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
 
         deid = packet.data['de']
-        if deid != 0 and self.local.uid != 0 and deid != self.local.uid:
+        # non main can have local.uid == 0 but process join with deid != 0
+        if self.local.uid != 0 and deid != 0 and deid != self.local.uid:
             emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
             console.concise( emsg)
             self.incStat('invalid_destination')
