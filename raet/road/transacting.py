@@ -451,36 +451,35 @@ class Joiner(Initiator):
         '''
         Send join request
         '''
-        if self.remote:
-            joins = self.remote.joinInProcess()
-            if joins:
-                if self.stack.local.main:
-                    emsg = "Joiner {0}. Join with {1} already in process\n".format(
-                            self.stack.name, self.remote.name)
-                    console.concise(emsg)
-                    return
-                else: # not main so remove any correspondent joins
-                    already = False
-                    for join in joins:
-                        if join.rmt: # correspondent
-                            emsg = ("Joiner {0}. Removing correspondent join with"
-                                    " {1} already in process\n".format(
-                                                self.stack.name,
-                                                self.remote.name))
-                            console.concise(emsg)
-                            join.nack(kind=raeting.pcktKinds.refuse)
-                        else: # already initiated
-                            already = True
-                    if already:
-                        emsg = ("Joiner {0}. Initiator join with"
+        joins = self.remote.joinInProcess()
+        if joins:
+            if self.stack.local.main:
+                emsg = "Joiner {0}. Join with {1} already in process\n".format(
+                        self.stack.name, self.remote.name)
+                console.concise(emsg)
+                return
+            else: # not main so remove any correspondent joins
+                already = False
+                for join in joins:
+                    if join.rmt: # correspondent
+                        emsg = ("Joiner {0}. Removing correspondent join with"
                                 " {1} already in process\n".format(
                                             self.stack.name,
                                             self.remote.name))
                         console.concise(emsg)
-                        return
+                        join.nack(kind=raeting.pcktKinds.refuse)
+                    else: # already initiated
+                        already = True
+                if already:
+                    emsg = ("Joiner {0}. Initiator join with"
+                            " {1} already in process\n".format(
+                                        self.stack.name,
+                                        self.remote.name))
+                    console.concise(emsg)
+                    return
 
         self.remote.joined = None
-        self.addToStack(self.index)
+        self.addToRemote()
         body = odict([('name', self.stack.local.name),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
@@ -1100,7 +1099,8 @@ class Joinent(Correspondent):
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
 
-            self.addToStack(self.rxPacket.index) # bootstrap so use packet.index not self.index
+            # bootstrapping so use packet.index not self.index
+            self.addToRemote(remote=self.remote, index=self.rxPacket.index)
             self.stack.dumpRemote(self.remote)
 
             if status == raeting.acceptances.accepted:
@@ -1154,7 +1154,8 @@ class Joinent(Correspondent):
                     self.removeFromStack(self.rxPacket.index)
                     return
 
-            self.addToStack(self.rxPacket.index) # bootstrap so use packet.index not self.index
+            # bootstrapping so use packet.index not self.index
+            self.addToRemote(remote=self.remote, index=self.rxPacket.index)
 
             if role != self.remote.role:
                  self.remote.role = role
@@ -1480,7 +1481,7 @@ class Allower(Initiator):
             return
 
         self.remote.rekey() # refresh short term keys and reset .allowed to None
-        self.addToStack(self.index)
+        self.addToRemote()
 
         plain = binascii.hexlify("".rjust(32, '\x00'))
         cipher, nonce = self.remote.privee.encrypt(plain, self.remote.pubber.key)
@@ -1860,7 +1861,7 @@ class Allowent(Correspondent):
             return
 
         self.remote.rekey() # refresh short term keys and .allowed
-        self.addToStack(self.index)
+        self.addToRemote()
 
         data = self.rxPacket.data
         body = self.rxPacket.body.data
@@ -2233,7 +2234,7 @@ class Aliver(Initiator):
             return
 
         self.remote.refresh(alived=None) #Restart timer but do not change alived status
-        self.addToStack(self.index)
+        self.addToRemote()
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -2398,7 +2399,7 @@ class Alivent(Correspondent):
             self.nack(kind=raeting.pcktKinds.unallowed)
             return
 
-        self.addToStack(self.index)
+        self.addToRemote()
 
         data = self.rxPacket.data
         body = self.rxPacket.body.data
