@@ -323,15 +323,6 @@ class Keep(object):
         '''
         self.clearRemoteData(remote.name)
 
-    def replaceRemote(self, remote, old):
-        '''
-        Replace keep file if renaming should move it
-        This is provided for subclasses or mimic classes that store the
-        Safe data by name and need to move that data
-        '''
-        pass
-
-
 class LotKeep(Keep):
     '''
     RAET protocol endpoint lot persistence
