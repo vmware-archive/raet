@@ -930,14 +930,14 @@ class Joinent(Correspondent):
         leid = data['de']
 
         if self.stack.local.main:
-            if ((leid != 0 and leid != self.stack.local.uid)):
-                emsg = "Joinent {0}. Received stale main leid {1} for remote {2}\n".format(
-                                            self.stack.name,  eid,  name,)
+            if (self.stack.local.uid == 0):
+                emsg = "Joinent {0}. Main has invalid uid of {1}\n".format(
+                                    self.stack.name,  self.stack.local.uid)
                 console.terse(emsg)
-                self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+                self.nack(kind=raeting.pcktKinds.refuse) # refuse
                 return
 
-            elif (reid != 0 and reid not in self.stack.remotes):
+            if (reid != 0 and reid not in self.stack.remotes):
                 remote = self.stack.restoreRemote(name) # see if still on disk
                 if not remote:
                     emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
