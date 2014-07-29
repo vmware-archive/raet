@@ -274,7 +274,8 @@ class RemoteEstate(Estate):
 
         if self.alived or alived: # alive before or after
             self.reapTimer.restart()
-            self.unreap()
+            if self.reaped:
+                self.unreap()
         #otherwise let timer run both before and after are still dead
         self.alived = alived
 
