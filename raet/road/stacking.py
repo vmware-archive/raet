@@ -137,6 +137,7 @@ class RoadStack(stacking.KeepStack):
 
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
+        self.reapeds =  odict() # reaped remotes keyed by name
         self.availables = set() # set of available remote names
 
     @property
@@ -316,12 +317,15 @@ class RoadStack(stacking.KeepStack):
         '''
         alloweds = odict()
         aliveds = odict()
+        reapeds = odict()
         for remote in self.remotes.values(): # should not start anything
             remote.manage(cascade=cascade, immediate=immediate)
             if remote.allowed:
                 alloweds[remote.name] = remote
             if remote.alived:
                 aliveds[remote.name] = remote
+            if remote.reaped:
+                reapeds[remote.name] = remote
 
         old = set(self.aliveds.keys())
         current = set(aliveds.keys())
@@ -330,7 +334,8 @@ class RoadStack(stacking.KeepStack):
         self.availables = current
         self.changeds = odict(plus=plus, minus=minus)
         self.alloweds = alloweds
-        self.aliveds =  aliveds
+        self.aliveds = aliveds
+        self.reapeds = reapeds
 
     def _handleOneRx(self):
         '''
@@ -372,7 +377,16 @@ class RoadStack(stacking.KeepStack):
 
         cf = received.data['cf']
         rsid = received.data['si']
-        remote = self.remotes.get(received.data['se'], None)
+
+        reid = received.index[2] # index is tupel (rf, le, re, si, ti, bf)
+        # when source eid is 0 then index has source ha so first look by eid then by ha
+        remote = self.remotes.get(reid, None) or self.haRemotes.get(reid, None)
+        if remote and remote.reaped:
+            remote.unreap() # received a verified packet so remote is not dead
+
+        bf = received.data['bf']
+        if bf:
+            return  # broadcast transaction not yet supported
 
         if rsid == 0: # can only use sid == 0 on join transaction
             if received.data['tk'] != raeting.trnsKinds.join: # drop packet
@@ -395,11 +409,7 @@ class RoadStack(stacking.KeepStack):
                     remote.rsid = rsid
                     remote.removeStaleCorrespondents()
 
-        bf = received.data['bf']
-        if bf:
-            return  # broadcast transaction not yet supported
-
-        remote = remote or self.haRemotes.get((received.data['sh'], received.data['sp']))
+        #remote = remote or self.haRemotes.get((received.data['sh'], received.data['sp']))
 
         if remote:
             trans = remote.transactions.get(received.index, None)

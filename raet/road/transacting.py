@@ -937,18 +937,24 @@ class Joinent(Correspondent):
                 self.nack(kind=raeting.pcktKinds.refuse) # refuse
                 return
 
-            if (reid != 0 and reid not in self.stack.remotes):
-                remote = self.stack.restoreRemote(name) # see if still on disk
-                if not remote:
-                    emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
-                                                self.stack.name, reid, name)
-                    console.terse(emsg)
-                    self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
-                    return
-                self.remote = remote
+            #if (reid != 0 and reid not in self.stack.remotes):
+                #remote = self.stack.restoreRemote(name) # see if still on disk
+                #if not remote:
+                    #emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
+                                                #self.stack.name, reid, name)
+                    #console.terse(emsg)
+                    #self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+                    #return
+                #self.remote = remote
 
             if reid != 0:
                 if self.remote is None:
+                    if reid not in self.stack.remotes:
+                        emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
+                                                    self.stack.name, reid, name)
+                        console.terse(emsg)
+                        self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+                        return
                     self.remote = self.stack.remotes[reid]
                 if name != self.remote.name:
                     if (verhex != self.remote.verfer.keyhex or

@@ -3,6 +3,25 @@ CHANGE LOG
 -------------------
 
 ---------
+20140729
+---------
+
+v0.2.11
+
+Lookup remote in stack handleOneRx by using packet.index since it already
+substitutes ha if se is zero. Then also lookup remote in haRemotes if not found
+in .uidRemotes
+
+Update joinent transaction
+
+Change the way persistence reaping is handled. Instead of removing remote from
+memory, mark it with .reaped attribute. This avoide problematic use case of
+having to restoreRemote from disk when doing lookup in Joinent.
+Update .manage
+
+Also unreap anytime a packet is received from a remote
+
+---------
 20140724
 ---------
 

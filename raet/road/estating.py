@@ -184,8 +184,9 @@ class RemoteEstate(Estate):
     Offset = 0.5
     Interim = 3600.0
 
-    def __init__(self, stack, eid=None, verkey=None, pubkey=None, acceptance=None, joined=None,
-                 rsid=0, period=None, offset=None, interim=None, **kwa):
+    def __init__(self, stack, eid=None, verkey=None, pubkey=None,
+                 acceptance=None, joined=None, rsid=0,
+                 period=None, offset=None, interim=None, **kwa):
         '''
         Setup Estate instance
 
@@ -217,6 +218,7 @@ class RemoteEstate(Estate):
         self.joined = joined
         self.allowed = None
         self.alived = None
+        self.reaped = None
         self.acceptance = acceptance
         self.privee = nacling.Privateer() # short term key manager
         self.publee = nacling.Publican() # correspondent short term key  manager
@@ -261,7 +263,7 @@ class RemoteEstate(Estate):
 
     def refresh(self, alived=True):
         '''
-        Restart presence heartbeat timer
+        Restart presence heartbeat timer and conditionally reapTimer
         If alived is None then do not change .alived  but update timer
         If alived is True then set .alived to True and handle implications
         If alived is False the set .alived to False and handle implications
@@ -272,6 +274,7 @@ class RemoteEstate(Estate):
 
         if self.alived or alived: # alive before or after
             self.reapTimer.restart()
+            self.unreap()
         #otherwise let timer run both before and after are still dead
         self.alived = alived
 
@@ -279,21 +282,33 @@ class RemoteEstate(Estate):
         '''
         Perform time based processing of keep alive heatbeat
         '''
-        if immediate or self.timer.expired:
-            # alive transaction restarts self.timer
-            self.stack.alive(duid=self.uid, cascade=cascade)
-        if self.interim >  0.0 and self.reapTimer.expired:
-            self.reap()
+        if not self.reaped: # only manage alives if not already reaped
+            if immediate or self.timer.expired:
+                # alive transaction restarts self.timer
+                self.stack.alive(duid=self.uid, cascade=cascade)
+            if self.interim >  0.0 and self.reapTimer.expired:
+                self.reap()
 
     def reap(self):
         '''
         Remote is dead, reap it if main estate.
         '''
-        if self.stack.local.main: #only reap main remotes
+        if self.stack.local.main: # only main can reap
             console.concise("Stack {0}: Reaping dead remote {1} at {2}\n".format(
                     self.stack.name, self.name, self.stack.store.stamp))
             self.stack.incStat("remote_reap")
-            self.stack.removeRemote(self, clear=False) #remove from memory but not disk
+            self.reaped = True
+            #self.stack.removeRemote(self, clear=False) #remove from memory but not disk
+
+    def unreap(self):
+        '''
+        Remote packet received from remote so not dead anymore.
+        '''
+        if self.stack.local.main: # only only main can reap or unreap
+            console.concise("Stack {0}: Unreaping dead remote {1} at {2}\n".format(
+                    self.stack.name, self.name, self.stack.store.stamp))
+            self.stack.incStat("remote_unreap")
+            self.reaped = False
 
     def removeStaleCorrespondents(self, renew=False):
         '''
