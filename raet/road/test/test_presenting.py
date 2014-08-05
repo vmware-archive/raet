@@ -823,9 +823,71 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinFromMain(self):
         '''
-        Test join, allow, alive initiated by main
+        Test join,initiated by main
         '''
         console.terse("{0}\n".format(self.testJoinFromMain.__doc__))
+
+        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     eid=1,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nJoin Main to Other *********\n")
+        self.join(main, other, mha=('127.0.0.1', other.local.port))
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertIs(remote.joined, None) # vacuous join from main is rejected
+        main.removeRemote(remote)
+        self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(main.nameRemotes), 0)
+        self.assertEqual(len(main.haRemotes), 0)
+
+        self.assertEqual(len(other.remotes), 0)
+        self.assertEqual(len(other.nameRemotes), 0)
+        self.assertEqual(len(other.haRemotes), 0)
+
+        #now create remote for other and add to main
+        main.addRemote(estating.RemoteEstate(stack=main,
+                                             eid=2,
+                                             name=otherData['name'],
+                                             ha=('127.0.0.1', other.local.port),
+                                             verkey=otherData['verhex'],
+                                             pubkey=otherData['pubhex'],
+                                             period=main.period,
+                                             offset=main.offset))
+
+        console.terse("\nJoin Main to Other Again *********\n")
+        self.join(main, other, deid=2)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertIs(remote.joined, None) # non vacuous join from main is rejected
+
+        main.server.close()
+        main.clearLocalKeep()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocalKeep()
+        other.clearRemoteKeeps()
+
+    def testAdmitFromMain(self):
+        '''
+        Test join, allow, alive initiated by main
+        '''
+        console.terse("{0}\n".format(self.testAdmitFromMain.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
         keeping.clearAllKeep(mainData['dirpath'])
@@ -1582,6 +1644,7 @@ def runSome():
              'testAllowFromOtherUnjoinedBoth',
              'testManageJoinedAllowed',
              'testJoinFromMain',
+             'testAdmitFromMain',
              'testAllowFromMainUnjoinedOnMain',
              'testAliveFromMainUnjoinedBoth',
              'testManageBothSides',

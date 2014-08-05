@@ -440,8 +440,7 @@ class Joiner(Initiator):
         Send join request
         '''
         if self.stack.local.main:
-            emsg = ("Joiner {0}. Main may not initiate join\n"
-                     " '{1}'\n".format(self.stack.name))
+            emsg = ("Joiner {0}. Main may not initiate join\n".format(self.stack.name))
             console.terse(emsg)
             return
 
