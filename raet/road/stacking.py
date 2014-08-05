@@ -50,6 +50,8 @@ class RoadStack(stacking.KeepStack):
         automatically assigned
     main
         Flag indicating if the local estate is a main estate on the road
+    mutable
+        Flag indicating if credentials on road can be changed after initial join
     keep
         Pass in a keep object, this object can define how stack data
         including keys is persisted to disk
@@ -63,7 +65,8 @@ class RoadStack(stacking.KeepStack):
     bufcnt
         The number of messages to buffer, defaults to 2
     auto
-        Flag indicating if by default keys should be auto accepted.
+        auto acceptance mode indicating how keys should be accepted
+        one of never, once, always
     period
         The default iteration timeframe to use for the background management
         of the presence system. Defaults to 1.0
@@ -89,6 +92,7 @@ class RoadStack(stacking.KeepStack):
     def __init__(self,
                  name='',
                  main=None,
+                 mutable=None,
                  keep=None,
                  dirpath='',
                  basedirpath='',
@@ -116,11 +120,15 @@ class RoadStack(stacking.KeepStack):
                                               name=name,
                                               eid=eid,
                                               main=main,
+                                              mutable=mutable,
                                               ha=ha,
                                               role=role)
         local.stack = self
         if local.main is None and main is not None:
             local.main = True if main else False
+
+        if local.mutable is None and mutable is not None:
+            local.mutable = True if mutable else False
 
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
@@ -193,6 +201,8 @@ class RoadStack(stacking.KeepStack):
 
     def retrieveRemote(self, duid, ha=None, create=False):
         '''
+        Used when initiating a transaction
+
         If duid is not None Then returns remote at duid if exists or None
         If duid is None Then uses first remote unless no remotes then creates one
            with ha or default if ha is None
@@ -233,6 +243,7 @@ class RoadStack(stacking.KeepStack):
                                               eid=keepData['uid'],
                                               name=keepData['name'],
                                               main=keepData['main'],
+                                              mutable=keepData['mutable'],
                                               ha=keepData['ha'],
                                               sid=keepData['sid'],
                                               neid=keepData['neid'],
@@ -396,6 +407,14 @@ class RoadStack(stacking.KeepStack):
                 return
 
         else: # rsid !=0
+            if received.data['tk'] == raeting.trnsKinds.join:
+                # join must use sid == 0
+                emsg = "{0} Nonzero join sid '{1}' in packet from {2}\n".format(
+                                             self.name, rsid, remote.name)
+                console.terse(emsg)
+                self.incStat('nonzero_sid_attempt')
+                return
+
             if remote and not cf: # packet from remote initiated transaction
                 if not remote.validRsid(rsid): # invalid rsid
                     emsg = "{0} Stale sid '{1}' in packet from {2}\n".format(
@@ -405,11 +424,10 @@ class RoadStack(stacking.KeepStack):
                     self.replyStale(received, remote) # nack stale transaction
                     return
 
-                if rsid != remote.rsid: # updated valid rsid so change remote.rsid
+                if rsid != remote.rsid:
+                    # updated valid rsid so change remote.rsid
                     remote.rsid = rsid
                     remote.removeStaleCorrespondents()
-
-        #remote = remote or self.haRemotes.get((received.data['sh'], received.data['sp']))
 
         if remote:
             trans = remote.transactions.get(received.index, None)
@@ -429,6 +447,14 @@ class RoadStack(stacking.KeepStack):
         '''
         if (packet.data['tk'] == raeting.trnsKinds.join and
                 packet.data['pk'] == raeting.pcktKinds.request): # and packet.data['si'] == 0
+
+            if not remote:
+                remote = estating.RemoteEstate(stack=self,
+                                                sid=packet.data['si'],
+                                                host=packet.data['sh'],
+                                                port=packet.data['sp'],
+                                                period=self.period,
+                                                offset=self.offset)
             self.replyJoin(packet, remote)
             return
 

@@ -72,7 +72,7 @@ class BasicTestCase(unittest.TestCase):
 
         return data
 
-    def createRoadStack(self, data, eid=0, main=None, auto=None, ha=None):
+    def createRoadStack(self, data, eid=0, main=None, auto=None, ha=None, mutable=None):
         '''
         Creates stack and local estate from data with
         local estate.eid = eid
@@ -95,6 +95,7 @@ class BasicTestCase(unittest.TestCase):
                                    local=local,
                                    auto=auto if auto is not None else data['auto'],
                                    main=main,
+                                   mutable=mutable,
                                    basedirpath=data['basedirpath'],
                                    store=self.store)
 
@@ -145,7 +146,7 @@ class BasicTestCase(unittest.TestCase):
         Basic keep setup for stack keep  persistence load and dump
         '''
         console.terse("{0}\n".format(self.testBasic.__doc__))
-        auto = True
+        auto = raeting.autoModes.once
         mainData = self.createRoadData(name='main', base=self.base, auto=auto)
         keeping.clearAllKeep(mainData['dirpath'])
         stack = self.createRoadStack(data=mainData,
@@ -180,6 +181,7 @@ class BasicTestCase(unittest.TestCase):
                                         ('name', mainData['name']),
                                         ('ha', ['0.0.0.0', 7530]),
                                         ('main', True),
+                                        ('mutable', None),
                                         ('sid', 0),
                                         ('neid', 1),
                                         ('sighex', mainData['sighex']),
@@ -200,6 +202,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
+                                ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('neid', stack.local.neid),
                                 ('sighex', stack.local.signer.keyhex),
@@ -319,6 +322,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
+                                ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('neid', stack.local.neid),
                                 ('sighex', stack.local.signer.keyhex),
@@ -354,7 +358,7 @@ class BasicTestCase(unittest.TestCase):
         Basic keep setup for stack keep  persistence load and dump with msgpack
         '''
         console.terse("{0}\n".format(self.testBasicMsgpack.__doc__))
-        auto = True
+        auto = raeting.autoModes.once
         mainData = self.createRoadData(name='main', base=self.base, auto=auto)
         keeping.clearAllKeep(mainData['dirpath'])
         keeping.RoadKeep.Ext = 'msgpack'
@@ -390,6 +394,7 @@ class BasicTestCase(unittest.TestCase):
                                         ('name', mainData['name']),
                                         ('ha', ['0.0.0.0', 7530]),
                                         ('main', True),
+                                        ('mutable', None),
                                         ('sid', 0),
                                         ('neid', 1),
                                         ('sighex', mainData['sighex']),
@@ -410,6 +415,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
+                                ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('neid', stack.local.neid),
                                 ('sighex', stack.local.signer.keyhex),
@@ -529,6 +535,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.local.main),
+                                ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('neid', stack.local.neid),
                                 ('sighex', stack.local.signer.keyhex),
@@ -567,7 +574,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testAltDirpath.__doc__))
         base = '/var/cache/'
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=base)
         keeping.clearAllKeep(data['dirpath'])
         stack = self.createRoadStack(data=data,
@@ -597,7 +604,7 @@ class BasicTestCase(unittest.TestCase):
         Test pending behavior when not auto accept by main
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        auto = False #do not auto accept
+        auto = raeting.autoModes.never #do not auto accept
         data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
@@ -669,7 +676,7 @@ class BasicTestCase(unittest.TestCase):
 
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        auto = False #do not auto accept
+        auto = raeting.autoModes.never #do not auto accept
         data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
@@ -762,6 +769,18 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
+        self.assertIs(remote.joined, False)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
+        # change main to mutable and retry
+        main.local.mutable = True
+        self.join(other, main, duration=5.0)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
@@ -773,7 +792,28 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         self.assertTrue(remote.allowed)
 
-        # now change ha to see if can still join
+        # now change ha to see if can still join change back mutable
+        main.local.mutable = None
+        other.server.close()
+        data = savedOtherData
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", 7532))
+
+        self.join(other, main, duration=5.0)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertIs(remote.joined, False)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
+        # change main to mutable and retry
+        main.local.mutable = True
         other.server.close()
         data = savedOtherData
         other = self.createRoadStack(data=data,
@@ -814,7 +854,7 @@ class BasicTestCase(unittest.TestCase):
         Test rejoin after successful join with saved keys for both
         '''
         console.terse("{0}\n".format(self.testRejoin.__doc__))
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         mainDirpath = data['dirpath']
         keeping.clearAllKeep(data['dirpath'])
@@ -843,7 +883,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertEqual(other.name, 'other')
         self.assertEqual(other.local.name, other.name)
-        self.assertTrue(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -874,7 +914,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.local.name, other.name)
         self.assertEqual(main.name, 'main')
         self.assertEqual(main.local.name, main.name)
-        self.assertTrue(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -900,7 +940,7 @@ class BasicTestCase(unittest.TestCase):
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
 
         # attempt to join to main with main auto accept disabled
-        main.keep.auto = False
+        main.keep.auto = raeting.autoModes.never
         self.assertFalse(main.keep.auto)
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -932,7 +972,7 @@ class BasicTestCase(unittest.TestCase):
         Test rejoin after successful join with saved keys for both initiated by main
         '''
         console.terse("{0}\n".format(self.testRejoinFromMain.__doc__))
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         mainDirpath = data['dirpath']
         keeping.clearAllKeep(data['dirpath'])
@@ -961,7 +1001,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertEqual(other.name, 'other')
         self.assertEqual(other.local.name, other.name)
-        self.assertTrue(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1024,7 +1064,7 @@ class BasicTestCase(unittest.TestCase):
         from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostOtherKeep.__doc__))
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
@@ -1047,7 +1087,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertTrue(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1082,7 +1122,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept enabled
-        self.assertTrue(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1117,8 +1157,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
-        main.keep.auto = False # turn off auto accept
-        self.assertIs(main.keep.auto, False)
+        main.keep.auto = raeting.autoModes.never # turn off auto accept
+        self.assertIs(main.keep.auto, raeting.autoModes.never)
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1160,12 +1200,13 @@ class BasicTestCase(unittest.TestCase):
         from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostOtherKeepLocal.__doc__))
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
                                      eid=1,
                                      main=True,
+                                     mutable=None,
                                      auto=auto,
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
@@ -1184,7 +1225,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertTrue(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1217,43 +1258,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
-        # attempt to join to main with main auto accept enabled
-        self.assertTrue(main.keep.auto)
-        self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False)
-
-        self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.allowed, None)
-
-        # now repeate with auto accept off on main
-        # now forget the other data again
-        other.server.close()
-        other.clearLocalKeep()
-
-        # reload with new data
-        data = self.createRoadData(name='other', base=self.base)
-        other = self.createRoadStack(data=data,
-                                     eid=0,
-                                     main=None,
-                                     auto=None,
-                                     ha=("", raeting.RAET_TEST_PORT))
-
-        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-
         # attempt to join to main with main auto accept disabled
-        main.keep.auto = False # turn off auto accept
-        self.assertIs(main.keep.auto, False)
+        main.keep.auto = raeting.autoModes.never # turn off auto accept
+        self.assertIs(main.keep.auto, raeting.autoModes.never)
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1310,8 +1317,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
-        main.keep.auto = False # turn off auto accept
-        self.assertIs(main.keep.auto, False)
+        main.keep.auto = raeting.autoModes.never # turn off auto accept
+        self.assertIs(main.keep.auto, raeting.autoModes.never)
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1345,6 +1352,68 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
             self.assertDictEqual(mains[i], msg[0])
 
+
+        # now forget the other data again
+        other.server.close()
+        other.clearLocalKeep()
+
+        # reload with new data
+        data = self.createRoadData(name='other', base=self.base)
+        other = self.createRoadStack(data=data,
+                                     eid=0,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+
+
+        # attempt to join to main with main auto accept enabled
+        main.keep.auto = raeting.autoModes.once # turn on auto accept
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertIs(remote.joined, False)
+
+        self.allow(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.allowed)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertIs(remote.allowed, None)
+
+        # now reload original local other data and see if works
+        other.server.close()
+        other.clearLocalKeep()
+        data = savedOtherData
+        other = self.createRoadStack(data=data,
+                                     eid=2,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
+        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+
+        # attempt to join to main with main auto accept disabled
+        main.keep.auto = raeting.autoModes.never # turn off auto accept
+        self.assertIs(main.keep.auto, raeting.autoModes.never)
+        self.join(other, main, duration=2.0)
+        self.assertEqual(len(main.transactions), 0)
+        remote = main.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
         main.server.close()
         main.clearLocalKeep()
         main.clearRemoteKeeps()
@@ -1360,7 +1429,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testLostMainKeep.__doc__))
         #self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
         keeping.clearAllKeep(data['dirpath'])
@@ -1454,7 +1523,7 @@ class BasicTestCase(unittest.TestCase):
         main.clearRemoteKeeps()
 
         # reload with original saved data
-        auto = True
+        auto = raeting.autoModes.once
         data = savedMainData
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -1512,7 +1581,7 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
         keeping.clearAllKeep(data['dirpath'])
@@ -1558,7 +1627,7 @@ class BasicTestCase(unittest.TestCase):
         main.clearLocalKeep()
 
         # reload with new local data and saved remote data
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -1608,7 +1677,7 @@ class BasicTestCase(unittest.TestCase):
         main.clearLocalKeep()
 
         # reload with original saved data
-        auto = True
+        auto = raeting.autoModes.once
         data = savedMainData
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -1668,7 +1737,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testLostMainKeepLocal.__doc__))
         #self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
-        auto = True
+        auto = raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         savedMainData = data
         keeping.clearAllKeep(data['dirpath'])
@@ -1720,7 +1789,7 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocalKeep()
 
         # reload with new local data and saved remote data
-        auto = True
+        raeting.autoModes.once
         data = self.createRoadData(name='main', base=self.base)
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -1783,7 +1852,7 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocalKeep()
 
         # reload with original saved data
-        auto = True
+        raeting.autoModes.once
         data = savedMainData
         main = self.createRoadStack(data=data,
                                      eid=1,
@@ -1902,5 +1971,5 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testLostBothKeepLocal')
+    #runOne('testLostOtherKeepLocal')
 

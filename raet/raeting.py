@@ -194,6 +194,11 @@ ACCEPTANCE_NAMES = odict((v, k) for k, v in ACCEPTANCES.iteritems())  # inverse 
 Acceptance = namedtuple('Acceptance', ACCEPTANCES.keys())
 acceptances = Acceptance(**ACCEPTANCES)
 
+AUTO_MODES = odict([('never', 0), ('once', 1), ('always', 2),])
+AUTO_MODE_NAMES = odict((v, k) for k, v in AUTO_MODES.iteritems())  # inverse map
+AutoMode = namedtuple('AutoMode', AUTO_MODES.keys())
+autoModes = AutoMode(**AUTO_MODES)
+
 PACK_KINDS = odict([('json', 0), ('pack', 1)])
 PACK_KIND_NAMES = odict((v, k) for k, v in PACK_KINDS.iteritems())  # inverse map
 PackKind = namedtuple('PackKind', PACK_KINDS.keys())

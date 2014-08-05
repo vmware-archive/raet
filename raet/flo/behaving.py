@@ -68,7 +68,8 @@ class RaetRoadStack(deeding.Deed):
         local=odict(ipath='local', ival=odict(   name='master',
                                                  basedirpath='/tmp/raet/keep',
                                                  main=False,
-                                                 auto=True,
+                                                 mutable=True,
+                                                 auto=raeting.autoModes.once,
                                                  eid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
@@ -85,6 +86,7 @@ class RaetRoadStack(deeding.Deed):
         basedirpath = os.path.abspath(os.path.expanduser(self.local.data.basedirpath))
         auto = self.local.data.auto
         main = self.local.data.main
+        mutable = self.local.data.mutable
         ha = (self.local.data.host, self.local.data.port)
 
         eid = self.local.data.eid
@@ -101,6 +103,7 @@ class RaetRoadStack(deeding.Deed):
                                        name=name,
                                        auto=auto,
                                        main=main,
+                                       mutable=mutable,
                                        basedirpath=basedirpath,
                                        txMsgs=txMsgs,
                                        rxMsgs=rxMsgs, )
@@ -128,7 +131,8 @@ class RaetRoadStackSetup(deeding.Deed):
         local=odict(ipath='local', ival=odict(   name='master',
                                                  basedirpath='/tmp/raet/keep',
                                                  main=False,
-                                                 auto=True,
+                                                 mutable=True,
+                                                 auto=raeting.autoModes.once,
                                                  eid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
@@ -145,6 +149,7 @@ class RaetRoadStackSetup(deeding.Deed):
         basedirpath = os.path.abspath(os.path.expanduser(self.local.data.basedirpath))
         auto = self.local.data.auto
         main = self.local.data.main
+        mutable = self.local.data.mutable
         ha = (self.local.data.host, self.local.data.port)
 
         eid = self.local.data.eid
@@ -161,6 +166,7 @@ class RaetRoadStackSetup(deeding.Deed):
                                        name=name,
                                        auto=auto,
                                        main=main,
+                                       mutable=mutable,
                                        basedirpath=basedirpath,
                                        txMsgs=txMsgs,
                                        rxMsgs=rxMsgs, )

@@ -335,7 +335,7 @@ class Joiner(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.sid = self.remote.sid # 0
+        self.sid = 0 #self.remote.sid always 0 for join
         self.tid = self.remote.nextTid()
         self.prep()
         # don't dump remote yet since its ephemeral until we join and get valid eid
@@ -590,7 +590,7 @@ class Joiner(Initiator):
                                               verhex=verhex,
                                               pubhex=pubhex,
                                               main=self.stack.local.main,
-                                              dump=False)
+                                              dump=True)
 
         if status == raeting.acceptances.rejected:
             self.remote.joined = False
@@ -620,9 +620,6 @@ class Joiner(Initiator):
                     self.stack.incStat(self.statKey())
                     self.remove(index=self.txPacket.index)
                     return
-
-            if self.remote.role != role:
-                self.remote.role = role # change role remote estate
 
             if self.stack.local.uid != leid:
                 self.stack.local.uid = leid # change id of local estate
@@ -823,67 +820,51 @@ class Joinent(Correspondent):
     def join(self):
         '''
         Process join packet
-        Respond based on acceptance status of remote estate.
+        Each estate must have a set of unique credentials on the road
+        The credentials are.
+        eid (estate id), name, ha (host address, port)
+        Each of the three credentials must be separably unique on the Road, that is
+        the eid must be unique, the name must be unique, the ha must be unique.
 
-        Rules for Colliding Estates
-        Apply the rules to ensure no colliding estates on (host, port)
-        If matching name estate found then return
-        Rules:
-            Only one estate with given eid is allowed on road
-            Only one estate with given name is allowed on road.
-            Only one estate with given ha is allowed on road.
+        The other credentials are the role and keys. Multiple estates may share
+        the same role and associated keys. The keys are the signing key and the
+        encryption key.
 
-            Are multiple estates with same keys but different name (ha) allowed?
-            Current logic ignores same keys or not
+        Once an estate has joined the first time it will be assigned an eid.
+        Changing any of the credentials after this requires that the Road be mutable.
 
-        Since creating new estate assigns unique eid,
-        we are looking for preexisting estates with any eid.
-
-        Processing steps:
-        I) Search remote estates for matching name
-            A) Found remote
-                1) HA not match
-                    Search remotes for other matching HA but different name
-                    If found other delete
-                Reuse found remote to be updated and joined
-
-            B) Not found
-                Search remotes for other matching HA
-                If found delete for now
-                Create new remote and update
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.remote:
-            joins = self.remote.joinInProcess()
-            if joins:
-                if not self.stack.local.main:
-                    emsg = "Joinent {0}. Join with {1} already in process\n".format(
-                            self.stack.name, self.remote.name)
-                    console.concise(emsg)
-                    self.stack.incStat('duplicate_join_attempt')
-                    self.nack(kind=raeting.pcktKinds.refuse)
-                    return
-                else: # main so remove any initiator joins
-                    already = False
-                    for join in joins:
-                        if not join.rmt:
-                            emsg = ("Joinent {0}. Removing initiator join with"
-                                    " {1} already in process\n".format(
-                                                self.stack.name,
-                                                self.remote.name))
-                            console.concise(emsg)
-                            join.nack(kind=raeting.pcktKinds.refuse)
-                        else: # already correspondent
-                            already = True
-                    if already:
-                        emsg = ("Joinent {0}. Correspondent join with"
+        joins = self.remote.joinInProcess()
+        if joins:
+            if not self.stack.local.main:
+                emsg = "Joinent {0}. Join with {1} already in process\n".format(
+                        self.stack.name, self.remote.name)
+                console.concise(emsg)
+                self.stack.incStat('duplicate_join_attempt')
+                self.nack(kind=raeting.pcktKinds.refuse)
+                return
+            else: # main so remove any initiator joins
+                already = False
+                for join in joins:
+                    if not join.rmt:
+                        emsg = ("Joinent {0}. Removing initiator join with"
                                 " {1} already in process\n".format(
                                             self.stack.name,
                                             self.remote.name))
                         console.concise(emsg)
-                        return
+                        join.nack(kind=raeting.pcktKinds.refuse)
+                    else: # already correspondent
+                        already = True
+                if already:
+                    emsg = ("Joinent {0}. Correspondent join with"
+                            " {1} already in process\n".format(
+                                        self.stack.name,
+                                        self.remote.name))
+                    console.concise(emsg)
+                    return
 
         #Don't add transaction yet wait till later until remote is not rejected
         data = self.rxPacket.data
@@ -937,210 +918,48 @@ class Joinent(Correspondent):
                 self.nack(kind=raeting.pcktKinds.refuse) # refuse
                 return
 
-            #if (reid != 0 and reid not in self.stack.remotes):
-                #remote = self.stack.restoreRemote(name) # see if still on disk
-                #if not remote:
-                    #emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
-                                                #self.stack.name, reid, name)
-                    #console.terse(emsg)
-                    #self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
-                    #return
-                #self.remote = remote
-
-            if reid != 0:
-                if self.remote is None:
-                    if reid not in self.stack.remotes:
-                        emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
-                                                    self.stack.name, reid, name)
-                        console.terse(emsg)
-                        self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
-                        return
-                    self.remote = self.stack.remotes[reid]
-                if name != self.remote.name:
-                    if (verhex != self.remote.verfer.keyhex or
-                            pubhex != self.remote.pubber.keyhex):
-                        emsg = ("Joinent {0}. Name key mismatch for remote {1}"
-                                  "\n".format(self.stack.name, name))
-                        console.terse(emsg)
-                        #reject not the same estate because keys not match
-                        self.nack(kind=raeting.pcktKinds.reject)
-                        return
-                    else: # check new name unique
-                        if name in self.stack.nameRemotes:
-                            emsg = ("Joinent {0}. Name unavailable for remote "
-                                    "'{1}'\n".format(self.stack.name, name))
-                            console.terse(emsg)
-                            # reject as name already in use by another estate
-                            self.nack(kind=raeting.pcktKinds.reject)
-                            return
-
-                if (ha != self.remote.ha):
-                    if (verhex != self.remote.verfer.keyhex or
-                            pubhex != self.remote.pubber.keyhex):
-                        emsg = ("Joinent {0}. Name ha '{1}' mismatch for remote"
-                                " {2}\n".format(self.stack.name,
-                                                str(ha),
-                                                name))
-                        console.terse(emsg)
-                        #reject not the same estate because keys not match
-                        self.nack(kind=raeting.pcktKinds.reject)
-                        return
-                    else: # check new (host, port) unique
-                        if ha in self.stack.haRemotes:
-                            emsg = ("Joinent {0}. Ha '{1}' unavailable for remote"
-                                    " {2}\n".format(self.stack.name,
-                                                    str(ha),
-                                                    name))
-                            console.terse(emsg)
-                            #reject as (host, port) already in use by another estate
-                            self.nack(kind=raeting.pcktKinds.reject)
-                            return
-                            # this may go to the wrong estate since potential ambiguous udp
-                            # channel but in any event the transaction will fail
-
-                status = self.stack.keep.statusRemote(self.remote,
-                                                      verhex=verhex,
-                                                      pubhex=pubhex,
-                                                      main=self.stack.local.main)
-
-                if status == raeting.acceptances.rejected:
-                    "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
-                            self.stack.name, name, self.remote.uid)
-                    self.remote.joined = False
-                    self.stack.dumpRemote(self.remote)
-                    #self.stack.removeRemote(self.remote) #reap remote
-                    # reject as keys rejected
-                    self.nack(kind=raeting.pcktKinds.reject)
+            if reid != 0: # non vacuous join
+                if reid not in self.stack.remotes: # ephemeral or missing
+                    emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
+                                                self.stack.name, reid, name)
+                    console.terse(emsg)
+                    self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
                     return
+                if self.remote is not self.stack.remotes[reid]: # something is wrong
+                    emsg = "Joinent {0}. Mishandled join reid '{1}' for remote {2}\n".format(
+                                                        self.stack.name, reid, name)
+                    console.terse(emsg)
+                    self.nack(kind=raeting.pcktKinds.reject) # refuse and renew
+                    return
+            else: # vacuous join
+                if ha in self.stack.haRemotes: # non ephemeral ha match
+                    if self.remote is not self.stack.haRemotes[ha]: # something is wrong
+                        emsg = "Joinent {0}. Mishandled join ha '{1}' for remote {2}\n".format(
+                                    self.stack.name, ha, name)
+                        console.terse(emsg)
+                        self.nack(kind=raeting.pcktKinds.reject) # refuse and renew
+                        return
 
-                self.remote.rsid = self.sid # fix this?
-                if name != self.remote.name:
-                    self.stack.renameRemote(self.remote, new=name)
-                if ha != self.remote.ha:
-                    self.stack.readdressRemote(self.remote, new=ha)
-                if role != self.remote.role:
+                elif name in self.stack.nameRemotes: # non ephemeral name match
+                    self.remote = self.stack.nameRemotes[name] # replace
+
+                else: # ephemeral and unique
+                    self.remote.name = name
                     self.remote.role = role
+                    self.remote.verfer = nacling.Verifier(verhex) # verify key manager
+                    self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
-            else: # reid == 0
-                remote = self.stack.nameRemotes.get(name)
-                if remote: # remote with same name is it the same one
-                    if (verhex != remote.verfer.keyhex or
-                            pubhex != remote.pubber.keyhex): # not same remote
-                        emsg = "Joinent {0}. Name unavailable for remote {1}\n".format(
-                                       self.stack.name, name)
-                        console.terse(emsg)
-                        self.remote = None
-                        # reject same name different keys
-                        self.nack(kind=raeting.pcktKinds.reject)
-                        return
 
-                other = self.stack.haRemotes.get(ha)
-                if other and other is not remote: # (host, port) already in use by another estate
-                    emsg = "Joinent {0}. Ha '{1}' unavailable for remote {2}\n".format(
-                                self.stack.name, str(ha), name)
-                    console.terse(emsg)
-                    self.remote = None
-                    # reject (host, port) already in use by another estate
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
+            sameRoleKeys = (role == self.remote.role and
+                            verhex == self.remote.verfer.keyhex and
+                            pubhex == self.remote.pubber.keyhex)
 
-                if not remote:
-                    remote = estating.RemoteEstate(stack=self.stack,
-                                                   name=name,
-                                                   host=host,
-                                                   port=port,
-                                                   acceptance=None,
-                                                   verkey=verhex,
-                                                   pubkey=pubhex,
-                                                   rsid=self.sid,
-                                                   period=self.stack.period,
-                                                   offset=self.stack.offset,
-                                                   role=role)
+            sameAll = (sameRoleKeys and
+                       name == self.remote.name and
+                       ha == self.remote.ha)
 
-                    try:
-                        self.stack.addRemote(remote) #provisionally add .accepted is None
-                    except raeting.StackError as ex:
-                        console.terse(str(ex) + '\n')
-                        self.stack.incStat(self.statKey())
-                        self.remove(index=self.rxPacket.index)
-                        return
-
-                self.remote = remote # auto generated at instance creation above
-
-                status = self.stack.keep.statusRemote(self.remote,
-                                                      verhex=verhex,
-                                                      pubhex=pubhex,
-                                                      main=self.stack.local.main)
-
-                if status == raeting.acceptances.rejected:
-                    emsg = "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
-                            self.stack.name, name, self.remote.uid)
-                    console.terse(emsg)
-                    self.remote.joined = False
-                    self.stack.dumpRemote(self.remote)
-                    #self.stack.removeRemote(self.remote) #reap remote
-                    # reject as keys rejected
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
-
-            # bootstrapping so use packet.index not self.index
-            self.add(remote=self.remote, index=self.rxPacket.index)
-            self.stack.dumpRemote(self.remote)
-
-            if status == raeting.acceptances.accepted:
-                self.remote.joined = None
-                duration = min(
-                                max(self.redoTimeoutMin,
-                                  self.redoTimer.duration * 2.0),
-                                self.redoTimeoutMax)
-                self.redoTimer.restart(duration=duration)
-                self.accept()
-            else: # status == None or status == raeting.acceptances.pending:
-                self.remote.joined = None
-                self.ackJoin()
-
-        else: # not main stack
-            if leid == 0 or reid == 0: #not main so can't process vacuous join
-                emsg = ("Joinent {0}. Not main, invalid leid '{1}' or "
-                        "reid '{2}' from '{3}'\n".format(self.stack.name,
-                                                         leid, reid, name))
-                console.terse(emsg)
-                self.remote = None
-                self.nack(kind=raeting.pcktKinds.reject)
-                return
-            if self.stack.remotes: # already a main since remotes
-                if not self.remote: # but reid not from preexisting main
-                    emsg = ("Joinent {0}. Received join attempt from non primary "
-                            "main for remote {1}\n".format(self.stack.name, name))
-                    console.terse(emsg)
-                    # reject non primary main
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
-
-            else: # no remotes so could be initial join from main
-                self.remote = estating.RemoteEstate(stack=self.stack,
-                                               eid=reid,
-                                               name=name,
-                                               host=host,
-                                               port=port,
-                                               acceptance=None,
-                                               verkey=verhex,
-                                               pubkey=pubhex,
-                                               rsid=self.sid,
-                                               period=self.stack.period,
-                                               offset=self.stack.offset,
-                                               role=role)
-                try:
-                    self.stack.addRemote(self.remote) #provisionally add .acceptance is None
-                except raeting.StackError as ex:
-                    console.terse(str(ex) + '\n')
-                    self.stack.incStat(self.statKey())
-                    self.remove(index=self.rxPacket.index)
-                    return
-
-            # bootstrapping so use packet.index not self.index
-            self.add(remote=self.remote, index=self.rxPacket.index)
-
+            # if we have to rerole then need to change status parameter to
+            # role not remote also acceptance
             if role != self.remote.role:
                 self.remote.role = role
 
@@ -1148,35 +967,103 @@ class Joinent(Correspondent):
                                                   verhex=verhex,
                                                   pubhex=pubhex,
                                                   main=self.stack.local.main,
-                                                  dump=False)
+                                                  dump=True)
 
             if status == raeting.acceptances.rejected:
-                "Joinent {0}. Keys rejected for remote {1} eid {2}\n".format(
-                        self.stack.name, name, self.remote.uid)
-                self.remote.joined = False
-                self.stack.dumpRemote(self.remote)
-                #self.stack.removeRemote(self.remote) #reap remote
-                self.nack(kind=raeting.pcktKinds.refuse) # keys rejected
+                emsg = ("Joinent {0}. Keys of role='{1}' rejected for remote"
+                        "  name='{2}' eid='{3}' ha='{4}'\n".format(self.stack.name,
+                                                                   self.remote.role,
+                                                                   self.remote.name,
+                                                                   self.remote.uid,
+                                                                   self.remote.ha))
+                console.concise(emsg)
+                #self.remote.joined = False
+                #self.stack.dumpRemote(self.remote)
+                if sameRoleKeys and self.remote.uid in self.stack.remotes:
+                    self.stack.removeRemote(self.remote, clear=Ture) #clear remote
+                    #removeRemote also nacks which is a reject
+                else: # reject as keys rejected
+                    self.nack(kind=raeting.pcktKinds.reject)
                 return
 
-            if self.stack.local.uid != leid:
-                self.stack.local.uid = leid  # change local eid
-                self.stack.dumpLocal()
+            #accepted or pended
+            if sameAll or self.stack.local.mutable:
+                if self.remote.uid not in self.stack.remotes: # ephemeral
+                    try:
+                        self.stack.addRemote(self.remote)
+                    except raeting.StackError as ex:
+                        console.terse(str(ex) + '\n')
+                        self.stack.incStat(self.statKey())
+                        #self.remove(index=self.rxPacket.index)
+                        return
 
-            self.remote.rsid = self.sid # fix this ?
-            if name != self.remote.name:
-                self.stack.renameRemote(self.remote, new=name)
-            if ha != self.remote.ha:
-                self.stack.readdressRemote(self.remote, new=ha)
+                    emsg = ("Joinent {0}. Added new remote name='{1}' eid='{2}' "
+                            "ha='{3}' role='{4}'\n".format(self.stack.name,
+                                              self.remote.name,
+                                              self.remote.uid,
+                                              self.remote.ha,
+                                              self.remote.role))
+                    console.concise(emsg)
+                    self.stack.dumpRemote(self.remote)
+
+                elif not sameAll:
+                    if name != self.remote.name:
+                        if name in self.stack.nameRemotes:
+                            emsg = ("Joinent {0}. Name unavailable for remote "
+                                    "'{1}'\n".format(self.stack.name, name))
+                            console.terse(emsg)
+                            # reject as name already in use by another estate
+                            self.nack(kind=raeting.pcktKinds.reject)
+                            return
+                        self.stack.renameRemote(self.remote, new=name)
+                    if ha != self.remote.ha:
+                        if ha in self.stack.haRemotes:
+                            emsg = ("Joinent {0}. Ha '{1}' unavailable for remote"
+                                    " {2}\n".format(self.stack.name,
+                                                    str(ha),
+                                                    name))
+                            console.terse(emsg)
+                            # reject as (host, port) already in use by another estate
+                            # possible udp collision nack goes to wrong host
+                            # but in any event the transaction will fail
+                            self.nack(kind=raeting.pcktKinds.reject)
+                            return
+                        self.stack.readdressRemote(self.remote, new=ha)
+                    self.stack.dumpRemote(self.remote)
+
+                # add transaction since expect another packet
+                self.add(remote=self.remote, index=self.rxPacket.index)
+                self.remote.joined = None
+                if status == raeting.acceptances.accepted:
+                    duration = min(
+                                    max(self.redoTimeoutMin,
+                                      self.redoTimer.duration * 2.0),
+                                    self.redoTimeoutMax)
+                    self.redoTimer.restart(duration=duration)
+                    self.accept()
+                    return
+
+                else: # status == raeting.acceptance.pending or status == None:
+                    self.ackJoin()
+                    return
+
+            else:  # not mutable and not sameAll so reject
+                emsg = ("Joinent {0}. Attempt to change immutable road "
+                            "'{1}'\n".format(self.stack.name,
+                                             self.remote.name))
+                console.terse(emsg)
+                # reject not mutable road
+                self.nack(kind=raeting.pcktKinds.reject)
+                return
 
 
-            #update session id and joined in complete method below
-            duration = min(
-                        max(self.redoTimeoutMin,
-                             self.redoTimer.duration * 2.0),
-                        self.redoTimeoutMax)
-            self.redoTimer.restart(duration=duration)
-            self.accept()
+        else: # not main stack
+            emsg = ("Joinent {0}. Must be main join from '{1}'\n".format(self.stack.name,
+                                                                     name))
+            console.terse(emsg)
+            self.remote = None
+            self.nack(kind=raeting.pcktKinds.reject)
+            return
 
     def ackJoin(self):
         '''

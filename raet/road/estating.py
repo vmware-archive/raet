@@ -146,7 +146,7 @@ class LocalEstate(Estate):
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
     def __init__(self, stack=None, eid=None, name="", neid=None, main=None,
-                 sigkey=None, prikey=None, **kwa):
+                 sigkey=None, prikey=None, mutable=None, **kwa):
         '''
         Setup Estate instance
 
@@ -160,6 +160,7 @@ class LocalEstate(Estate):
         self.main = main # main estate on road
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
+        self.mutable = mutable # mutable road
 
     def nextEid(self):
         '''
