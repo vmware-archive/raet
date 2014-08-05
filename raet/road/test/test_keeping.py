@@ -1489,17 +1489,19 @@ class BasicTestCase(unittest.TestCase):
         # attempt to join to main with main auto accept enabled
         self.join(other, main) # main will refuse and other will renew
         self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, False)
+        self.assertEqual(len(main.remotes), 0)
+        #remote = main.remotes.values()[0]
+        #self.assertIs(remote.joined, False)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False)
+        self.assertIs(remote.joined, None)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertIs(remote.allowed, None)
+        self.assertEqual(len(main.remotes), 0)
+        #remote = main.remotes.values()[0]
+        #self.assertIs(remote.allowed, None)
         self.assertEqual(len(other.transactions), 0) # not joined so aborts
         remote = other.remotes.values()[0]
         self.assertIs(remote.allowed, None) # new other not joined so aborted allow
@@ -1535,7 +1537,19 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        # attempt to join to main with main auto accept enabled
+        # attempt to join to main with main auto accept enabled and immutable
+        # will fail since renew not allowd on immutable other
+        self.join(other, main)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(main.remotes), 0)
+        #remote = main.remotes.values()[0]
+        #self.assertTrue(remote.joined)
+        self.assertEqual(len(other.transactions), 0)
+        remote = other.remotes.values()[0]
+        self.assertIs(remote.joined, None)
+
+        # attempt to join to main with main auto accept enabled and mutable other
+        other.local.mutable = True
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -1649,7 +1663,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False) # no lost main remote still there
+        self.assertIs(remote.joined, None) # no lost main remote still there
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
         self.allow(other, main) # fails so attempts join which is renewed and fails
@@ -1660,7 +1674,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertIs(remote.allowed, None) # new other not joined so aborted allow
-        self.assertIs(remote.joined, False) # failed allow will start join
+        self.assertIs(remote.joined, None) # failed allow will start join
 
         # so try to send messages should fail since keys not match
         mains = [odict(content="Hello other body")]
@@ -1971,5 +1985,5 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testLostOtherKeepLocal')
+    #runOne('testLostMainKeep')
 

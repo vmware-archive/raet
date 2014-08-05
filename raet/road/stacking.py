@@ -591,11 +591,11 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         joinent.join() # may assign or create joinent.remote here
 
-    def allow(self, duid=None, ha=None, timeout=None, cascade=False, create=False):
+    def allow(self, duid=None, ha=None, timeout=None, cascade=False):
         '''
         Initiate allow transaction
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
+        remote = self.retrieveRemote(duid=duid, ha=ha)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -622,12 +622,12 @@ class RoadStack(stacking.KeepStack):
                                         rxPacket=packet)
         allowent.hello()
 
-    def alive(self, duid=None,  ha=None, timeout=None, cascade=False, create=False):
+    def alive(self, duid=None,  ha=None, timeout=None, cascade=False):
         '''
         Initiate alive transaction
         If duid is None then create remote at ha
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
+        remote = self.retrieveRemote(duid=duid, ha=ha)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -655,7 +655,7 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         alivent.alive()
 
-    def message(self, body=None, duid=None, ha=None):
+    def message(self, body=None, duid=None, ha=None, timeout=None):
         '''
         Initiate message transaction to remote at duid
         If duid is None then create remote at ha
@@ -669,6 +669,7 @@ class RoadStack(stacking.KeepStack):
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         messenger = transacting.Messenger(stack=self,
                                           remote=remote,
+                                          timeout=timeout,
                                           txData=data,
                                           bcst=self.Bf,
                                           wait=self.Wf)

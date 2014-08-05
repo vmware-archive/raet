@@ -312,13 +312,51 @@ class RoadKeep(keeping.Keep):
 
     def statusRemote(self, remote, verhex, pubhex, main=True, dump=True, extant=False):
         '''
+        Calls statusRole and updates remote appropriately
+
+        Returns status
+        Where status is acceptance status of role and provided keys
+        and has value from raeting.acceptances
+
+
         Evaluate acceptance status of estate per its keys
         persist key data differentially based on status
 
         extant is flag to only update status and acceptance if roleData in preexistent
         Otherwise do nothing and return None
         '''
-        data = self.loadRemoteRoleData(remote.role)
+        status, change = self.statusRole(remote.role, verhex=verhex, pubhex=pubhex,
+                                         main=main, dump=dump, extant=extant)
+
+        if status != raeting.acceptances.rejected:
+            # update changed keys if any when accepted or pending
+            if (verhex and verhex != remote.verfer.keyhex):
+                remote.verfer = nacling.Verifier(verhex)
+            if (pubhex and pubhex != remote.pubber.keyhex):
+                remote.pubber = nacling.Publican(pubhex)
+
+        if change:
+            remote.acceptance = status
+
+        return status
+
+    def statusRole(self, role, verhex, pubhex, main=True, dump=True, extant=False):
+        '''
+        Returns duple of (status, change)
+        Where status is acceptance status of role and provided keys
+        and has value from raeting.acceptances
+        Where change is flag True or False  to indicate that the associated
+        remote.acceptance should be changed to status
+
+        Evaluate acceptance status of estate per its keys
+        persist key data differentially based on status
+
+        extant is flag to only update status and acceptance if roleData in preexistent
+        Otherwise do nothing and return None
+        '''
+        change = False
+
+        data = self.loadRemoteRoleData(role)
         if extant:
             if (not data.get('acceptance') and
                 not data.get('verhex') and
@@ -330,12 +368,12 @@ class RoadKeep(keeping.Keep):
         if main: #main estate logic
             if self.auto == raeting.autoModes.always:
                 status = raeting.acceptances.accepted
-                remote.acceptance = status
+                change = True
 
             elif self.auto == raeting.autoModes.once:
                 if status is None: # first time so accept once
                     status = raeting.acceptances.accepted
-                    remote.acceptance = status
+                    change = True
 
                 elif status == raeting.acceptances.accepted:
                     # already been accepted if keys not match then reject
@@ -344,7 +382,7 @@ class RoadKeep(keeping.Keep):
                             (pubhex != data.get('pubhex')) )):
                         status = raeting.acceptances.rejected
                     else: # reapply existing status
-                        remote.acceptance = status
+                        change = True
 
                 elif status == raeting.acceptances.pending:
                     # already pending prior mode of never if keys not match then reject
@@ -354,15 +392,15 @@ class RoadKeep(keeping.Keep):
                         status = raeting.acceptances.rejected
                     else: # in once mode convert pending to accepted
                         status = raeting.acceptances.accepted
-                        remote.acceptance = status
+                        change = True
 
-                else: # status == rejected
-                    remote.acceptance = raeting.acceptances.rejected
+                else: # status == raeting.acceptances.rejected
+                    change = True
 
             elif self.auto == raeting.autoModes.never:
                 if status is None: # first time so pend
                     status = raeting.acceptances.pending
-                    remote.acceptance = status
+                    change = True
 
                 elif status == raeting.acceptances.accepted:
                     # already been accepted if keys not match then reject
@@ -371,7 +409,7 @@ class RoadKeep(keeping.Keep):
                             (pubhex != data.get('pubhex')) )):
                         status = raeting.acceptances.rejected
                     else: # reapply existing status
-                        remote.acceptance = status
+                        change = True
 
                 elif status == raeting.acceptances.pending:
                     # already pending if keys not match then reject
@@ -380,15 +418,15 @@ class RoadKeep(keeping.Keep):
                             (pubhex != data.get('pubhex')) )):
                         status = raeting.acceptances.rejected
                     else: # stay pending
-                        remote.acceptance = status
+                        change = True
 
-                else: # status == rejected
-                    remote.acceptance = raeting.acceptances.rejected
+                else: # status == raeting.acceptances.rejected
+                    change = True
 
         else: #other estate logic same as once.
             if status is None:
                 status = raeting.acceptances.accepted
-                remote.acceptance = status #change acceptance auto accept new keys
+                change = True
 
             elif status == raeting.acceptances.accepted:
                 if (  data and (
@@ -397,7 +435,7 @@ class RoadKeep(keeping.Keep):
                     status = raeting.acceptances.rejected
                     # do not change acceptance since old keys kept and were accepted
                 else: #in case new remote
-                    remote.acceptance = status
+                    change = True
 
             elif status == raeting.acceptances.pending:
                 # already pending prior mode of never if keys not match then reject
@@ -407,21 +445,25 @@ class RoadKeep(keeping.Keep):
                     status = raeting.acceptances.rejected
                 else: # in once mode convert pending to accepted
                     status = raeting.acceptances.accepted
-                    remote.acceptance = status
+                    change = True
 
-            else: # status == rejected
-                remote.acceptance = raeting.acceptances.rejected
-
-        if status != raeting.acceptances.rejected:
-            # update changed keys if any when accepted or pending
-            if (verhex and verhex != remote.verfer.keyhex):
-                remote.verfer = nacling.Verifier(verhex)
-            if (pubhex and pubhex != remote.pubber.keyhex):
-                remote.pubber = nacling.Publican(pubhex)
+            else: # status == raeting.acceptances.rejected
+                change = True
 
         if dump:
-            self.dumpRemoteRole(remote)
-        return status
+            # update changed keys if any when accepted or pending
+            if status != raeting.acceptances.rejected:
+                if (verhex and verhex != data.get('verhex')):
+                    data['verhex'] = verhex
+                if (pubhex and pubhex != data.get('pubhex')):
+                    data['pubhex'] = pubhex
+            if change:
+                data['acceptance'] = status
+
+            if self.verifyRemoteData(data, remoteFields=self.RemoteRoleFields):
+                self.dumpRemoteRoleData(data, role)
+
+        return (status, change)
 
     def rejectRemote(self, remote):
         '''
