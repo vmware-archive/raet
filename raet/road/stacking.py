@@ -399,16 +399,18 @@ class RoadStack(stacking.KeepStack):
         if bf:
             return  # broadcast transaction not yet supported
 
-        if rsid == 0: # can only use sid == 0 on join transaction
-            if received.data['tk'] != raeting.trnsKinds.join: # drop packet
+        if rsid == 0: # can only use sid == 0 on join or yoke transaction
+            if received.data['tk'] not in [raeting.trnsKinds.join,
+                                           raeting.trnsKinds.yoke]: # drop packet
                 emsg = "Invalid sid '{0}' in packet\n".format(rsid)
                 console.terse(emsg)
                 self.incStat('invalid_sid_attempt')
                 return
 
         else: # rsid !=0
-            if received.data['tk'] == raeting.trnsKinds.join:
-                # join must use sid == 0
+            if received.data['tk'] in [raeting.trnsKinds.join,
+                                       raeting.trnsKinds.yoke]:
+                # join or yoke must use sid == 0
                 emsg = "{0} Nonzero join sid '{1}' in packet from {2}\n".format(
                                              self.name, rsid, remote.name)
                 console.terse(emsg)
@@ -446,7 +448,7 @@ class RoadStack(stacking.KeepStack):
         Reply to packet with corresponding transaction or action
         '''
         if (packet.data['tk'] == raeting.trnsKinds.join and
-                packet.data['pk'] == raeting.pcktKinds.request): # and packet.data['si'] == 0
+                packet.data['pk'] == raeting.pcktKinds.request):
 
             if not remote:
                 remote = estating.RemoteEstate(stack=self,
@@ -456,6 +458,19 @@ class RoadStack(stacking.KeepStack):
                                                 period=self.period,
                                                 offset=self.offset)
             self.replyJoin(packet, remote)
+            return
+
+        if (packet.data['tk'] == raeting.trnsKinds.yoke and
+                packet.data['pk'] == raeting.pcktKinds.request):
+
+            if not remote:
+                remote = estating.RemoteEstate(stack=self,
+                                                sid=packet.data['si'],
+                                                host=packet.data['sh'],
+                                                port=packet.data['sp'],
+                                                period=self.period,
+                                                offset=self.offset)
+            self.replyYoke(packet, remote)
             return
 
         if not remote:
@@ -577,6 +592,41 @@ class RoadStack(stacking.KeepStack):
         joiner.join()
 
     def replyJoin(self, packet, remote, timeout=None):
+        '''
+        Correspond to new join transaction
+        '''
+        timeout = timeout if timeout is not None else self.JoinentTimeout
+        data = odict(hk=self.Hk, bk=self.Bk)
+        joinent = transacting.Joinent(stack=self,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        joinent.join() # may assign or create joinent.remote here
+
+    def yoke(self, duid=None, ha=None, timeout=None, cascade=False, create=True):
+        '''
+        Initiate join transaction
+        '''
+        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
+        if not remote:
+            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            console.terse(emsg)
+            self.incStat('invalid_remote_eid')
+            return
+
+        timeout = timeout if timeout is not None else self.JoinerTimeout
+        data = odict(hk=self.Hk, bk=self.Bk)
+        joiner = transacting.Joiner(stack=self,
+                                    remote=remote,
+                                    timeout=timeout,
+                                    txData=data,
+                                    cascade=cascade)
+        joiner.join()
+
+    def replyYoke(self, packet, remote, timeout=None):
         '''
         Correspond to new join transaction
         '''

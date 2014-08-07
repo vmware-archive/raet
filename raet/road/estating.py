@@ -411,11 +411,6 @@ class RemoteEstate(Estate):
         '''
         return ([t for t in self.transactions.values()
                      if t.kind == raeting.trnsKinds.allow])
-        #transactions = []
-        #for transaction in self.transactions.values():
-            #if transaction.kind == raeting.trnsKinds.allow:
-                #transactions.append(transaction)
-        #return transactions
 
     def joinInProcess(self):
         '''
@@ -424,8 +419,11 @@ class RemoteEstate(Estate):
         '''
         return ([t for t in self.transactions.values()
                      if t.kind == raeting.trnsKinds.join])
-        #transactions = []
-        #for transaction in self.transactions.values():
-            #if transaction.kind == raeting.trnsKinds.join:
-                #transactions.append(transaction)
-        #return transactions
+
+    def yokeInProcess(self):
+        '''
+        Returns  list of transactions for all yoke transaction with this remote
+        that are already in process
+        '''
+        return ([t for t in self.transactions.values()
+                     if t.kind == raeting.trnsKinds.yoke])
