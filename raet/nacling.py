@@ -492,11 +492,7 @@ class Privateer(object):
         Generate a safe nonce value (safe assuming only this method is used to
         create nonce values)
         '''
-        now = str(time.time() * 1000000)
-        nonce = '{0}{1}'.format(
-                        libnacl.randombytes(Box.NONCE_SIZE - len(now)),
-                        now)
-        return nonce
+        return libnacl.randombytes(Box.NONCE_SIZE)
 
     def encrypt(self, msg, pubkey, enhex=False):
         '''
