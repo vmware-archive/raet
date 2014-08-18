@@ -1796,10 +1796,10 @@ class Yokent(Correspondent):
 
         else: # vacuous join
             if ha not in self.stack.remotes: # ephemeral
-                emsg = "Yokent {0}. Vacuous and ephemeral for remote {2}\n".format(
+                emsg = "Yokent {0}. Vacuous and ephemeral for remote {1}\n".format(
                                                         self.stack.name, name)
                 console.terse(emsg)
-                if name in self.nameRemotes:
+                if name in self.stack.nameRemotes:
                     if self.remote is not self.stack.nameRemotes[name]: # name collision
                         pass
                         # what to do there is another remote at a same name and but
