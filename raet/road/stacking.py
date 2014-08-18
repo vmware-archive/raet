@@ -369,7 +369,7 @@ class RoadStack(stacking.KeepStack):
         packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
 
         deid = packet.data['de']
-        # non main can have local.uid == 0 but process join with deid != 0
+        # non main can have local.uid == 0 but process join or yoke with deid != 0
         if self.local.uid != 0 and deid != 0 and deid != self.local.uid:
             emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
             console.concise( emsg)
@@ -464,12 +464,15 @@ class RoadStack(stacking.KeepStack):
                 packet.data['pk'] == raeting.pcktKinds.request):
 
             if not remote:
+                # create vacuous remote, that is, eid==0
                 remote = estating.RemoteEstate(stack=self,
+                                                eid=0,
                                                 sid=packet.data['si'],
                                                 host=packet.data['sh'],
                                                 port=packet.data['sp'],
                                                 period=self.period,
                                                 offset=self.offset)
+
             self.replyYoke(packet, remote)
             return
 
@@ -604,13 +607,13 @@ class RoadStack(stacking.KeepStack):
                                       tid=packet.data['ti'],
                                       txData=data,
                                       rxPacket=packet)
-        joinent.join() # may assign or create joinent.remote here
+        joinent.join()
 
-    def yoke(self, duid=None, ha=None, timeout=None, cascade=False, create=True):
+    def yoke(self, duid=None, ha=None, timeout=None, cascade=False):
         '''
-        Initiate join transaction
+        Initiate yoke transaction (main initiated joining)
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
+        remote = self.retrieveRemote(duid=duid, ha=ha, create=False)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -619,27 +622,27 @@ class RoadStack(stacking.KeepStack):
 
         timeout = timeout if timeout is not None else self.JoinerTimeout
         data = odict(hk=self.Hk, bk=self.Bk)
-        joiner = transacting.Joiner(stack=self,
+        yoker = transacting.Yoker(stack=self,
                                     remote=remote,
                                     timeout=timeout,
                                     txData=data,
                                     cascade=cascade)
-        joiner.join()
+        yoker.yoke()
 
     def replyYoke(self, packet, remote, timeout=None):
         '''
-        Correspond to new join transaction
+        Correspond to new yoke transaction for joining
         '''
         timeout = timeout if timeout is not None else self.JoinentTimeout
         data = odict(hk=self.Hk, bk=self.Bk)
-        joinent = transacting.Joinent(stack=self,
+        yokent = transacting.Yokent(stack=self,
                                       remote=remote,
                                       timeout=timeout,
                                       sid=packet.data['si'],
                                       tid=packet.data['ti'],
                                       txData=data,
                                       rxPacket=packet)
-        joinent.join() # may assign or create joinent.remote here
+        yokent.yoke()
 
     def allow(self, duid=None, ha=None, timeout=None, cascade=False):
         '''

@@ -357,6 +357,7 @@ class RemoteEstate(Estate):
         or if renew (rejoining with .sid == zero)
 
         When sid in index is older than remote.sid
+
         Where index is tuple: (rf, le, re, si, ti, bf,)
             rf = Remotely Initiated Flag, RmtFlag
             le = leid, Local estate ID, LEID

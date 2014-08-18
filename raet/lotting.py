@@ -96,7 +96,7 @@ class Lot(object):
         And greater means the difference is less than N//2 = 0x80000000
 
         '''
-        if not old:
+        if not old: # if current sid is 0 then always valid
             return True
         return (((new - old) % raeting.SID_WRAP_MODULO) <
                                              (raeting.SID_WRAP_DELTA))

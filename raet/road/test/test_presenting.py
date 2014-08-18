@@ -107,6 +107,15 @@ class BasicTestCase(unittest.TestCase):
         initiator.join(duid=deid, ha=mha, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
+    def yoke(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
+                cascade=False):
+        '''
+        Utility method to do yoke. Call from test method.
+        '''
+        console.terse("\nYoke Transaction **************\n")
+        initiator.yoke(duid=deid, ha=mha, cascade=cascade)
+        self.service(correspondent, initiator, duration=duration)
+
     def allow(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
                 cascade=False):
         '''
@@ -883,11 +892,11 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocalKeep()
         other.clearRemoteKeeps()
 
-    def testAdmitFromMain(self):
+    def testYokeFromMain(self):
         '''
         Test join, allow, alive initiated by main
         '''
-        console.terse("{0}\n".format(self.testAdmitFromMain.__doc__))
+        console.terse("{0}\n".format(self.testYokeFromMain.__doc__))
 
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
         keeping.clearAllKeep(mainData['dirpath'])
@@ -905,14 +914,11 @@ class BasicTestCase(unittest.TestCase):
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        console.terse("\nJoin Main to Other *********\n")
-        self.join(main, other, mha=('127.0.0.1', other.local.port))
+        console.terse("\nYoke Main to Other *********\n")
+        self.yoke(main, other, mha=('127.0.0.1', other.local.port))
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertIs(remote.joined, False) # vacuuous join from main is rejected
-        main.removeRemote(remote)
-        self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(main.remotes), 0) # no remotes to yoke so fails
         self.assertEqual(len(main.nameRemotes), 0)
         self.assertEqual(len(main.haRemotes), 0)
 
@@ -930,8 +936,8 @@ class BasicTestCase(unittest.TestCase):
                                              period=main.period,
                                              offset=main.offset))
 
-        console.terse("\nJoin Main to Other Again *********\n")
-        self.join(main, other, deid=2)
+        console.terse("\nYoke Main to Other Again *********\n")
+        self.yoke(main, other, deid=2)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]
@@ -1644,7 +1650,7 @@ def runSome():
              'testAllowFromOtherUnjoinedBoth',
              'testManageJoinedAllowed',
              'testJoinFromMain',
-             'testAdmitFromMain',
+             'testYokeFromMain',
              'testAllowFromMainUnjoinedOnMain',
              'testAliveFromMainUnjoinedBoth',
              'testManageBothSides',
@@ -1671,6 +1677,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testManage')
+    runOne('testYokeFromMain')
