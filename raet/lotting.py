@@ -38,24 +38,24 @@ class Lot(object):
         Lot.Count += 1
         if uid is None:
             uid = Lot.Count
-        self._uid = uid
-        self.name = name or "lot{0}".format(self._uid)
+        self.uid = uid
+        self.name = name or "lot{0}".format(self.uid)
         self._ha = ha
         self.sid = sid # current session ID
 
-    @property
-    def uid(self):
-        '''
-        property that returns unique identifier
-        '''
-        return self._uid
+    #@property
+    #def uid(self):
+        #'''
+        #property that returns unique identifier
+        #'''
+        #return self._uid
 
-    @uid.setter
-    def uid(self, value):
-        '''
-        setter for uid property
-        '''
-        self._uid = value
+    #@uid.setter
+    #def uid(self, value):
+        #'''
+        #setter for uid property
+        #'''
+        #self._uid = value
 
     @property
     def ha(self):

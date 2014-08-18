@@ -28,11 +28,11 @@ class Yard(lotting.Lot):
     '''
     RAET protocol Yard
     '''
-    Yid = 2 # class attribute
+    Uid = 2 # class attribute
 
     def  __init__(self,
                   stack=None,
-                  yid=None,
+                  uid=None,
                   name='',
                   ha='',
                   sid=None,
@@ -43,7 +43,7 @@ class Yard(lotting.Lot):
         '''
         Initialize instance
         '''
-        self.yid = yid if yid is not None else self.Yid # yard ID
+        self.uid = uid if uid is not None else self.Uid # yard unique ID
 
         if lanename and  " " in lanename:
             emsg = "Invalid lanename '{0}'".format(lanename)
@@ -66,7 +66,7 @@ class Yard(lotting.Lot):
             lanename = lname
             name = yname
 
-        name = name or "yard{0}".format(self.yid)
+        name = name or "yard{0}".format(self.uid)
 
         sid = sid if sid is not None else self.nextSid() #if not given unique sid
 
@@ -108,19 +108,19 @@ class Yard(lotting.Lot):
 
         self.ha = ha
 
-    @property
-    def uid(self):
-        '''
-        property that returns unique identifier
-        '''
-        return self.yid
+    #@property
+    #def uid(self):
+        #'''
+        #property that returns unique identifier
+        #'''
+        #return self.yid
 
-    @uid.setter
-    def uid(self, value):
-        '''
-        setter for uid property
-        '''
-        self.yid = value
+    #@uid.setter
+    #def uid(self, value):
+        #'''
+        #setter for uid property
+        #'''
+        #self.yid = value
 
     @staticmethod
     def namesFromHa(ha):
@@ -166,43 +166,43 @@ class LocalYard(Yard):
     '''
     RAET UXD Protocol endpoint local Yard
     '''
-    def __init__(self, stack=None, name='', yid=None, nyid=None, main=None, **kwa):
+    def __init__(self, stack=None, name='', uid=None, nuid=None, main=None, **kwa):
         '''
         Setup Yard instance
         '''
-        self.nyid = nyid if nyid is not None else self.Yid # next yid
-        if yid is None:
-            yid = self.nextYid()
+        self.nuid = nuid if nuid is not None else self.Uid # next unique yid
+        if uid is None:
+            uid = self.nextUid()
 
-        super(LocalYard, self).__init__(stack=stack, name=name, yid=yid, **kwa)
+        super(LocalYard, self).__init__(stack=stack, name=name, uid=uid, **kwa)
         self.main = main # main yard on lane
 
-    def nextYid(self):
+    def nextUid(self):
         '''
-        Generates next yard id number.
+        Generates next yard unique id number.
         '''
-        self.nyid += 1
-        if self.nyid > 0xffffffffL:
-            self.nyid = 1  # rollover to 1
-        return self.nyid
+        self.nuid += 1
+        if self.nuid > 0xffffffffL:
+            self.nuid = 1  # rollover to 1
+        return self.nuid
 
 class RemoteYard(Yard):
     '''
     RAET protocol endpoint remote yard
     '''
-    def __init__(self, stack=None, yid=None, rsid=0, **kwa):
+    def __init__(self, stack=None, uid=None, rsid=0, **kwa):
         '''
         Setup Yard instance
         '''
-        if yid is None:
+        if uid is None:
             if stack:
-                yid = stack.local.nextYid()
-                while yid in stack.remotes or yid == stack.local.yid:
-                    yid = stack.local.nextYid()
+                uid = stack.local.nextUid()
+                while uid in stack.remotes or uid == stack.local.uid:
+                    uid = stack.local.nextUid()
             else:
-                yid = 0
+                uid = 0
 
-        super(RemoteYard, self).__init__(stack=stack, yid=yid, **kwa)
+        super(RemoteYard, self).__init__(stack=stack, uid=uid, **kwa)
         self.rsid = rsid # last sid received from remote
         self.books = odict()
 

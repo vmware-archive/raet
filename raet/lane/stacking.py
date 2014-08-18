@@ -45,7 +45,7 @@ class LaneStack(stacking.Stack):
                  main=None,
                  local=None,
                  lanename='lane',
-                 yid=None,
+                 uid=None,
                  sockdirpath='',
                  ha='',
                  bufcnt=10,
@@ -65,7 +65,7 @@ class LaneStack(stacking.Stack):
         if not local:
             self.remotes = odict()
             local = yarding.LocalYard(  stack=self,
-                                        yid=yid,
+                                        uid=uid,
                                         name=name,
                                         main=main,
                                         ha=ha,

@@ -46,13 +46,13 @@ class BasicTestCase(unittest.TestCase):
 
         # main stack
         self.main = stacking.LaneStack(name='main',
-                                       yid=1,
+                                       uid=1,
                                        lanename='cherry',
                                        sockdirpath=self.baseDirpath)
 
         #other stack
         self.other = stacking.LaneStack(name='other',
-                                        yid=1,
+                                        uid=1,
                                         lanename='cherry',
                                         sockdirpath=self.baseDirpath)
 
@@ -152,7 +152,7 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.other.local.name, duple))
             self.assertDictEqual(mains[i], duple[0])
 
-    def createLaneData(self, name, yid, base, lanename, localname=''):
+    def createLaneData(self, name, uid, base, lanename, localname=''):
         '''
         Creates odict and populates with data to setup lane stack
         {
@@ -163,7 +163,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         data = odict()
         data['name'] = name
-        data['yid'] = yid
+        data['uid'] = uid
         data['sockdirpath'] = os.path.join(base, name)
         data['lanename'] = lanename
         data['localname'] = localname or name
@@ -177,7 +177,7 @@ class BasicTestCase(unittest.TestCase):
 
         '''
         stack = stacking.LaneStack(name=data['name'],
-                                   yid=data['yid'],
+                                   uid=data['uid'],
                                    main=main,
                                    lanename=data['lanename'],
                                    sockdirpath=data['sockdirpath'])
@@ -540,7 +540,7 @@ class BasicTestCase(unittest.TestCase):
         stacking.LaneStack.Pk = raeting.packKinds.json
 
         mainData = self.createLaneData(name='main',
-                                       yid=1,
+                                       uid=1,
                                        base=self.baseDirpath,
                                        lanename='apple')
         main = self.createLaneStack(data=mainData, main=True)
@@ -548,7 +548,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.local.main)
 
         otherData = self.createLaneData(name='other',
-                                        yid=1,
+                                        uid=1,
                                         base=self.baseDirpath,
                                         lanename='apple')
         other = self.createLaneStack(data=otherData)
