@@ -315,7 +315,7 @@ class RaetError(Exception):
     Exceptions in RAET Protocol processing
 
        usage:
-           emsg = "Invalid estate id '{0}'".format(eid)
+           emsg = "Invalid unique id '{0}'".format(uid)
            raise raeting.RaetError(emsg)
     '''
     def __init__(self, message=None):
@@ -331,7 +331,7 @@ class StackError(RaetError):
        Exceptions in RAET stack processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.StackError(emsg)
     '''
     pass
@@ -341,7 +341,7 @@ class EstateError(RaetError):
        Exceptions in RAET estate processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.EstateError(emsg)
     '''
     pass
@@ -351,7 +351,7 @@ class TransactionError(RaetError):
        Exceptions in RAET transaction processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid uniqu id '{0}'".format(uid)
             raise raeting.TransactionError(emsg)
     '''
     pass
@@ -361,7 +361,7 @@ class PacketError(RaetError):
        Exceptions in RAET packet processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.PacketError(emsg)
     '''
     pass
@@ -382,7 +382,7 @@ class KeepError(RaetError):
        Exceptions in RAET keep processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.KeepError(emsg)
     '''
     pass
@@ -392,7 +392,7 @@ class YardError(RaetError):
        Exceptions in RAET yard processing
 
        Usage:
-            emsg = "Invalid yard id '{0}'".format(yid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.YardError(emsg)
     '''
     pass
