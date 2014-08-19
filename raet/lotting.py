@@ -21,7 +21,7 @@ from ioflo.base.odicting import odict
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from . import raeting
+from . import raeting, nacling
 
 class Lot(object):
     '''
@@ -30,13 +30,15 @@ class Lot(object):
     '''
     Uid = 0
 
-    def __init__(self, stack=None, uid=None, name='', ha=None, sid=0):
+    def __init__(self, stack, uid=None, name='', ha=None, sid=0):
         '''
         Setup Lot instance
+
+        stack is a required parameter
         '''
         self.stack = stack
-        self.uid = uid if uid is not None else 0
-        self.name = name or "lot{0}".format(self.uid)
+        self.name = name or "lot{0}".format(nacling.uuid(size=16))
+        self.uid = uid if uid is not None else self.stack.nextUid()
         self._ha = ha
         self.sid = sid # current session ID
 
@@ -88,27 +90,11 @@ class LocalLot(Lot):
     '''
     Raet protocol local endpoint
     '''
-    def  __init__(self, stack=None, nuid=None, uid=None, main=None, **kwa):
+    def  __init__(self, main=None, **kwa):
         '''
         Setup instance
+
+        stack is a required parameter
         '''
-        if nuid is None:
-            if stack:
-                nuid = stack.Uid
-            else:
-                nuid = 1
-        self.nuid = nuid
-
-        uid = uid if uid is not None else self.nextUid()
-
-        super(LocalLot, self).__init__(stack=stack, uid=uid, **kwa)
+        super(LocalLot, self).__init__(**kwa)
         self.main = main # main lot on way
-
-    def nextUid(self):
-        '''
-        Generates next unique id number for local or remotes.
-        '''
-        self.nuid += 1
-        if self.nuid > 0xffffffffL:
-            self.nuid = 1  # rollover to 1
-        return self.nuid

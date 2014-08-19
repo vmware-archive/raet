@@ -45,12 +45,13 @@ class Stack(object):
                  store=None,
                  name='',
                  version=raeting.VERSION,
+                 nuid=None,
                  local=None, #passed up from subclass
                  localname='',
-                 nuid=None,
                  uid=None,
                  main=None,
                  server=None,
+                 ha=None,
                  bufcnt=2,
                  rxMsgs=None,
                  txMsgs=None,
@@ -70,13 +71,14 @@ class Stack(object):
             self.name = name
         self.version = version
 
-        localname = localname or name
-        nuid = nuid if nuid is not None else self.Uid
+        if getattr(self, 'nuid', None) is None:
+            self.nuid = nuid if nuid is not None else self.Uid
 
+        localname = localname or name
         self.local = local or lotting.LocalLot(stack=self,
                                                name=localname,
-                                               nuid=nuid,
                                                uid=uid,
+                                               ha=ha,
                                                main=main,)
         self.local.stack = self
         if self.local.main is None and main is not None:
@@ -112,6 +114,15 @@ class Stack(object):
         Create server from local data
         '''
         return None
+
+    def nextUid(self):
+        '''
+        Generates next unique id number for local or remotes.
+        '''
+        self.nuid += 1
+        if self.nuid > 0xffffffffL:
+            self.nuid = 1  # rollover to 1
+        return self.nuid
 
     def addRemote(self, remote):
         '''
@@ -507,13 +518,15 @@ class KeepStack(Stack):
 
     def __init__(self,
                  name='',
+                 nuid=None,
                  clean=False,
                  keep=None,
                  dirpath='',
                  basedirpath='',
                  local=None, #passed up from subclass
+                 uid=None,
                  localname='',
-                 nuid=None,
+                 ha=None,
                  main=None,
                  **kwa
                  ):
@@ -528,11 +541,12 @@ class KeepStack(Stack):
         if getattr(self, 'name', None) is None:
             self.name = name
 
+        if getattr(self, 'nuid', None) is None:
+            self.nuid = nuid if nuid is not None else self.Uid
+
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
                                             stackname=name)
-
-        nuid = nuid if nuid is not None else self.Uid
 
         if clean: # clear persisted data so use provided or default data
             self.clearLocalKeep()
@@ -541,8 +555,9 @@ class KeepStack(Stack):
 
         local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
                                                                  name=localname,
-                                                                 nuid=nuid,
+                                                                 uid=uid,
                                                                  main=main,
+                                                                 ha=ha,
                                                                  )
         local.stack = self
         if local.main is None and main is not None:

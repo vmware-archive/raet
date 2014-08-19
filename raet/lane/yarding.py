@@ -67,7 +67,7 @@ class Yard(lotting.Lot):
             lanename = lname
             name = yname
 
-        name = name or "yard{0}".format(uid)
+        name = name or "yard{0}".format(nacling.uuid(18))
 
         sid = sid if sid is not None else self.nextSid() #if not given unique sid
 
@@ -158,27 +158,14 @@ class LocalYard(Yard):
     '''
     RAET UXD Protocol endpoint local Yard ie Local Lane Lot
     '''
-    def __init__(self, stack, nuid=None, uid=None, main=None, **kwa):
+    def __init__(self, main=None, **kwa):
         '''
         Setup instance
 
         stack is required parameter
         '''
-        self.nuid = nuid if nuid is not None else stack.Uid
-
-        uid = uid if uid is not None else self.nextUid()
-
-        super(LocalYard, self).__init__(stack=stack, uid=uid, **kwa)
+        super(LocalYard, self).__init__(**kwa)
         self.main = main # main yard on lane
-
-    def nextUid(self):
-        '''
-        Generates next unique id number for local or remotes.
-        '''
-        self.nuid += 1
-        if self.nuid > 0xffffffffL:
-            self.nuid = 1  # rollover to 1
-        return self.nuid
 
 class RemoteYard(Yard):
     '''
@@ -191,9 +178,9 @@ class RemoteYard(Yard):
         Setup instance
         '''
         if uid is None:
-            uid = stack.local.nextUid()
+            uid = stack.nextUid()
             while uid in stack.remotes or uid == stack.local.uid:
-                uid = stack.local.nextUid()
+                uid = stack.nextUid()
 
         super(RemoteYard, self).__init__(stack=stack, uid=uid, **kwa)
         self.rsid = rsid # last sid received from remote

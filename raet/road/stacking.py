@@ -124,17 +124,17 @@ class RoadStack(stacking.KeepStack):
         if getattr(self, 'name', None) is None:
             self.name = name
 
+        if getattr(self, 'nuid', None) is None:
+            self.nuid = nuid if nuid is not None else self.Uid
+
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         stackname=name,
                                         auto=auto)
 
-        nuid = nuid if nuid is not None else self.Uid
-
         localname = localname or name
 
         local = local or estating.LocalEstate(stack=self,
-                                     nuid=nuid,
                                      name=localname,
                                      uid=uid,
                                      main=main,
@@ -265,11 +265,11 @@ class RoadStack(stacking.KeepStack):
                                               mutable=keepData['mutable'],
                                               ha=keepData['ha'],
                                               sid=keepData['sid'],
-                                              nuid=keepData['nuid'],
+                                              role=keepData['role'],
                                               sigkey=keepData['sighex'],
-                                              prikey=keepData['prihex'],
-                                              role=keepData['role'])
+                                              prikey=keepData['prihex'],)
                 self.keep.auto = keepData['auto']
+                self.nuid = keepData['nuid']
                 self.name = keepData['stackname']
                 self.local = local
             else:

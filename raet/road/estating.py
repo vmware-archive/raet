@@ -6,7 +6,7 @@ estating.py raet protocol estate classes
 # pylint: disable=W0611
 
 import socket
-
+import uuid
 from collections import deque
 
 # Import ioflo libs
@@ -25,7 +25,6 @@ class Estate(lotting.Lot):
     '''
     RAET protocol endpoint estate object ie Road Lot
     '''
-    Uid = 1 # class attribute starting point for valid uids, uid == 0 is special
 
     def __init__(self,
                  stack,
@@ -40,11 +39,10 @@ class Estate(lotting.Lot):
         '''
         Setup instance
 
-        stack is required argument
+        stack is required parameter
         '''
-        self.uid = uid if uid is not None else self.Uid # estate ID
-        name = name or "estate{0}".format(self.uid)
-
+        name = name or "estate{0}".format(uuid.uuid1())
+        uid = uid if uid is not None else stack.nextUid()
         super(Estate, self).__init__(stack=stack, name=name, ha=ha, uid=uid, **kwa)
 
         self.tid = tid # current transaction ID
@@ -134,10 +132,6 @@ class LocalEstate(Estate):
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
     def __init__(self,
-                 stack,
-                 name="",
-                 nuid=None,
-                 uid=None,
                  main=None,
                  sigkey=None,
                  prikey=None,
@@ -151,30 +145,11 @@ class LocalEstate(Estate):
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
         '''
-
-        if nuid is None:
-            if stack:
-                nuid = stack.Uid
-            else:
-                nuid = 1
-        self.nuid = nuid
-
-        uid = uid if uid is not None else self.nextUid()
-
-        super(LocalEstate, self).__init__(stack=stack, uid=uid, name=name, **kwa)
+        super(LocalEstate, self).__init__( **kwa)
         self.main = main # main estate on road
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
         self.mutable = mutable # mutable road
-
-    def nextUid(self):
-        '''
-        Generates next estate id number.
-        '''
-        self.nuid += 1
-        if self.nuid > 0xffffffffL:
-            self.nuid = 1  # rollover to 1
-        return self.nuid
 
 class RemoteEstate(Estate):
     '''
@@ -211,10 +186,9 @@ class RemoteEstate(Estate):
 
         '''
         if uid is None:
-            uid = stack.local.nextUid()
+            uid = stack.nextUid()
             while uid in stack.remotes or uid == stack.local.uid:
-                uid = stack.local.nextUid()
-
+                uid = stack.nextUid()
 
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)

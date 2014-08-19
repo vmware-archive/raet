@@ -66,23 +66,18 @@ class LaneStack(stacking.Stack):
         if getattr(self, 'name', None) is None:
             self.name = name
 
-        nuid = nuid if nuid is not None else self.Uid
+        if getattr(self, 'nuid', None) is None:
+            self.nuid = nuid if nuid is not None else self.Uid
 
         localname = localname or name
 
-        if not local:
-            self.remotes = odict()
-            local = yarding.LocalYard(  stack=self,
-                                        name=localname,
-                                        nuid=nuid,
-                                        uid=uid,
-                                        main=main,
-                                        ha=ha,
-                                        dirpath=sockdirpath,
-                                        lanename=lanename)
-        else:
-            if main is not None:
-                local.main = True if main else False
+        local =  local or yarding.LocalYard(stack=self,
+                                            name=localname,
+                                            uid=uid,
+                                            main=main,
+                                            ha=ha,
+                                            dirpath=sockdirpath,
+                                            lanename=lanename)
 
         super(LaneStack, self).__init__(nuid=nuid,
                                         name=name,

@@ -39,7 +39,7 @@ class Keep(object):
     RAET protocol base class for data persistence of objects that follow the Lot
     protocol
     '''
-    LocalFields = ['uid', 'name', 'ha', 'sid', 'stackname']
+    LocalFields = ['uid', 'name', 'ha', 'sid', 'nuid', 'stackname']
     RemoteFields = ['uid', 'name', 'ha']
     Ext = 'json' # default serialization type of json and msgpack
 
@@ -293,6 +293,7 @@ class Keep(object):
                         ('name', local.name),
                         ('ha', local.ha),
                         ('sid', local.sid),
+                        ('nuid', local.stack.nuid),
                         ('stackname', local.stack.name),
                     ])
         if self.verifyLocalData(data):
