@@ -174,13 +174,9 @@ class RemoteEstate(Estate):
     .alived = True, alive, recently have received valid signed packets from remote
     .alive = False, dead, recently have not received valid signed packets from remote
     '''
-    Period = 1.0
-    Offset = 0.5
-    Interim = 3600.0
 
     def __init__(self, stack, uid=None, verkey=None, pubkey=None,
-                 acceptance=None, joined=None, rsid=0,
-                 period=None, offset=None, interim=None, **kwa):
+                 acceptance=None, joined=None, rsid=0, **kwa):
         '''
         Setup Estate instance
 
@@ -193,18 +189,13 @@ class RemoteEstate(Estate):
 
         rsid is last received session id used by remotely initiated transaction
 
-        period is timeout of keep alive heartbeat timer
-        offset is initial offset of keep alive heartbeat timer
 
-        interim is timeout of reapTimer (remove from memory if dead for reap time)
         '''
         if uid is None:
-            if stack:
+            uid = stack.local.nextUid()
+            while uid in stack.remotes or uid == stack.local.uid:
                 uid = stack.local.nextUid()
-                while uid in stack.remotes or uid == stack.local.uid:
-                    uid = stack.local.nextUid()
-            else:
-                uid = 0
+
 
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
@@ -223,19 +214,16 @@ class RemoteEstate(Estate):
 
         # persistence keep alive heartbeat timer. Initial duration has offset so
         # not synced with other side persistence heatbeet
-        self.period = period if period is not None else self.Period
-        self.offset = offset if offset is not None else self.Offset
-        # by default do not use offset on main unless it is explicity provided
-        if self.stack.local.main and offset is None:
-            duration = self.period
+        # by default do not use offset on main
+        if self.stack.local.main:
+            duration = self.stack.period
         else:
-            duration = self.period + self.offset
+            duration = self.stack.period + self.stack.offset
         self.timer = aiding.StoreTimer(store=self.stack.store,
                                        duration=duration)
 
-        self.interim = interim if interim is not None else self.Interim
         self.reapTimer = aiding.StoreTimer(self.stack.store,
-                                           duration=self.interim)
+                                           duration=self.stack.interim)
         self.messages = deque() # deque of saved stale message body data to remote.uid
 
     def rekey(self):
@@ -262,7 +250,7 @@ class RemoteEstate(Estate):
         If alived is True then set .alived to True and handle implications
         If alived is False the set .alived to False and handle implications
         '''
-        self.timer.restart(duration=self.period)
+        self.timer.restart(duration=self.stack.period)
         if alived is None:
             return
 
@@ -281,7 +269,7 @@ class RemoteEstate(Estate):
             if immediate or self.timer.expired:
                 # alive transaction restarts self.timer
                 self.stack.alive(duid=self.uid, cascade=cascade)
-            if self.interim >  0.0 and self.reapTimer.expired:
+            if self.stack.interim >  0.0 and self.reapTimer.expired:
                 self.reap()
 
     def reap(self):

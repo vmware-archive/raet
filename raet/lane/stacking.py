@@ -56,8 +56,6 @@ class LaneStack(stacking.Stack):
                  ):
         '''
         Setup LaneStack instance
-
-        stack.name and stack.local.name will match
         '''
         if not name:
             name = "lane{0}".format(LaneStack.Count)

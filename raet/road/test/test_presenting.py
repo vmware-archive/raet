@@ -803,7 +803,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMake all expired so send alive *********\n")
         # advance clock so remote keep alive timers expire
-        self.store.advanceStamp(estating.RemoteEstate.Period + estating.RemoteEstate.Offset)
+        self.store.advanceStamp(stacking.RoadStack.Period + stacking.RoadStack.Offset)
         main.manage()
         for remote in main.remotes.values(): # should start
             self.assertIs(remote.alived, True)
@@ -873,9 +873,7 @@ class BasicTestCase(unittest.TestCase):
                                              name=otherData['name'],
                                              ha=('127.0.0.1', other.local.port),
                                              verkey=otherData['verhex'],
-                                             pubkey=otherData['pubhex'],
-                                             period=main.period,
-                                             offset=main.offset))
+                                             pubkey=otherData['pubhex'], ))
 
         console.terse("\nJoin Main to Other Again *********\n")
         self.join(main, other, deid=2)
@@ -932,9 +930,7 @@ class BasicTestCase(unittest.TestCase):
                                              name=otherData['name'],
                                              ha=('127.0.0.1', other.local.port),
                                              verkey=otherData['verhex'],
-                                             pubkey=otherData['pubhex'],
-                                             period=main.period,
-                                             offset=main.offset))
+                                             pubkey=otherData['pubhex'],))
 
         console.terse("\nYoke Main to Other Again *********\n")
         self.yoke(main, other, deid=2)
@@ -1012,9 +1008,7 @@ class BasicTestCase(unittest.TestCase):
                                              name=otherData['name'],
                                              ha=('127.0.0.1', other.local.port),
                                              verkey=otherData['verhex'],
-                                             pubkey=otherData['pubhex'],
-                                             period=main.period,
-                                             offset=main.offset))
+                                             pubkey=otherData['pubhex'],))
 
         console.terse("\nBoth unjoined Allow Main to Other *********\n")
         self.assertEqual(len(main.remotes), 1)
@@ -1071,9 +1065,7 @@ class BasicTestCase(unittest.TestCase):
                                              name=otherData['name'],
                                              ha=('127.0.0.1', other.local.port),
                                              verkey=otherData['verhex'],
-                                             pubkey=otherData['pubhex'],
-                                             period=main.period,
-                                             offset=main.offset))
+                                             pubkey=otherData['pubhex'],))
 
         self.assertEqual(len(main.remotes), 1)
         self.assertEqual(len(other.remotes), 0)
@@ -1131,9 +1123,7 @@ class BasicTestCase(unittest.TestCase):
                                              name=otherData['name'],
                                              ha=('127.0.0.1', other.local.port),
                                              verkey=otherData['verhex'],
-                                             pubkey=otherData['pubhex'],
-                                             period=main.period,
-                                             offset=main.offset))
+                                             pubkey=otherData['pubhex'],))
 
         self.alive(main, other, mha=('127.0.0.1', other.local.port))
         self.assertEqual(len(main.transactions), 0)

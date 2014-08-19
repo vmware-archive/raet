@@ -223,9 +223,7 @@ class BasicTestCase(unittest.TestCase):
                                               name=other1Data['name'],
                                               ha=('127.0.0.1', 7531),
                                               verkey=other1Data['verhex'],
-                                              pubkey=other1Data['pubhex'],
-                                              period=stack.period,
-                                              offset=stack.offset))
+                                              pubkey=other1Data['pubhex']))
 
         other2Data = self.createRoadData(name='other2', base=self.base)
         stack.addRemote(estating.RemoteEstate(stack=stack,
@@ -233,9 +231,7 @@ class BasicTestCase(unittest.TestCase):
                                               name=other2Data['name'],
                                               ha=('127.0.0.1', 7532),
                                               verkey=other2Data['verhex'],
-                                              pubkey=other2Data['pubhex'],
-                                              period=stack.period,
-                                              offset=stack.offset))
+                                              pubkey=other2Data['pubhex']))
 
         self.assertEqual(len(stack.remotes), len(stack.nameRemotes))
         self.assertEqual(len(stack.remotes), len(stack.haRemotes))
@@ -436,9 +432,7 @@ class BasicTestCase(unittest.TestCase):
                                               name=other1Data['name'],
                                               ha=('127.0.0.1', 7531),
                                               verkey=other1Data['verhex'],
-                                              pubkey=other1Data['pubhex'],
-                                              period=stack.period,
-                                              offset=stack.offset))
+                                              pubkey=other1Data['pubhex']))
 
         other2Data = self.createRoadData(name='other2', base=self.base)
         stack.addRemote(estating.RemoteEstate(stack=stack,
@@ -446,9 +440,7 @@ class BasicTestCase(unittest.TestCase):
                                               name=other2Data['name'],
                                               ha=('127.0.0.1', 7532),
                                               verkey=other2Data['verhex'],
-                                              pubkey=other2Data['pubhex'],
-                                              period=stack.period,
-                                              offset=stack.offset))
+                                              pubkey=other2Data['pubhex']))
 
         self.assertEqual(len(stack.remotes), len(stack.nameRemotes))
         self.assertEqual(len(stack.remotes), len(stack.haRemotes))

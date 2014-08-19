@@ -111,6 +111,8 @@ class RoadStack(stacking.KeepStack):
         '''
         Setup StackUdp instance
 
+
+
         '''
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                         basedirpath=basedirpath,
@@ -134,6 +136,7 @@ class RoadStack(stacking.KeepStack):
         if local.mutable is None and mutable is not None:
             local.mutable = True if mutable else False
 
+        # Remotes reference these so create before super
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
         self.interim = interim if interim is not None else self.Interim
@@ -220,9 +223,7 @@ class RoadStack(stacking.KeepStack):
                 remote = estating.RemoteEstate(stack=self,
                                                uid=0,
                                                sid=0,
-                                               ha=ha if ha is not None else dha,
-                                               period=self.period,
-                                               offset=self.offset)
+                                               ha=ha if ha is not None else dha)
 
                 try:
                     self.addRemote(remote) #provisionally add .accepted is None
@@ -278,9 +279,6 @@ class RoadStack(stacking.KeepStack):
                                                acceptance=keepData['acceptance'],
                                                verkey=keepData['verhex'],
                                                pubkey=keepData['pubhex'],
-                                               period=self.period,
-                                               offset=self.offset,
-                                               interim=self.interim,
                                                role=keepData['role'])
                 self.addRemote(remote)
             else:
@@ -304,9 +302,6 @@ class RoadStack(stacking.KeepStack):
                                                    acceptance=keepData['acceptance'],
                                                    verkey=keepData['verhex'],
                                                    pubkey=keepData['pubhex'],
-                                                   period=self.period,
-                                                   offset=self.offset,
-                                                   interim=self.interim,
                                                    role=keepData['role'])
                     self.addRemote(remote)
                 else:
@@ -458,9 +453,7 @@ class RoadStack(stacking.KeepStack):
                 remote = estating.RemoteEstate(stack=self,
                                                 sid=packet.data['si'],
                                                 host=packet.data['sh'],
-                                                port=packet.data['sp'],
-                                                period=self.period,
-                                                offset=self.offset)
+                                                port=packet.data['sp'])
             self.replyJoin(packet, remote)
             return
 
@@ -473,9 +466,7 @@ class RoadStack(stacking.KeepStack):
                                                 uid=0,
                                                 sid=packet.data['si'],
                                                 host=packet.data['sh'],
-                                                port=packet.data['sp'],
-                                                period=self.period,
-                                                offset=self.offset)
+                                                port=packet.data['sp'],)
 
             self.replyYoke(packet, remote)
             return
