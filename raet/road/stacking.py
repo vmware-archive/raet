@@ -144,11 +144,7 @@ class RoadStack(stacking.KeepStack):
                                      sigkey=sigkey,
                                      prikey=prikey, )
         local.stack = self
-        if local.main is None and main is not None:
-            local.main = True if main else False
 
-        if local.mutable is None and mutable is not None:
-            local.mutable = True if mutable else False
 
         # Remotes reference these so create before super
         self.period = period if period is not None else self.Period

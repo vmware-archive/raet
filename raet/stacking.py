@@ -81,8 +81,6 @@ class Stack(object):
                                                ha=ha,
                                                main=main,)
         self.local.stack = self
-        if self.local.main is None and main is not None:
-            self.local.main = True if main else False
 
         self.remotes = self.uidRemotes = odict() # remotes indexed by uid
         self.nameRemotes = odict() # remotes indexed by name
@@ -560,8 +558,6 @@ class KeepStack(Stack):
                                                                  ha=ha,
                                                                  )
         local.stack = self
-        if local.main is None and main is not None:
-            local.main = True if main else False
 
         super(KeepStack, self).__init__(nuid=nuid,
                                         name=name,
