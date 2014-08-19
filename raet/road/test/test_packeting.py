@@ -396,13 +396,11 @@ class StackTestCase(unittest.TestCase):
         keeping.clearAllKeep(mainDirpath)
         keeping.clearAllKeep(otherDirpath)
 
-        local = estating.LocalEstate(uid=1,
-                                     name=mainName,
-                                     sigkey=mainSignKeyHex,
-                                     prikey=mainPriKeyHex,)
-
         self.main = stacking.RoadStack(name=mainName,
-                                       local=local,
+                                       uid=1,
+                                       localname=mainName,
+                                       sigkey=mainSignKeyHex,
+                                       prikey=mainPriKeyHex,
                                        auto=True,
                                        main=True,
                                        dirpath=mainDirpath,
@@ -416,17 +414,14 @@ class StackTestCase(unittest.TestCase):
                                         pubkey=otherPubKeyHex,)
         self.main.addRemote(remote1)
 
-
-        local = estating.LocalEstate(uid=2,
-                                     name=otherName,
-                                     ha=("", raeting.RAET_TEST_PORT),
-                                     sigkey=otherSignKeyHex,
-                                     prikey=otherPriKeyHex,)
-
         self.other = stacking.RoadStack(name=otherName,
-                                         local=local,
-                                         dirpath=otherDirpath,
-                                         store=self.store)
+                                        uid=2,
+                                        localname=otherName,
+                                        ha=("", raeting.RAET_TEST_PORT),
+                                        sigkey=otherSignKeyHex,
+                                        prikey=otherPriKeyHex,
+                                        dirpath=otherDirpath,
+                                        store=self.store)
 
         remote0 = estating.RemoteEstate(stack=self.other,
                                         uid=1,

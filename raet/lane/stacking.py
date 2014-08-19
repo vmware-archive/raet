@@ -42,12 +42,13 @@ class LaneStack(stacking.Stack):
     Accept = True # accept any uxd messages if True from yards not already in lanes
 
     def __init__(self,
-                 nuid=None,
                  name='',
-                 main=None,
-                 local=None,
-                 lanename='lane',
+                 local=None, #passed up from subclass
+                 localname='',
+                 nuid=None,
                  uid=None,
+                 main=None,
+                 lanename='lane',
                  sockdirpath='',
                  ha='',
                  bufcnt=10,
@@ -58,17 +59,21 @@ class LaneStack(stacking.Stack):
         Setup LaneStack instance
         '''
         if not name:
-            name = "lane{0}".format(LaneStack.Count)
-            LaneStack.Count += 1
+            name = "{0}{1}".format(self.__class__.__name__.lower(),
+                                   self.__class__.Count)
+            self.__class__.Count += 1
+
+        if getattr(self, 'name', None) is None:
+            self.name = name
 
         nuid = nuid if nuid is not None else self.Uid
 
         if not local:
             self.remotes = odict()
             local = yarding.LocalYard(  stack=self,
+                                        name=localname,
                                         nuid=nuid,
                                         uid=uid,
-                                        name=name,
                                         main=main,
                                         ha=ha,
                                         dirpath=sockdirpath,

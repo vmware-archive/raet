@@ -28,7 +28,7 @@ class Estate(lotting.Lot):
     Uid = 1 # class attribute starting point for valid uids, uid == 0 is special
 
     def __init__(self,
-                 stack=None,
+                 stack,
                  name="",
                  ha=None,
                  uid=None,
@@ -39,6 +39,8 @@ class Estate(lotting.Lot):
                  **kwa):
         '''
         Setup instance
+
+        stack is required argument
         '''
         self.uid = uid if uid is not None else self.Uid # estate ID
         name = name or "estate{0}".format(self.uid)
@@ -131,10 +133,20 @@ class LocalEstate(Estate):
     RAET protocol endpoint local estate object ie Local Road Lot
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
-    def __init__(self, stack=None, nuid=None, uid=None, name="",  main=None,
-                 sigkey=None, prikey=None, mutable=None, **kwa):
+    def __init__(self,
+                 stack,
+                 name="",
+                 nuid=None,
+                 uid=None,
+                 main=None,
+                 sigkey=None,
+                 prikey=None,
+                 mutable=None,
+                 **kwa):
         '''
         Setup instance
+
+        stack is required argument
 
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
@@ -175,12 +187,19 @@ class RemoteEstate(Estate):
     .alive = False, dead, recently have not received valid signed packets from remote
     '''
 
-    def __init__(self, stack, uid=None, verkey=None, pubkey=None,
-                 acceptance=None, joined=None, rsid=0, **kwa):
+    def __init__(self,
+                 stack,
+                 uid=None,
+                 verkey=None,
+                 pubkey=None,
+                 acceptance=None,
+                 joined=None,
+                 rsid=0,
+                 **kwa):
         '''
         Setup instance
 
-        stack is required parameter for RemoteEstate unlike its superclass
+        stack is required parameter
 
         verkey is either nacl VerifyKey or raw or hex encoded key
         pubkey is either nacl PublicKey or raw or hex encoded key

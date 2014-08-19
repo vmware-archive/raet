@@ -62,28 +62,24 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(mainDirpath)
         keeping.clearAllKeep(otherDirpath)
 
-        local = estating.LocalEstate(uid=1,
-                                     name=mainName,
-                                     sigkey=mainSignKeyHex,
-                                     prikey=mainPriKeyHex,)
-
         self.main = stacking.RoadStack(name=mainName,
-                                         local=local,
-                                         auto=True,
-                                         main=True,
-                                         dirpath=mainDirpath,
-                                         store=self.store)
-
-        local = estating.LocalEstate(uid=0,
-                                     name=otherName,
-                                     ha=("", raeting.RAET_TEST_PORT),
-                                     sigkey=otherSignKeyHex,
-                                     prikey=otherPriKeyHex,)
+                                       localname=mainName,
+                                       uid=1,
+                                       sigkey=mainSignKeyHex,
+                                       prikey=mainPriKeyHex,
+                                       auto=True,
+                                       main=True,
+                                       dirpath=mainDirpath,
+                                       store=self.store)
 
         self.other = stacking.RoadStack(name=otherName,
-                                         local=local,
-                                         dirpath=otherDirpath,
-                                         store=self.store)
+                                        localname=otherName,
+                                        uid=0,
+                                        ha=("", raeting.RAET_TEST_PORT),
+                                        sigkey=otherSignKeyHex,
+                                        prikey=otherPriKeyHex,
+                                        dirpath=otherDirpath,
+                                        store=self.store)
 
 
 

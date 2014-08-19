@@ -116,8 +116,6 @@ class Yard(lotting.Lot):
 
         self.ha = ha
 
-
-
     @staticmethod
     def namesFromHa(ha):
         '''

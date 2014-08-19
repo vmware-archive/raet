@@ -85,14 +85,13 @@ class BasicTestCase(unittest.TestCase):
         returns stack
 
         '''
-        local = estating.LocalEstate(uid=uid,
-                                     name=data['name'],
-                                     ha=ha,
-                                     sigkey=data['sighex'],
-                                     prikey=data['prihex'],)
 
         stack = stacking.RoadStack(name=data['name'],
-                                   local=local,
+                                   localname=data['name'],
+                                   uid=uid,
+                                   ha=ha,
+                                   sigkey=data['sighex'],
+                                   prikey=data['prihex'],
                                    auto=auto if auto is not None else data['auto'],
                                    main=main,
                                    mutable=mutable,
@@ -184,10 +183,11 @@ class BasicTestCase(unittest.TestCase):
                                         ('mutable', None),
                                         ('sid', 0),
                                         ('nuid', 1),
+                                        ('auto', mainData['auto']),
+                                        ('stackname', mainData['name']),
+                                        ('role', mainData['name']),
                                         ('sighex', mainData['sighex']),
                                         ('prihex', mainData['prihex']),
-                                        ('auto', mainData['auto']),
-                                        ('role', mainData['name'])
                                     ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -205,10 +205,11 @@ class BasicTestCase(unittest.TestCase):
                                 ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.local.nuid),
+                                ('auto', stack.keep.auto),
+                                ('stackname', stack.name),
+                                ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
-                                ('auto', stack.keep.auto),
-                                ('role', stack.local.role)
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -321,10 +322,11 @@ class BasicTestCase(unittest.TestCase):
                                 ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.local.nuid),
+                                ('auto', stack.keep.auto),
+                                ('stackname', stack.name),
+                                ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
-                                ('auto', stack.keep.auto),
-                                ('role', stack.local.role),
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -393,10 +395,11 @@ class BasicTestCase(unittest.TestCase):
                                         ('mutable', None),
                                         ('sid', 0),
                                         ('nuid', 1),
+                                        ('auto', mainData['auto']),
+                                        ('stackname', mainData['name']),
+                                        ('role', mainData['name']),
                                         ('sighex', mainData['sighex']),
                                         ('prihex', mainData['prihex']),
-                                        ('auto', mainData['auto']),
-                                        ('role', mainData['name'])
                                     ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -414,10 +417,11 @@ class BasicTestCase(unittest.TestCase):
                                 ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.local.nuid),
+                                ('auto', stack.keep.auto),
+                                ('stackname', stack.name),
+                                ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
-                                ('auto', stack.keep.auto),
-                                ('role', stack.local.role)
                               ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -530,10 +534,11 @@ class BasicTestCase(unittest.TestCase):
                                 ('mutable', stack.local.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.local.nuid),
+                                ('auto', stack.keep.auto),
+                                ('stackname', stack.name),
+                                ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
-                                ('auto', stack.keep.auto),
-                                ('role', stack.local.role),
                               ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)

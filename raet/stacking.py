@@ -42,14 +42,16 @@ class Stack(object):
     Uid = 1 # base for next unique id for local and remotes
 
     def __init__(self,
-                 version=raeting.VERSION,
-                 nuid=None,
                  store=None,
                  name='',
+                 version=raeting.VERSION,
+                 local=None, #passed up from subclass
+                 localname='',
+                 nuid=None,
+                 uid=None,
                  main=None,
-                 local=None,
-                 bufcnt=2,
                  server=None,
+                 bufcnt=2,
                  rxMsgs=None,
                  txMsgs=None,
                  rxes=None,
@@ -59,18 +61,22 @@ class Stack(object):
         '''
         Setup Stack instance
         '''
-        self.version = version
-        nuid = nuid if nuid is not None else self.Uid
         self.store = store or storing.Store(stamp=0.0)
-
         if not name:
-            name = "{0}{1}".format(self.__class__.__name__.lower(), Stack.Count)
-            Stack.Count += 1
+            name = "{0}{1}".format(self.__class__.__name__.lower(),
+                                   self.__class__.Count)
+            self.__class__.Count += 1
+        if getattr(self, 'name', None) is None:
+            self.name = name
+        self.version = version
 
+        localname = localname or name
+        nuid = nuid if nuid is not None else self.Uid
 
         self.local = local or lotting.LocalLot(stack=self,
+                                               name=localname,
                                                nuid=nuid,
-                                               name=name,
+                                               uid=uid,
                                                main=main,)
         self.local.stack = self
         if self.local.main is None and main is not None:
@@ -100,20 +106,6 @@ class Stack(object):
         self.txes = txes if txes is not None else deque() # udp packet to transmit
         self.stats = stats if stats is not None else odict() # udp statistics
         self.statTimer = aiding.StoreTimer(self.store)
-
-    @property
-    def name(self):
-        '''
-        property that returns name of local interface
-        '''
-        return self.local.name
-
-    @name.setter
-    def name(self, value):
-        '''
-        setter for name property
-        '''
-        self.local.name = value
 
     def serverFromLocal(self):
         '''
@@ -514,22 +506,27 @@ class KeepStack(Stack):
     Uid =  1
 
     def __init__(self,
-                 nuid=None,
                  name='',
-                 main=None,
+                 clean=False,
                  keep=None,
                  dirpath='',
                  basedirpath='',
-                 local=None,
-                 clean=False,
+                 local=None, #passed up from subclass
+                 localname='',
+                 nuid=None,
+                 main=None,
                  **kwa
                  ):
         '''
         Setup Stack instance
         '''
         if not name:
-            name = "{0}{1}".format(self.__class__.__name__.lower(), KeepStack.Count)
-            KeepStack.Count += 1
+            name = "{0}{1}".format(self.__class__.__name__.lower(),
+                                   self.__class__.Count)
+            self.__class__.Count += 1
+
+        if getattr(self, 'name', None) is None:
+            self.name = name
 
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
@@ -540,10 +537,13 @@ class KeepStack(Stack):
         if clean: # clear persisted data so use provided or default data
             self.clearLocalKeep()
 
+        localname = localname or name
+
         local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
+                                                                 name=localname,
                                                                  nuid=nuid,
                                                                  main=main,
-                                                                 name=name)
+                                                                 )
         local.stack = self
         if local.main is None and main is not None:
             local.main = True if main else False
@@ -644,6 +644,7 @@ class KeepStack(Stack):
                                          ha=data['ha'],
                                          sid = data['sid'])
                 self.local = local
+                self.name = data['stackname']
             else:
                 self.keep.clearLocalData()
         return local

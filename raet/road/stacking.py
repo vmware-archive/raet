@@ -77,6 +77,7 @@ class RoadStack(stacking.KeepStack):
     role
         The local estate role identifier for key management
     '''
+    Count = 0 # count of Stack instances to give unique stack names
     Hk = raeting.headKinds.raet # stack default
     Bk = raeting.bodyKinds.json # stack default
     Fk = raeting.footKinds.nacl # stack default
@@ -90,30 +91,39 @@ class RoadStack(stacking.KeepStack):
     JoinentTimeout = 5.0 # stack default for joinent transaction timeout
 
     def __init__(self,
-                 nuid=None,
                  name='',
-                 main=None,
-                 mutable=None,
                  keep=None,
                  dirpath='',
                  basedirpath='',
-                 local=None,
+                 auto=None,
+                 local=None, #passed up from subclass
+                 localname='',
+                 nuid=None,
                  uid=None, #local estate uid, none means generate it
+                 main=None,
+                 mutable=None,
+                 role=None,
+                 sigkey=None,
+                 prikey=None,
                  ha=("", raeting.RAET_PORT),
                  bufcnt=2,
-                 auto=None,
                  period=None,
                  offset=None,
                  interim=None,
-                 role=None,
                  **kwa
                  ):
         '''
-        Setup StackUdp instance
-
-
+        Setup instance
 
         '''
+        if not name:
+            name = "{0}{1}".format(self.__class__.__name__.lower(),
+                                   self.__class__.Count)
+            self.__class__.Count += 1
+
+        if getattr(self, 'name', None) is None:
+            self.name = name
+
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         stackname=name,
@@ -121,14 +131,18 @@ class RoadStack(stacking.KeepStack):
 
         nuid = nuid if nuid is not None else self.Uid
 
+        localname = localname or name
+
         local = local or estating.LocalEstate(stack=self,
-                                              nuid=nuid,
-                                              name=name,
-                                              uid=uid,
-                                              main=main,
-                                              mutable=mutable,
-                                              ha=ha,
-                                              role=role)
+                                     nuid=nuid,
+                                     name=localname,
+                                     uid=uid,
+                                     main=main,
+                                     mutable=mutable,
+                                     ha=ha,
+                                     role=role,
+                                     sigkey=sigkey,
+                                     prikey=prikey, )
         local.stack = self
         if local.main is None and main is not None:
             local.main = True if main else False
@@ -256,6 +270,7 @@ class RoadStack(stacking.KeepStack):
                                               prikey=keepData['prihex'],
                                               role=keepData['role'])
                 self.keep.auto = keepData['auto']
+                self.name = keepData['stackname']
                 self.local = local
             else:
                 self.keep.clearLocalData()

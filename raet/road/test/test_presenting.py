@@ -83,14 +83,12 @@ class BasicTestCase(unittest.TestCase):
         returns stack
 
         '''
-        local = estating.LocalEstate(uid=uid,
-                                     name=data['name'],
-                                     ha=ha,
-                                     sigkey=data['sighex'],
-                                     prikey=data['prihex'],)
-
         stack = stacking.RoadStack(name=data['name'],
-                                   local=local,
+                                   uid=uid,
+                                   localname=data['name'],
+                                   ha=ha,
+                                   sigkey=data['sighex'],
+                                   prikey=data['prihex'],
                                    auto=auto if auto is not None else data['auto'],
                                    main=main,
                                    dirpath=data['dirpath'],

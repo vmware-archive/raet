@@ -90,23 +90,22 @@ class RaetRoadStack(deeding.Deed):
         ha = (self.local.data.host, self.local.data.port)
 
         uid = self.local.data.uid
-        local = estating.LocalEstate(  uid=uid,
-                                        name=name,
-                                        ha=ha,
-                                        sigkey=sigkey,
-                                        prikey=prikey,)
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
-        self.stack.value = RoadStack(  local=local,
-                                       store=self.store,
-                                       name=name,
-                                       auto=auto,
-                                       main=main,
-                                       mutable=mutable,
-                                       basedirpath=basedirpath,
-                                       txMsgs=txMsgs,
-                                       rxMsgs=rxMsgs, )
+        self.stack.value = RoadStack(store=self.store,
+                                     name=name,
+                                     uid=uid,
+                                     localname=name,
+                                     ha=ha,
+                                     sigkey=sigkey,
+                                     prikey=prikey,
+                                     auto=auto,
+                                     main=main,
+                                     mutable=mutable,
+                                     basedirpath=basedirpath,
+                                     txMsgs=txMsgs,
+                                     rxMsgs=rxMsgs, )
 
     def action(self, **kwa):
         '''
@@ -153,23 +152,22 @@ class RaetRoadStackSetup(deeding.Deed):
         ha = (self.local.data.host, self.local.data.port)
 
         uid = self.local.data.uid
-        local = estating.LocalEstate(  uid=uid,
-                                        name=name,
-                                        ha=ha,
-                                        sigkey=sigkey,
-                                        prikey=prikey,)
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
-        self.stack.value = RoadStack(  local=local,
-                                       store=self.store,
-                                       name=name,
-                                       auto=auto,
-                                       main=main,
-                                       mutable=mutable,
-                                       basedirpath=basedirpath,
-                                       txMsgs=txMsgs,
-                                       rxMsgs=rxMsgs, )
+        self.stack.value = RoadStack(store=self.store,
+                                     name=name,
+                                     uid=uid,
+                                     localname=name,
+                                     ha=ha,
+                                     sigkey=sigkey,
+                                     prikey=prikey,
+                                     auto=auto,
+                                     main=main,
+                                     mutable=mutable,
+                                     basedirpath=basedirpath,
+                                     txMsgs=txMsgs,
+                                     rxMsgs=rxMsgs, )
 
 
 class RaetRoadStackCloser(deeding.Deed):
