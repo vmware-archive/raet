@@ -68,6 +68,8 @@ class LaneStack(stacking.Stack):
 
         nuid = nuid if nuid is not None else self.Uid
 
+        localname = localname or name
+
         if not local:
             self.remotes = odict()
             local = yarding.LocalYard(  stack=self,

@@ -450,7 +450,7 @@ class RaetLaneStack(deeding.Deed):
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
         local=odict(ipath='local', ival=odict(name='minion',
                                               lane="maple",
-                                              basedirpath="/tmp/raet/test/lane/keep/")),)
+                                              sockdirpath="/tmp/raet/test/lane/")),)
 
     def postinitio(self):
         '''
@@ -458,14 +458,14 @@ class RaetLaneStack(deeding.Deed):
         '''
         name = self.local.data.name
         lane = self.local.data.lane
-        basedirpath = self.local.data.basedirpath
+        sockdirpath = self.local.data.sockdirpath
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
         self.stack.value = LaneStack(
                                        store=self.store,
                                        name=name,
-                                       basedirpath=basedirpath,
+                                       sockdirpath=sockdirpath,
                                        lanename=lane,
                                        txMsgs=txMsgs,
                                        rxMsgs=rxMsgs, )
@@ -507,16 +507,20 @@ class RaetLaneStackYardAdd(deeding.Deed):
     Ioinits = odict(
         inode=".raet.lane.stack.",
         stack='stack',
-        local='yard',
-        yard=odict(ipath='local', ival=odict(name=None, lane="maple")),)
+        local=odict(ipath='local',
+                    ival=odict(sockdirpath="/tmp/raet/test/lane/")))
 
     def action(self, lane="lane", name=None, **kwa):
         '''
         Adds new yard to stack on lane with name
         '''
         stack = self.stack.value
+        sockdirpath = self.local.data.sockdirpath
         if stack and isinstance(stack, LaneStack):
-            yard = yarding.RemoteYard(stack=stack, lanename=lane, name=name)
+            yard = yarding.RemoteYard(stack=stack,
+                                      lanename=lane,
+                                      name=name,
+                                      dirpath=sockdirpath)
             stack.addRemote(yard)
             self.local.value = yard
 

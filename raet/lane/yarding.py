@@ -30,7 +30,7 @@ class Yard(lotting.Lot):
     '''
 
     def  __init__(self,
-                  stack=None,
+                  stack,
                   uid=None,
                   name='',
                   ha='',
@@ -41,12 +41,10 @@ class Yard(lotting.Lot):
                   **kwa):
         '''
         Setup instance
+
+        stack is required parameter
         '''
-        if uid is None:
-            if stack:
-                uid = stack.nextUid()
-            else:
-                uid = 0
+        uid = uid if uid is not None else stack.nextUid()
 
         if lanename and  " " in lanename:
             emsg = "Invalid lanename '{0}'".format(lanename)
@@ -160,16 +158,13 @@ class LocalYard(Yard):
     '''
     RAET UXD Protocol endpoint local Yard ie Local Lane Lot
     '''
-    def __init__(self, stack=None, nuid=None, uid=None, main=None, **kwa):
+    def __init__(self, stack, nuid=None, uid=None, main=None, **kwa):
         '''
         Setup instance
+
+        stack is required parameter
         '''
-        if nuid is None:
-            if stack:
-                nuid = stack.Uid
-            else:
-                nuid = 1
-        self.nuid = nuid
+        self.nuid = nuid if nuid is not None else stack.Uid
 
         uid = uid if uid is not None else self.nextUid()
 

@@ -2,7 +2,7 @@
 
 house master
 
-init .raet.lane.stack.local to name "lord" lane "ash" basedirpath "/tmp/raet/test/lane/keep/"
+init .raet.lane.stack.local to name "lord" lane "ash" sockdirpath "/tmp/raet/test/lane/"
 init .raet.lane.stack.dest to "serf"
 
 framer bossuxdstack be active first start
@@ -33,7 +33,7 @@ framer setupuxdyard be active first start
 
 house serf
 
-init .raet.lane.stack.local to name "serf" lane "ash" basedirpath "/tmp/raet/test/lane/keep/"
+init .raet.lane.stack.local to name "serf" lane "ash" sockdirpath "/tmp/raet/test/lane/"
 init .raet.lane.stack.dest to "lord"
 
 framer serfuxdstack be active first start
