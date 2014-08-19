@@ -28,7 +28,6 @@ class Yard(lotting.Lot):
     '''
     RAET protocol Yard
     '''
-    Uid = 2 # class attribute
 
     def  __init__(self,
                   stack=None,
@@ -43,7 +42,11 @@ class Yard(lotting.Lot):
         '''
         Initialize instance
         '''
-        self.uid = uid if uid is not None else self.Uid # yard unique ID
+        if uid is None:
+            if stack:
+                uid = stack.nextUid()
+            else:
+                uid = 0
 
         if lanename and  " " in lanename:
             emsg = "Invalid lanename '{0}'".format(lanename)
@@ -66,11 +69,16 @@ class Yard(lotting.Lot):
             lanename = lname
             name = yname
 
-        name = name or "yard{0}".format(self.uid)
+        name = name or "yard{0}".format(uid)
 
         sid = sid if sid is not None else self.nextSid() #if not given unique sid
 
-        super(Yard, self).__init__(stack=stack, name=name, ha=ha, sid=sid, **kwa)
+        super(Yard, self).__init__(stack=stack,
+                                   name=name,
+                                   uid=uid,
+                                   ha=ha,
+                                   sid=sid,
+                                   **kwa)
 
         self.lanename = lanename or 'lane'
         self.bid = bid #current book id
@@ -108,19 +116,7 @@ class Yard(lotting.Lot):
 
         self.ha = ha
 
-    #@property
-    #def uid(self):
-        #'''
-        #property that returns unique identifier
-        #'''
-        #return self.yid
 
-    #@uid.setter
-    #def uid(self, value):
-        #'''
-        #setter for uid property
-        #'''
-        #self.yid = value
 
     @staticmethod
     def namesFromHa(ha):
@@ -166,20 +162,25 @@ class LocalYard(Yard):
     '''
     RAET UXD Protocol endpoint local Yard
     '''
-    def __init__(self, stack=None, name='', uid=None, nuid=None, main=None, **kwa):
+    def __init__(self, stack=None, nuid=None, uid=None, main=None, **kwa):
         '''
         Setup Yard instance
         '''
-        self.nuid = nuid if nuid is not None else self.Uid # next unique yid
-        if uid is None:
-            uid = self.nextUid()
+        if nuid is None:
+            if stack:
+                nuid = stack.Uid
+            else:
+                nuid = 1
+        self.nuid = nuid
 
-        super(LocalYard, self).__init__(stack=stack, name=name, uid=uid, **kwa)
+        uid = uid if uid is not None else self.nextUid()
+
+        super(LocalYard, self).__init__(stack=stack, uid=uid, **kwa)
         self.main = main # main yard on lane
 
     def nextUid(self):
         '''
-        Generates next yard unique id number.
+        Generates next unique id number for local or remotes.
         '''
         self.nuid += 1
         if self.nuid > 0xffffffffL:

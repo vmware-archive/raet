@@ -42,10 +42,10 @@ class RoadKeep(keeping.Keep):
                 role.role.ext
                 role.role.ext
     '''
-    LocalFields = ['uid', 'name', 'ha', 'main','mutable', 'sid', 'neid',
+    LocalFields = ['uid', 'name', 'ha', 'main','mutable', 'sid', 'nuid',
                          'auto', 'role', 'sighex','prihex']
     LocalDumpFields = ['uid', 'name', 'ha', 'main', 'mutable',
-                       'sid', 'neid', 'auto', 'role']
+                       'sid', 'nuid', 'auto', 'role']
     LocalRoleFields = ['role', 'sighex','prihex']
     RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined',
                          'role', 'acceptance', 'verhex', 'pubhex']
@@ -256,7 +256,7 @@ class RoadKeep(keeping.Keep):
                         ('main', local.main),
                         ('mutable', local.mutable),
                         ('sid', local.sid),
-                        ('neid', local.neid),
+                        ('nuid', local.nuid),
                         ('auto', self.auto),
                         ('role', local.role),
                     ])

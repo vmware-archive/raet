@@ -62,7 +62,7 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(mainDirpath)
         keeping.clearAllKeep(otherDirpath)
 
-        local = estating.LocalEstate(eid=1,
+        local = estating.LocalEstate(uid=1,
                                      name=mainName,
                                      sigkey=mainSignKeyHex,
                                      prikey=mainPriKeyHex,)
@@ -74,7 +74,7 @@ class BasicTestCase(unittest.TestCase):
                                          dirpath=mainDirpath,
                                          store=self.store)
 
-        local = estating.LocalEstate(eid=0,
+        local = estating.LocalEstate(uid=0,
                                      name=otherName,
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=otherSignKeyHex,
@@ -171,11 +171,11 @@ class BasicTestCase(unittest.TestCase):
     def bootstrap(self, bk=raeting.bodyKinds.json):
         '''
         Initialize
-            main on port 7530 with eid of 1
-            other on port 7531 with eid of 0
+            main on port 7530 with uid of 1
+            other on port 7531 with uid of 0
         Complete
-            main eid of 1 joined and allowed
-            other eid of 2 joined and allowed
+            main uid of 1 joined and allowed
+            other uid of 2 joined and allowed
         '''
         stacking.RoadStack.Bk = bk
 
@@ -288,11 +288,11 @@ class BasicTestCase(unittest.TestCase):
     def bidirectional(self, bk=raeting.bodyKinds.json, mains=None, others=None, duration=3.0):
         '''
         Initialize
-            main on port 7530 with eid of 1
-            other on port 7531 with eid of 0
+            main on port 7530 with uid of 1
+            other on port 7531 with uid of 0
         Complete
-            main eid of 1 joined and allowed
-            other eid of 2 joined and allowed
+            main uid of 1 joined and allowed
+            other uid of 2 joined and allowed
         '''
         stacking.RoadStack.Bk = bk
         mains = mains or []

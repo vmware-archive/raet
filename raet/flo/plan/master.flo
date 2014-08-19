@@ -2,7 +2,7 @@
 
 house master
 
-init .raet.road.stack.local to eid 1 name "master" host "" port 7530
+init .raet.road.stack.local to uid 1 name "master" host "" port 7530
 
 
 framer masterudpstack be active first start

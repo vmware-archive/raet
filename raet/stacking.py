@@ -39,13 +39,14 @@ class Stack(object):
     Should be subclassed for specific transport type such as UDP or UXD
     '''
     Count = 0
+    Uid = 1 # base for next unique id for local and remotes
 
     def __init__(self,
+                 version=raeting.VERSION,
+                 nuid=None,
+                 store=None,
                  name='',
                  main=None,
-                 version=raeting.VERSION,
-                 store=None,
-                 keep=None,
                  local=None,
                  bufcnt=2,
                  server=None,
@@ -58,13 +59,17 @@ class Stack(object):
         '''
         Setup Stack instance
         '''
+        self.version = version
+        nuid = nuid if nuid is not None else self.Uid
+        self.store = store or storing.Store(stamp=0.0)
+
         if not name:
             name = "{0}{1}".format(self.__class__.__name__.lower(), Stack.Count)
             Stack.Count += 1
 
-        self.version = version
-        self.store = store or storing.Store(stamp=0.0)
+
         self.local = local or lotting.LocalLot(stack=self,
+                                               nuid=nuid,
                                                name=name,
                                                main=main,)
         self.local.stack = self
@@ -505,7 +510,11 @@ class KeepStack(Stack):
     RAET protocol base stack object with persistance via Keep attribute.
     Should be subclassed for specific transport type
     '''
+    Count = 0
+    Uid =  1
+
     def __init__(self,
+                 nuid=None,
                  name='',
                  main=None,
                  keep=None,
@@ -518,21 +527,29 @@ class KeepStack(Stack):
         '''
         Setup Stack instance
         '''
+        if not name:
+            name = "{0}{1}".format(self.__class__.__name__.lower(), KeepStack.Count)
+            KeepStack.Count += 1
+
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
                                             stackname=name)
+
+        nuid = nuid if nuid is not None else self.Uid
 
         if clean: # clear persisted data so use provided or default data
             self.clearLocalKeep()
 
         local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
+                                                                 nuid=nuid,
                                                                  main=main,
                                                                  name=name)
         local.stack = self
         if local.main is None and main is not None:
             local.main = True if main else False
 
-        super(KeepStack, self).__init__(name=name,
+        super(KeepStack, self).__init__(nuid=nuid,
+                                        name=name,
                                         main=main,
                                         local=local,
                                         **kwa)

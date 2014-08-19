@@ -70,7 +70,7 @@ class RaetRoadStack(deeding.Deed):
                                                  main=False,
                                                  mutable=True,
                                                  auto=raeting.autoModes.once,
-                                                 eid=None,
+                                                 uid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
                                                  sigkey=None,
@@ -89,8 +89,8 @@ class RaetRoadStack(deeding.Deed):
         mutable = self.local.data.mutable
         ha = (self.local.data.host, self.local.data.port)
 
-        eid = self.local.data.eid
-        local = estating.LocalEstate(  eid=eid,
+        uid = self.local.data.uid
+        local = estating.LocalEstate(  uid=uid,
                                         name=name,
                                         ha=ha,
                                         sigkey=sigkey,
@@ -133,7 +133,7 @@ class RaetRoadStackSetup(deeding.Deed):
                                                  main=False,
                                                  mutable=True,
                                                  auto=raeting.autoModes.once,
-                                                 eid=None,
+                                                 uid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
                                                  sigkey=None,
@@ -152,8 +152,8 @@ class RaetRoadStackSetup(deeding.Deed):
         mutable = self.local.data.mutable
         ha = (self.local.data.host, self.local.data.port)
 
-        eid = self.local.data.eid
-        local = estating.LocalEstate(  eid=eid,
+        uid = self.local.data.uid
+        local = estating.LocalEstate(  uid=uid,
                                         name=name,
                                         ha=ha,
                                         sigkey=sigkey,
@@ -514,7 +514,7 @@ class RaetLaneStackYardAdd(deeding.Deed):
 
     def action(self, lane="lane", name=None, **kwa):
         '''
-        Adds new yard to stack on lane with yid
+        Adds new yard to stack on lane with name
         '''
         stack = self.stack.value
         if stack and isinstance(stack, LaneStack):

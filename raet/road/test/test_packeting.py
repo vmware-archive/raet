@@ -396,7 +396,7 @@ class StackTestCase(unittest.TestCase):
         keeping.clearAllKeep(mainDirpath)
         keeping.clearAllKeep(otherDirpath)
 
-        local = estating.LocalEstate(eid=1,
+        local = estating.LocalEstate(uid=1,
                                      name=mainName,
                                      sigkey=mainSignKeyHex,
                                      prikey=mainPriKeyHex,)
@@ -409,7 +409,7 @@ class StackTestCase(unittest.TestCase):
                                        store=self.store)
 
         remote1 = estating.RemoteEstate(stack=self.main,
-                                        eid=2,
+                                        uid=2,
                                         name=otherName,
                                         ha=("127.0.0.1", raeting.RAET_TEST_PORT),
                                         verkey=otherVerKeyHex,
@@ -419,7 +419,7 @@ class StackTestCase(unittest.TestCase):
         self.main.addRemote(remote1)
 
 
-        local = estating.LocalEstate(eid=2,
+        local = estating.LocalEstate(uid=2,
                                      name=otherName,
                                      ha=("", raeting.RAET_TEST_PORT),
                                      sigkey=otherSignKeyHex,
@@ -431,7 +431,7 @@ class StackTestCase(unittest.TestCase):
                                          store=self.store)
 
         remote0 = estating.RemoteEstate(stack=self.other,
-                                        eid=1,
+                                        uid=1,
                                         name=mainName,
                                         ha=('127.0.0.1', raeting.RAET_PORT),
                                         verkey=mainVerKeyHex,
@@ -662,8 +662,9 @@ def runSome():
              'testSegmentation']
     tests.extend(map(BasicTestCase, names))
 
-    #names = ['testPackParse']
-    #tests.extend(map(StackTestCase, names))
+    names = ['testSign',
+             'testEncrypt', ]
+    tests.extend(map(StackTestCase, names))
 
     suite = unittest.TestSuite(tests)
     unittest.TextTestRunner(verbosity=2).run(suite)
@@ -680,9 +681,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
     #runOneBasic('testBasicJson')
-    #runOneStack('testEncrypt')
+    #runOneStack('testSign')

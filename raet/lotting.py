@@ -28,34 +28,17 @@ class Lot(object):
     RAET protocol stack endpoint
     way is group of lots
     '''
-    Count = 0
+    Uid = 0
 
-    def __init__(self, stack=None, uid=None, name="", ha=None, sid=0):
+    def __init__(self, stack=None, uid=None, name='', ha=None, sid=0):
         '''
         Setup Lot instance
         '''
         self.stack = stack
-        Lot.Count += 1
-        if uid is None:
-            uid = Lot.Count
-        self.uid = uid
+        self.uid = uid if uid is not None else 0
         self.name = name or "lot{0}".format(self.uid)
         self._ha = ha
         self.sid = sid # current session ID
-
-    #@property
-    #def uid(self):
-        #'''
-        #property that returns unique identifier
-        #'''
-        #return self._uid
-
-    #@uid.setter
-    #def uid(self, value):
-        #'''
-        #setter for uid property
-        #'''
-        #self._uid = value
 
     @property
     def ha(self):
@@ -105,9 +88,27 @@ class LocalLot(Lot):
     '''
     Raet protocol local endpoint
     '''
-    def  __init__(self, stack=None, name="", main=None, **kwa):
+    def  __init__(self, stack=None, nuid=None, uid=None, main=None, **kwa):
         '''
         Setup instance
         '''
-        super(LocalLot, self).__init__(stack=stack, name=name, **kwa)
+        if nuid is None:
+            if stack:
+                nuid = stack.Uid
+            else:
+                nuid = 1
+        self.nuid = nuid
+
+        uid = uid if uid is not None else self.nextUid()
+
+        super(LocalLot, self).__init__(stack=stack, uid=uid, **kwa)
         self.main = main # main lot on way
+
+    def nextUid(self):
+        '''
+        Generates next unique id number for local or remotes.
+        '''
+        self.nuid += 1
+        if self.nuid > 0xffffffffL:
+            self.nuid = 1  # rollover to 1
+        return self.nuid

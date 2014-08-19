@@ -57,7 +57,7 @@ class RoadStack(stacking.KeepStack):
         including keys is persisted to disk
     dirpath
         The location on the filesystem to use for stack caching
-    eid
+    uid
         The local estate id, if None is specified a default will be assigned
     ha
         The local estate host address, this is a tuple of (network_addr, port) that will
@@ -90,6 +90,7 @@ class RoadStack(stacking.KeepStack):
     JoinentTimeout = 5.0 # stack default for joinent transaction timeout
 
     def __init__(self,
+                 nuid=None,
                  name='',
                  main=None,
                  mutable=None,
@@ -97,7 +98,7 @@ class RoadStack(stacking.KeepStack):
                  dirpath='',
                  basedirpath='',
                  local=None,
-                 eid=None, #local estate eid, none means generate it
+                 uid=None, #local estate uid, none means generate it
                  ha=("", raeting.RAET_PORT),
                  bufcnt=2,
                  auto=None,
@@ -116,9 +117,12 @@ class RoadStack(stacking.KeepStack):
                                         stackname=name,
                                         auto=auto)
 
+        nuid = nuid if nuid is not None else self.Uid
+
         local = local or estating.LocalEstate(stack=self,
+                                              nuid=nuid,
                                               name=name,
-                                              eid=eid,
+                                              uid=uid,
                                               main=main,
                                               mutable=mutable,
                                               ha=ha,
@@ -214,7 +218,7 @@ class RoadStack(stacking.KeepStack):
                 else:
                     dha = ('127.0.0.1', raeting.RAET_PORT)
                 remote = estating.RemoteEstate(stack=self,
-                                               eid=0,
+                                               uid=0,
                                                sid=0,
                                                ha=ha if ha is not None else dha,
                                                period=self.period,
@@ -240,13 +244,13 @@ class RoadStack(stacking.KeepStack):
         if keepData:
             if self.keep.verifyLocalData(keepData):
                 local = estating.LocalEstate(stack=self,
-                                              eid=keepData['uid'],
+                                              uid=keepData['uid'],
                                               name=keepData['name'],
                                               main=keepData['main'],
                                               mutable=keepData['mutable'],
                                               ha=keepData['ha'],
                                               sid=keepData['sid'],
-                                              neid=keepData['neid'],
+                                              nuid=keepData['nuid'],
                                               sigkey=keepData['sighex'],
                                               prikey=keepData['prihex'],
                                               role=keepData['role'])
@@ -266,7 +270,7 @@ class RoadStack(stacking.KeepStack):
         if keepData:
             if self.keep.verifyRemoteData(keepData):
                 remote = estating.RemoteEstate(stack=self,
-                                               eid=keepData['uid'],
+                                               uid=keepData['uid'],
                                                name=keepData['name'],
                                                ha=keepData['ha'],
                                                sid=keepData['sid'],
@@ -292,7 +296,7 @@ class RoadStack(stacking.KeepStack):
             for name, keepData in keeps.items():
                 if self.keep.verifyRemoteData(keepData):
                     remote = estating.RemoteEstate(stack=self,
-                                                   eid=keepData['uid'],
+                                                   uid=keepData['uid'],
                                                    name=keepData['name'],
                                                    ha=keepData['ha'],
                                                    sid=keepData['sid'],
@@ -371,7 +375,7 @@ class RoadStack(stacking.KeepStack):
         deid = packet.data['de']
         # non main can have local.uid == 0 but process join or yoke with deid != 0
         if self.local.uid != 0 and deid != 0 and deid != self.local.uid:
-            emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
+            emsg = "Invalid destination uid = {0}. Dropping packet...\n".format(deid)
             console.concise( emsg)
             self.incStat('invalid_destination')
             return
@@ -390,7 +394,7 @@ class RoadStack(stacking.KeepStack):
         rsid = received.data['si']
 
         reid = received.index[2] # index is tupel (rf, le, re, si, ti, bf)
-        # when source eid is 0 then index has source ha so first look by eid then by ha
+        # when source uid is 0 then index has source ha so first look by uid then by ha
         remote = self.remotes.get(reid, None) or self.haRemotes.get(reid, None)
         if remote and remote.reaped:
             remote.unreap() # received a verified packet so remote is not dead
@@ -464,9 +468,9 @@ class RoadStack(stacking.KeepStack):
                 packet.data['pk'] == raeting.pcktKinds.request):
 
             if not remote:
-                # create vacuous remote, that is, eid==0
+                # create vacuous remote, that is, uid==0
                 remote = estating.RemoteEstate(stack=self,
-                                                eid=0,
+                                                uid=0,
                                                 sid=packet.data['si'],
                                                 host=packet.data['sh'],
                                                 port=packet.data['sp'],

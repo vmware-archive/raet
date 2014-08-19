@@ -337,7 +337,7 @@ class Joiner(Initiator):
         self.sid = 0 #self.remote.sid always 0 for join
         self.tid = self.remote.nextTid()
         self.prep()
-        # don't dump remote yet since its ephemeral until we join and get valid eid
+        # don't dump remote yet since its ephemeral until we join and get valid uid
 
     def transmit(self, packet):
         '''
@@ -497,7 +497,7 @@ class Joiner(Initiator):
                     self.reject()
                     return
             self.stack.dumpRemote(self.remote)
-        self.stack.local.eid = 0
+        self.stack.local.uid = 0
         self.stack.dumpLocal()
         self.stack.join(ha=self.remote.ha, timeout=self.timeout)
 
@@ -853,7 +853,7 @@ class Joinent(Correspondent):
                         if status == raeting.acceptances.accepted:
                             self.accept()
                         elif status == raeting.acceptances.rejected:
-                            "Stack {0}: Estate '{1}' eid '{2}' keys rejected\n".format(
+                            "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                     self.stack.name, self.remote.name, self.remote.uid)
                             self.remote.joined = False
                             self.stack.dumpRemote(self.remote)
@@ -883,15 +883,15 @@ class Joinent(Correspondent):
         Process join packet
         Each estate must have a set of unique credentials on the road
         The credentials are.
-        eid (estate id), name, ha (host address, port)
+        uid (estate id), name, ha (host address, port)
         Each of the three credentials must be separably unique on the Road, that is
-        the eid must be unique, the name must be unique, the ha must be unique.
+        the uid must be unique, the name must be unique, the ha must be unique.
 
         The other credentials are the role and keys. Multiple estates may share
         the same role and associated keys. The keys are the signing key and the
         encryption key.
 
-        Once an estate has joined the first time it will be assigned an eid.
+        Once an estate has joined the first time it will be assigned an uid.
         Changing any of the credentials after this requires that the Road be mutable.
 
         '''
@@ -1031,7 +1031,7 @@ class Joinent(Correspondent):
 
         if status == raeting.acceptances.rejected:
             emsg = ("Joinent {0}. Keys of role='{1}' rejected for remote"
-                    "  name='{2}' eid='{3}' ha='{4}'\n".format(self.stack.name,
+                    "  name='{2}' uid='{3}' ha='{4}'\n".format(self.stack.name,
                                                                self.remote.role,
                                                                self.remote.name,
                                                                self.remote.uid,
@@ -1057,7 +1057,7 @@ class Joinent(Correspondent):
                     #self.remove(index=self.rxPacket.index)
                     return
 
-                emsg = ("Joinent {0}. Added new remote name='{1}' eid='{2}' "
+                emsg = ("Joinent {0}. Added new remote name='{1}' uid='{2}' "
                         "ha='{3}' role='{4}'\n".format(self.stack.name,
                                           self.remote.name,
                                           self.remote.uid,
@@ -1411,7 +1411,7 @@ class Yoker(Initiator):
 
         if status == raeting.acceptances.rejected:
             emsg = ("Yoker {0}. Keys of role='{1}' rejected for remote"
-                    "  name='{2}' eid='{3}' ha='{4}'\n".format(self.stack.name,
+                    "  name='{2}' uid='{3}' ha='{4}'\n".format(self.stack.name,
                                                                self.remote.role,
                                                                self.remote.name,
                                                                self.remote.uid,
@@ -1423,7 +1423,7 @@ class Yoker(Initiator):
 
         if status == raeting.acceptances.pending:
             emsg = ("Yoker {0}. Keys of role='{1}' pending for remote"
-                    "  name='{2}' eid='{3}' ha='{4}'\n".format(self.stack.name,
+                    "  name='{2}' uid='{3}' ha='{4}'\n".format(self.stack.name,
                                                                self.remote.role,
                                                                self.remote.name,
                                                                self.remote.uid,
@@ -1993,7 +1993,7 @@ class Yokent(Correspondent):
                     self.stack.dumpRemote(self.remote)
                     return
             self.stack.dumpRemote(self.remote)
-        self.stack.local.eid = 0
+        self.stack.local.uid = 0
         self.stack.dumpLocal()
         self.stack.join(ha=self.remote.ha, timeout=self.timeout)
 

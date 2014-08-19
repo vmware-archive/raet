@@ -37,10 +37,12 @@ class LaneStack(stacking.Stack):
     RAET protocol UXD (unix domain) socket stack object
     '''
     Count = 0
+    Uid =  2
     Pk = raeting.packKinds.json # serialization pack kind of Uxd message
     Accept = True # accept any uxd messages if True from yards not already in lanes
 
     def __init__(self,
+                 nuid=None,
                  name='',
                  main=None,
                  local=None,
@@ -57,14 +59,16 @@ class LaneStack(stacking.Stack):
 
         stack.name and stack.local.name will match
         '''
-        self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
         if not name:
             name = "lane{0}".format(LaneStack.Count)
             LaneStack.Count += 1
 
+        nuid = nuid if nuid is not None else self.Uid
+
         if not local:
             self.remotes = odict()
             local = yarding.LocalYard(  stack=self,
+                                        nuid=nuid,
                                         uid=uid,
                                         name=name,
                                         main=main,
@@ -75,10 +79,12 @@ class LaneStack(stacking.Stack):
             if main is not None:
                 local.main = True if main else False
 
-        super(LaneStack, self).__init__(name=name,
+        super(LaneStack, self).__init__(nuid=nuid,
+                                        name=name,
                                         local=local,
                                         bufcnt=bufcnt,
                                         **kwa)
+        self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
 
     def serverFromLocal(self):
         '''
