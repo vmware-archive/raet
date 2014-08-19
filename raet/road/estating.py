@@ -23,7 +23,7 @@ console = getConsole()
 
 class Estate(lotting.Lot):
     '''
-    RAET protocol endpoint estate object
+    RAET protocol endpoint estate object ie Road Lot
     '''
     Uid = 1 # class attribute starting point for valid uids, uid == 0 is special
 
@@ -38,7 +38,7 @@ class Estate(lotting.Lot):
                  role=None,
                  **kwa):
         '''
-        Setup Estate instance
+        Setup instance
         '''
         self.uid = uid if uid is not None else self.Uid # estate ID
         name = name or "estate{0}".format(self.uid)
@@ -128,13 +128,13 @@ class Estate(lotting.Lot):
 
 class LocalEstate(Estate):
     '''
-    RAET protocol endpoint local estate object
+    RAET protocol endpoint local estate object ie Local Road Lot
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
     def __init__(self, stack=None, nuid=None, uid=None, name="",  main=None,
                  sigkey=None, prikey=None, mutable=None, **kwa):
         '''
-        Setup Estate instance
+        Setup instance
 
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
@@ -166,7 +166,7 @@ class LocalEstate(Estate):
 
 class RemoteEstate(Estate):
     '''
-    RAET protocol endpoint remote estate object
+    RAET protocol endpoint remote estate object ie Remote Road Lot
     Maintains verifier for verifying signatures and publican for encrypt/decrypt
 
     .alived attribute is the dead or alive status of the remote
@@ -178,7 +178,7 @@ class RemoteEstate(Estate):
     def __init__(self, stack, uid=None, verkey=None, pubkey=None,
                  acceptance=None, joined=None, rsid=0, **kwa):
         '''
-        Setup Estate instance
+        Setup instance
 
         stack is required parameter for RemoteEstate unlike its superclass
 

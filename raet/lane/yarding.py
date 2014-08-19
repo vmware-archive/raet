@@ -26,7 +26,7 @@ ALT_YARD_UXD_DIR = os.path.join('~', '.raet', 'uxd')
 
 class Yard(lotting.Lot):
     '''
-    RAET protocol Yard
+    RAET protocol Yard ie Lane Lot
     '''
 
     def  __init__(self,
@@ -40,7 +40,7 @@ class Yard(lotting.Lot):
                   bid=0,
                   **kwa):
         '''
-        Initialize instance
+        Setup instance
         '''
         if uid is None:
             if stack:
@@ -160,11 +160,11 @@ class Yard(lotting.Lot):
 
 class LocalYard(Yard):
     '''
-    RAET UXD Protocol endpoint local Yard
+    RAET UXD Protocol endpoint local Yard ie Local Lane Lot
     '''
     def __init__(self, stack=None, nuid=None, uid=None, main=None, **kwa):
         '''
-        Setup Yard instance
+        Setup instance
         '''
         if nuid is None:
             if stack:
@@ -189,19 +189,18 @@ class LocalYard(Yard):
 
 class RemoteYard(Yard):
     '''
-    RAET protocol endpoint remote yard
+    RAET protocol endpoint remote yard ie Remote Lane Lot
+
+    stack is required parameter
     '''
-    def __init__(self, stack=None, uid=None, rsid=0, **kwa):
+    def __init__(self, stack, uid=None, rsid=0, **kwa):
         '''
-        Setup Yard instance
+        Setup instance
         '''
         if uid is None:
-            if stack:
+            uid = stack.local.nextUid()
+            while uid in stack.remotes or uid == stack.local.uid:
                 uid = stack.local.nextUid()
-                while uid in stack.remotes or uid == stack.local.uid:
-                    uid = stack.local.nextUid()
-            else:
-                uid = 0
 
         super(RemoteYard, self).__init__(stack=stack, uid=uid, **kwa)
         self.rsid = rsid # last sid received from remote
