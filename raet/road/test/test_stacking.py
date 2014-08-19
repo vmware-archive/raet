@@ -87,11 +87,6 @@ class BasicTestCase(unittest.TestCase):
         self.main.server.close()
         self.other.server.close()
 
-        #self.main.clearLocal()
-        #self.main.clearRemoteKeeps()
-        #self.other.clearLocal()
-        #self.other.clearRemoteKeeps()
-
         self.main.clearAllDir()
         self.other.clearAllDir()
 
