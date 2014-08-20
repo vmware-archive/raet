@@ -221,34 +221,36 @@ class RemoteEstate(Estate):
                                            duration=self.stack.interim)
         self.messages = deque() # deque of saved stale message body data to remote.uid
 
-    #@property
-    #def nuid(self):
-        #'''
-        #property that returns near uid of remote as owned by nearside stack
-        #alias for uid
-        #'''
-        #return self.uid
+    @property
+    def nuid(self):
+        '''
+        property that returns nuid, near uid, of remote as owned by nearside stack
+        alias for uid
+        '''
+        return self.uid
 
-    #@name.setter
-    #def nuid(self, value):
-        #'''
-        #setter for nuid property
-        #'''
-        #self.uid = value
+    @nuid.setter
+    def nuid(self, value):
+        '''
+        setter for nuid, near uid, property
+        '''
+        self.uid = value
 
-    #@property
-    #def puid(self):
-        #'''
-        #property that returns duple of (nuid, fuid)
-        #'''
-        #return (self.nuid, self.fuid)
+    @property
+    def juid(self):
+        '''
+        property that returns juid, join uid, duple of (nuid, fuid)
+        nuid is near uid
+        fuid is far uid as owned by farside stack
+        '''
+        return (self.nuid, self.fuid)
 
-    #@puid.setter
-    #def puid(self, value):
-        #'''
-        #setter for puid property, value is duple of (nuid, fuid)
-        #'''
-        #self.nuid, self.fuid = value
+    @juid.setter
+    def juid(self, value):
+        '''
+        setter for juid, join uid, property, value is duple of (nuid, fuid)
+        '''
+        self.nuid, self.fuid = value
 
     def rekey(self):
         '''
