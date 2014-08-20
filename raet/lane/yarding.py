@@ -32,6 +32,7 @@ class Yard(lotting.Lot):
     def  __init__(self,
                   stack,
                   uid=None,
+                  prefix='lane',
                   name='',
                   ha='',
                   sid=None,
@@ -67,7 +68,7 @@ class Yard(lotting.Lot):
             lanename = lname
             name = yname
 
-        name = name or "yard{0}".format(nacling.uuid(18))
+        name = name or "{0}_{1}".format(prefix, nacling.uuid(18))
 
         sid = sid if sid is not None else self.nextSid() #if not given unique sid
 
@@ -154,26 +155,13 @@ class Yard(lotting.Lot):
             self.bid = 1  # rollover to 1
         return self.bid
 
-class LocalYard(Yard):
-    '''
-    RAET UXD Protocol endpoint local Yard ie Local Lane Lot
-    '''
-    def __init__(self, **kwa):
-        '''
-        Setup instance
-
-        stack is required parameter
-        '''
-        super(LocalYard, self).__init__(**kwa)
-        #self.main = main # main yard on lane
-
 class RemoteYard(Yard):
     '''
     RAET protocol endpoint remote yard ie Remote Lane Lot
 
     stack is required parameter
     '''
-    def __init__(self, stack, uid=None, rsid=0, **kwa):
+    def __init__(self, stack, prefix='yard', uid=None, rsid=0, **kwa):
         '''
         Setup instance
         '''
@@ -182,7 +170,7 @@ class RemoteYard(Yard):
             while uid in stack.remotes or uid == stack.local.uid:
                 uid = stack.nextUid()
 
-        super(RemoteYard, self).__init__(stack=stack, uid=uid, **kwa)
+        super(RemoteYard, self).__init__(stack=stack, prefix=prefix, uid=uid, **kwa)
         self.rsid = rsid # last sid received from remote
         self.books = odict()
 

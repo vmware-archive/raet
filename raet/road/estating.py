@@ -29,6 +29,7 @@ class Estate(lotting.Lot):
     def __init__(self,
                  stack,
                  name="",
+                 prefix='road',
                  ha=None,
                  uid=None,
                  tid=0,
@@ -41,7 +42,7 @@ class Estate(lotting.Lot):
 
         stack is required parameter
         '''
-        name = name or "estate{0}".format(uuid.uuid1())
+        name = name or "{0}_{1}".format(prefix, uuid.uuid1().hex)
         uid = uid if uid is not None else stack.nextUid()
         super(Estate, self).__init__(stack=stack, name=name, ha=ha, uid=uid, **kwa)
 
@@ -160,6 +161,7 @@ class RemoteEstate(Estate):
 
     def __init__(self,
                  stack,
+                 prefix='estate',
                  uid=None,
                  verkey=None,
                  pubkey=None,
@@ -188,7 +190,7 @@ class RemoteEstate(Estate):
 
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
-        super(RemoteEstate, self).__init__(stack, uid=uid, **kwa)
+        super(RemoteEstate, self).__init__(stack, prefix=prefix, uid=uid, **kwa)
         self.joined = joined
         self.allowed = None
         self.alived = None

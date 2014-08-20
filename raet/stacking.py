@@ -71,7 +71,7 @@ class Stack(object):
         if getattr(self, 'main', None) is None:
             self.main = main
 
-        self.local = local or lotting.LocalLot(stack=self,
+        self.local = local or lotting.Lot(stack=self,
                                                name=name,
                                                uid=uid,
                                                ha=ha,)
@@ -552,7 +552,7 @@ class KeepStack(Stack):
         if clean: # clear persisted data so use provided or default data
             self.clearLocalKeep()
 
-        local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
+        local = self.restoreLocal() or local or lotting.Lot(stack=self,
                                                                  name=name,
                                                                  uid=uid,
                                                                  ha=ha,
@@ -649,7 +649,7 @@ class KeepStack(Stack):
         data = self.keep.loadLocalData()
         if data:
             if self.keep.verifyLocalData(data):
-                local = lotting.LocalLot(stack=self,
+                local = lotting.Lot(stack=self,
                                          uid=data['uid'],
                                          name=data['name'],
                                          ha=data['ha'],

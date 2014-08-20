@@ -63,7 +63,7 @@ class LaneStack(stacking.Stack):
         if getattr(self, 'main', None) is None:
             self.main = main
 
-        local =  local or yarding.LocalYard(stack=self,
+        local =  local or yarding.Yard(stack=self,
                                             name=name,
                                             uid=uid,
                                             ha=ha,

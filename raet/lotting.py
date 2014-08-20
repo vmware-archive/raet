@@ -30,14 +30,14 @@ class Lot(object):
     '''
     Uid = 0
 
-    def __init__(self, stack, uid=None, name='', ha=None, sid=0):
+    def __init__(self, stack, uid=None, name='', prefix='lot', ha=None, sid=0):
         '''
         Setup Lot instance
 
         stack is a required parameter
         '''
         self.stack = stack
-        self.name = name or "way_{0}".format(nacling.uuid(size=16))
+        self.name = name or "{0}_{1}".format(prefix, nacling.uuid(size=16))
         self.uid = uid if uid is not None else self.stack.nextUid()
         self._ha = ha
         self.sid = sid # current session ID
@@ -85,16 +85,3 @@ class Lot(object):
             return True
         return (((new - old) % raeting.SID_WRAP_MODULO) <
                                              (raeting.SID_WRAP_DELTA))
-
-class LocalLot(Lot):
-    '''
-    Raet protocol local endpoint
-    '''
-    def  __init__(self, **kwa):
-        '''
-        Setup instance
-
-        stack is a required parameter
-        '''
-        super(LocalLot, self).__init__(**kwa)
-        #self.main = main # main lot on way
