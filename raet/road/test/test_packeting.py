@@ -398,7 +398,6 @@ class StackTestCase(unittest.TestCase):
 
         self.main = stacking.RoadStack(name=mainName,
                                        uid=1,
-                                       localname=mainName,
                                        sigkey=mainSignKeyHex,
                                        prikey=mainPriKeyHex,
                                        auto=True,
@@ -416,7 +415,6 @@ class StackTestCase(unittest.TestCase):
 
         self.other = stacking.RoadStack(name=otherName,
                                         uid=2,
-                                        localname=otherName,
                                         ha=("", raeting.RAET_TEST_PORT),
                                         sigkey=otherSignKeyHex,
                                         prikey=otherPriKeyHex,

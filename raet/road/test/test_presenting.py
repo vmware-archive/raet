@@ -85,7 +85,6 @@ class BasicTestCase(unittest.TestCase):
         '''
         stack = stacking.RoadStack(name=data['name'],
                                    uid=uid,
-                                   localname=data['name'],
                                    ha=ha,
                                    sigkey=data['sighex'],
                                    prikey=data['prihex'],

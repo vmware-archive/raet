@@ -42,9 +42,8 @@ class LaneStack(stacking.Stack):
     Accept = True # accept any uxd messages if True from yards not already in lanes
 
     def __init__(self,
-                 name='',
                  local=None, #passed up from subclass
-                 localname='',
+                 name='',
                  nuid=None,
                  uid=None,
                  main=None,
@@ -58,21 +57,11 @@ class LaneStack(stacking.Stack):
         '''
         Setup LaneStack instance
         '''
-        if not name:
-            name = "{0}{1}".format(self.__class__.__name__.lower(),
-                                   self.__class__.Count)
-            self.__class__.Count += 1
-
-        if getattr(self, 'name', None) is None:
-            self.name = name
-
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
 
-        localname = localname or name
-
         local =  local or yarding.LocalYard(stack=self,
-                                            name=localname,
+                                            name=name,
                                             uid=uid,
                                             main=main,
                                             ha=ha,

@@ -43,11 +43,10 @@ class Stack(object):
 
     def __init__(self,
                  store=None,
-                 name='',
                  version=raeting.VERSION,
                  nuid=None,
                  local=None, #passed up from subclass
-                 localname='',
+                 name='',
                  uid=None,
                  main=None,
                  server=None,
@@ -63,20 +62,14 @@ class Stack(object):
         Setup Stack instance
         '''
         self.store = store or storing.Store(stamp=0.0)
-        if not name:
-            name = "{0}{1}".format(self.__class__.__name__.lower(),
-                                   self.__class__.Count)
-            self.__class__.Count += 1
-        if getattr(self, 'name', None) is None:
-            self.name = name
+
         self.version = version
 
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
 
-        localname = localname or name
         self.local = local or lotting.LocalLot(stack=self,
-                                               name=localname,
+                                               name=name,
                                                uid=uid,
                                                ha=ha,
                                                main=main,)
@@ -106,6 +99,20 @@ class Stack(object):
         self.txes = txes if txes is not None else deque() # udp packet to transmit
         self.stats = stats if stats is not None else odict() # udp statistics
         self.statTimer = aiding.StoreTimer(self.store)
+
+    @property
+    def name(self):
+        '''
+        property that returns name of local interface
+        '''
+        return self.local.name
+
+    @name.setter
+    def name(self, value):
+        '''
+        setter for name property
+        '''
+        self.local.name = value
 
     def serverFromLocal(self):
         '''
@@ -523,7 +530,6 @@ class KeepStack(Stack):
                  basedirpath='',
                  local=None, #passed up from subclass
                  uid=None,
-                 localname='',
                  ha=None,
                  main=None,
                  **kwa
@@ -531,14 +537,6 @@ class KeepStack(Stack):
         '''
         Setup Stack instance
         '''
-        if not name:
-            name = "{0}{1}".format(self.__class__.__name__.lower(),
-                                   self.__class__.Count)
-            self.__class__.Count += 1
-
-        if getattr(self, 'name', None) is None:
-            self.name = name
-
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
 
@@ -549,10 +547,8 @@ class KeepStack(Stack):
         if clean: # clear persisted data so use provided or default data
             self.clearLocalKeep()
 
-        localname = localname or name
-
         local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
-                                                                 name=localname,
+                                                                 name=name,
                                                                  uid=uid,
                                                                  main=main,
                                                                  ha=ha,
@@ -655,7 +651,6 @@ class KeepStack(Stack):
                                          ha=data['ha'],
                                          sid = data['sid'])
                 self.local = local
-                self.name = data['stackname']
             else:
                 self.keep.clearLocalData()
         return local

@@ -91,13 +91,12 @@ class RoadStack(stacking.KeepStack):
     JoinentTimeout = 5.0 # stack default for joinent transaction timeout
 
     def __init__(self,
-                 name='',
                  keep=None,
                  dirpath='',
                  basedirpath='',
                  auto=None,
                  local=None, #passed up from subclass
-                 localname='',
+                 name='',
                  nuid=None,
                  uid=None, #local estate uid, none means generate it
                  main=None,
@@ -116,14 +115,6 @@ class RoadStack(stacking.KeepStack):
         Setup instance
 
         '''
-        if not name:
-            name = "{0}{1}".format(self.__class__.__name__.lower(),
-                                   self.__class__.Count)
-            self.__class__.Count += 1
-
-        if getattr(self, 'name', None) is None:
-            self.name = name
-
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
 
@@ -132,10 +123,8 @@ class RoadStack(stacking.KeepStack):
                                         stackname=name,
                                         auto=auto)
 
-        localname = localname or name
-
         local = local or estating.LocalEstate(stack=self,
-                                     name=localname,
+                                     name=name,
                                      uid=uid,
                                      main=main,
                                      mutable=mutable,
@@ -266,7 +255,6 @@ class RoadStack(stacking.KeepStack):
                                               prikey=keepData['prihex'],)
                 self.keep.auto = keepData['auto']
                 self.nuid = keepData['nuid']
-                self.name = keepData['stackname']
                 self.local = local
             else:
                 self.keep.clearLocalData()

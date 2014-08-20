@@ -43,9 +43,9 @@ class RoadKeep(keeping.Keep):
                 role.role.ext
     '''
     LocalFields = ['uid', 'name', 'ha', 'main','mutable', 'sid', 'auto',
-                         'nuid', 'stackname', 'role', 'sighex','prihex']
+                         'nuid', 'role', 'sighex','prihex']
     LocalDumpFields = ['uid', 'name', 'ha', 'main', 'mutable',
-                       'sid', 'auto', 'nuid', 'stackname', 'role']
+                       'sid', 'auto', 'nuid', 'role']
     LocalRoleFields = ['role', 'sighex','prihex']
     RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined',
                          'role', 'acceptance', 'verhex', 'pubhex']
@@ -258,7 +258,6 @@ class RoadKeep(keeping.Keep):
                         ('sid', local.sid),
                         ('auto', self.auto),
                         ('nuid', local.stack.nuid),
-                        ('stackname', local.stack.name),
                         ('role', local.role),
                     ])
         if self.verifyLocalData(data, localFields =self.LocalDumpFields):

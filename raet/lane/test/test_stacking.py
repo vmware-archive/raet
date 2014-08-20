@@ -152,7 +152,7 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Yard '{0}' rxed:\n'{1}'\n".format(self.other.local.name, duple))
             self.assertDictEqual(mains[i], duple[0])
 
-    def createLaneData(self, name, uid, base, lanename, localname=''):
+    def createLaneData(self, name, uid, base, lanename):
         '''
         Creates odict and populates with data to setup lane stack
         {
@@ -166,7 +166,6 @@ class BasicTestCase(unittest.TestCase):
         data['uid'] = uid
         data['sockdirpath'] = os.path.join(base, name)
         data['lanename'] = lanename
-        data['localname'] = localname or name
 
         return data
 

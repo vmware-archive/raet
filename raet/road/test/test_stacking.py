@@ -63,7 +63,6 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(otherDirpath)
 
         self.main = stacking.RoadStack(name=mainName,
-                                       localname=mainName,
                                        uid=1,
                                        sigkey=mainSignKeyHex,
                                        prikey=mainPriKeyHex,
@@ -73,7 +72,6 @@ class BasicTestCase(unittest.TestCase):
                                        store=self.store)
 
         self.other = stacking.RoadStack(name=otherName,
-                                        localname=otherName,
                                         uid=0,
                                         ha=("", raeting.RAET_TEST_PORT),
                                         sigkey=otherSignKeyHex,
