@@ -45,7 +45,7 @@ class Stack(object):
                  store=None,
                  version=raeting.VERSION,
                  main=None,
-                 nuid=None,
+                 puid=None,
                  local=None, #passed up from subclass
                  name='',
                  uid=None,
@@ -66,8 +66,8 @@ class Stack(object):
         self.version = version
         self.main = main
 
-        if getattr(self, 'nuid', None) is None:
-            self.nuid = nuid if nuid is not None else self.Uid
+        if getattr(self, 'puid', None) is None:
+            self.puid = puid if puid is not None else self.Uid
 
         self.local = local or lotting.Lot(stack=self,
                                                name=name,
@@ -124,10 +124,10 @@ class Stack(object):
         '''
         Generates next unique id number for local or remotes.
         '''
-        self.nuid += 1
-        if self.nuid > 0xffffffffL:
-            self.nuid = 1  # rollover to 1
-        return self.nuid
+        self.puid += 1
+        if self.puid > 0xffffffffL:
+            self.puid = 1  # rollover to 1
+        return self.puid
 
     def addRemote(self, remote):
         '''
@@ -522,7 +522,7 @@ class KeepStack(Stack):
     Uid =  1
 
     def __init__(self,
-                 nuid=None,
+                 puid=None,
                  clean=False,
                  keep=None,
                  dirpath='',
@@ -536,8 +536,8 @@ class KeepStack(Stack):
         '''
         Setup Stack instance
         '''
-        if getattr(self, 'nuid', None) is None:
-            self.nuid = nuid if nuid is not None else self.Uid
+        if getattr(self, 'puid', None) is None:
+            self.puid = puid if puid is not None else self.Uid
 
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
@@ -553,7 +553,7 @@ class KeepStack(Stack):
                                                                  )
         local.stack = self
 
-        super(KeepStack, self).__init__(nuid=nuid,
+        super(KeepStack, self).__init__(puid=puid,
                                         name=name,
                                         local=local,
                                         **kwa)

@@ -44,7 +44,7 @@ class LaneStack(stacking.Stack):
     def __init__(self,
                  local=None, #passed up from subclass
                  name='',
-                 nuid=None,
+                 puid=None,
                  uid=None,
                  lanename='lane',
                  sockdirpath='',
@@ -56,8 +56,8 @@ class LaneStack(stacking.Stack):
         '''
         Setup LaneStack instance
         '''
-        if getattr(self, 'nuid', None) is None:
-            self.nuid = nuid if nuid is not None else self.Uid
+        if getattr(self, 'puid', None) is None:
+            self.puid = puid if puid is not None else self.Uid
 
         local =  local or yarding.Yard(stack=self,
                                             name=name,
@@ -66,7 +66,7 @@ class LaneStack(stacking.Stack):
                                             dirpath=sockdirpath,
                                             lanename=lanename)
 
-        super(LaneStack, self).__init__(nuid=nuid,
+        super(LaneStack, self).__init__(puid=puid,
                                         local=local,
                                         name=name,
                                         uid=uid,

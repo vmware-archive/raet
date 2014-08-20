@@ -42,12 +42,12 @@ class RoadKeep(keeping.Keep):
                 role.role.ext
                 role.role.ext
     '''
-    LocalFields = ['uid', 'name', 'ha', 'sid', 'nuid', 'role', 'sighex','prihex']
-    LocalDumpFields = ['uid', 'name', 'ha', 'sid', 'nuid', 'role']
+    LocalFields = ['name', 'uid', 'ha', 'sid', 'puid', 'role', 'sighex','prihex']
+    LocalDumpFields = ['name', 'uid', 'ha', 'sid', 'puid', 'role']
     LocalRoleFields = ['role', 'sighex','prihex']
-    RemoteFields = ['uid', 'name', 'ha', 'sid', 'joined',
+    RemoteFields = ['name', 'uid', 'fuid', 'ha', 'sid', 'joined',
                          'role', 'acceptance', 'verhex', 'pubhex']
-    RemoteDumpFields = ['uid', 'name', 'ha', 'sid', 'joined','role']
+    RemoteDumpFields = ['name', 'uid', 'fuid', 'ha', 'sid', 'joined','role']
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
     Auto = raeting.autoModes.never #auto accept
 
@@ -248,11 +248,11 @@ class RoadKeep(keeping.Keep):
         Dump local estate
         '''
         data = odict([
-                        ('uid', local.uid),
                         ('name', local.name),
+                        ('uid', local.uid),
                         ('ha', local.ha),
                         ('sid', local.sid),
-                        ('nuid', local.stack.nuid),
+                        ('puid', local.stack.puid),
                         ('role', local.role),
                     ])
         if self.verifyLocalData(data, localFields =self.LocalDumpFields):
@@ -279,8 +279,9 @@ class RoadKeep(keeping.Keep):
         Dump remote estate
         '''
         data = odict([
-                        ('uid', remote.uid),
                         ('name', remote.name),
+                        ('uid', remote.uid),
+                        ('fuid', remote.fuid),
                         ('ha', remote.ha),
                         ('sid', remote.sid),
                         ('joined', remote.joined),

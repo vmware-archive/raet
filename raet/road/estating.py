@@ -157,12 +157,15 @@ class RemoteEstate(Estate):
 
     .alived = True, alive, recently have received valid signed packets from remote
     .alive = False, dead, recently have not received valid signed packets from remote
+
+    .fuid is the far uid of the remote as owned by the farside stack
     '''
 
     def __init__(self,
                  stack,
                  prefix='estate',
                  uid=None,
+                 fuid=0,
                  verkey=None,
                  pubkey=None,
                  acceptance=None,
@@ -191,6 +194,7 @@ class RemoteEstate(Estate):
         if 'host' not in kwa and 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
         super(RemoteEstate, self).__init__(stack, prefix=prefix, uid=uid, **kwa)
+        self.fuid = fuid
         self.joined = joined
         self.allowed = None
         self.alived = None
@@ -216,6 +220,35 @@ class RemoteEstate(Estate):
         self.reapTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.stack.interim)
         self.messages = deque() # deque of saved stale message body data to remote.uid
+
+    #@property
+    #def nuid(self):
+        #'''
+        #property that returns near uid of remote as owned by nearside stack
+        #alias for uid
+        #'''
+        #return self.uid
+
+    #@name.setter
+    #def nuid(self, value):
+        #'''
+        #setter for nuid property
+        #'''
+        #self.uid = value
+
+    #@property
+    #def puid(self):
+        #'''
+        #property that returns duple of (nuid, fuid)
+        #'''
+        #return (self.nuid, self.fuid)
+
+    #@puid.setter
+    #def puid(self, value):
+        #'''
+        #setter for puid property, value is duple of (nuid, fuid)
+        #'''
+        #self.nuid, self.fuid = value
 
     def rekey(self):
         '''

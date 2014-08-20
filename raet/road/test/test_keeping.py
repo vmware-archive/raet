@@ -179,7 +179,7 @@ class BasicTestCase(unittest.TestCase):
                                         ('name', mainData['name']),
                                         ('ha', ['0.0.0.0', 7530]),
                                         ('sid', 0),
-                                        ('nuid', 1),
+                                        ('puid', 1),
                                         ('role', mainData['name']),
                                         ('sighex', mainData['sighex']),
                                         ('prihex', mainData['prihex']),
@@ -197,7 +197,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('sid', stack.local.sid),
-                                ('nuid', stack.nuid),
+                                ('puid', stack.puid),
                                 ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
@@ -259,6 +259,7 @@ class BasicTestCase(unittest.TestCase):
         validRemoteKeepData = {
                                 'other1':
                                     {'uid': 2,
+                                     'fuid': 0,
                                      'name': other1Data['name'],
                                      'ha': ['127.0.0.1', 7531],
                                      'sid': 0,
@@ -269,6 +270,7 @@ class BasicTestCase(unittest.TestCase):
                                      'role': other1Data['name'],},
                                 'other2':
                                     {'uid': 3,
+                                     'fuid': 0,
                                      'name': other2Data['name'],
                                      'ha': ['127.0.0.1', 7532],
                                      'sid': 0,
@@ -287,6 +289,7 @@ class BasicTestCase(unittest.TestCase):
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
                                                 ('uid', remote.uid),
+                                                ('fuid', remote.fuid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
@@ -310,7 +313,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('sid', stack.local.sid),
-                                ('nuid', stack.nuid),
+                                ('puid', stack.puid),
                                 ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
@@ -322,6 +325,7 @@ class BasicTestCase(unittest.TestCase):
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
                                                 ('uid', remote.uid),
+                                                ('fuid', remote.fuid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
@@ -379,7 +383,7 @@ class BasicTestCase(unittest.TestCase):
                                         ('name', mainData['name']),
                                         ('ha', ['0.0.0.0', 7530]),
                                         ('sid', 0),
-                                        ('nuid', 1),
+                                        ('puid', 1),
                                         ('role', mainData['name']),
                                         ('sighex', mainData['sighex']),
                                         ('prihex', mainData['prihex']),
@@ -397,7 +401,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('sid', stack.local.sid),
-                                ('nuid', stack.nuid),
+                                ('puid', stack.puid),
                                 ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
@@ -459,6 +463,7 @@ class BasicTestCase(unittest.TestCase):
         validRemoteKeepData = {
                                 'other1':
                                     {'uid': 2,
+                                     'fuid': 0,
                                      'name': other1Data['name'],
                                      'ha': ['127.0.0.1', 7531],
                                      'sid': 0,
@@ -469,6 +474,7 @@ class BasicTestCase(unittest.TestCase):
                                      'role': other1Data['name'],},
                                 'other2':
                                     {'uid': 3,
+                                     'fuid': 0,
                                      'name': other2Data['name'],
                                      'ha': ['127.0.0.1', 7532],
                                      'sid': 0,
@@ -487,6 +493,7 @@ class BasicTestCase(unittest.TestCase):
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
                                                 ('uid', remote.uid),
+                                                ('fuid', remote.fuid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
@@ -510,7 +517,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('sid', stack.local.sid),
-                                ('nuid', stack.nuid),
+                                ('puid', stack.puid),
                                 ('role', stack.local.role),
                                 ('sighex', stack.local.signer.keyhex),
                                 ('prihex', stack.local.priver.keyhex),
@@ -522,6 +529,7 @@ class BasicTestCase(unittest.TestCase):
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
                                                 ('uid', remote.uid),
+                                                ('fuid', remote.fuid),
                                                 ('name', remote.name),
                                                 ('ha', list(remote.ha)),
                                                 ('sid', remote.sid),
@@ -692,11 +700,6 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         for index in remote.transactions:
             remote.removeTransaction(index)
-
-        #for index in main.transactions:
-            #main.removeTransaction(index)
-        #for index in other.transactions:
-            #other.removeTransaction(index)
 
         for remote in main.remotes.values():
             if remote.acceptance == raeting.acceptances.pending:

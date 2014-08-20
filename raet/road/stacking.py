@@ -91,7 +91,7 @@ class RoadStack(stacking.KeepStack):
     JoinentTimeout = 5.0 # stack default for joinent transaction timeout
 
     def __init__(self,
-                 nuid=None,
+                 puid=None,
                  keep=None,
                  dirpath='',
                  basedirpath='',
@@ -114,8 +114,8 @@ class RoadStack(stacking.KeepStack):
         Setup instance
 
         '''
-        if getattr(self, 'nuid', None) is None:
-            self.nuid = nuid if nuid is not None else self.Uid
+        if getattr(self, 'puid', None) is None:
+            self.puid = puid if puid is not None else self.Uid
 
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                         basedirpath=basedirpath,
@@ -136,7 +136,8 @@ class RoadStack(stacking.KeepStack):
         self.offset = offset if offset is not None else self.Offset
         self.interim = interim if interim is not None else self.Interim
 
-        super(RoadStack, self).__init__(keep=keep,
+        super(RoadStack, self).__init__(puid=puid,
+                                        keep=keep,
                                         dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         local=local,
@@ -246,7 +247,7 @@ class RoadStack(stacking.KeepStack):
                                               role=keepData['role'],
                                               sigkey=keepData['sighex'],
                                               prikey=keepData['prihex'],)
-                self.nuid = keepData['nuid']
+                self.puid = keepData['puid']
                 self.local = local
             else:
                 self.keep.clearLocalData()
