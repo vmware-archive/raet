@@ -32,6 +32,7 @@ class Estate(lotting.Lot):
                  prefix='road',
                  ha=None,
                  iha=None,
+                 natted=None,
                  uid=None,
                  tid=0,
                  host="",
@@ -57,6 +58,7 @@ class Estate(lotting.Lot):
             #self.host = '127.0.0.1'
 
         self.iha = iha # internal host address duple (host, port)
+        self.natted = natted # is estate behind nat router
         self.fqdn = socket.getfqdn(host)
         self.role = role if role is not None else self.name
         self.transactions = odict() # estate transactions keyed by transaction index

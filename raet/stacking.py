@@ -566,7 +566,6 @@ class KeepStack(Stack):
         local.stack = self
 
         super(KeepStack, self).__init__(puid=puid,
-                                        name=name,
                                         local=local,
                                         **kwa)
 

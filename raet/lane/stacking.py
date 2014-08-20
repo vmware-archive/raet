@@ -59,7 +59,7 @@ class LaneStack(stacking.Stack):
         if getattr(self, 'puid', None) is None:
             self.puid = puid if puid is not None else self.Uid
 
-        local =  local or yarding.Yard(stack=self,
+        local = local or yarding.Yard(stack=self,
                                             name=name,
                                             uid=uid,
                                             ha=ha,
@@ -68,9 +68,6 @@ class LaneStack(stacking.Stack):
 
         super(LaneStack, self).__init__(puid=puid,
                                         local=local,
-                                        name=name,
-                                        uid=uid,
-                                        ha=ha,
                                         bufcnt=bufcnt,
                                         **kwa)
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane

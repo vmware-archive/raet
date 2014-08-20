@@ -100,6 +100,8 @@ class RoadStack(stacking.KeepStack):
                  name='',
                  uid=None, #local estate uid, none means generate it
                  ha=("", raeting.RAET_PORT),
+                 eha=None,
+                 iha=None,
                  role=None,
                  sigkey=None,
                  prikey=None,
@@ -122,10 +124,12 @@ class RoadStack(stacking.KeepStack):
                                         stackname=name,
                                         auto=auto)
 
+
         local = local or estating.LocalEstate(stack=self,
                                      name=name,
                                      uid=uid,
-                                     ha=ha,
+                                     ha=eha or ha,
+                                     iha=iha,
                                      role=role,
                                      sigkey=sigkey,
                                      prikey=prikey, )
@@ -141,7 +145,6 @@ class RoadStack(stacking.KeepStack):
                                         dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         local=local,
-                                        name=name,
                                         bufcnt=bufcnt,
                                         **kwa)
         self.mutable = mutable
