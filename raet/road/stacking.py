@@ -255,7 +255,6 @@ class RoadStack(stacking.KeepStack):
                                               role=keepData['role'],
                                               sigkey=keepData['sighex'],
                                               prikey=keepData['prihex'],)
-                self.keep.auto = keepData['auto']
                 self.nuid = keepData['nuid']
                 self.local = local
             else:
