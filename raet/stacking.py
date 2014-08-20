@@ -44,8 +44,8 @@ class Stack(object):
     def __init__(self,
                  store=None,
                  version=raeting.VERSION,
-                 nuid=None,
                  main=None,
+                 nuid=None,
                  local=None, #passed up from subclass
                  name='',
                  uid=None,
@@ -64,12 +64,10 @@ class Stack(object):
         self.store = store or storing.Store(stamp=0.0)
 
         self.version = version
+        self.main = main
 
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
-
-        if getattr(self, 'main', None) is None:
-            self.main = main
 
         self.local = local or lotting.Lot(stack=self,
                                                name=name,
@@ -525,7 +523,6 @@ class KeepStack(Stack):
 
     def __init__(self,
                  nuid=None,
-                 main=None,
                  clean=False,
                  keep=None,
                  dirpath='',
@@ -541,9 +538,6 @@ class KeepStack(Stack):
         '''
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
-
-        if getattr(self, 'main', None) is None:
-                    self.main = main
 
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
@@ -561,7 +555,6 @@ class KeepStack(Stack):
 
         super(KeepStack, self).__init__(nuid=nuid,
                                         name=name,
-                                        main=main,
                                         local=local,
                                         **kwa)
 

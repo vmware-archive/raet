@@ -92,7 +92,6 @@ class RoadStack(stacking.KeepStack):
 
     def __init__(self,
                  nuid=None,
-                 main=None,
                  keep=None,
                  dirpath='',
                  basedirpath='',
@@ -118,12 +117,6 @@ class RoadStack(stacking.KeepStack):
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
 
-        if getattr(self, 'main', None) is None:
-            self.main = main
-
-        if getattr(self, 'mutabl', None) is None:
-            self.mutable = mutable
-
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         stackname=name,
@@ -138,21 +131,19 @@ class RoadStack(stacking.KeepStack):
                                      prikey=prikey, )
         local.stack = self
 
-
-        # Remotes reference these so create before super
+        # Remotes reference these in there init so create before super
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
         self.interim = interim if interim is not None else self.Interim
 
-        super(RoadStack, self).__init__(main=main,
-                                        keep=keep,
+        super(RoadStack, self).__init__(keep=keep,
                                         dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         local=local,
                                         name=name,
                                         bufcnt=bufcnt,
                                         **kwa)
-
+        self.mutable = mutable
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
         self.reapeds =  odict() # reaped remotes keyed by name
