@@ -472,7 +472,7 @@ class Joiner(Initiator):
             self.refuse()
             return
 
-        if not self.stack.local.mutable: # renew not allowed on immutable road
+        if not self.stack.mutable: # renew not allowed on immutable road
             emsg = ("Joiner {0}. Renew from '{1}' not allowed on immutable"
                     " road\n".format(self.stack.name, self.remote.name))
             console.terse(emsg)
@@ -616,7 +616,7 @@ class Joiner(Initiator):
 
         # otherwise status == raeting.acceptances.accepted
         # not vacuous and not sameAll and not mutable then reject
-        if not (vacuous or sameAll or self.stack.local.mutable):
+        if not (vacuous or sameAll or self.stack.mutable):
             emsg = ("Joiner {0}. Invalid accept nonvacuous change or imutable "
                         "'{1}'\n".format(self.stack.name,
                                          self.remote.name))
@@ -624,7 +624,7 @@ class Joiner(Initiator):
             self.nack(kind=raeting.pcktKinds.reject)
             return
 
-        #vacuous or sameAll or self.stack.local.mutable then accept
+        #vacuous or sameAll or self.stack.mutable then accept
         # check unique first so do not change road unless unique
         if (reid in self.stack.remotes and
                     self.stack.remotes[reid] is not self.remote): # non unquie reid
@@ -1047,7 +1047,7 @@ class Joinent(Correspondent):
             return
 
         #accepted or pended
-        if sameAll or self.stack.local.mutable:
+        if sameAll or self.stack.mutable:
             if self.remote.uid not in self.stack.remotes: # ephemeral
                 try:
                     self.stack.addRemote(self.remote)
@@ -1762,7 +1762,7 @@ class Yokent(Correspondent):
                                                  self.remote.ha,
                                                  self.remote.uid))
                 console.terse(emsg)
-                if self.local.mutable:
+                if self.mutable:
                     self.renew()
                 else:
                     self.nack(kind=raeting.pcktKinds.reject)
@@ -1788,7 +1788,7 @@ class Yokent(Correspondent):
                                 lpubhex))
                 console.terse(emsg)
 
-                if self.stack.local.mutable:
+                if self.stack.mutable:
                     self.renew()
                 else:
                     self.nack(kind=raeting.pcktKinds.reject)
@@ -1866,7 +1866,7 @@ class Yokent(Correspondent):
 
         # otherwise status == raeting.acceptances.accepted
         # not vacuous and not sameAll and not mutable then reject
-        if not (self.remote.uid == 0 or sameAll or self.stack.local.mutable):
+        if not (self.remote.uid == 0 or sameAll or self.stack.mutable):
             emsg = ("Yokent {0}. Invalid yoke nonvacuous change or imutable "
                         "'{1}'\n".format(self.stack.name,
                                          self.remote.name))
@@ -1874,7 +1874,7 @@ class Yokent(Correspondent):
             self.nack(kind=raeting.pcktKinds.reject)
             return
 
-        #self.remote.reid == 0 or sameAll or self.stack.local.mutable then accept
+        #self.remote.reid == 0 or sameAll or self.stack.mutable then accept
         # check unique first so do not change road unless unique
         if (reid in self.stack.remotes and
                     self.stack.remotes[reid] is not self.remote): # non unquie reid

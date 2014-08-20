@@ -134,7 +134,6 @@ class LocalEstate(Estate):
     def __init__(self,
                  sigkey=None,
                  prikey=None,
-                 mutable=None,
                  **kwa):
         '''
         Setup instance
@@ -145,10 +144,8 @@ class LocalEstate(Estate):
         prikey is either nacl PrivateKey or hex encoded key
         '''
         super(LocalEstate, self).__init__( **kwa)
-        #self.main = main # main estate on road
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
-        self.mutable = mutable # mutable road
 
 class RemoteEstate(Estate):
     '''

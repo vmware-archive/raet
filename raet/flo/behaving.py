@@ -94,14 +94,14 @@ class RaetRoadStack(deeding.Deed):
         rxMsgs = self.rxmsgs.value
 
         self.stack.value = RoadStack(store=self.store,
+                                     main=main,
+                                     mutable=mutable,
                                      name=name,
                                      uid=uid,
                                      ha=ha,
                                      sigkey=sigkey,
                                      prikey=prikey,
                                      auto=auto,
-                                     main=main,
-                                     mutable=mutable,
                                      basedirpath=basedirpath,
                                      txMsgs=txMsgs,
                                      rxMsgs=rxMsgs, )

@@ -200,7 +200,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.main),
-                                ('mutable', stack.local.mutable),
+                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('auto', stack.keep.auto),
                                 ('nuid', stack.nuid),
@@ -316,7 +316,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.main),
-                                ('mutable', stack.local.mutable),
+                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.nuid),
                                 ('auto', stack.keep.auto),
@@ -409,7 +409,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.main),
-                                ('mutable', stack.local.mutable),
+                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.nuid),
                                 ('auto', stack.keep.auto),
@@ -525,7 +525,7 @@ class BasicTestCase(unittest.TestCase):
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
                                 ('main', stack.main),
-                                ('mutable', stack.local.mutable),
+                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.nuid),
                                 ('auto', stack.keep.auto),
@@ -763,7 +763,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         # change main to mutable and retry
-        main.local.mutable = True
+        main.mutable = True
         self.join(other, main, duration=5.0)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
@@ -783,7 +783,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.allowed)
 
         # now change ha to see if can still join change back mutable
-        main.local.mutable = None
+        main.mutable = None
         other.server.close()
         data = savedOtherData
         other = self.createRoadStack(data=data,
@@ -803,7 +803,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         # change main to mutable and retry
-        main.local.mutable = True
+        main.mutable = True
         other.server.close()
         data = savedOtherData
         other = self.createRoadStack(data=data,
@@ -1539,7 +1539,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remote.joined, None)
 
         # attempt to join to main with main auto accept enabled and mutable other
-        other.local.mutable = True
+        other.mutable = True
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]

@@ -100,12 +100,12 @@ class RoadStack(stacking.KeepStack):
                  local=None, #passed up from subclass
                  name='',
                  uid=None, #local estate uid, none means generate it
-                 mutable=None,
                  ha=("", raeting.RAET_PORT),
                  role=None,
                  sigkey=None,
                  prikey=None,
                  bufcnt=2,
+                 mutable=None,
                  period=None,
                  offset=None,
                  interim=None,
@@ -121,6 +121,9 @@ class RoadStack(stacking.KeepStack):
         if getattr(self, 'main', None) is None:
             self.main = main
 
+        if getattr(self, 'mutabl', None) is None:
+            self.mutable = mutable
+
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         stackname=name,
@@ -129,7 +132,6 @@ class RoadStack(stacking.KeepStack):
         local = local or estating.LocalEstate(stack=self,
                                      name=name,
                                      uid=uid,
-                                     mutable=mutable,
                                      ha=ha,
                                      role=role,
                                      sigkey=sigkey,
@@ -248,7 +250,6 @@ class RoadStack(stacking.KeepStack):
                 local = estating.LocalEstate(stack=self,
                                               uid=keepData['uid'],
                                               name=keepData['name'],
-                                              mutable=keepData['mutable'],
                                               ha=keepData['ha'],
                                               sid=keepData['sid'],
                                               role=keepData['role'],
@@ -257,6 +258,7 @@ class RoadStack(stacking.KeepStack):
                 self.keep.auto = keepData['auto']
                 self.nuid = keepData['nuid']
                 self.main = keepData['main']
+                self.mutable = keepData['mutable']
                 self.local = local
             else:
                 self.keep.clearLocalData()
