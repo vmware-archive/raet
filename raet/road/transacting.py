@@ -418,7 +418,7 @@ class Joiner(Initiator):
         '''
         Send join request
         '''
-        if self.stack.local.main:
+        if self.stack.main:
             emsg = ("Joiner {0}. Main may not initiate join\n".format(self.stack.name))
             console.terse(emsg)
             return
@@ -468,7 +468,7 @@ class Joiner(Initiator):
         Reset to vacuous Road data and try joining again if not main
         Otherwise act as if rejected
         '''
-        if self.stack.local.main: # main never renews so just reject
+        if self.stack.main: # main never renews so just reject
             self.refuse()
             return
 
@@ -516,7 +516,7 @@ class Joiner(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.stack.local.main:
+        if self.stack.main:
             emsg = ("Joiner {0}. Invalid accept on main\n".format(self.stack.name))
             console.terse(emsg)
             self.nack(kind=raeting.pcktKinds.reject)
@@ -599,7 +599,7 @@ class Joiner(Initiator):
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
-                                              main=self.stack.local.main,
+                                              main=self.stack.main,
                                               dump=True)
 
         if status == raeting.acceptances.rejected:
@@ -849,7 +849,7 @@ class Joinent(Correspondent):
                         status = self.stack.keep.statusRemote(self.remote,
                                                               data['verhex'],
                                                               data['pubhex'],
-                                                              main=self.stack.local.main)
+                                                              main=self.stack.main)
                         if status == raeting.acceptances.accepted:
                             self.accept()
                         elif status == raeting.acceptances.rejected:
@@ -898,7 +898,7 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if not self.stack.local.main:
+        if not self.stack.main:
             emsg = "Joinent {0}. Invalid join not main\n".format(self.stack.name)
             console.terse(emsg)
             self.nack(kind=raeting.pcktKinds.reject)
@@ -1026,7 +1026,7 @@ class Joinent(Correspondent):
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
-                                              main=self.stack.local.main,
+                                              main=self.stack.main,
                                               dump=True)
 
         if status == raeting.acceptances.rejected:
@@ -1376,7 +1376,7 @@ class Yoker(Initiator):
 
         Only send yoke if status is accepted
         '''
-        if not self.stack.local.main:
+        if not self.stack.main:
             emsg = ("Yoker {0}. Non main may not initiate yoke\n".format(self.stack.name))
             console.terse(emsg)
             return
@@ -1406,7 +1406,7 @@ class Yoker(Initiator):
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=self.remote.verfer.keyhex,
                                               pubhex=self.remote.pubber.keyhex,
-                                              main=self.stack.local.main,
+                                              main=self.stack.main,
                                               dump=True)
 
         if status == raeting.acceptances.rejected:
@@ -1618,7 +1618,7 @@ class Yokent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.stack.local.main:
+        if self.stack.main:
             emsg = "Yokent {0}. Invalid yoke on main\n".format(self.stack.name)
             console.terse(emsg)
             self.nack(kind=raeting.pcktKinds.reject)
@@ -1788,7 +1788,7 @@ class Yokent(Correspondent):
                                 lpubhex))
                 console.terse(emsg)
 
-                if self.local.mutable:
+                if self.stack.local.mutable:
                     self.renew()
                 else:
                     self.nack(kind=raeting.pcktKinds.reject)
@@ -1851,7 +1851,7 @@ class Yokent(Correspondent):
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
-                                              main=self.stack.local.main,
+                                              main=self.stack.main,
                                               dump=True)
 
         if status == raeting.acceptances.rejected:
@@ -2186,7 +2186,7 @@ class Allower(Initiator):
         '''
         allows = self.remote.allowInProcess()
         if allows:
-            if self.stack.local.main:
+            if self.stack.main:
                 emsg = "Allower {0}. Allow with {1} already in process\n".format(
                         self.stack.name, self.remote.name)
                 console.concise(emsg)
@@ -2216,7 +2216,7 @@ class Allower(Initiator):
             emsg = "Allower {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            if self.stack.local.main:
+            if self.stack.main:
                 self.stack.yoke(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             else:
                 self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
@@ -2572,7 +2572,7 @@ class Allowent(Correspondent):
 
         allows = self.remote.allowInProcess()
         if allows:
-            if not self.stack.local.main:
+            if not self.stack.main:
                 emsg = "Allowent {0}. Allow with {1} already in process\n".format(
                         self.stack.name, self.remote.name)
                 console.concise(emsg)
@@ -2976,7 +2976,7 @@ class Aliver(Initiator):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            if self.stack.local.main:
+            if self.stack.main:
                 self.stack.yoke(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             else:
                 self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)

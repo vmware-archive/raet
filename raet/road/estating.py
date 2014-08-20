@@ -132,7 +132,6 @@ class LocalEstate(Estate):
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
     def __init__(self,
-                 main=None,
                  sigkey=None,
                  prikey=None,
                  mutable=None,
@@ -146,7 +145,7 @@ class LocalEstate(Estate):
         prikey is either nacl PrivateKey or hex encoded key
         '''
         super(LocalEstate, self).__init__( **kwa)
-        self.main = main # main estate on road
+        #self.main = main # main estate on road
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
         self.mutable = mutable # mutable road
@@ -208,7 +207,7 @@ class RemoteEstate(Estate):
         # persistence keep alive heartbeat timer. Initial duration has offset so
         # not synced with other side persistence heatbeet
         # by default do not use offset on main
-        if self.stack.local.main:
+        if self.stack.main:
             duration = self.stack.period
         else:
             duration = self.stack.period + self.stack.offset
@@ -269,7 +268,7 @@ class RemoteEstate(Estate):
         '''
         Remote is dead, reap it if main estate.
         '''
-        if self.stack.local.main: # only main can reap
+        if self.stack.main: # only main can reap
             console.concise("Stack {0}: Reaping dead remote {1} at {2}\n".format(
                     self.stack.name, self.name, self.stack.store.stamp))
             self.stack.incStat("remote_reap")
@@ -280,7 +279,7 @@ class RemoteEstate(Estate):
         '''
         Remote packet received from remote so not dead anymore.
         '''
-        if self.stack.local.main: # only only main can reap or unreap
+        if self.stack.main: # only only main can reap or unreap
             console.concise("Stack {0}: Unreaping dead remote {1} at {2}\n".format(
                     self.stack.name, self.name, self.stack.store.stamp))
             self.stack.incStat("remote_unreap")

@@ -91,20 +91,20 @@ class RoadStack(stacking.KeepStack):
     JoinentTimeout = 5.0 # stack default for joinent transaction timeout
 
     def __init__(self,
+                 nuid=None,
+                 main=None,
                  keep=None,
                  dirpath='',
                  basedirpath='',
                  auto=None,
                  local=None, #passed up from subclass
                  name='',
-                 nuid=None,
                  uid=None, #local estate uid, none means generate it
-                 main=None,
                  mutable=None,
+                 ha=("", raeting.RAET_PORT),
                  role=None,
                  sigkey=None,
                  prikey=None,
-                 ha=("", raeting.RAET_PORT),
                  bufcnt=2,
                  period=None,
                  offset=None,
@@ -118,6 +118,9 @@ class RoadStack(stacking.KeepStack):
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
 
+        if getattr(self, 'main', None) is None:
+            self.main = main
+
         keep = keep or keeping.RoadKeep(dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         stackname=name,
@@ -126,7 +129,6 @@ class RoadStack(stacking.KeepStack):
         local = local or estating.LocalEstate(stack=self,
                                      name=name,
                                      uid=uid,
-                                     main=main,
                                      mutable=mutable,
                                      ha=ha,
                                      role=role,
@@ -140,12 +142,12 @@ class RoadStack(stacking.KeepStack):
         self.offset = offset if offset is not None else self.Offset
         self.interim = interim if interim is not None else self.Interim
 
-        super(RoadStack, self).__init__(name=name,
-                                        main=main,
+        super(RoadStack, self).__init__(main=main,
                                         keep=keep,
                                         dirpath=dirpath,
                                         basedirpath=basedirpath,
                                         local=local,
+                                        name=name,
                                         bufcnt=bufcnt,
                                         **kwa)
 
@@ -215,7 +217,7 @@ class RoadStack(stacking.KeepStack):
         '''
         if duid is None:
             if not self.remotes and create: # no remote estate so make one
-                if self.local.main:
+                if self.main:
                     dha = ('127.0.0.1', raeting.RAET_TEST_PORT)
                 else:
                     dha = ('127.0.0.1', raeting.RAET_PORT)
@@ -246,7 +248,6 @@ class RoadStack(stacking.KeepStack):
                 local = estating.LocalEstate(stack=self,
                                               uid=keepData['uid'],
                                               name=keepData['name'],
-                                              main=keepData['main'],
                                               mutable=keepData['mutable'],
                                               ha=keepData['ha'],
                                               sid=keepData['sid'],
@@ -255,6 +256,7 @@ class RoadStack(stacking.KeepStack):
                                               prikey=keepData['prihex'],)
                 self.keep.auto = keepData['auto']
                 self.nuid = keepData['nuid']
+                self.main = keepData['main']
                 self.local = local
             else:
                 self.keep.clearLocalData()

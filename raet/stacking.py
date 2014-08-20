@@ -45,10 +45,10 @@ class Stack(object):
                  store=None,
                  version=raeting.VERSION,
                  nuid=None,
+                 main=None,
                  local=None, #passed up from subclass
                  name='',
                  uid=None,
-                 main=None,
                  server=None,
                  ha=None,
                  bufcnt=2,
@@ -68,11 +68,13 @@ class Stack(object):
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
 
+        if getattr(self, 'main', None) is None:
+            self.main = main
+
         self.local = local or lotting.LocalLot(stack=self,
                                                name=name,
                                                uid=uid,
-                                               ha=ha,
-                                               main=main,)
+                                               ha=ha,)
         self.local.stack = self
 
         self.remotes = self.uidRemotes = odict() # remotes indexed by uid
@@ -522,16 +524,16 @@ class KeepStack(Stack):
     Uid =  1
 
     def __init__(self,
-                 name='',
                  nuid=None,
+                 main=None,
                  clean=False,
                  keep=None,
                  dirpath='',
                  basedirpath='',
                  local=None, #passed up from subclass
+                 name='',
                  uid=None,
                  ha=None,
-                 main=None,
                  **kwa
                  ):
         '''
@@ -539,6 +541,9 @@ class KeepStack(Stack):
         '''
         if getattr(self, 'nuid', None) is None:
             self.nuid = nuid if nuid is not None else self.Uid
+
+        if getattr(self, 'main', None) is None:
+                    self.main = main
 
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
@@ -550,7 +555,6 @@ class KeepStack(Stack):
         local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
                                                                  name=name,
                                                                  uid=uid,
-                                                                 main=main,
                                                                  ha=ha,
                                                                  )
         local.stack = self

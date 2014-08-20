@@ -253,11 +253,11 @@ class RoadKeep(keeping.Keep):
                         ('uid', local.uid),
                         ('name', local.name),
                         ('ha', local.ha),
-                        ('main', local.main),
                         ('mutable', local.mutable),
                         ('sid', local.sid),
                         ('auto', self.auto),
                         ('nuid', local.stack.nuid),
+                        ('main', local.stack.main),
                         ('role', local.role),
                     ])
         if self.verifyLocalData(data, localFields =self.LocalDumpFields):

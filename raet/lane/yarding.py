@@ -158,14 +158,14 @@ class LocalYard(Yard):
     '''
     RAET UXD Protocol endpoint local Yard ie Local Lane Lot
     '''
-    def __init__(self, main=None, **kwa):
+    def __init__(self, **kwa):
         '''
         Setup instance
 
         stack is required parameter
         '''
         super(LocalYard, self).__init__(**kwa)
-        self.main = main # main yard on lane
+        #self.main = main # main yard on lane
 
 class RemoteYard(Yard):
     '''

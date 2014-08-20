@@ -37,7 +37,7 @@ class Lot(object):
         stack is a required parameter
         '''
         self.stack = stack
-        self.name = name or "lot{0}".format(nacling.uuid(size=16))
+        self.name = name or "way_{0}".format(nacling.uuid(size=16))
         self.uid = uid if uid is not None else self.stack.nextUid()
         self._ha = ha
         self.sid = sid # current session ID
@@ -90,11 +90,11 @@ class LocalLot(Lot):
     '''
     Raet protocol local endpoint
     '''
-    def  __init__(self, main=None, **kwa):
+    def  __init__(self, **kwa):
         '''
         Setup instance
 
         stack is a required parameter
         '''
         super(LocalLot, self).__init__(**kwa)
-        self.main = main # main lot on way
+        #self.main = main # main lot on way

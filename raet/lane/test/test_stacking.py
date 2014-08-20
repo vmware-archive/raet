@@ -544,7 +544,7 @@ class BasicTestCase(unittest.TestCase):
                                        lanename='apple')
         main = self.createLaneStack(data=mainData, main=True)
         self.assertTrue(main.local.ha.endswith('/lane/keep/main/apple.main.uxd'))
-        self.assertTrue(main.local.main)
+        self.assertTrue(main.main)
 
         otherData = self.createLaneData(name='other',
                                         uid=1,
