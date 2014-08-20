@@ -156,7 +156,6 @@ class BasicTestCase(unittest.TestCase):
             if real:
                 time.sleep(0.1)
 
-
     def bootstrap(self, bk=raeting.bodyKinds.json):
         '''
         Initialize
