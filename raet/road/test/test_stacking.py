@@ -170,11 +170,11 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(self.main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
-        self.assertEqual(self.other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(self.other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join()
         console.terse("\nStack '{0}' uid= {1}\n".format(self.main.name, self.main.local.uid))

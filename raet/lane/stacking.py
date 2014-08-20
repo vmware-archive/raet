@@ -77,12 +77,9 @@ class LaneStack(stacking.Stack):
 
     def serverFromLocal(self):
         '''
-        Create server from local data
+        Create local listening server for stack
         '''
-        if not self.local:
-            return None
-
-        server = aiding.SocketUxdNb(ha=self.local.ha,
+        server = aiding.SocketUxdNb(ha=self.ha,
                             bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
@@ -202,7 +199,7 @@ class LaneStack(stacking.Stack):
             self.server.send(tx, ta)
         except Exception as ex:
             console.concise("Error sending to '{0}' from '{1}: {2}\n".format(
-                ta, self.local.ha, ex))
+                ta, self.ha, ex))
             if ex.errno == errno.ECONNREFUSED or ex.errno == errno.ENOENT:
                 self.incStat("stale_transmit_yard")
                 yard = self.haRemotes.get(ta)

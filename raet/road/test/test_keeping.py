@@ -157,7 +157,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
         self.assertTrue(stack.keep.localfilepath.endswith('/road/keep/main/local/estate.json'))
         self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/local/role.json'))
-        self.assertTrue(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertTrue(stack.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test round trip
         stack.clearLocalKeep()
@@ -361,7 +361,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
         self.assertTrue(stack.keep.localfilepath.endswith('/road/keep/main/local/estate.msgpack'))
         self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/local/role.msgpack'))
-        self.assertTrue(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertTrue(stack.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test round trip
         stack.clearLocalKeep()
@@ -566,7 +566,7 @@ class BasicTestCase(unittest.TestCase):
 
         #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
         self.assertTrue(".raet/keep/main" in stack.keep.dirpath)
-        self.assertEqual(stack.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(stack.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test can write
         stack.clearLocalKeep()
@@ -595,7 +595,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
@@ -606,7 +606,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertFalse(main.keep.auto)
 
         self.join(other, main, duration=2.0)
@@ -667,7 +667,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
@@ -679,7 +679,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertFalse(main.keep.auto)
 
         self.join(other, main, duration=2.0)
@@ -841,7 +841,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
         self.assertEqual(main.name, 'main')
         self.assertEqual(main.local.name, main.name)
 
@@ -855,7 +855,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertEqual(other.name, 'other')
         self.assertEqual(other.local.name, other.name)
         self.assertIs(main.keep.auto, raeting.autoModes.once)
@@ -965,7 +965,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
         self.assertEqual(main.name, 'main')
         self.assertEqual(main.local.name, main.name)
 
@@ -979,7 +979,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertEqual(other.name, 'other')
         self.assertEqual(other.local.name, other.name)
         self.assertIs(main.keep.auto, raeting.autoModes.once)
@@ -1059,7 +1059,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
@@ -1070,7 +1070,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertIs(main.keep.auto, raeting.autoModes.once)
 
         self.join(other, main)
@@ -1103,7 +1103,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept enabled
         self.assertIs(main.keep.auto, raeting.autoModes.once)
@@ -1138,7 +1138,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
         main.keep.auto = raeting.autoModes.never # turn off auto accept
@@ -1196,7 +1196,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         savedOtherData = data
@@ -1208,7 +1208,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         self.assertIs(main.keep.auto, raeting.autoModes.once)
 
         self.join(other, main)
@@ -1240,7 +1240,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
         main.keep.auto = raeting.autoModes.never # turn off auto accept
@@ -1298,7 +1298,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
         main.keep.auto = raeting.autoModes.never # turn off auto accept
@@ -1350,7 +1350,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
 
         # attempt to join to main with main auto accept enabled
@@ -1383,7 +1383,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         # attempt to join to main with main auto accept disabled
         main.keep.auto = raeting.autoModes.never # turn off auto accept
@@ -1424,7 +1424,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
@@ -1435,7 +1435,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1468,7 +1468,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
         self.join(other, main) # main will refuse and other will renew
@@ -1519,7 +1519,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled and immutable
         # will fail since renew not allowd on immutable other
@@ -1591,7 +1591,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(data['dirpath'])
@@ -1602,7 +1602,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1635,7 +1635,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
@@ -1685,7 +1685,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # attempt to join to main with main auto accept enabled
         self.join(other, main)
@@ -1747,7 +1747,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         data = self.createRoadData(name='other', base=self.base)
         savedOtherData = data
@@ -1759,7 +1759,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1804,12 +1804,12 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         remote = other.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
@@ -1872,12 +1872,12 @@ class BasicTestCase(unittest.TestCase):
         #other.dumpRemotes()
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
-        self.assertEqual(main.local.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
-        self.assertEqual(other.local.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         remote = other.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 

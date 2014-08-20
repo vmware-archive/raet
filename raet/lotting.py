@@ -39,19 +39,36 @@ class Lot(object):
         self.stack = stack
         self.name = name or "{0}_{1}".format(prefix, nacling.uuid(size=16))
         self.uid = uid if uid is not None else self.stack.nextUid()
-        self._ha = ha
+        self.ha = ha
         self.sid = sid # current session ID
 
     @property
-    def ha(self):
+    def host(self):
         '''
-        property that returns host address
+        property that returns host from ha ip address (host, port) duple
         '''
-        return self._ha
+        return self.ha[0] if self.ha else None
 
-    @ha.setter
-    def ha(self, value):
-        self._ha = value
+    @host.setter
+    def host(self, value):
+        '''
+        sets host part of ha duple (host, port)
+        '''
+        self.ha = (value, self.ha[1] if self.ha else None)
+
+    @property
+    def port(self):
+        '''
+        property that returns port from ha ip address (host, port) duple
+        '''
+        return self.ha[1] if self.ha else None
+
+    @port.setter
+    def port(self, value):
+        '''
+        sets port part of ha duple (host, port)
+        '''
+        self.ha = (self.ha[0] if self.ha else None, value)
 
     def nextSid(self):
         '''

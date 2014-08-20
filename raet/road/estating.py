@@ -31,6 +31,7 @@ class Estate(lotting.Lot):
                  name="",
                  prefix='road',
                  ha=None,
+                 iha=None,
                  uid=None,
                  tid=0,
                  host="",
@@ -52,27 +53,28 @@ class Estate(lotting.Lot):
             host, port = ha
         self.host = socket.gethostbyname(host)
         self.port = port
-        if self.host == '0.0.0.0':
-            host = '127.0.0.1'
-        else:
-            host = self.host
+        #if self.host == '0.0.0.0':
+            #self.host = '127.0.0.1'
+
+        self.iha = iha # internal host address duple (host, port)
         self.fqdn = socket.getfqdn(host)
         self.role = role if role is not None else self.name
         self.transactions = odict() # estate transactions keyed by transaction index
 
     @property
-    def ha(self):
+    def eha(self):
         '''
-        property that returns ip address (host, port) tuple
+        property that returns  external ip address (host, port) tuple
+        alias for .ha
         '''
-        return (self.host, self.port)
+        return self.ha
 
-    @ha.setter
-    def ha(self, value):
+    @eha.setter
+    def eha(self, value):
         '''
         Expects value is tuple of (host, port)
         '''
-        self.host, self.port = value
+        self.ha = value
 
     def nextTid(self):
         '''

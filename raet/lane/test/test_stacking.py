@@ -98,12 +98,12 @@ class BasicTestCase(unittest.TestCase):
         '''
         Basic messaging
         '''
-        self.main.addRemote(yarding.RemoteYard(stack=self.main, ha=self.other.local.ha))
-        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.local.ha))
+        self.main.addRemote(yarding.RemoteYard(stack=self.main, ha=self.other.ha))
+        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.ha))
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
+        self.assertEqual(self.main.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(len(self.main.remotes), 1)
         remote = self.main.remotes.values()[0]
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
@@ -117,7 +117,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
-        self.assertEqual(self.other.local.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
+        self.assertEqual(self.other.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
@@ -424,16 +424,16 @@ class BasicTestCase(unittest.TestCase):
 
         # Don't add remote yard to main so only way to get message from other is
         # if auto acccept works
-        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.local.ha))
+        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.ha))
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
+        self.assertEqual(self.main.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(len(self.main.remotes), 0)
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
-        self.assertEqual(self.other.local.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
+        self.assertEqual(self.other.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
@@ -479,16 +479,16 @@ class BasicTestCase(unittest.TestCase):
 
         # Don't add remote yard to main so only way to get message from other is
         # if auto acccept works
-        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.local.ha))
+        self.other.addRemote(yarding.RemoteYard(stack=self.other, ha=self.main.ha))
 
         self.assertEqual(self.main.name, 'main')
         self.assertEqual(self.main.local.name, 'main')
-        self.assertEqual(self.main.local.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
+        self.assertEqual(self.main.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
         self.assertEqual(len(self.main.remotes), 0)
 
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(self.other.local.name, 'other')
-        self.assertEqual(self.other.local.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
+        self.assertEqual(self.other.ha, os.path.join(self.baseDirpath, 'cherry.other.uxd'))
         self.assertEqual(len(self.other.remotes), 1)
         remote = self.other.remotes.values()[0]
         self.assertEqual(remote.ha, os.path.join(self.baseDirpath, 'cherry.main.uxd'))
@@ -543,7 +543,7 @@ class BasicTestCase(unittest.TestCase):
                                        base=self.baseDirpath,
                                        lanename='apple')
         main = self.createLaneStack(data=mainData, main=True)
-        self.assertTrue(main.local.ha.endswith('/lane/keep/main/apple.main.uxd'))
+        self.assertTrue(main.ha.endswith('/lane/keep/main/apple.main.uxd'))
         self.assertTrue(main.main)
 
         otherData = self.createLaneData(name='other',
@@ -551,14 +551,14 @@ class BasicTestCase(unittest.TestCase):
                                         base=self.baseDirpath,
                                         lanename='apple')
         other = self.createLaneStack(data=otherData)
-        self.assertTrue(other.local.ha.endswith('/lane/keep/other/apple.other.uxd'))
+        self.assertTrue(other.ha.endswith('/lane/keep/other/apple.other.uxd'))
 
-        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.ha))
         self.assertTrue('other' in main.nameRemotes)
-        self.assertTrue(other.local.ha in main.haRemotes)
-        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        self.assertTrue(other.ha in main.haRemotes)
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.ha))
         self.assertTrue('main' in other.nameRemotes)
-        self.assertTrue(main.local.ha in other.haRemotes)
+        self.assertTrue(main.ha in other.haRemotes)
 
         src = ['mayor', main.local.name, None] # (house, yard, queue)
         dst = ['citizen', other.local.name, None]
@@ -594,9 +594,9 @@ class BasicTestCase(unittest.TestCase):
         main = self.createLaneStack(data=mainData, main=True)
         other = self.createLaneStack(data=otherData)
 
-        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.ha))
         self.assertTrue('other' in main.nameRemotes)
-        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.ha))
         self.assertTrue('main' in other.nameRemotes)
 
         self.assertEqual(len(main.remotes), 1)
@@ -621,9 +621,9 @@ class BasicTestCase(unittest.TestCase):
         main = self.createLaneStack(data=mainData, main=True)
         other = self.createLaneStack(data=otherData)
 
-        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.ha))
         self.assertTrue('other' in main.nameRemotes)
-        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.ha))
         self.assertTrue('main' in other.nameRemotes)
 
         self.assertEqual(len(main.remotes), 1)
@@ -668,9 +668,9 @@ class BasicTestCase(unittest.TestCase):
         main = self.createLaneStack(data=mainData, main=True)
         other = self.createLaneStack(data=otherData)
 
-        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.ha))
         self.assertTrue('other' in main.nameRemotes)
-        other.addRemote(yarding.RemoteYard(stack=other, ha=main.local.ha))
+        other.addRemote(yarding.RemoteYard(stack=other, ha=main.ha))
         self.assertTrue('main' in other.nameRemotes)
 
         self.assertEqual(len(main.remotes), 1)
@@ -718,7 +718,7 @@ class BasicTestCase(unittest.TestCase):
         #now close down one side only, make new stack
         main.server.close()
         main = self.createLaneStack(data=mainData, main=True)
-        main.addRemote(yarding.RemoteYard(stack=main, ha=other.local.ha))
+        main.addRemote(yarding.RemoteYard(stack=main, ha=other.ha))
 
         self.assertEqual(len(main.remotes), 1)
         self.assertEqual(len(other.remotes), 1)

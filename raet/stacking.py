@@ -88,10 +88,11 @@ class Stack(object):
             if not self.server.reopen():  # open socket
                 raise raeting.StackError("Stack '{0}': Failed opening server at"
                             " '{1}'\n".format(self.name, self.server.ha))
-            if self.local:
-                self.local.ha = self.server.ha  # update local host address after open
 
-            console.verbose("Stack '{0}': Opened server at '{1}'\n".format(self.name, self.local.ha))
+            self.ha = self.server.ha  # update local host address after open
+
+            console.verbose("Stack '{0}': Opened server at '{1}'\n".format(self.name,
+                                                                           self.ha))
 
         self.rxMsgs = rxMsgs if rxMsgs is not None else deque() # messages received
         self.txMsgs = txMsgs if txMsgs is not None else deque() # messages to transmit
@@ -113,6 +114,17 @@ class Stack(object):
         setter for name property
         '''
         self.local.name = value
+
+    @property
+    def ha(self):
+        '''
+        property that returns host address
+        '''
+        return self.local.ha
+
+    @ha.setter
+    def ha(self, value):
+        self.local.ha = value
 
     def serverFromLocal(self):
         '''

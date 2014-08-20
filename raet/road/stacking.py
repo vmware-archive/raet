@@ -162,12 +162,9 @@ class RoadStack(stacking.KeepStack):
 
     def serverFromLocal(self):
         '''
-        Create server from local data
+        Create local listening server for stack
         '''
-        if not self.local:
-            return None
-
-        server = aiding.SocketUdpNb(ha=self.local.ha,
+        server = aiding.SocketUdpNb(ha=self.ha,
                         bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
