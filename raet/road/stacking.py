@@ -257,8 +257,6 @@ class RoadStack(stacking.KeepStack):
                                               prikey=keepData['prihex'],)
                 self.keep.auto = keepData['auto']
                 self.nuid = keepData['nuid']
-                self.main = keepData['main']
-                self.mutable = keepData['mutable']
                 self.local = local
             else:
                 self.keep.clearLocalData()

@@ -178,8 +178,6 @@ class BasicTestCase(unittest.TestCase):
                                         ('uid', 1),
                                         ('name', mainData['name']),
                                         ('ha', ['0.0.0.0', 7530]),
-                                        ('main', True),
-                                        ('mutable', None),
                                         ('sid', 0),
                                         ('nuid', 1),
                                         ('auto', mainData['auto']),
@@ -199,8 +197,6 @@ class BasicTestCase(unittest.TestCase):
                                 ('uid', stack.local.uid),
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
-                                ('main', stack.main),
-                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('auto', stack.keep.auto),
                                 ('nuid', stack.nuid),
@@ -315,8 +311,6 @@ class BasicTestCase(unittest.TestCase):
                                 ('uid', stack.local.uid),
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
-                                ('main', stack.main),
-                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.nuid),
                                 ('auto', stack.keep.auto),
@@ -387,8 +381,6 @@ class BasicTestCase(unittest.TestCase):
                                         ('uid', 1),
                                         ('name', mainData['name']),
                                         ('ha', ['0.0.0.0', 7530]),
-                                        ('main', True),
-                                        ('mutable', None),
                                         ('sid', 0),
                                         ('nuid', 1),
                                         ('auto', mainData['auto']),
@@ -408,8 +400,6 @@ class BasicTestCase(unittest.TestCase):
                                 ('uid', stack.local.uid),
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
-                                ('main', stack.main),
-                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.nuid),
                                 ('auto', stack.keep.auto),
@@ -524,8 +514,6 @@ class BasicTestCase(unittest.TestCase):
                                 ('uid', stack.local.uid),
                                 ('name', stack.local.name),
                                 ('ha', list(stack.local.ha)),
-                                ('main', stack.main),
-                                ('mutable', stack.mutable),
                                 ('sid', stack.local.sid),
                                 ('nuid', stack.nuid),
                                 ('auto', stack.keep.auto),
@@ -896,7 +884,7 @@ class BasicTestCase(unittest.TestCase):
         other.server.close()
 
         # make new stacks with saved data
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store, main=True)
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
 
         # attempt to join to main with main auto accept enabled
@@ -926,7 +914,7 @@ class BasicTestCase(unittest.TestCase):
         other.server.close()
 
         # make new stacks with saved data
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store, main=True)
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
 
         # attempt to join to main with main auto accept disabled
@@ -1014,7 +1002,7 @@ class BasicTestCase(unittest.TestCase):
         other.server.close()
 
         # make new stacks with saved data
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store, main=True)
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
 
         # attempt to join to other
