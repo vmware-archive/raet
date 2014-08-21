@@ -135,6 +135,8 @@ class RoadStack(stacking.KeepStack):
                                      prikey=prikey, )
         local.stack = self
 
+        self.lha = ha # init before server is initialized
+
         # Remotes reference these in there init so create before super
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
@@ -148,10 +150,22 @@ class RoadStack(stacking.KeepStack):
                                         bufcnt=bufcnt,
                                         **kwa)
         self.mutable = mutable
+
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
         self.reapeds =  odict() # reaped remotes keyed by name
         self.availables = set() # set of available remote names
+
+    #@property
+    #def ha(self):
+        #'''
+        #property that returns host address
+        #'''
+        #return self.lha
+
+    #@ha.setter
+    #def ha(self, value):
+        #self.lha = value
 
     @property
     def transactions(self):

@@ -35,7 +35,7 @@ class Estate(lotting.Lot):
                  natted=None,
                  uid=None,
                  tid=0,
-                 host="",
+                 host="", #"127.0.0.1",
                  port=raeting.RAET_PORT,
                  role=None,
                  **kwa):
@@ -54,7 +54,7 @@ class Estate(lotting.Lot):
             host, port = ha
         self.host = socket.gethostbyname(host)
         self.port = port
-        #if self.host == '0.0.0.0':
+        #if self.host in ['0.0.0.0', '']:
             #self.host = '127.0.0.1'
 
         self.iha = iha # internal host address duple (host, port)
