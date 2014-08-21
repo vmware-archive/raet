@@ -135,7 +135,7 @@ class RoadStack(stacking.KeepStack):
                                      prikey=prikey, )
         local.stack = self
 
-        self.lha = ha # init before server is initialized
+        self.aha = ha # init before server is initialized
 
         # Remotes reference these in there init so create before super
         self.period = period if period is not None else self.Period
@@ -156,16 +156,16 @@ class RoadStack(stacking.KeepStack):
         self.reapeds =  odict() # reaped remotes keyed by name
         self.availables = set() # set of available remote names
 
-    #@property
-    #def ha(self):
-        #'''
-        #property that returns host address
-        #'''
-        #return self.lha
+    @property
+    def ha(self):
+        '''
+        property that returns host address
+        '''
+        return self.aha
 
-    #@ha.setter
-    #def ha(self, value):
-        #self.lha = value
+    @ha.setter
+    def ha(self, value):
+        self.aha = value
 
     @property
     def transactions(self):
@@ -215,34 +215,45 @@ class RoadStack(stacking.KeepStack):
 
         return None
 
-    def retrieveRemote(self, duid, ha=None, create=False):
+    def retrieveRemote(self, uid=None):
         '''
         Used when initiating a transaction
 
-        If duid is not None Then returns remote at duid if exists or None
-        If duid is None Then uses first remote unless no remotes then creates one
-           with ha or default if ha is None
+        If uid is not None Then returns remote at duid if exists or None
+        If uid is None Then uses first remote unless no remotes then None
         '''
-        if duid is None:
-            if not self.remotes and create: # no remote estate so make one
-                if self.main:
-                    dha = ('127.0.0.1', raeting.RAET_TEST_PORT)
-                else:
-                    dha = ('127.0.0.1', raeting.RAET_PORT)
-                remote = estating.RemoteEstate(stack=self,
-                                               uid=0,
-                                               sid=0,
-                                               ha=ha if ha is not None else dha)
+        if uid is not None:
+            remote = self.remotes.get(uid, None)
+        else:
+            if self.remotes:
+                remote = self.remotes.values()[0] # zeroth is default
+            else:
+                remote = None
+        return remote
 
-                try:
-                    self.addRemote(remote) #provisionally add .accepted is None
-                except raeting.StackError as ex:
-                    console.terse(str(ex) + '\n')
-                    self.incStat("failed_addremote")
-                    return None
-            if self.remotes: # Get default if any
-                duid = self.remotes.values()[0].uid # zeroth is default
-        return (self.remotes.get(duid, None))
+    def createRemote(self, ha):
+        '''
+        Use for vacuous join to create new remote
+        '''
+        if not ha:
+            console.terse("Invalid host address = {0} when creating remote.".format(ha))
+            self.incStat("failed_createremote")
+            return None
+
+        remote = estating.RemoteEstate(stack=self,
+                                       # uid=0, # auto generate non zero
+                                       fuid=0, # vacuous join
+                                       sid=0, # always 0 for join
+                                       ha=ha) #if ha is not None else dha
+
+        try:
+            self.addRemote(remote) #provisionally add .accepted is None
+        except raeting.StackError as ex:
+            console.terse(str(ex) + '\n')
+            self.incStat("failed_addremote")
+            return None
+
+        return remote
 
     def restoreLocal(self):
         '''
@@ -253,17 +264,21 @@ class RoadStack(stacking.KeepStack):
         keepData = self.keep.loadLocalData()
         if keepData:
             if self.keep.verifyLocalData(keepData):
+                ha = keepData['ha']
+                iha = keepData['iha']
+                aha = keepData['aha']
                 local = estating.LocalEstate(stack=self,
                                               uid=keepData['uid'],
                                               name=keepData['name'],
-                                              ha=keepData['ha'],
-                                              iha=keepData['iha'],
+                                              ha=tuple(ha) if ha else ha,
+                                              iha=tuple(iha) if iha else iha,
                                               natted=keepData['natted'],
                                               sid=keepData['sid'],
                                               role=keepData['role'],
                                               sigkey=keepData['sighex'],
                                               prikey=keepData['prihex'],)
                 self.puid = keepData['puid']
+                self.aha = tuple(aha) if aha else aha
                 self.local = local
             else:
                 self.keep.clearLocalData()
@@ -278,11 +293,13 @@ class RoadStack(stacking.KeepStack):
         keepData = self.keep.loadRemoteData(name)
         if keepData:
             if self.keep.verifyRemoteData(keepData):
+                ha = keepData['ha']
+                iha = keepData['iha']
                 remote = estating.RemoteEstate(stack=self,
                                                uid=keepData['uid'],
                                                name=keepData['name'],
-                                               ha=keepData['ha'],
-                                               iha=keepData['iha'],
+                                               ha=tuple(ha) if ha else ha,
+                                               iha=tuple(iha) if iha else iha,
                                                natted=keepData['natted'],
                                                sid=keepData['sid'],
                                                joined=keepData['joined'],
@@ -303,11 +320,13 @@ class RoadStack(stacking.KeepStack):
         if keeps:
             for name, keepData in keeps.items():
                 if self.keep.verifyRemoteData(keepData):
+                    ha = keepData['ha']
+                    iha = keepData['iha']
                     remote = estating.RemoteEstate(stack=self,
                                                    uid=keepData['uid'],
                                                    name=keepData['name'],
-                                                   ha=keepData['ha'],
-                                                   iha=keepData['iha'],
+                                                   ha=tuple(ha) if ha else ha,
+                                                   iha=tuple(iha) if iha else iha,
                                                    natted=keepData['natted'],
                                                    sid=keepData['sid'],
                                                    joined=keepData['joined'],
@@ -364,7 +383,7 @@ class RoadStack(stacking.KeepStack):
         Handle on message from .rxes deque
         Assumes that there is a message on the .rxes deque
         '''
-        raw, sa, da = self.rxes.popleft()
+        raw, sa = self.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(self.name, raw))
 
         packet = packeting.RxPacket(stack=self, packed=raw)
@@ -376,11 +395,10 @@ class RoadStack(stacking.KeepStack):
             return
 
         sh, sp = sa
-        dh, dp = da
-        packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
+        packet.data.update(sh=sh, sp=sp)
 
         deid = packet.data['de']
-        # non main can have local.uid == 0 but process join or yoke with deid != 0
+        # non main can have local.uid == 0 but process join with deid != 0
         if self.local.uid != 0 and deid != 0 and deid != self.local.uid:
             emsg = "Invalid destination uid = {0}. Dropping packet...\n".format(deid)
             console.concise( emsg)
@@ -410,18 +428,16 @@ class RoadStack(stacking.KeepStack):
         if bf:
             return  # broadcast transaction not yet supported
 
-        if rsid == 0: # can only use sid == 0 on join or yoke transaction
-            if received.data['tk'] not in [raeting.trnsKinds.join,
-                                           raeting.trnsKinds.yoke]: # drop packet
+        if rsid == 0: # can only use sid == 0 on join transaction
+            if received.data['tk'] not in [raeting.trnsKinds.join]: # drop packet
                 emsg = "Invalid sid '{0}' in packet\n".format(rsid)
                 console.terse(emsg)
                 self.incStat('invalid_sid_attempt')
                 return
 
         else: # rsid !=0
-            if received.data['tk'] in [raeting.trnsKinds.join,
-                                       raeting.trnsKinds.yoke]:
-                # join or yoke must use sid == 0
+            if received.data['tk'] in [raeting.trnsKinds.join]:
+                # join  must use sid == 0
                 emsg = "{0} Nonzero join sid '{1}' in packet from {2}\n".format(
                                              self.name, rsid, remote.name)
                 console.terse(emsg)
@@ -463,24 +479,9 @@ class RoadStack(stacking.KeepStack):
 
             if not remote:
                 remote = estating.RemoteEstate(stack=self,
-                                                sid=packet.data['si'],
-                                                host=packet.data['sh'],
-                                                port=packet.data['sp'])
+                                               sid=packet.data['si'],
+                                               ha=(packet.data['sh'], packet.data['sp']))
             self.replyJoin(packet, remote)
-            return
-
-        if (packet.data['tk'] == raeting.trnsKinds.yoke and
-                packet.data['pk'] == raeting.pcktKinds.request):
-
-            if not remote:
-                # create vacuous remote, that is, uid==0
-                remote = estating.RemoteEstate(stack=self,
-                                                uid=0,
-                                                sid=packet.data['si'],
-                                                host=packet.data['sh'],
-                                                port=packet.data['sp'],)
-
-            self.replyYoke(packet, remote)
             return
 
         if not remote:
@@ -581,11 +582,11 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         stalent.nack()
 
-    def join(self, duid=None, ha=None, timeout=None, cascade=False, create=True):
+    def join(self, duid=None, timeout=None, cascade=False):
         '''
         Initiate join transaction
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha, create=create)
+        remote = self.retrieveRemote(duid=duid)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -616,46 +617,11 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         joinent.join()
 
-    def yoke(self, duid=None, ha=None, timeout=None, cascade=False):
-        '''
-        Initiate yoke transaction (main initiated joining)
-        '''
-        remote = self.retrieveRemote(duid=duid, ha=ha, create=False)
-        if not remote:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
-            console.terse(emsg)
-            self.incStat('invalid_remote_eid')
-            return
-
-        timeout = timeout if timeout is not None else self.JoinerTimeout
-        data = odict(hk=self.Hk, bk=self.Bk)
-        yoker = transacting.Yoker(stack=self,
-                                    remote=remote,
-                                    timeout=timeout,
-                                    txData=data,
-                                    cascade=cascade)
-        yoker.yoke()
-
-    def replyYoke(self, packet, remote, timeout=None):
-        '''
-        Correspond to new yoke transaction for joining
-        '''
-        timeout = timeout if timeout is not None else self.JoinentTimeout
-        data = odict(hk=self.Hk, bk=self.Bk)
-        yokent = transacting.Yokent(stack=self,
-                                      remote=remote,
-                                      timeout=timeout,
-                                      sid=packet.data['si'],
-                                      tid=packet.data['ti'],
-                                      txData=data,
-                                      rxPacket=packet)
-        yokent.yoke()
-
-    def allow(self, duid=None, ha=None, timeout=None, cascade=False):
+    def allow(self, duid=None, timeout=None, cascade=False):
         '''
         Initiate allow transaction
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha)
+        remote = self.retrieveRemote(duid=duid)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -682,12 +648,12 @@ class RoadStack(stacking.KeepStack):
                                         rxPacket=packet)
         allowent.hello()
 
-    def alive(self, duid=None,  ha=None, timeout=None, cascade=False):
+    def alive(self, duid=None, timeout=None, cascade=False):
         '''
         Initiate alive transaction
         If duid is None then create remote at ha
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha)
+        remote = self.retrieveRemote(duid=duid)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)
@@ -715,12 +681,12 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         alivent.alive()
 
-    def message(self, body=None, duid=None, ha=None, timeout=None):
+    def message(self, body=None, duid=None, timeout=None):
         '''
         Initiate message transaction to remote at duid
         If duid is None then create remote at ha
         '''
-        remote = self.retrieveRemote(duid=duid, ha=ha)
+        remote = self.retrieveRemote(duid=duid)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)

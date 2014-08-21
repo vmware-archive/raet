@@ -35,8 +35,6 @@ class Estate(lotting.Lot):
                  natted=None,
                  uid=None,
                  tid=0,
-                 host="", #"127.0.0.1",
-                 port=raeting.RAET_PORT,
                  role=None,
                  **kwa):
         '''
@@ -50,16 +48,22 @@ class Estate(lotting.Lot):
 
         self.tid = tid # current transaction ID
 
-        if ha:  # takes precedence
+        if ha:
             host, port = ha
-        self.host = socket.gethostbyname(host)
-        self.port = port
-        #if self.host in ['0.0.0.0', '']:
-            #self.host = '127.0.0.1'
-
+            host = socket.gethostbyname(host)
+            if host in ['0.0.0.0', '']:
+                host = '127.0.0.1'
+            ha = (host, port)
+        self.ha = ha
+        if iha:  # takes precedence
+            host, port = iha
+            host = socket.gethostbyname(host)
+            if host in ['0.0.0.0', '']:
+                host = '127.0.0.1'
+            iha = (host, port)
         self.iha = iha # internal host address duple (host, port)
         self.natted = natted # is estate behind nat router
-        self.fqdn = socket.getfqdn(host)
+        self.fqdn = socket.getfqdn(self.ha[0])
         self.role = role if role is not None else self.name
         self.transactions = odict() # estate transactions keyed by transaction index
 
@@ -148,6 +152,8 @@ class LocalEstate(Estate):
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
         '''
+        if 'ha' not in kwa:
+            kwa['ha'] = ('127.0.0.1', raeting.RAET_PORT)
         super(LocalEstate, self).__init__( **kwa)
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
@@ -195,7 +201,7 @@ class RemoteEstate(Estate):
             while uid in stack.remotes or uid == stack.local.uid:
                 uid = stack.nextUid()
 
-        if 'host' not in kwa and 'ha' not in kwa:
+        if 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
         super(RemoteEstate, self).__init__(stack, prefix=prefix, uid=uid, **kwa)
         self.fuid = fuid
@@ -432,10 +438,3 @@ class RemoteEstate(Estate):
         return ([t for t in self.transactions.values()
                      if t.kind == raeting.trnsKinds.join])
 
-    def yokeInProcess(self):
-        '''
-        Returns  list of transactions for all yoke transaction with this remote
-        that are already in process
-        '''
-        return ([t for t in self.transactions.values()
-                     if t.kind == raeting.trnsKinds.yoke])

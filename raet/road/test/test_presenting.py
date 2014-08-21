@@ -95,43 +95,34 @@ class BasicTestCase(unittest.TestCase):
 
         return stack
 
-    def join(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
+    def join(self, initiator, correspondent, deid=None, duration=1.0,
                 cascade=False):
         '''
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        initiator.join(duid=deid, ha=mha, cascade=cascade)
+        initiator.join(duid=deid, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
-    def yoke(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
-                cascade=False):
-        '''
-        Utility method to do yoke. Call from test method.
-        '''
-        console.terse("\nYoke Transaction **************\n")
-        initiator.yoke(duid=deid, ha=mha, cascade=cascade)
-        self.service(correspondent, initiator, duration=duration)
-
-    def allow(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
+    def allow(self, initiator, correspondent, deid=None, duration=1.0,
                 cascade=False):
         '''
         Utility method to do allow. Call from test method.
         '''
         console.terse("\nAllow Transaction **************\n")
-        initiator.allow(duid=deid, ha=mha, cascade=cascade)
+        initiator.allow(duid=deid, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
-    def alive(self, initiator, correspondent, deid=None, mha=None, duration=1.0,
+    def alive(self, initiator, correspondent, deid=None, duration=1.0,
                 cascade=False):
         '''
         Utility method to do alive. Call from test method.
         '''
         console.terse("\nAlive Transaction **************\n")
-        initiator.alive(duid=deid, ha=mha, cascade=cascade)
+        initiator.alive(duid=deid, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
-    def message(self, main,  other, mains, others, duration=2.0):
+    def message(self, main, other, mains, others, duration=2.0):
         '''
         Utility to send messages both ways
         '''
@@ -539,7 +530,7 @@ class BasicTestCase(unittest.TestCase):
         otherRemote.joined = None
         otherRemote.allowed = None
 
-        self.alive(other, main, mha=('127.0.0.1', main.local.port))
+        self.alive(other, main)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]
@@ -850,7 +841,8 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         console.terse("\nJoin Main to Other *********\n")
-        self.join(main, other, mha=('127.0.0.1', other.local.port))
+        # create remote at mha=('127.0.0.1', other.local.ha[1])
+        self.join(main, other)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         remote = main.remotes.values()[0]
@@ -868,7 +860,7 @@ class BasicTestCase(unittest.TestCase):
         main.addRemote(estating.RemoteEstate(stack=main,
                                              uid=2,
                                              name=otherData['name'],
-                                             ha=('127.0.0.1', other.local.port),
+                                             ha=('127.0.0.1', other.local.ha[1]),
                                              verkey=otherData['verhex'],
                                              pubkey=otherData['pubhex'], ))
 
@@ -910,7 +902,7 @@ class BasicTestCase(unittest.TestCase):
                                      ha=("", raeting.RAET_TEST_PORT))
 
         console.terse("\nYoke Main to Other *********\n")
-        self.yoke(main, other, mha=('127.0.0.1', other.local.port))
+        self.yoke(main, other, mha=('127.0.0.1', other.local.ha[1]))
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(main.remotes), 0) # no remotes to yoke so fails
@@ -925,7 +917,7 @@ class BasicTestCase(unittest.TestCase):
         main.addRemote(estating.RemoteEstate(stack=main,
                                              uid=2,
                                              name=otherData['name'],
-                                             ha=('127.0.0.1', other.local.port),
+                                             ha=('127.0.0.1', other.local.ha[1]),
                                              verkey=otherData['verhex'],
                                              pubkey=otherData['pubhex'],))
 
@@ -1003,7 +995,7 @@ class BasicTestCase(unittest.TestCase):
         main.addRemote(estating.RemoteEstate(stack=main,
                                              uid=2,
                                              name=otherData['name'],
-                                             ha=('127.0.0.1', other.local.port),
+                                             ha=('127.0.0.1', other.local.ha[1]),
                                              verkey=otherData['verhex'],
                                              pubkey=otherData['pubhex'],))
 
@@ -1060,7 +1052,7 @@ class BasicTestCase(unittest.TestCase):
         main.addRemote(estating.RemoteEstate(stack=main,
                                              uid=2,
                                              name=otherData['name'],
-                                             ha=('127.0.0.1', other.local.port),
+                                             ha=('127.0.0.1', other.local.ha[1]),
                                              verkey=otherData['verhex'],
                                              pubkey=otherData['pubhex'],))
 
@@ -1118,11 +1110,11 @@ class BasicTestCase(unittest.TestCase):
         main.addRemote(estating.RemoteEstate(stack=main,
                                              uid=2,
                                              name=otherData['name'],
-                                             ha=('127.0.0.1', other.local.port),
+                                             ha=('127.0.0.1', other.local.ha[1]),
                                              verkey=otherData['verhex'],
                                              pubkey=otherData['pubhex'],))
 
-        self.alive(main, other, mha=('127.0.0.1', other.local.port))
+        self.alive(main, other)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(other.transactions), 0)
         otherRemote = main.remotes[other.local.uid]

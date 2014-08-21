@@ -302,8 +302,8 @@ class Stack(object):
         rx, ra = self.server.receive()  # if no data the duple is ('',None)
         if not rx:  # no received data
             return False
-        # triple = ( packet, source address, destination address)
-        self.rxes.append((rx, ra, self.server.ha))
+        # duple = ( packet, source address)
+        self.rxes.append((rx, ra))
         return True
 
     def serviceReceives(self):
@@ -326,7 +326,7 @@ class Stack(object):
         Handle on message from .rxes deque
         Assumes that there is a message on the .rxes deque
         '''
-        raw, sa, da = self.rxes.popleft()
+        raw, sa = self.rxes.popleft()
         console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
         processRx(received=raw)
 

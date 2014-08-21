@@ -42,34 +42,6 @@ class Lot(object):
         self.ha = ha
         self.sid = sid # current session ID
 
-    @property
-    def host(self):
-        '''
-        property that returns host from ha ip address (host, port) duple
-        '''
-        return self.ha[0] if self.ha else None
-
-    @host.setter
-    def host(self, value):
-        '''
-        sets host part of ha duple (host, port)
-        '''
-        self.ha = (value, self.ha[1] if self.ha else None)
-
-    @property
-    def port(self):
-        '''
-        property that returns port from ha ip address (host, port) duple
-        '''
-        return self.ha[1] if self.ha else None
-
-    @port.setter
-    def port(self, value):
-        '''
-        sets port part of ha duple (host, port)
-        '''
-        self.ha = (self.ha[0] if self.ha else None, value)
-
     def nextSid(self):
         '''
         Generates next session id number.

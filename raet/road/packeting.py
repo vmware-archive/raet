@@ -534,13 +534,14 @@ class TxPacket(Packet):
         Property is transaction tuple (rf, le, re, si, ti, bf,)
         '''
         data = self.data
+        cf = data['cf']
         le = data['se']
-        if le == 0:
-            le = (data['sh'], data['sp'])
+        if le == 0 and cf:
+            le = (data['dh'], data['dp'])
         re = data['de']
-        if re == 0:
+        if re == 0 and not cf:
             re = (data['dh'], data['dp'])
-        return ((data['cf'], le, re, data['si'], data['ti'], data['bf']))
+        return ((cf, le, re, data['si'], data['ti'], data['bf']))
 
     def signature(self, msg):
         '''
@@ -612,13 +613,14 @@ class RxPacket(Packet):
         Property is transaction tuple (rf, le, re, si, ti, bf,)
         '''
         data = self.data
+        cf = data['cf']
         le = data['de']
-        if le == 0:
-            le = (data['dh'], data['dp'])
+        if le == 0 and not cf:
+            le = (data['sh'], data['sp'])
         re = data['se']
-        if re == 0:
+        if re == 0 and cf:
             re = (data['sh'], data['sp'])
-        return ((not data['cf'], le, re, data['si'], data['ti'], data['bf']))
+        return ((not cf, le, re, data['si'], data['ti'], data['bf']))
 
     def verify(self, signature, msg):
         '''
