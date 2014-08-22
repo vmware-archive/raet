@@ -397,13 +397,13 @@ class RoadStack(stacking.KeepStack):
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
 
-        deid = packet.data['de']
-        # non main can have local.uid == 0 but process join with deid != 0
-        if self.local.uid != 0 and deid != 0 and deid != self.local.uid:
-            emsg = "Invalid destination uid = {0}. Dropping packet...\n".format(deid)
-            console.concise( emsg)
-            self.incStat('invalid_destination')
-            return
+        #deid = packet.data['de']
+
+        #if deid != 0 and deid not in self.remotes:
+            #emsg = "Invalid destination uid = {0}. Dropping packet...\n".format(deid)
+            #console.concise( emsg)
+            #self.incStat('invalid_destination')
+            #return
 
         self.processRx(packet)
 
@@ -415,18 +415,21 @@ class RoadStack(stacking.KeepStack):
         console.verbose("{0} received packet data\n{1}\n".format(self.name, received.data))
         console.verbose("{0} received packet index = '{1}'\n".format(self.name, received.index))
 
+        bf = received.data['bf']
+        if bf:
+            return  # broadcast transaction not yet supported
+
+
         cf = received.data['cf']
         rsid = received.data['si']
-
+        deid = packet.data['de']
+        # when deid == 0 then index
         reid = received.index[2] # index is tupel (rf, le, re, si, ti, bf)
         # when source uid is 0 then index has source ha so first look by uid then by ha
         remote = self.remotes.get(reid, None) or self.haRemotes.get(reid, None)
         if remote and remote.reaped:
             remote.unreap() # received a verified packet so remote is not dead
 
-        bf = received.data['bf']
-        if bf:
-            return  # broadcast transaction not yet supported
 
         if rsid == 0: # can only use sid == 0 on join transaction
             if received.data['tk'] not in [raeting.trnsKinds.join]: # drop packet
@@ -534,6 +537,7 @@ class RoadStack(stacking.KeepStack):
     def stale(self, packet):
         '''
         Initiate stale transaction in order to nack a stale correspondent packet
+        but only for preexisting remotes
         '''
         if packet.data['pk'] in [raeting.pcktKinds.nack,
                                          raeting.pcktKinds.unjoined,
@@ -542,12 +546,11 @@ class RoadStack(stacking.KeepStack):
                                          raeting.pcktKinds.refuse,
                                          raeting.pcktKinds.reject,]:
             return # ignore stale nacks
-
-        duid = packet.data['se']
-        ha = (packet.data['sh'], packet.data['sp'])
-        remote = self.retrieveRemote(duid=duid, ha=ha)
+        create = False
+        uid = packet.data['de']
+        remote = self.retrieveRemote(uid=uid)
         if not remote:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            emsg = "Stale from unknown remote id '{0}'\n".format(uid)
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return
@@ -586,7 +589,7 @@ class RoadStack(stacking.KeepStack):
         '''
         Initiate join transaction
         '''
-        remote = self.retrieveRemote(duid=duid)
+        remote = self.retrieveRemote(uid=uid)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
             console.terse(emsg)

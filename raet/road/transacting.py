@@ -27,7 +27,6 @@ from . import estating
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-
 class Transaction(object):
     '''
     RAET protocol transaction class
@@ -191,8 +190,7 @@ class Staler(Initiator):
         '''
         Prepare .txData for nack to stale
         '''
-        self.txData.update( #sh=self.stack.local.ha[0],
-                            #sp=self.stack.local.ha[1],
+        self.txData.update(
                             dh=self.rxPacket.data['sh'], # may need for index
                             dp=self.rxPacket.data['sp'], # may need for index
                             se=self.stack.local.uid,
@@ -204,7 +202,8 @@ class Staler(Initiator):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada)
+                            fk=raeting.footKinds.nada
+                          )
 
     def nack(self):
         '''
@@ -260,8 +259,7 @@ class Stalent(Correspondent):
         '''
         Prepare .txData for nack to stale
         '''
-        self.txData.update( #sh=self.stack.local.ha[0],
-                            #sp=self.stack.local.ha[1],
+        self.txData.update(
                             dh=self.rxPacket.data['sh'], # may need for index
                             dp=self.rxPacket.data['sp'], # may need for index
                             se=self.stack.local.uid,
@@ -273,7 +271,8 @@ class Stalent(Correspondent):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada)
+                            fk=raeting.footKinds.nada
+                           )
 
     def nack(self):
         '''
@@ -397,8 +396,7 @@ class Joiner(Initiator):
         '''
         Prepare .txData
         '''
-        self.txData.update( #sh=self.stack.local.ha[0],
-                            #sp=self.stack.local.ha[1],
+        self.txData.update(
                             dh=self.remote.ha[0], # may need for index
                             dp=self.remote.ha[1], # may need for index
                             se=self.remote.nuid,
@@ -410,7 +408,8 @@ class Joiner(Initiator):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada)
+                            fk=raeting.footKinds.nada
+                          )
 
     def join(self):
         '''
@@ -531,25 +530,17 @@ class Joiner(Initiator):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        leid = body.get('leid')
-        if not leid: # None or zero
-            emsg = "Missing or invalid local estate id in accept packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_accept')
-            self.remove(index=self.txPacket.index)
-            return
-
-        reid = body.get('reid')
-        if not reid: # None or zero
-            emsg = "Missing or invalid remote estate id in accept packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_accept')
-            self.remove(index=self.txPacket.index)
-            return
-
         name = body.get('name')
         if not name:
             emsg = "Missing remote name in accept packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_accept')
+            self.remove(index=self.txPacket.index)
+            return
+
+        uid = body.get('uid')
+        if not uid: # None or zero
+            emsg = "Missing or invalid remote farside uid in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(index=self.txPacket.index)
@@ -871,20 +862,20 @@ class Joinent(Correspondent):
         Prepare .txData
         '''
         #since bootstrap transaction use the reversed seid and deid from packet
-        self.txData.update(#sh=self.stack.local.ha[0],
-                           #sp=self.stack.local.ha[1],
-                           dh=self.remote.ha[0], # maybe needed for index
-                           dp=self.remote.ha[1], # maybe needed for index
-                           se=self.rxPacket.data['de'],
-                           de=self.rxPacket.data['se'],
-                           tk=self.kind,
-                           cf=self.rmt,
-                           bf=self.bcst,
-                           wf=self.wait,
-                           si=self.sid,
-                           ti=self.tid,
-                           ck=raeting.coatKinds.nada,
-                           fk=raeting.footKinds.nada,)
+        self.txData.update(
+                            dh=self.rxPacket.data['sh'], # may need for index
+                            dp=self.rxPacket.data['sp'], # may need for index
+                            se=self.rxPacket.data['de'],
+                            de=self.rxPacket.data['se'],
+                            tk=self.kind,
+                            cf=self.rmt,
+                            bf=self.bcst,
+                            wf=self.wait,
+                            si=self.sid,
+                            ti=self.tid,
+                            ck=raeting.coatKinds.nada,
+                            fk=raeting.footKinds.nada,
+                          )
 
     def join(self):
         '''
@@ -977,10 +968,6 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        #host = data['sh']
-        #port = data['sp']
-        # responses use received host port since index includes
-        #self.txData.update( dh=host, dp=port,)
         ha = (data['sh'], data['sp'])
 
         reid = data['se']
@@ -1175,9 +1162,8 @@ class Joinent(Correspondent):
         '''
         Send accept response to join request
         '''
-        body = odict([ ('leid', self.remote.uid),
-                       ('reid', self.stack.local.uid),
-                       ('name', self.stack.local.name),
+        body = odict([ ('name', self.stack.local.name),
+                       ('uid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),
                        ('pubhex', self.stack.local.priver.pubhex),
                        ('role', self.stack.local.role), ])
@@ -1389,8 +1375,7 @@ class Allower(Initiator):
         '''
         Prepare .txData
         '''
-        self.txData.update( #sh=self.stack.local.ha[0],
-                            #sp=self.stack.local.ha[1],
+        self.txData.update(
                             dh=self.remote.ha[0], # maybe needed for index
                             dp=self.remote.ha[1], # maybe needed for index
                             se=self.stack.local.uid,
@@ -1400,7 +1385,8 @@ class Allower(Initiator):
                             bf=self.bcst,
                             wf=self.wait,
                             si=self.sid,
-                            ti=self.tid, )
+                            ti=self.tid,
+                          )
 
     def hello(self):
         '''

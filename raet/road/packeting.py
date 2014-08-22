@@ -536,10 +536,8 @@ class TxPacket(Packet):
         data = self.data
         cf = data['cf']
         le = data['se']
-        if le == 0 and cf:
-            le = (data['dh'], data['dp'])
         re = data['de']
-        if re == 0 and not cf:
+        if (re == 0 and not cf) or (le == 0 and cf):
             re = (data['dh'], data['dp'])
         return ((cf, le, re, data['si'], data['ti'], data['bf']))
 
@@ -615,10 +613,8 @@ class RxPacket(Packet):
         data = self.data
         cf = data['cf']
         le = data['de']
-        if le == 0 and not cf:
-            le = (data['sh'], data['sp'])
         re = data['se']
-        if re == 0 and cf:
+        if (re == 0 and cf) or (le == 0 and not cf):
             re = (data['sh'], data['sp'])
         return ((not cf, le, re, data['si'], data['ti'], data['bf']))
 

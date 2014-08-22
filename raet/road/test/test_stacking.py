@@ -92,12 +92,18 @@ class BasicTestCase(unittest.TestCase):
             shutil.rmtree(self.baseDirpath)
 
 
-    def join(self, mha=None, timeout=None):
+    def join(self, timeout=None):
         '''
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        self.other.join(ha=mha, timeout=timeout)
+        if not self.other.remotes:
+            self.other.addRemote(estating.RemoteEstate(stack=self.other,
+                                                       fuid=0, # vacuous join
+                                                       sid=0, # always 0 for join
+                                                       ha=self.main.local.ha)
+                                )
+        self.other.join(timeout=timeout)
         self.service()
 
     def allow(self):
@@ -730,6 +736,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testJoinForever')
+    runOne('testBootstrapJson')

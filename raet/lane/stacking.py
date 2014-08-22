@@ -85,7 +85,7 @@ class LaneStack(stacking.Stack):
         Handle on message from .rxes deque
         Assumes that there is a message on the .rxes deque
         '''
-        raw, sa, da = self.rxes.popleft()
+        raw, sa = self.rxes.popleft()
         console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
         page = paging.RxPage(packed=raw)
 
