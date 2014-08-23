@@ -1246,6 +1246,7 @@ class Joinent(Correspondent):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("join_correspond_complete")
 
+        # Responsiblity of remote iniators to restart themselves after sid change
         self.remote.removeStaleCorrespondents(renew=(self.sid==0))
         self.remote.joined = True # accepted
         self.remote.nextSid()

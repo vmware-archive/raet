@@ -495,7 +495,7 @@ class RoadStack(stacking.KeepStack):
                 remote = self.remotes.get(nuid, None)
 
             if remote:
-                if not cf: # packet from remote initiated transaction
+                if not cf: # packet from remotely initiated transaction
                     if not remote.validRsid(rsid): # invalid rsid
                         emsg = "{0} Stale sid '{1}' in packet from {2}\n".format(
                                  self.name, rsid, remote.name)
@@ -504,8 +504,7 @@ class RoadStack(stacking.KeepStack):
                         self.replyStale(received, remote) # nack stale transaction
                         return
 
-                    if rsid != remote.rsid:
-                        # updated valid rsid so change remote.rsid
+                    if rsid != remote.rsid: # updated valid rsid so change remote.rsid
                         remote.rsid = rsid
                         remote.removeStaleCorrespondents()
 
@@ -528,11 +527,11 @@ class RoadStack(stacking.KeepStack):
             self.incStat('unknown_remote')
             return
 
-        self.reply(received, remote) # correspond to new transaction initiated by remote
+        self.correspond(received, remote) # correspond to new transaction initiated by remote
 
-    def reply(self, packet, remote):
+    def correspond(self, packet, remote):
         '''
-        Reply to packet with corresponding transaction or action
+        Create correspondent transaction remote and handle packet
         '''
         if (packet.data['tk'] == raeting.trnsKinds.join and
                 packet.data['pk'] == raeting.pcktKinds.request):

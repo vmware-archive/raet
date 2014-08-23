@@ -349,7 +349,7 @@ class RemoteEstate(Estate):
         '''
         for index, transaction in self.transactions.items():
             sid = index[3]
-            rf = index[0]
+            rf = index[0] # correspondent
             if rf and  ((renew and sid != 0) or (not renew and not self.validRsid(sid))):
                 transaction.nack()
                 self.removeTransaction(index)
