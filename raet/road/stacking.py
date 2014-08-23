@@ -150,7 +150,7 @@ class RoadStack(stacking.KeepStack):
                                         bufcnt=bufcnt,
                                         **kwa)
         self.mutable = mutable
-
+        self.joinees = odict() # remotes associated with vacuous joins, keyed by ha
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
         self.reapeds =  odict() # reaped remotes keyed by name
@@ -396,15 +396,6 @@ class RoadStack(stacking.KeepStack):
 
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
-
-        #deid = packet.data['de']
-
-        #if deid != 0 and deid not in self.remotes:
-            #emsg = "Invalid destination uid = {0}. Dropping packet...\n".format(deid)
-            #console.concise( emsg)
-            #self.incStat('invalid_destination')
-            #return
-
         self.processRx(packet)
 
     def processRx(self, received):
@@ -419,47 +410,107 @@ class RoadStack(stacking.KeepStack):
         if bf:
             return  # broadcast transaction not yet supported
 
+        nuid = packet.data['de']
 
+        if (nuid != 0 and nuid not in self.remotes):
+            emsg = "Invalid destination uid = {0}.\n".format(nuid)
+            console.concise( emsg)
+            self.incStat('destination_uid_invalid')
+            return
+
+        fuid = packet.data['se']
+        tk = received.data['tk']
         cf = received.data['cf']
         rsid = received.data['si']
-        deid = packet.data['de']
-        # when deid == 0 then index
-        reid = received.index[2] # index is tupel (rf, le, re, si, ti, bf)
-        # when source uid is 0 then index has source ha so first look by uid then by ha
-        remote = self.remotes.get(reid, None) or self.haRemotes.get(reid, None)
-        if remote and remote.reaped:
-            remote.unreap() # received a verified packet so remote is not dead
 
+        remote = None
 
-        if rsid == 0: # can only use sid == 0 on join transaction
-            if received.data['tk'] not in [raeting.trnsKinds.join]: # drop packet
+        if tk in [raeting.trnsKinds.join]: # join transaction
+            rha = packet.data['sha']
+            if rsid != 0: # join  must use sid == 0
+                emsg = "{0} Nonzero join sid '{1}' in packet from {2}\n".format(
+                                             self.name, rsid, rha)
+                console.terse(emsg)
+                self.incStat('join_invalid_sid')
+                return
+
+            # for vacuous joins try to match remote from joinees by rha
+            if cf: # packet is from join correspondent
+                if fuid == 0: # vacuous join
+                    remote = self.joinees.get(rha, None)
+                    # no need to do nuid match here because index includes nuid
+                    # and if remote and nuid mismatch then will drop because
+                    # transaction index will not be found
+                    # if not remote then also transaction index will not be found
+                if not remote:
+                    if nuid == 0:
+                        emsg = ("{0} Invalid join nuid zero from "
+                                    " '{1}'\n".format(self.name, rha))
+                        console.terse(emsg)
+                        self.incStat('join_invalid_nuid')
+                        return
+
+            else: # (not cf) # packet is from join initiator
+                if nuid == 0: # vacuous join
+                    if fuid == 0: # invalid vacuous join
+                        emsg = ("{0} Invalid join fuid zero from "
+                                " '{1}'\n".format(self.name, rha))
+                        console.terse(emsg)
+                        self.incStat('join_invalid_fuid')
+                        return
+
+                    remote = self.joinees.get(rha, None)
+                    if remote: # already have
+                        if remote.fuid != fuid: # fuid rha mismatch assume prior stale
+                            del self.joinees[rha] # remove prior stale vacuous joinee
+                            remote = None
+
+                    if not remote: # no current joinees for intiator at rha
+                        if packet.data['pk'] not in [raeting.pcktKinds.request]:
+                            self.incStat('join_stale')
+                            return
+
+                        # create remote and assign to joinees
+                        remote = estating.RemoteEstate(stack=self,
+                                                       fuid=fuid,
+                                                       sid=rsid,
+                                                       ha=rha)
+                        self.joinees[rha] = remote
+
+        else: # not join transaction
+            if rsid == 0: # cannot use sid == 0 on nonjoin transaction
                 emsg = "Invalid sid '{0}' in packet\n".format(rsid)
                 console.terse(emsg)
-                self.incStat('invalid_sid_attempt')
+                self.incStat('invalid_sid')
                 return
 
-        else: # rsid !=0
-            if received.data['tk'] in [raeting.trnsKinds.join]:
-                # join  must use sid == 0
-                emsg = "{0} Nonzero join sid '{1}' in packet from {2}\n".format(
-                                             self.name, rsid, remote.name)
+            if nuid == 0 or fuid == 0:
+                emsg = ("{0} zero nuid or fuid in nonjoin from remote"
+                        " '{1}'\n".format(self.name, rha))
                 console.terse(emsg)
-                self.incStat('nonzero_sid_attempt')
+                self.incStat('invalid_uid')
                 return
 
-            if remote and not cf: # packet from remote initiated transaction
-                if not remote.validRsid(rsid): # invalid rsid
-                    emsg = "{0} Stale sid '{1}' in packet from {2}\n".format(
-                             self.name, rsid, remote.name)
-                    console.terse(emsg)
-                    self.incStat('stale_sid_attempt')
-                    self.replyStale(received, remote) # nack stale transaction
-                    return
+            if not remote: # otherwise get remote based on nuid.
+                remote = self.remotes.get(nuid, None)
 
-                if rsid != remote.rsid:
-                    # updated valid rsid so change remote.rsid
-                    remote.rsid = rsid
-                    remote.removeStaleCorrespondents()
+            if remote:
+                if not cf: # packet from remote initiated transaction
+                    if not remote.validRsid(rsid): # invalid rsid
+                        emsg = "{0} Stale sid '{1}' in packet from {2}\n".format(
+                                 self.name, rsid, remote.name)
+                        console.terse(emsg)
+                        self.incStat('stale_sid')
+                        self.replyStale(received, remote) # nack stale transaction
+                        return
+
+                    if rsid != remote.rsid:
+                        # updated valid rsid so change remote.rsid
+                        remote.rsid = rsid
+                        remote.removeStaleCorrespondents()
+
+                if remote.reaped:
+                    remote.unreap() # received a valid packet so remote is not dead
 
         if remote:
             trans = remote.transactions.get(received.index, None)
@@ -471,7 +522,13 @@ class RoadStack(stacking.KeepStack):
             self.stale(received)
             return
 
-        self.reply(received, remote) # new transaction initiated by remote
+        if not remote:
+            emsg = "Unknown remote destination '{0}'\n".format(nuid)
+            console.terse(emsg)
+            self.incStat('unknown_remote')
+            return
+
+        self.reply(received, remote) # correspond to new transaction initiated by remote
 
     def reply(self, packet, remote):
         '''
@@ -479,18 +536,7 @@ class RoadStack(stacking.KeepStack):
         '''
         if (packet.data['tk'] == raeting.trnsKinds.join and
                 packet.data['pk'] == raeting.pcktKinds.request):
-
-            if not remote:
-                remote = estating.RemoteEstate(stack=self,
-                                               sid=packet.data['si'],
-                                               ha=(packet.data['sh'], packet.data['sp']))
             self.replyJoin(packet, remote)
-            return
-
-        if not remote:
-            emsg = "Unknown remote destination estate id '{0}'\n".format(packet.data['se'])
-            console.terse(emsg)
-            self.incStat('unknown_remote_eid')
             return
 
         if (packet.data['tk'] == raeting.trnsKinds.allow and
