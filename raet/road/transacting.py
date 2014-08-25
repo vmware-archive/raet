@@ -731,7 +731,7 @@ class Joiner(Initiator):
         self.remove(index=self.txPacket.index) # self.rxPacket.index
 
         if self.cascade:
-            self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.allow(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
     def nack(self, kind=raeting.pcktKinds.nack):
         '''
@@ -1425,7 +1425,7 @@ class Allower(Initiator):
             emsg = "Allower {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             return
 
         self.remote.rekey() # refresh short term keys and reset .allowed to None
@@ -1590,7 +1590,7 @@ class Allower(Initiator):
         self.stack.dumpRemote(self.remote)
         self.remote.sendSavedMessages() # could include messages saved on rejoin
         if self.cascade:
-            self.stack.alive(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.alive(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
     def nack(self, kind=raeting.pcktKinds.nack):
         '''
@@ -1666,7 +1666,7 @@ class Allower(Initiator):
         console.concise("Allower {0}. Rejected unjoin by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+        self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
 class Allowent(Correspondent):
     '''
@@ -2182,7 +2182,7 @@ class Aliver(Initiator):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             return
 
         if not self.remote.allowed:
@@ -2190,7 +2190,7 @@ class Aliver(Initiator):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
-            self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.allow(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             return
 
         self.remote.refresh(alived=None) #Restart timer but do not change alived status
@@ -2263,7 +2263,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Refused unjoin by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+        self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
     def unallow(self):
         '''
@@ -2278,7 +2278,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Refused unallow by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+        self.stack.allow(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
 class Alivent(Correspondent):
     '''

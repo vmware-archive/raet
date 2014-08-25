@@ -328,7 +328,7 @@ class Stack(object):
         '''
         raw, sa = self.rxes.popleft()
         console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
-        processRx(received=raw)
+        processRx(packet=raw)
 
     def serviceRxes(self):
         '''
@@ -344,7 +344,7 @@ class Stack(object):
         if self.rxes:
             self.handleOnceRx()
 
-    def processRx(self, received):
+    def processRx(self, packet):
         '''
         Process
         '''

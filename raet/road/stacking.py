@@ -398,15 +398,15 @@ class RoadStack(stacking.KeepStack):
         packet.data.update(sh=sh, sp=sp)
         self.processRx(packet)
 
-    def processRx(self, received):
+    def processRx(self, packet):
         '''
         Process packet via associated transaction or
         reply with new correspondent transaction
         '''
-        console.verbose("{0} received packet data\n{1}\n".format(self.name, received.data))
-        console.verbose("{0} received packet index = '{1}'\n".format(self.name, received.index))
+        console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
+        console.verbose("{0} packet packet index = '{1}'\n".format(self.name, packet.index))
 
-        bf = received.data['bf']
+        bf = packet.data['bf']
         if bf:
             return  # broadcast transaction not yet supported
 
@@ -419,14 +419,14 @@ class RoadStack(stacking.KeepStack):
             return
 
         fuid = packet.data['se']
-        tk = received.data['tk']
-        cf = received.data['cf']
-        rsid = received.data['si']
+        tk = packet.data['tk']
+        cf = packet.data['cf']
+        rsid = packet.data['si']
 
         remote = None
 
         if tk in [raeting.trnsKinds.join]: # join transaction
-            rha = packet.data['sha']
+            rha = (packet.data['sh'],  packet.data['sp'])
             if rsid != 0: # join  must use sid == 0
                 emsg = "{0} Nonzero join sid '{1}' in packet from {2}\n".format(
                                              self.name, rsid, rha)
@@ -501,7 +501,7 @@ class RoadStack(stacking.KeepStack):
                                  self.name, rsid, remote.name)
                         console.terse(emsg)
                         self.incStat('stale_sid')
-                        self.replyStale(received, remote) # nack stale transaction
+                        self.replyStale(packet, remote) # nack stale transaction
                         return
 
                     if rsid != remote.rsid: # updated valid rsid so change remote.rsid
@@ -509,16 +509,16 @@ class RoadStack(stacking.KeepStack):
                         remote.removeStaleCorrespondents()
 
                 if remote.reaped:
-                    remote.unreap() # received a valid packet so remote is not dead
+                    remote.unreap() # packet a valid packet so remote is not dead
 
         if remote:
-            trans = remote.transactions.get(received.index, None)
+            trans = remote.transactions.get(packet.index, None)
             if trans:
-                trans.receive(received)
+                trans.receive(packet)
                 return
 
         if cf: #packet from correspondent to non-existent locally initiated transaction
-            self.stale(received)
+            self.stale(packet)
             return
 
         if not remote:
@@ -527,7 +527,7 @@ class RoadStack(stacking.KeepStack):
             self.incStat('unknown_remote')
             return
 
-        self.correspond(received, remote) # correspond to new transaction initiated by remote
+        self.correspond(packet, remote) # correspond to new transaction initiated by remote
 
     def correspond(self, packet, remote):
         '''
@@ -630,7 +630,7 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         stalent.nack()
 
-    def join(self, duid=None, timeout=None, cascade=False):
+    def join(self, uid=None, timeout=None, cascade=False):
         '''
         Initiate join transaction
         '''
@@ -665,13 +665,13 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         joinent.join()
 
-    def allow(self, duid=None, timeout=None, cascade=False):
+    def allow(self, uid=None, timeout=None, cascade=False):
         '''
         Initiate allow transaction
         '''
-        remote = self.retrieveRemote(duid=duid)
+        remote = self.retrieveRemote(uid=uid)
         if not remote:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            emsg = "Invalid remote destination estate id '{0}'\n".format(uid)
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return
