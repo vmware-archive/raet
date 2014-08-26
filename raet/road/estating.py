@@ -417,7 +417,7 @@ class RemoteEstate(Estate):
         '''
         while self.messages:
             body = self.messages.popleft()
-            self.stack.message(body=body, duid=self.uid)
+            self.stack.message(body=body, uid=self.uid)
             emsg = ("Stack {0}: Resent saved message with remote {1} at {2}"
                                         "\n".format(self.stack.name, index, self.name))
             console.concise(emsg)

@@ -434,9 +434,9 @@ class RoadStack(stacking.KeepStack):
                 self.incStat('join_invalid_sid')
                 return
 
-            # for vacuous joins try to match remote from joinees by rha
-            if cf: # packet is from join correspondent
+            if cf: # packet  source is joinent, dest is joiner
                 if fuid == 0: # vacuous join
+                    # for vacuous joins try to match remote from joinees by rha
                     remote = self.joinees.get(rha, None)
                     # no need to do nuid match here because index includes nuid
                     # and if remote and nuid mismatch then will drop because
@@ -450,7 +450,7 @@ class RoadStack(stacking.KeepStack):
                         self.incStat('join_invalid_nuid')
                         return
 
-            else: # (not cf) # packet is from join initiator
+            else: # (not cf) # source is joiner, dest is joinent
                 if nuid == 0: # vacuous join
                     if fuid == 0: # invalid vacuous join
                         emsg = ("{0} Invalid join fuid zero from "
@@ -458,14 +458,15 @@ class RoadStack(stacking.KeepStack):
                         console.terse(emsg)
                         self.incStat('join_invalid_fuid')
                         return
-
+                    # for vacuous joins try to match remote from joinees by rha
                     remote = self.joinees.get(rha, None)
-                    if remote: # already have
+                    if remote: # already have so check stale
                         if remote.fuid != fuid: # fuid rha mismatch assume prior stale
                             del self.joinees[rha] # remove prior stale vacuous joinee
                             remote = None
 
                     if not remote: # no current joinees for intiator at rha
+                        # is it not first packet of join
                         if packet.data['pk'] not in [raeting.pcktKinds.request]:
                             self.incStat('join_stale')
                             return
@@ -475,7 +476,8 @@ class RoadStack(stacking.KeepStack):
                                                        fuid=fuid,
                                                        sid=rsid,
                                                        ha=rha)
-                        self.joinees[rha] = remote
+                        # self.joinees[rha] = remote
+                        # added to joinees in joinent if vacuous
 
         else: # not join transaction
             if rsid == 0: # cannot use sid == 0 on nonjoin transaction
@@ -729,14 +731,14 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         alivent.alive()
 
-    def message(self, body=None, duid=None, timeout=None):
+    def message(self, body=None, uid=None, timeout=None):
         '''
         Initiate message transaction to remote at duid
         If duid is None then create remote at ha
         '''
-        remote = self.retrieveRemote(duid=duid)
+        remote = self.retrieveRemote(uid=uid)
         if not remote:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            emsg = "Invalid remote destination estate id '{0}'\n".format(uid)
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return

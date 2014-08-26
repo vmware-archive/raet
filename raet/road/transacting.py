@@ -49,7 +49,7 @@ class Transaction(object):
         self.timeout = timeout
         self.timer = aiding.StoreTimer(self.stack.store, duration=self.timeout)
 
-        self.rmt = rmt # cf flag
+        self.rmt = rmt # remote initiator
         self.bcst = bcst # bf flag
         self.wait = wait # wf flag
 
@@ -108,7 +108,7 @@ class Transaction(object):
 
     def remove(self, remote=None, index=None):
         '''
-        Remove self from stack transactions
+        Remove self from remote transactions
         '''
         if not index:
             index = self.index
@@ -138,7 +138,7 @@ class Initiator(Transaction):
         '''
         Setup Transaction instance
         '''
-        kwa['rmt'] = False  # force rmt to False
+        kwa['rmt'] = False  # force rmt to False since local initator
         super(Initiator, self).__init__(**kwa)
 
     def process(self):
@@ -158,7 +158,7 @@ class Correspondent(Transaction):
         '''
         Setup Transaction instance
         '''
-        kwa['rmt'] = True  # force rmt to True
+        kwa['rmt'] = True  # force rmt to True since remote initiator
 
         missing = []
         for arg in self.Requireds:
@@ -333,6 +333,8 @@ class Joiner(Initiator):
 
         self.sid = 0 #self.remote.sid always 0 for join
         self.tid = self.remote.nextTid()
+        # fuid is assigned during join but want to preserve vacuousness for remove
+        self.vacuous = (self.remote.fuid == 0)
         self.prep()
         # don't dump remote yet since its ephemeral until we join and get valid uid
 
@@ -342,6 +344,25 @@ class Joiner(Initiator):
         '''
         super(Joiner, self).transmit(packet)
         self.redoTimer.restart()
+
+    def add(self, remote=None, index=None):
+        '''
+        Augment with add self.remote to stack.joinees if vacuous
+        '''
+        super(Joiner, self).add(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            self.stack.joinees[self.remote.ha] = self.remote
+
+    def remove(self, remote=None, index=None):
+        '''
+        Remove self from stack transactions
+        '''
+        super(Joiner, self).remove(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            if self.remote.ha in self.stack.joinees:
+                del self.stack.joinees[self.remote.ha]
 
     def receive(self, packet):
         """
@@ -448,7 +469,7 @@ class Joiner(Initiator):
                     return
 
         self.remote.joined = None
-        self.add()
+
         body = odict([('name', self.stack.local.name),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
@@ -467,6 +488,7 @@ class Joiner(Initiator):
         console.concise("Joiner {0}. Do Join with {1} at {2}\n".format(
                         self.stack.name, self.remote.name, self.stack.store.stamp))
         self.transmit(packet)
+        self.add(index=self.txPacket.index)
 
     def renew(self):
         '''
@@ -538,8 +560,8 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        uid = body.get('uid')
-        if not uid: # None or zero
+        fuid = body.get('fuid')
+        if not fuid: # None or zero
             emsg = "Missing or invalid remote farside uid in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
@@ -609,11 +631,9 @@ class Joiner(Initiator):
             #self.stack.dumpRemote(self.remote)
             return
 
-        vacuous = (self.remote.uid == 0)
-
         # otherwise status == raeting.acceptances.accepted
         # not vacuous and not sameAll and not mutable then reject
-        if not (vacuous or sameAll or self.stack.mutable):
+        if not (self.vacuous or sameAll or self.stack.mutable):
             emsg = ("Joiner {0}. Invalid accept nonvacuous change or imutable "
                         "'{1}'\n".format(self.stack.name,
                                          self.remote.name))
@@ -623,25 +643,10 @@ class Joiner(Initiator):
 
         #vacuous or sameAll or self.stack.mutable then accept
         # check unique first so do not change road unless unique
-        if (reid in self.stack.remotes and
-                    self.stack.remotes[reid] is not self.remote): # non unquie reid
-            emsg = "Joiner {0}. Reid '{1}' unavailable for remote {2}\n".format(
-                                self.stack.name, reid, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
         if (name in self.stack.nameRemotes and
                 self.stack.nameRemotes[name] is not self.remote): # non unique name
             emsg = "Joiner {0}. Name '{1}' unavailable for remote {2}\n".format(
                             self.stack.name, name, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        if (leid in self.stack.remotes): # verify leid unique
-            emsg = "Joiner {0}. Leid '{1}' unavailable for remote {2}\n".format(
-                                        self.stack.name, leid, self.remote.name)
             console.terse(emsg)
             self.nack(kind=raeting.pcktKinds.reject)
             return
@@ -652,14 +657,7 @@ class Joiner(Initiator):
         if pubhex != self.remote.pubber.keyhex:
             self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
-        if self.remote.uid != reid: #change id of remote estate
-            try:
-                self.stack.moveRemote(self.remote, new=reid)
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.remove(index=self.txPacket.index)
-                return
+        self.remote.fuid = fuid # set fuid of remote estate
 
         if self.remote.name != name: # rename remote estate to new name
             try:
@@ -669,10 +667,6 @@ class Joiner(Initiator):
                 self.stack.incStat(self.statKey())
                 self.remove(index=self.txPacket.index)
                 return
-
-        if self.stack.local.uid != leid:
-            self.stack.local.uid = leid # change id of local estate
-            self.stack.dumpLocal() # only dump if changed
 
         self.remote.replaceStaleInitiators(renew=(self.sid==0))
         self.remote.nextSid() # start new session
@@ -786,7 +780,7 @@ class Joinent(Correspondent):
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
         self.redoTimer = aiding.StoreTimer(self.stack.store, duration=0.0)
-
+        self.vacuous = None # gets set in join method
         self.prep()
 
     def transmit(self, packet):
@@ -795,6 +789,25 @@ class Joinent(Correspondent):
         '''
         super(Joinent, self).transmit(packet)
         self.redoTimer.restart()
+
+    def add(self, remote=None, index=None):
+        '''
+        Augment with add self.remote to stack.joinees if vacuous
+        '''
+        super(Joinent, self).add(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            self.stack.joinees[self.remote.ha] = self.remote
+
+    def remove(self, remote=None, index=None):
+        '''
+        Remove self from stack transactions
+        '''
+        super(Joinent, self).remove(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            if self.remote.ha in self.stack.joinees:
+                del self.stack.joinees[self.remote.ha]
 
     def receive(self, packet):
         """
@@ -970,48 +983,44 @@ class Joinent(Correspondent):
 
         ha = (data['sh'], data['sp'])
 
-        reid = data['se']
+        reid = data['se'] # should match self.remote.fuid
         leid = data['de']
 
-        if (self.stack.local.uid == 0):
-            emsg = "Joinent {0}. Main has invalid uid of {1}\n".format(
-                                self.stack.name,  self.stack.local.uid)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.refuse) # refuse
-            return
+        self.vacuous = (leid == 0)
 
-        vacuous = (reid == 0)
+        if self.vacuous: # vacuous join
+            #if ha in self.stack.haRemotes: # non ephemeral ha match
+                #if self.remote is not self.stack.haRemotes[ha]: # something is wrong
+                    #emsg = "Joinent {0}. Mishandled join ha '{1}' for remote {2}\n".format(
+                                #self.stack.name, ha, name)
+                    #console.terse(emsg)
+                    #self.nack(kind=raeting.pcktKinds.reject)
+                    #return
 
-        if not vacuous: # non vacuous join
-            if reid not in self.stack.remotes: # ephemeral or missing
-                emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
-                                            self.stack.name, reid, name)
-                console.terse(emsg)
-                self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
-                return
-            if self.remote is not self.stack.remotes[reid]: # something is wrong
-                emsg = "Joinent {0}. Mishandled join reid '{1}' for remote {2}\n".format(
-                                                    self.stack.name, reid, name)
-                console.terse(emsg)
-                self.nack(kind=raeting.pcktKinds.reject)
-                return
-        else: # vacuous join
-            if ha in self.stack.haRemotes: # non ephemeral ha match
-                if self.remote is not self.stack.haRemotes[ha]: # something is wrong
-                    emsg = "Joinent {0}. Mishandled join ha '{1}' for remote {2}\n".format(
-                                self.stack.name, ha, name)
-                    console.terse(emsg)
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
-
-            elif name in self.stack.nameRemotes: # non ephemeral name match
+            if name in self.stack.nameRemotes: # non ephemeral name match
                 self.remote = self.stack.nameRemotes[name] # replace
+                # but what about ha
 
             else: # ephemeral and unique
                 self.remote.name = name
                 self.remote.role = role
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
+
+
+        else: # non vacuous join
+            if reid not in self.stack.remote.fuid: # something is wrong
+                emsg = "Joinent {0}. Invalid reid {1} for remote {2}\n".format(
+                                            self.stack.name, reid, name)
+                console.terse(emsg)
+                self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+                return
+            if self.remote is not self.stack.remotes[leid]: # something is wrong
+                emsg = "Joinent {0}. Mishandled join leid '{1}' for remote {2}\n".format(
+                                                    self.stack.name, leid, name)
+                console.terse(emsg)
+                self.nack(kind=raeting.pcktKinds.reject)
+                return
 
 
         sameRoleKeys = (role == self.remote.role and
@@ -1163,7 +1172,7 @@ class Joinent(Correspondent):
         Send accept response to join request
         '''
         body = odict([ ('name', self.stack.local.name),
-                       ('uid', self.remote.uid),
+                       ('fuid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),
                        ('pubhex', self.stack.local.priver.pubhex),
                        ('role', self.stack.local.role), ])
@@ -1379,8 +1388,8 @@ class Allower(Initiator):
         self.txData.update(
                             dh=self.remote.ha[0], # maybe needed for index
                             dp=self.remote.ha[1], # maybe needed for index
-                            se=self.stack.local.uid,
-                            de=self.remote.uid, #self.reid,
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -1498,7 +1507,7 @@ class Allower(Initiator):
 
         shortraw, seid, deid, oreo = raeting.COOKIESTUFF_PACKER.unpack(msg)
 
-        if seid != self.remote.uid or deid != self.stack.local.uid:
+        if seid != self.remote.fuid or deid != self.remote.nuid:
             emsg = "Invalid seid or deid fields in cookie stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
@@ -1760,8 +1769,8 @@ class Allowent(Correspondent):
                             #sp=self.stack.local.ha[1],
                             dh=self.remote.ha[0], # maybe needed for index
                             dp=self.remote.ha[1], # maybe needed for index
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -1859,8 +1868,8 @@ class Allowent(Correspondent):
         self.oreo = binascii.hexlify(oreo)
 
         stuff = raeting.COOKIESTUFF_PACKER.pack(self.remote.privee.pubraw,
-                                                self.stack.local.uid,
-                                                self.remote.uid,
+                                                self.remote.nuid,
+                                                self.remote.fuid,
                                                 oreo)
 
         cipher, nonce = self.stack.local.priver.encrypt(stuff, self.remote.publee.key)
@@ -2164,8 +2173,8 @@ class Aliver(Initiator):
                             #sp=self.stack.local.ha[1],
                             dh=self.remote.ha[0], # maybe needed for index
                             dp=self.remote.ha[1], # maybe needed for index
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -2325,8 +2334,8 @@ class Alivent(Correspondent):
                             #sp=self.stack.local.ha[1],
                             dh=self.remote.ha[0], # maybe needed for index
                             dp=self.remote.ha[1], # maybe needed for index
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -2509,8 +2518,8 @@ class Messenger(Initiator):
                             #sp=self.stack.local.ha[1],
                             dh=self.remote.ha[0], # maybe needed for index
                             dp=self.remote.ha[1], # maybe needed for index
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -2736,8 +2745,8 @@ class Messengent(Correspondent):
                             #sp=self.stack.local.ha[1],
                             dh=self.remote.ha[0], # maybe needed for index
                             dp=self.remote.ha[1], # maybe needed for index
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,

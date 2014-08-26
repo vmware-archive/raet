@@ -622,9 +622,10 @@ class RxPacket(Packet):
         '''
         Return result of verifying msg with signature
         '''
-        if not self.data['se'] in self.stack.remotes:
+        nuid = self.data['de']
+        if not nuid in self.stack.remotes:
             return False
-        return (self.stack.remotes[self.data['se']].verfer.verify(signature, msg))
+        return (self.stack.remotes[nuid].verfer.verify(signature, msg))
 
     def decrypt(self, cipher, nonce):
         '''
