@@ -645,13 +645,13 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         stalent.nack()
 
-    def join(self, uid=None, timeout=None, cascade=False):
+    def join(self, uid=None, timeout=None, cascade=False, renewal=False):
         '''
         Initiate join transaction
         '''
         remote = self.retrieveRemote(uid=uid)
         if not remote:
-            emsg = "Invalid remote destination estate id '{0}'\n".format(duid)
+            emsg = "Invalid remote destination estate id '{0}'\n".format(uid)
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return
@@ -662,7 +662,8 @@ class RoadStack(stacking.KeepStack):
                                     remote=remote,
                                     timeout=timeout,
                                     txData=data,
-                                    cascade=cascade)
+                                    cascade=cascade,
+                                    renewal=renewal)
         joiner.join()
 
     def replyJoin(self, packet, remote, timeout=None):
@@ -716,7 +717,7 @@ class RoadStack(stacking.KeepStack):
         Initiate alive transaction
         If duid is None then create remote at ha
         '''
-        remote = self.retrieveRemote(duid=uid)
+        remote = self.retrieveRemote(uid=uid)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(uid)
             console.terse(emsg)

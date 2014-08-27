@@ -372,9 +372,9 @@ class Joiner(Initiator):
         super(Joiner, self).receive(packet) #  self.rxPacket = packet
 
         if packet.data['tk'] == raeting.trnsKinds.join:
-            if packet.data['pk'] == raeting.pcktKinds.ack: # maybe pending
+            if packet.data['pk'] == raeting.pcktKinds.pend: # pending
                 self.pend()
-            elif packet.data['pk'] == raeting.pcktKinds.response:
+            elif packet.data['pk'] == raeting.pcktKinds.response: # accepted
                 self.accept()
             elif packet.data['pk'] == raeting.pcktKinds.nack: #stale
                 self.refuse()
@@ -413,6 +413,23 @@ class Joiner(Initiator):
                 console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
                          self.stack.name, self.remote.name, self.stack.store.stamp))
                 self.stack.incStat('redo_join')
+            else: #check to see if status has changed to accept after other kind
+                if self.remote:
+                    data = self.stack.keep.loadRemote(self.remote)
+                    if data:
+                        status = self.stack.keep.statusRemote(self.remote,
+                                                              data['verhex'],
+                                                              data['pubhex'],
+                                                              main=self.stack.main)
+                        if status == raeting.acceptances.accepted:
+                            self.complete()
+                        elif status == raeting.acceptances.rejected:
+                            "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
+                                    self.stack.name, self.remote.name, self.remote.uid)
+                            self.remote.joined = False
+                            self.stack.dumpRemote(self.remote)
+                            #self.stack.removeRemote(self.remote) #reap remote
+                            self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
         '''
@@ -496,10 +513,6 @@ class Joiner(Initiator):
         Reset to vacuous Road data and try joining again if not main
         Otherwise act as if rejected
         '''
-        if self.stack.main: # main never renews so just reject
-            self.refuse()
-            return
-
         if not self.stack.mutable: # renew not allowed on immutable road
             emsg = ("Joiner {0}. Renew from '{1}' not allowed on immutable"
                     " road\n".format(self.stack.name, self.remote.name))
@@ -514,24 +527,13 @@ class Joiner(Initiator):
         if self.remote:
             # reset remote to default values and move to zero
             self.remote.replaceStaleInitiators(renew=True)
-            self.remote.sid = 0
-            self.remote.tid = 0
-            self.remote.rsid = 0
-            if self.remote.uid != 0:
-                try:
-                    self.stack.moveRemote(self.remote, new=0)
-                except raeting.StackError as ex:
-                    console.terse(str(ex) + '\n')
-                    self.reject()
-                    return
+            self.remote.fuid =  0
             self.stack.dumpRemote(self.remote)
-        self.stack.local.uid = 0
-        self.stack.dumpLocal()
-        self.stack.join(ha=self.remote.ha, timeout=self.timeout)
+        self.stack.join(uid=self.remote.uid, timeout=self.timeout, renewal=True)
 
     def pend(self):
         '''
-        Process ack to join packet
+        Process ack pend to join packet
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -691,14 +693,13 @@ class Joiner(Initiator):
             if pubhex != self.remote.pubber.keyhex:
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
-            self.stack.dumpRemote(self.remote)
+        self.stack.dumpRemote(self.remote)
 
         if status == raeting.acceptances.accepted: # accepted
             self.complete()
             return
 
         # else status == raeting.acceptance.pending or None
-        self.stack.dumpRemote(self.remote)
         self.ackPend()
 
     def complete(self):
@@ -876,6 +877,8 @@ class Joinent(Correspondent):
         if packet.data['tk'] == raeting.trnsKinds.join:
             if packet.data['pk'] == raeting.pcktKinds.request:
                 self.join()
+            elif packet.data['pk'] == raeting.pcktKinds.pend: # maybe pending
+                self.pend()
             elif packet.data['pk'] == raeting.pcktKinds.ack: #accepted by joiner
                 self.complete()
             elif packet.data['pk'] == raeting.pcktKinds.nack: #stale
@@ -1189,7 +1192,7 @@ class Joinent(Correspondent):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.ack,
+                                    kind=raeting.pcktKinds.pend,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -1228,6 +1231,59 @@ class Joinent(Correspondent):
         console.concise("Joinent {0}. Do Accept of {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.transmit(packet)
+
+    def pend(self):
+        '''
+        Process ack pend to join packet
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        pass
+
+    def complete(self):
+        '''
+        process ack to accept response
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        console.terse("Joinent {0}. Done with {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat("join_correspond_complete")
+
+        # Responsiblity of remote iniators to restart themselves after sid change
+        self.remote.removeStaleCorrespondents(renew=(self.sid==0))
+        self.remote.joined = True # accepted
+        self.remote.nextSid()
+        self.remote.replaceStaleInitiators()
+        self.stack.dumpRemote(self.remote)
+        self.remove(index=self.rxPacket.index)
+
+    def reject(self):
+        '''
+        Process reject nack because keys rejected
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        console.terse("Joinent {0}. Rejected by {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
+        self.remote.joined = False
+        self.stack.dumpRemote(self.remote)
+        self.remove(index=self.rxPacket.index)
+
+    def refuse(self):
+        '''
+        Process refuse nack because join already in progress or stale
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        console.terse("Joinent {0}. Refused by {1} at {2}\n".format(
+                 self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.remove(index=self.rxPacket.index)
 
     def nack(self, kind=raeting.pcktKinds.nack):
         '''
@@ -1279,51 +1335,6 @@ class Joinent(Correspondent):
             self.stack.txes.append((packet.packed, ha))
         else:
             self.transmit(packet)
-        self.remove(index=self.rxPacket.index)
-
-    def complete(self):
-        '''
-        process ack to accept response
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
-        console.terse("Joinent {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat("join_correspond_complete")
-
-        # Responsiblity of remote iniators to restart themselves after sid change
-        self.remote.removeStaleCorrespondents(renew=(self.sid==0))
-        self.remote.joined = True # accepted
-        self.remote.nextSid()
-        self.remote.replaceStaleInitiators()
-        self.stack.dumpRemote(self.remote)
-        self.remove(index=self.rxPacket.index)
-
-    def reject(self):
-        '''
-        Process reject nack because keys rejected
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
-        console.terse("Joinent {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-
-        self.remote.joined = False
-        self.stack.dumpRemote(self.remote)
-        self.remove(index=self.rxPacket.index)
-
-    def refuse(self):
-        '''
-        Process refuse nack because join already in progress or stale
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        console.terse("Joinent {0}. Refused by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
         self.remove(index=self.rxPacket.index)
 
 class Allower(Initiator):

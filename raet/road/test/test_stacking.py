@@ -120,7 +120,7 @@ class BasicTestCase(unittest.TestCase):
         Utility method to do alive. Call from test method.
         '''
         console.terse("\nAlive Transaction **************\n")
-        initiator.alive(uid=correspondent.local.uid)
+        initiator.alive()
         self.service()
 
     def service(self, duration=1.0, real=True):
@@ -424,7 +424,10 @@ class BasicTestCase(unittest.TestCase):
         Test other joining with timeout set to 0.0 and default
         '''
         console.terse("{0}\n".format(self.testJoinForever.__doc__))
-
+        self.other.addRemote(estating.RemoteEstate(stack=self.other,
+                                                   fuid=0, # vacuous join
+                                                   sid=0, # always 0 for join
+                                                   ha=self.main.local.ha))
         self.other.join(timeout=0.0) #attempt to join forever with timeout 0.0
         self.serviceOther(duration=20.0, real=False) # only service other so no response
 
@@ -435,12 +438,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.main.remotes), 0)
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
-        self.assertEqual(self.other.local.uid, 0)
+        self.assertEqual(self.other.local.uid, 1)
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(len(self.other.transactions), 1)
         remote = self.other.remotes.values()[0]
         self.assertIs(remote.joined, None)
-        self.assertEqual(remote.uid, 0)
+        self.assertEqual(remote.uid, 2)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
                 self.other.name, self.other.local.name, remote.name, remote.joined))
 
@@ -468,23 +471,21 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(2 in self.main.remotes)
         self.assertTrue(len(self.main.remotes), 1)
         self.assertTrue(len(self.main.nameRemotes), 1)
-        self.assertTrue(len(self.main.haRemotes), 1)
         self.assertEqual(remote.name, 'other')
         self.assertTrue('other' in self.main.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
                 self.main.name, self.main.local.name, remote.name, remote.joined))
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
-        self.assertEqual(self.other.local.uid, 2)
+        self.assertEqual(self.other.local.uid, 1)
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(len(self.other.transactions), 0)
         remote = self.other.remotes.values()[0]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.uid, 1)
-        self.assertTrue(1 in self.other.remotes)
+        self.assertEqual(remote.uid, 2)
+        self.assertTrue(2 in self.other.remotes)
         self.assertTrue(len(self.other.remotes), 1)
         self.assertTrue(len(self.other.nameRemotes), 1)
-        self.assertTrue(len(self.other.haRemotes), 1)
         self.assertEqual(remote.name, 'main')
         self.assertTrue('main' in self.other.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -505,7 +506,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(2 in self.main.remotes)
         self.assertTrue(len(self.main.remotes), 1)
         self.assertTrue(len(self.main.nameRemotes), 1)
-        self.assertTrue(len(self.main.haRemotes), 1)
         self.assertEqual(remote.name, 'other')
         self.assertTrue('other' in self.main.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -513,16 +513,15 @@ class BasicTestCase(unittest.TestCase):
 
         # Other will have outstanding join transaction
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
-        self.assertEqual(self.other.local.uid, 2)
+        self.assertEqual(self.other.local.uid, 1)
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(len(self.other.transactions), 1)
         remote = self.other.remotes.values()[0]
         self.assertIs(remote.joined, None)
-        self.assertEqual(remote.uid, 1)
-        self.assertTrue(1 in self.other.remotes)
+        self.assertEqual(remote.uid, 2)
+        self.assertTrue(2 in self.other.remotes)
         self.assertTrue(len(self.other.remotes), 1)
         self.assertTrue(len(self.other.nameRemotes), 1)
-        self.assertTrue(len(self.other.haRemotes), 1)
         self.assertEqual(remote.name, 'main')
         self.assertTrue('main' in self.other.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -552,23 +551,21 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(2 in self.main.remotes)
         self.assertTrue(len(self.main.remotes), 1)
         self.assertTrue(len(self.main.nameRemotes), 1)
-        self.assertTrue(len(self.main.haRemotes), 1)
         self.assertEqual(remote.name, 'other')
         self.assertTrue('other' in self.main.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
                 self.main.name, self.main.local.name, remote.name, remote.joined))
 
         console.terse("\nStack '{0}' uid= {1}\n".format(self.other.name, self.other.local.uid))
-        self.assertEqual(self.other.local.uid, 2)
+        self.assertEqual(self.other.local.uid, 1)
         self.assertEqual(self.other.name, 'other')
         self.assertEqual(len(self.other.transactions), 0)
         remote = self.other.remotes.values()[0]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.uid, 1)
-        self.assertTrue(1 in self.other.remotes)
+        self.assertEqual(remote.uid, 2)
+        self.assertTrue(2 in self.other.remotes)
         self.assertTrue(len(self.other.remotes), 1)
         self.assertTrue(len(self.other.nameRemotes), 1)
-        self.assertTrue(len(self.other.haRemotes), 1)
         self.assertEqual(remote.name, 'main')
         self.assertTrue('main' in self.other.nameRemotes)
         console.terse("Stack '{0}' estate name '{1}' joined with '{2}' = {3}\n".format(
@@ -598,7 +595,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMessage transaction *********\n")
         body = odict(what="This is a message to the main estate. How are you", extra="I am fine.")
-        self.other.txMsgs.append((body, self.main.local.uid))
+        self.other.txMsgs.append((body, self.other.remotes.values()[0].fuid))
         self.timer.restart(duration=1.0)
         while not self.timer.expired:
             self.other.serviceAllTx() # transmit but leave receives in socket buffer
@@ -692,15 +689,17 @@ def runOne(test):
 def runSome():
     """ Unittest runner """
     tests =  []
-    names = ['testBootstrapJson',
+    names = [
+              'testBootstrapJson',
              'testBootstrapMsgpack',
              'testMsgBothwaysJson',
              'testMsgBothwaysMsgpack',
              'testSegmentedJson',
              'testSegmentedMsgpack',
-             'testJoinForever',
+             'testBasicAlive',
              'testStaleNack',
-             'testBasicAlive', ]
+             'testJoinForever',
+            ]
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
@@ -721,6 +720,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testBootstrapJson')
+    #runOne('testJoinForever')
