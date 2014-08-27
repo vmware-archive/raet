@@ -317,7 +317,7 @@ class Joiner(Initiator):
     RedoTimeoutMax = 4.0 # max timeout
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
-                 cascade=False, **kwa):
+                 cascade=False, renewal=False, **kwa):
         '''
         Setup Transaction instance
         '''
@@ -335,6 +335,7 @@ class Joiner(Initiator):
         self.tid = self.remote.nextTid()
         # fuid is assigned during join but want to preserve vacuousness for remove
         self.vacuous = (self.remote.fuid == 0)
+        self.renewal = renewal # is current join a renew, vacuous rejoin
         self.prep()
         # don't dump remote yet since its ephemeral until we join and get valid uid
 
