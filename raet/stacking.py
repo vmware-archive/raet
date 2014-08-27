@@ -77,7 +77,6 @@ class Stack(object):
 
         self.remotes = self.uidRemotes = odict() # remotes indexed by uid
         self.nameRemotes = odict() # remotes indexed by name
-        self.haRemotes = odict() # remotes indexed by ha host address
 
         self.bufcnt = bufcnt
         if not server:
@@ -153,13 +152,9 @@ class Stack(object):
         if remote.name in  self.nameRemotes or remote.name == self.local.name:
             emsg = "Cannot add remote at name '{0}', alreadys exists".format(remote.name)
             raise raeting.StackError(emsg)
-        if remote.ha in self.haRemotes or remote.ha == self.local.ha:
-            emsg = "Cannot add remote at ha '{0}', alreadys exists".format(remote.ha)
-            raise raeting.StackError(emsg)
         remote.stack = self
         self.uidRemotes[uid] = remote
         self.nameRemotes[remote.name] = remote
-        self.haRemotes[remote.ha] = remote
 
     def moveRemote(self, remote, new):
         '''
@@ -207,29 +202,6 @@ class Stack(object):
             index = self.nameRemotes.keys().index(old)
             del self.nameRemotes[old]
             self.nameRemotes.insert(index, new, remote)
-
-    def readdressRemote(self, remote, new):
-        '''
-        readdress remote with old remote.ha to new ha but keep same index
-        '''
-        old = remote.ha
-        if new != old:
-            if new in self.haRemotes or new == self.local.ha:
-                emsg = "Cannot readdress remote to '{0}', already exists".format(new)
-                raise raeting.StackError(emsg)
-
-            if old not in self.haRemotes:
-                emsg = "Cannot rename remote '{0}', does not exist".format(old)
-                raise raeting.StackError(emsg)
-
-            if remote is not self.haRemotes[old]:
-                emsg = "Cannot rename remote '{0}', not identical".format(old)
-                raise raeting.StackError(emsg)
-
-            remote.ha = new
-            index = self.haRemotes.keys().index(old)
-            del self.haRemotes[old]
-            self.haRemotes.insert(index, new, remote)
 
     def removeRemote(self, remote):
         '''

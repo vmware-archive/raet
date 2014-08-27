@@ -479,8 +479,18 @@ class RoadStack(stacking.KeepStack):
                 else: # nonvacuous join match by nuid from .remotes
                     remote = self.remotes.get(nuid, None)
                     if not remote: # remote with nuid not exist
-                        pass
                         # reject renew , so tell it to retry with vacuous join
+                        emsg = "{0} Stale nuid '{1}' in packet from {2}\n".format(
+                                                         self.name, nuid, rha)
+                        console.terse(emsg)
+                        self.incStat('stale_nuid')
+                        remote = estating.RemoteEstate(stack=self,
+                                                        fuid=fuid,
+                                                        sid=rsid,
+                                                        ha=rha)
+                        #self.replyStale(packet, renew=True) # nack stale transaction
+                        #self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+                        return
 
         else: # not join transaction
             if rsid == 0: # cannot use sid == 0 on nonjoin transaction

@@ -70,6 +70,8 @@ class LaneStack(stacking.Stack):
                                         local=local,
                                         bufcnt=bufcnt,
                                         **kwa)
+
+        self.haRemotes = odict() # remotes indexed by ha host address
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
 
     def serverFromLocal(self):
@@ -79,6 +81,23 @@ class LaneStack(stacking.Stack):
         server = aiding.SocketUxdNb(ha=self.ha,
                             bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
+
+    def addRemote(self, remote):
+        '''
+        Add a remote to indexes
+        '''
+        if remote.ha in self.haRemotes or remote.ha == self.local.ha:
+            emsg = "Cannot add remote at ha '{0}', alreadys exists".format(remote.ha)
+            raise raeting.StackError(emsg)
+        super(LaneStack, self).addRemote(remote)
+        self.haRemotes[remote.ha] = remote
+
+    def removeRemote(self, remote):
+        '''
+        Remove remote from all remotes dicts
+        '''
+        super(LaneStack, self).removeRemote(remote)
+        del self.haRemotes[remote.ha]
 
     def _handleOneRx(self):
         '''

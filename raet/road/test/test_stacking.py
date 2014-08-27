@@ -99,6 +99,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nJoin Transaction **************\n")
         if not self.other.remotes:
             self.other.addRemote(estating.RemoteEstate(stack=self.other,
+                                                       #name=self.main.local.name,
                                                        fuid=0, # vacuous join
                                                        sid=0, # always 0 for join
                                                        ha=self.main.local.ha)
@@ -196,7 +197,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.uid in self.main.remotes)
         self.assertTrue(len(self.main.remotes), 1)
         self.assertTrue(len(self.main.nameRemotes), 1)
-        self.assertTrue(len(self.main.haRemotes), 1)
         self.assertEqual(len(remote.transactions), 0)
         self.assertTrue('other' in self.main.nameRemotes)
         self.assertIs(self.main.nameRemotes[remote.name], remote)
@@ -217,7 +217,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.uid in self.other.remotes)
         self.assertTrue(len(self.other.remotes), 1)
         self.assertTrue(len(self.other.nameRemotes), 1)
-        self.assertTrue(len(self.other.haRemotes), 1)
         self.assertEqual(len(remote.transactions), 0)
         self.assertTrue('main' in self.other.nameRemotes)
         self.assertIs(self.other.nameRemotes[remote.name], remote)
