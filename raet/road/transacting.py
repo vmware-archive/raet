@@ -426,9 +426,9 @@ class Joiner(Initiator):
                         elif status == raeting.acceptances.rejected:
                             "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                     self.stack.name, self.remote.name, self.remote.uid)
-                            self.remote.joined = False
-                            self.stack.dumpRemote(self.remote)
-                            #self.stack.removeRemote(self.remote) #reap remote
+                            #self.remote.joined = False
+                            #self.stack.dumpRemote(self.remote)
+                            self.stack.removeRemote(self.remote, clear=True)
                             self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
@@ -693,7 +693,7 @@ class Joiner(Initiator):
             if pubhex != self.remote.pubber.keyhex:
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
-        self.stack.dumpRemote(self.remote)
+        #self.stack.dumpRemote(self.remote)
 
         if status == raeting.acceptances.accepted: # accepted
             self.complete()
@@ -709,6 +709,7 @@ class Joiner(Initiator):
         self.remote.replaceStaleInitiators(renew=(self.sid==0))
         self.remote.nextSid() # start new session
         self.remote.joined = True #accepted
+        self.stack.dumpRemote(self.remote)
         self.ackAccept()
 
     def refuse(self):
@@ -732,8 +733,9 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Rejected by {1} at {2}\n".format(
                  self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.remote.joined = False
-        self.stack.dumpRemote(self.remote)
+        #self.remote.joined = False
+        #self.stack.dumpRemote(self.remote)
+        self.stack.removeRemote(self.remote, clear=True)
         self.remove(index=self.txPacket.index)
 
     def ackAccept(self):
@@ -926,9 +928,9 @@ class Joinent(Correspondent):
                         elif status == raeting.acceptances.rejected:
                             "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                     self.stack.name, self.remote.name, self.remote.uid)
-                            self.remote.joined = False
-                            self.stack.dumpRemote(self.remote)
-                            #self.stack.removeRemote(self.remote) #reap remote
+                            #self.remote.joined = False
+                            #self.stack.dumpRemote(self.remote)
+                            self.stack.removeRemote(self.remote,clear=True)
                             self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
@@ -1137,7 +1139,7 @@ class Joinent(Correspondent):
                                           self.remote.ha,
                                           self.remote.role))
                 console.concise(emsg)
-                self.stack.dumpRemote(self.remote)
+                #self.stack.dumpRemote(self.remote)
 
         else: # not sameAll (and mutable)
             # do both unique name check first so only change road if new unique
@@ -1167,7 +1169,7 @@ class Joinent(Correspondent):
             if pubhex != self.remote.pubber.keyhex:
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
-            self.stack.dumpRemote(self.remote)
+            #self.stack.dumpRemote(self.remote)
 
         # add transaction
         self.add(remote=self.remote, index=self.rxPacket.index)
@@ -1270,8 +1272,9 @@ class Joinent(Correspondent):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
-        self.remote.joined = False
-        self.stack.dumpRemote(self.remote)
+        #self.remote.joined = False
+        #self.stack.dumpRemote(self.remote)
+        self.stack.removeRemote(self.remote, clear=True)
         self.remove(index=self.rxPacket.index)
 
     def refuse(self):
