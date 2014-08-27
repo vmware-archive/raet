@@ -304,7 +304,7 @@ class RemoteEstate(Estate):
         if not self.reaped: # only manage alives if not already reaped
             if immediate or self.timer.expired:
                 # alive transaction restarts self.timer
-                self.stack.alive(duid=self.uid, cascade=cascade)
+                self.stack.alive(uid=self.uid, cascade=cascade)
             if self.stack.interim >  0.0 and self.reapTimer.expired:
                 self.reap()
 

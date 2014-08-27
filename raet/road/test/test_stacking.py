@@ -119,7 +119,7 @@ class BasicTestCase(unittest.TestCase):
         Utility method to do alive. Call from test method.
         '''
         console.terse("\nAlive Transaction **************\n")
-        initiator.alive(duid=correspondent.local.uid)
+        initiator.alive(uid=correspondent.local.uid)
         self.service()
 
     def service(self, duration=1.0, real=True):
