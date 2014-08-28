@@ -63,7 +63,7 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(otherDirpath)
 
         self.main = stacking.RoadStack(name=mainName,
-                                       uid=1,
+                                       #uid=1,
                                        sigkey=mainSignKeyHex,
                                        prikey=mainPriKeyHex,
                                        auto=True,
@@ -72,7 +72,7 @@ class BasicTestCase(unittest.TestCase):
                                        store=self.store)
 
         self.other = stacking.RoadStack(name=otherName,
-                                        uid=1,
+                                        #uid=1,
                                         ha=("", raeting.RAET_TEST_PORT),
                                         sigkey=otherSignKeyHex,
                                         prikey=otherPriKeyHex,
@@ -167,10 +167,10 @@ class BasicTestCase(unittest.TestCase):
         '''
         Initialize
             main on port 7530 with uid of 1
-            other on port 7531 with uid of 0
+            other on port 7531 with uid of 1
         Complete
-            main uid of 1 joined and allowed
-            other uid of 2 joined and allowed
+            main joined and allowed
+            other  joined and allowed
         '''
         stacking.RoadStack.Bk = bk
 

@@ -70,7 +70,7 @@ class BasicTestCase(unittest.TestCase):
 
         return data
 
-    def createRoadStack(self, data, uid=0, main=None, auto=None, ha=None):
+    def createRoadStack(self, data, uid=None, main=None, auto=None, ha=None):
         '''
         Creates stack and local estate from data with
         local estate.uid = uid
@@ -101,6 +101,11 @@ class BasicTestCase(unittest.TestCase):
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
+        if not initiator.remotes:
+            initiator.addRemote(estating.RemoteEstate(stack=initiator,
+                                                      fuid=0, # vacuous join
+                                                      sid=0, # always 0 for join
+                                                      ha=correspondent.local.ha))
         initiator.join(uid=deid, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
@@ -195,10 +200,12 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testAlive.__doc__))
 
-        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
-                                     uid=1,
+                                     #uid=1,
                                      main=True,
                                      auto=mainData['auto'],
                                      ha=None)
@@ -206,69 +213,89 @@ class BasicTestCase(unittest.TestCase):
         otherData = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
-                                     uid=0,
+                                     #uid=1,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-
         self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes.values()[0]
-        self.assertTrue(otherRemote.joined)
-        self.assertTrue(mainRemote.joined)
+        remotes = []
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            remotes.append(remote)
+            self.assertIs(remote.joined, True)
+            self.assertNotEqual(remote.nuid, 0)
+            self.assertNotEqual(remote.fuid, 0)
 
+        self.assertEqual(remotes[0].fuid, remotes[1].nuid)
+        self.assertEqual(remotes[1].fuid, remotes[0].nuid)
+
+        for stack in [main, other]:
+            self.assertIs(stack.remotes.values()[0].allowed, None)
         self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes.values()[0]
-        self.assertTrue(otherRemote.allowed)
-        self.assertTrue(mainRemote.allowed)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
 
         console.terse("\nAlive Other to Main *********\n")
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes.values()[0]
-        self.assertIs(otherRemote.alived, None)
-        self.assertIs(mainRemote.alived, None)
-
-        self.alive(other, main, deid=main.local.uid)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alived)
-        self.assertTrue(mainRemote.alived)
+        for stack in [main, other]:
+            self.assertIs(stack.remotes.values()[0].alived, None)
+        self.alive(other, main, deid=other.remotes.values()[0].uid)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
 
         console.terse("\nAlive Main to Other *********\n")
-        otherRemote.alived = None
-        mainRemote.alived = None
-        self.assertIs(otherRemote.alived, None)
-        self.assertIs(mainRemote.alived, None)
-
-        self.alive(main, other, deid=other.local.uid)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.alived)
-        self.assertTrue(mainRemote.alived)
-
+        for stack in [main, other]:
+            stack.remotes.values()[0].alived = None
+            self.assertIs(stack.remotes.values()[0].alived, None)
+        self.alive(main, other, deid=main.remotes.values()[0].uid)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
 
         console.terse("\nDead Other from Main *********\n")
-        self.assertTrue(otherRemote.alived)
-        self.assertTrue(mainRemote.alived)
-        main.alive(uid=other.local.uid)
-        self.serviceStack(main, duration=3.0)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertFalse(otherRemote.alived)
-        self.serviceStack(other, duration=3.0)
+        # start alive from main to other but do not service responses from other
+        # so main alive trans times out and other  appears dead to main
+        for stack in [main, other]:
+            self.assertIs(stack.remotes.values()[0].alived, True)
+        main.alive()
+        self.serviceStack(main, duration=3.0) # only service main
+        self.assertEqual(len(main.transactions), 0) # timed out
+        self.assertIs(main.remotes.values()[0].alived,  False)
+        self.serviceStack(other, duration=3.0) # now service other side
+        self.assertEqual(len(other.transactions), 0) # gets queued requests
+        self.assertIs(other.remotes.values()[0].alived,  True)
+        self.assertIs(main.remotes.values()[0].alived,  False)
 
         console.terse("\nDead Main from Other *********\n")
-        self.assertTrue(mainRemote.alived)
-        other.alive(uid=main.local.uid)
-        self.serviceStack(other, duration=3.0)
-        self.assertEqual(len(other.transactions), 0)
-        self.assertFalse(mainRemote.alived)
-        self.serviceStack(main, duration=3.0)
+        # start alive from other to main but do not service responses from main
+        # so other alive trans times out and main  appears dead to other
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+        self.assertIs(other.remotes.values()[0].alived, True)
+        other.alive()
+        self.serviceStack(other, duration=3.0) # only service other
+        self.assertEqual(len(other.transactions), 0) # timed out
+        self.assertIs(other.remotes.values()[0].alived, False)
+        self.serviceStack(main, duration=3.0) # now service main side
+        self.assertEqual(len(main.transactions), 0) # gets queued requests
+        self.assertIs(main.remotes.values()[0].alived,  True)
+        self.assertIs(other.remotes.values()[0].alived,  False)
 
         main.server.close()
         main.clearLocalKeep()
@@ -284,10 +311,12 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testAliveFromOtherUnjoinedBoth.__doc__))
 
-        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
-                                     uid=1,
+                                     #uid=1,
                                      main=True,
                                      auto=mainData['auto'],
                                      ha=None)
@@ -295,18 +324,20 @@ class BasicTestCase(unittest.TestCase):
         otherData = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
-                                     uid=0,
+                                     #uid=1,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes.values()[0]
-        self.assertTrue(otherRemote.joined)
-        self.assertTrue(mainRemote.joined)
+        self.join(other, main) # bootstrap channel
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            remotes.append(remote)
+            self.assertIs(remote.joined, True)
+            self.assertNotEqual(remote.nuid, 0)
+            self.assertNotEqual(remote.fuid, 0)
 
         otherRemote.joined = None
         mainRemote.joined = None
@@ -1656,6 +1687,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testYokeFromMain')
+    runOne('testAlive')

@@ -415,21 +415,21 @@ class Joiner(Initiator):
                 self.stack.incStat('redo_join')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    data = self.stack.keep.loadRemote(self.remote)
-                    if data:
-                        status = self.stack.keep.statusRemote(self.remote,
-                                                              data['verhex'],
-                                                              data['pubhex'],
-                                                              main=self.stack.main)
-                        if status == raeting.acceptances.accepted:
-                            self.complete()
-                        elif status == raeting.acceptances.rejected:
-                            "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
-                                    self.stack.name, self.remote.name, self.remote.uid)
-                            #self.remote.joined = False
-                            #self.stack.dumpRemote(self.remote)
-                            self.stack.removeRemote(self.remote, clear=True)
-                            self.nack(kind=raeting.pcktKinds.reject)
+                    #data = self.stack.keep.loadRemote(self.remote)
+                    #if data:
+                    status = self.stack.keep.statusRemote(self.remote,
+                                                          data['verhex'],
+                                                          data['pubhex'],
+                                                          main=self.stack.main)
+                    if status == raeting.acceptances.accepted:
+                        self.complete()
+                    elif status == raeting.acceptances.rejected:
+                        "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
+                                self.stack.name, self.remote.name, self.remote.uid)
+                        #self.remote.joined = False
+                        #self.stack.dumpRemote(self.remote)
+                        self.stack.removeRemote(self.remote, clear=True)
+                        self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
         '''
@@ -917,21 +917,21 @@ class Joinent(Correspondent):
                 self.stack.incStat('redo_accept')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    data = self.stack.keep.loadRemote(self.remote)
-                    if data:
-                        status = self.stack.keep.statusRemote(self.remote,
-                                                              data['verhex'],
-                                                              data['pubhex'],
-                                                              main=self.stack.main)
-                        if status == raeting.acceptances.accepted:
-                            self.accept()
-                        elif status == raeting.acceptances.rejected:
-                            "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
-                                    self.stack.name, self.remote.name, self.remote.uid)
-                            #self.remote.joined = False
-                            #self.stack.dumpRemote(self.remote)
-                            self.stack.removeRemote(self.remote,clear=True)
-                            self.nack(kind=raeting.pcktKinds.reject)
+                    #data = self.stack.keep.loadRemote(self.remote)
+                    #if data:
+                    status = self.stack.keep.statusRemote(self.remote,
+                                                          data['verhex'],
+                                                          data['pubhex'],
+                                                          main=self.stack.main)
+                    if status == raeting.acceptances.accepted:
+                        self.accept()
+                    elif status == raeting.acceptances.rejected:
+                        "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
+                                self.stack.name, self.remote.name, self.remote.uid)
+                        #self.remote.joined = False
+                        #self.stack.dumpRemote(self.remote)
+                        self.stack.removeRemote(self.remote,clear=True)
+                        self.nack(kind=raeting.pcktKinds.reject)
 
     def prep(self):
         '''

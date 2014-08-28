@@ -99,7 +99,7 @@ class RoadStack(stacking.KeepStack):
                  local=None, #passed up from subclass
                  name='',
                  uid=None, #local estate uid, none means generate it
-                 ha=("", raeting.RAET_PORT),
+                 ha=None,
                  eha=None,
                  iha=None,
                  role=None,
@@ -124,6 +124,7 @@ class RoadStack(stacking.KeepStack):
                                         stackname=name,
                                         auto=auto)
 
+        ha = ha if ha is not None else ("", raeting.RAET_PORT)
 
         local = local or estating.LocalEstate(stack=self,
                                      name=name,

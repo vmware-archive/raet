@@ -37,7 +37,7 @@ class LaneStack(stacking.Stack):
     RAET protocol UXD (unix domain) socket stack object
     '''
     Count = 0
-    Uid =  2
+    Uid =  0
     Pk = raeting.packKinds.json # serialization pack kind of Uxd message
     Accept = True # accept any uxd messages if True from yards not already in lanes
 

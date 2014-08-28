@@ -39,7 +39,7 @@ class Stack(object):
     Should be subclassed for specific transport type such as UDP or UXD
     '''
     Count = 0
-    Uid = 1 # base for next unique id for local and remotes
+    Uid = 0 # base for next unique id for local and remotes
 
     def __init__(self,
                  store=None,
@@ -70,9 +70,9 @@ class Stack(object):
             self.puid = puid if puid is not None else self.Uid
 
         self.local = local or lotting.Lot(stack=self,
-                                               name=name,
-                                               uid=uid,
-                                               ha=ha,)
+                                          name=name,
+                                          uid=uid,
+                                          ha=ha,)
         self.local.stack = self
 
         self.remotes = self.uidRemotes = odict() # remotes indexed by uid
@@ -503,7 +503,7 @@ class KeepStack(Stack):
     Should be subclassed for specific transport type
     '''
     Count = 0
-    Uid =  1
+    Uid =  0
 
     def __init__(self,
                  puid=None,
