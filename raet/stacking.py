@@ -218,7 +218,6 @@ class Stack(object):
 
         del self.uidRemotes[uid]
         del self.nameRemotes[remote.name]
-        del self.haRemotes[remote.ha]
 
     def removeAllRemotes(self):
         '''

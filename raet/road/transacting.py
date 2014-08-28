@@ -454,37 +454,37 @@ class Joiner(Initiator):
         '''
         Send join request
         '''
-        if self.stack.main:
-            emsg = ("Joiner {0}. Main may not initiate join\n".format(self.stack.name))
-            console.terse(emsg)
-            return
-
         joins = self.remote.joinInProcess()
         if joins:
-            if self.stack.main:
-                emsg = "Joiner {0}. Join with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
-                console.concise(emsg)
-                return
-            else: # not main so remove any correspondent joins
-                already = False
-                for join in joins:
-                    if join.rmt: # correspondent
-                        emsg = ("Joiner {0}. Removing correspondent join with"
-                                " {1} already in process\n".format(
-                                            self.stack.name,
-                                            self.remote.name))
-                        console.concise(emsg)
-                        join.nack(kind=raeting.pcktKinds.refuse)
-                    else: # already initiated
-                        already = True
-                if already:
-                    emsg = ("Joiner {0}. Initiator join with"
-                            " {1} already in process\n".format(
-                                        self.stack.name,
-                                        self.remote.name))
-                    console.concise(emsg)
-                    return
+            emsg = ("Joiner {0}. Join with {1} already in process\n".format(
+                                    self.stack.name, self.remote.name))
+            console.concise(emsg)
+            return
+
+            #if self.stack.main:
+                #emsg = "Joiner {0}. Join with {1} already in process\n".format(
+                        #self.stack.name, self.remote.name)
+                #console.concise(emsg)
+                #return
+            #else: # not main so remove any correspondent joins
+                #already = False
+                #for join in joins:
+                    #if join.rmt: # correspondent
+                        #emsg = ("Joiner {0}. Removing correspondent join with"
+                                #" {1} already in process\n".format(
+                                            #self.stack.name,
+                                            #self.remote.name))
+                        #console.concise(emsg)
+                        #join.nack(kind=raeting.pcktKinds.refuse)
+                    #else: # already initiated
+                        #already = True
+                #if already:
+                    #emsg = ("Joiner {0}. Initiator join with"
+                            #" {1} already in process\n".format(
+                                        #self.stack.name,
+                                        #self.remote.name))
+                    #console.concise(emsg)
+                    #return
 
         self.remote.joined = None
 
@@ -975,32 +975,39 @@ class Joinent(Correspondent):
 
         joins = self.remote.joinInProcess()
         if joins:
-            if not self.stack.main:
-                emsg = "Joinent {0}. Join with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
-                console.concise(emsg)
-                self.stack.incStat('duplicate_join_attempt')
-                self.nack(kind=raeting.pcktKinds.refuse)
-                return
-            else: # main so remove any initiator joins
-                already = False
-                for join in joins:
-                    if not join.rmt: # initiator
-                        emsg = ("Joinent {0}. Removing initiator join with"
-                                " {1} already in process\n".format(
-                                            self.stack.name,
-                                            self.remote.name))
-                        console.concise(emsg)
-                        join.nack(kind=raeting.pcktKinds.refuse)
-                    else: # already correspondent
-                        already = True
-                if already:
-                    emsg = ("Joinent {0}. Correspondent join with"
-                            " {1} already in process\n".format(
-                                        self.stack.name,
-                                        self.remote.name))
-                    console.concise(emsg)
-                    return
+            emsg = "Joinent {0}. Join with {1} already in process\n".format(
+                                    self.stack.name, self.remote.name)
+            console.concise(emsg)
+            self.stack.incStat('duplicate_join_attempt')
+            self.nack(kind=raeting.pcktKinds.refuse)
+            return
+
+            #if not self.stack.main:
+                #emsg = "Joinent {0}. Join with {1} already in process\n".format(
+                        #self.stack.name, self.remote.name)
+                #console.concise(emsg)
+                #self.stack.incStat('duplicate_join_attempt')
+                #self.nack(kind=raeting.pcktKinds.refuse)
+                #return
+            #else: # main so remove any initiator joins
+                #already = False
+                #for join in joins:
+                    #if not join.rmt: # initiator
+                        #emsg = ("Joinent {0}. Removing initiator join with"
+                                #" {1} already in process\n".format(
+                                            #self.stack.name,
+                                            #self.remote.name))
+                        #console.concise(emsg)
+                        #join.nack(kind=raeting.pcktKinds.refuse)
+                    #else: # already correspondent
+                        #already = True
+                #if already:
+                    #emsg = ("Joinent {0}. Correspondent join with"
+                            #" {1} already in process\n".format(
+                                        #self.stack.name,
+                                        #self.remote.name))
+                    #console.concise(emsg)
+                    #return
 
         #Don't add transaction yet wait till later until remote is not rejected
         data = self.rxPacket.data
@@ -1455,30 +1462,35 @@ class Allower(Initiator):
         '''
         allows = self.remote.allowInProcess()
         if allows:
-            if self.stack.main:
-                emsg = "Allower {0}. Allow with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
-                console.concise(emsg)
-                return
-            else: # not main so remove any correspondent allows
-                already = False
-                for allow in allows:
-                    if allow.rmt:
-                        emsg = ("Allower {0}. Removing correspondent allow with"
-                                " {1} already in process\n".format(
-                                            self.stack.name,
-                                            self.remote.name))
-                        console.concise(emsg)
-                        allow.nack(kind=raeting.pcktKinds.refuse)
-                    else: # already initiated
-                        already = True
-                if already:
-                    emsg = ("Allower {0}. Initiator allow with"
-                            " {1} already in process\n".format(
-                                        self.stack.name,
-                                        self.remote.name))
-                    console.concise(emsg)
-                    return
+            emsg = ("Allower {0}. Allow with {1} already in process\n".format(
+                                    self.stack.name, self.remote.name))
+            console.concise(emsg)
+            return
+
+            #if self.stack.main:
+                #emsg = "Allower {0}. Allow with {1} already in process\n".format(
+                        #self.stack.name, self.remote.name)
+                #console.concise(emsg)
+                #return
+            #else: # not main so remove any correspondent allows
+                #already = False
+                #for allow in allows:
+                    #if allow.rmt:
+                        #emsg = ("Allower {0}. Removing correspondent allow with"
+                                #" {1} already in process\n".format(
+                                            #self.stack.name,
+                                            #self.remote.name))
+                        #console.concise(emsg)
+                        #allow.nack(kind=raeting.pcktKinds.refuse)
+                    #else: # already initiated
+                        #already = True
+                #if already:
+                    #emsg = ("Allower {0}. Initiator allow with"
+                            #" {1} already in process\n".format(
+                                        #self.stack.name,
+                                        #self.remote.name))
+                    #console.concise(emsg)
+                    #return
 
         self.remote.allowed = None
         if not self.remote.joined:
@@ -1838,32 +1850,39 @@ class Allowent(Correspondent):
 
         allows = self.remote.allowInProcess()
         if allows:
-            if not self.stack.main:
-                emsg = "Allowent {0}. Allow with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
-                console.concise(emsg)
-                self.stack.incStat('duplicate_allow_attempt')
-                self.nack(kind=raeting.pcktKinds.refuse)
-                return
-            else: # main so remove any initiator allows
-                already = False
-                for allow in allows:
-                    if not allow.rmt:
-                        emsg = ("Allower {0}. Removing initiator allow with"
-                                " {1} already in process\n".format(
-                                            self.stack.name,
-                                            self.remote.name))
-                        console.concise(emsg)
-                        allow.nack(kind=raeting.pcktKinds.refuse)
-                    else: # already correspondent
-                        already = True
-                if already:
-                    emsg = ("Allower {0}. Correspondent allow with"
-                            " {1} already in process\n".format(
-                                        self.stack.name,
-                                        self.remote.name))
-                    console.concise(emsg)
-                    return
+            emsg = ("Allowent {0}. Allow with {1} already in process\n".format(
+                                    self.stack.name, self.remote.name))
+            console.concise(emsg)
+            self.stack.incStat('duplicate_allow_attempt')
+            self.nack(kind=raeting.pcktKinds.refuse)
+            return
+
+            #if not self.stack.main:
+                #emsg = "Allowent {0}. Allow with {1} already in process\n".format(
+                        #self.stack.name, self.remote.name)
+                #console.concise(emsg)
+                #self.stack.incStat('duplicate_allow_attempt')
+                #self.nack(kind=raeting.pcktKinds.refuse)
+                #return
+            #else: # main so remove any initiator allows
+                #already = False
+                #for allow in allows:
+                    #if not allow.rmt:
+                        #emsg = ("Allower {0}. Removing initiator allow with"
+                                #" {1} already in process\n".format(
+                                            #self.stack.name,
+                                            #self.remote.name))
+                        #console.concise(emsg)
+                        #allow.nack(kind=raeting.pcktKinds.refuse)
+                    #else: # already correspondent
+                        #already = True
+                #if already:
+                    #emsg = ("Allower {0}. Correspondent allow with"
+                            #" {1} already in process\n".format(
+                                        #self.stack.name,
+                                        #self.remote.name))
+                    #console.concise(emsg)
+                    #return
 
         self.remote.allowed = None
 
