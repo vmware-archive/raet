@@ -298,6 +298,7 @@ class RoadStack(stacking.KeepStack):
                 iha = keepData['iha']
                 remote = estating.RemoteEstate(stack=self,
                                                uid=keepData['uid'],
+                                               fuid=keepData['fuid'],
                                                name=keepData['name'],
                                                ha=tuple(ha) if ha else ha,
                                                iha=tuple(iha) if iha else iha,
@@ -325,6 +326,7 @@ class RoadStack(stacking.KeepStack):
                     iha = keepData['iha']
                     remote = estating.RemoteEstate(stack=self,
                                                    uid=keepData['uid'],
+                                                   fuid=keepData['fuid'],
                                                    name=keepData['name'],
                                                    ha=tuple(ha) if ha else ha,
                                                    iha=tuple(iha) if iha else iha,

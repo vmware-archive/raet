@@ -1624,7 +1624,7 @@ class Allower(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        console.concise("Allower {0}. Refusted by {1} at {2}\n".format(
+        console.concise("Allower {0}. Refused by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.remove()
