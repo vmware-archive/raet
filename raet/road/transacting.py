@@ -418,8 +418,8 @@ class Joiner(Initiator):
                     #data = self.stack.keep.loadRemote(self.remote)
                     #if data:
                     status = self.stack.keep.statusRemote(self.remote,
-                                                          data['verhex'],
-                                                          data['pubhex'],
+                                                          self.remote.verfer.keyhex,
+                                                          self.remote.pubber.keyhex,
                                                           main=self.stack.main)
                     if status == raeting.acceptances.accepted:
                         self.complete()
@@ -519,12 +519,6 @@ class Joiner(Initiator):
         Perform acceptance in response to join response packet
         '''
         if not self.stack.parseInner(self.rxPacket):
-            return
-
-        if self.stack.main:
-            emsg = ("Joiner {0}. Invalid accept on main\n".format(self.stack.name))
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
             return
 
         data = self.rxPacket.data
@@ -895,8 +889,8 @@ class Joinent(Correspondent):
                     #data = self.stack.keep.loadRemote(self.remote)
                     #if data:
                     status = self.stack.keep.statusRemote(self.remote,
-                                                          data['verhex'],
-                                                          data['pubhex'],
+                                                          self.remote.verfer.keyhex,
+                                                          self.remote.pubber.keyhex,
                                                           main=self.stack.main)
                     if status == raeting.acceptances.accepted:
                         self.accept()

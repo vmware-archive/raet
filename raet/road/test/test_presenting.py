@@ -314,7 +314,6 @@ class BasicTestCase(unittest.TestCase):
         mainData = self.createRoadData(name='main', base=self.base, auto=True)
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
-                                     uid=1,
                                      main=True,
                                      auto=mainData['auto'],
                                      ha=None)
@@ -322,7 +321,6 @@ class BasicTestCase(unittest.TestCase):
         otherData = self.createRoadData(name='other', base=self.base)
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
-                                     uid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
@@ -473,11 +471,11 @@ class BasicTestCase(unittest.TestCase):
         other1.clearRemoteKeeps()
 
 
-    def testAliveUnjoinedUnallowedUnalivedBoth(self):
+    def testAliveUnjoinedUnallowedBoth(self):
         '''
         Test alive transaction for other to main unjoined on main
         '''
-        console.terse("{0}\n".format(self.testAliveUnjoinedUnallowedUnalivedBoth.__doc__))
+        console.terse("{0}\n".format(self.testAliveUnjoinedUnallowedBoth.__doc__))
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
@@ -504,11 +502,65 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
 
+        console.terse("\nAllow Other to Main *********\n")
         # force unjoined already unallowed unalived
         for stack in [main, other]:
             stack.remotes.values()[0].joined = None
 
-        console.terse("\nBoth unjoined unallowed Alive Other to Main *********\n")
+        for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+        self.allow(other, main) # will join instead since unjoined
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+
+        self.allow(other, main) # now try to allow again
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+
+        console.terse("\nAllow Main to Other *********\n")
+        # force unjoined already unallowed unalived
+        for stack in [main, other]:
+            stack.remotes.values()[0].joined = None
+            stack.remotes.values()[0].allowed = None
+
+        for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+        self.allow(main, other) # will join instead since unjoined
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+
+        self.allow(main, other) # now try to allow again
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+
+        console.terse("\nAlive Other to Main *********\n")
+        # force unjoined unallowed already unalived
+        for stack in [main, other]:
+            stack.remotes.values()[0].joined = None
+            stack.remotes.values()[0].alllowed = None
+
         # alive checks for joined and if not then joins
         for stack in [main, other]:
             remote = stack.remotes.values()[0]
@@ -564,7 +616,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.allowed, None)
             self.assertIs(remote.alived, None)
 
         # Alive checks for allowed and if not allows
@@ -578,7 +630,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.alived, None)
 
         # Alive should complete now
-        self.alive(Main, other)
+        self.alive(main, other)
         for stack in [main, other]:
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
@@ -595,121 +647,283 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocalKeep()
         other.clearRemoteKeeps()
 
-    def testAllowFromOtherUnjoinedBoth(self):
+    def testJoinAllowAliveCascadeBoth(self):
         '''
         Test allow transaction for other to main unjoined on both
         '''
-        console.terse("{0}\n".format(self.testAllowFromOtherUnjoinedBoth.__doc__))
+        console.terse("{0}\n".format(self.testJoinAllowAliveCascadeBoth.__doc__))
 
-        mainData = self.createRoadData(name='main', base=self.base, auto=True)
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
-                                     uid=1,
                                      main=True,
                                      auto=mainData['auto'],
                                      ha=None)
 
-        otherData = self.createRoadData(name='other', base=self.base)
+        otherData = self.createRoadData(name='other',
+                                        base=self.base)
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
-                                     uid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes.values()[0]
-        self.assertTrue(otherRemote.joined)
-        self.assertTrue(mainRemote.joined)
+        console.terse("\nJoin Other to Main Cascade *********\n")
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 0)
 
-        otherRemote.joined = None
-        mainRemote.joined = None
-        main.dumpRemote(otherRemote)
-        other.dumpRemote(mainRemote)
+        self.join(other, main, cascade=True) # now join cascade w
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True) # cascade will include alive
+            self.assertIs(remote.alived, True)  # cascade will include alive
 
-        console.terse("\nBoth unjoined Allow Other to Main *********\n")
-        self.assertEqual(len(main.remotes), 1)
-        self.assertEqual(len(other.remotes), 1)
-        self.assertIs(otherRemote.joined, None)
-        self.assertIs(mainRemote.joined, None)
-
-        self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes[main.local.uid]
-        self.assertIs(otherRemote.joined, True)
-        self.assertIs(mainRemote.joined,  True)
-        self.assertIs(otherRemote.allowed,  None)
-        self.assertIs(mainRemote.allowed,  None)
-
-        self.allow(other, main, deid=main.local.uid)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        self.assertIs(otherRemote.allowed, True)
-        self.assertIs(mainRemote.allowed,  True)
-
-        console.terse("\nAllow Main to Other *********\n")
-        otherRemote.alived = None
-        mainRemote.alived = None
-        self.assertIs(otherRemote.alived, None)
-        self.assertIs(mainRemote.alived, None)
-
-        self.allow(main, other, deid=other.local.uid)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        self.assertTrue(otherRemote.allowed)
-        self.assertTrue(mainRemote.allowed)
-
-        console.terse("\nBoth unjoined Allow Other to Main Cascade *********\n")
+        console.terse("\Join Main to Other Cascade *********\n")
         main.server.close()
         other.server.close()
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
-                                     uid=1,
                                      main=True,
                                      auto=mainData['auto'],
                                      ha=None)
 
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
-                                     uid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        self.assertEqual(len(main.remotes), 0)
-        self.assertEqual(len(other.remotes), 0)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 0)
 
-        self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes.values()[0]
-        self.assertTrue(otherRemote.joined)
-        self.assertTrue(mainRemote.joined)
+        self.join(main, other) # bootstrap channel fails because other not main
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 0)
 
-        otherRemote.joined = None
-        mainRemote.joined = None
-        main.dumpRemote(otherRemote)
-        other.dumpRemote(mainRemote)
+        # now fix it so other can accept vacuous joins
+        other.main = True
+        other.keep.auto = raeting.autoModes.once
 
+        self.join(main, other) # bootstrap channel
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
 
-        self.allow(other, main, cascade=True)
-        self.assertEqual(len(main.transactions), 0)
-        self.assertEqual(len(other.transactions), 0)
-        otherRemote = main.remotes[other.local.uid]
-        mainRemote = other.remotes[main.local.uid]
-        self.assertIs(otherRemote.joined, True)
-        self.assertIs(mainRemote.joined,  True)
-        self.assertIs(otherRemote.allowed,  True)
-        self.assertIs(mainRemote.allowed,  True)
-        self.assertIs(otherRemote.alived,  True)
-        self.assertIs(mainRemote.alived,  True)
+        # force unjoined already unallowed unalived
+        for stack in [main, other]:
+            stack.remotes.values()[0].joined = None
 
+        for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+        self.join(main, other, cascade=True) # now alive cascade
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # cascade will include alive
+
+        console.terse("\nAllow Other to Main Cascade *********\n")
+        main.server.close()
+        other.server.close()
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 0)
+
+        self.join(other, main) # bootstrap channel since allow requires remote
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+
+        # force unjoined already unallowed unalived
+        for stack in [main, other]:
+            stack.remotes.values()[0].joined = None
+
+        for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+        self.allow(other, main, cascade=True) # now allow cascade so join then allow
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # cascade will include alive
+
+        console.terse("\nAllow Main to Other Cascade *********\n")
+        main.server.close()
+        other.server.close()
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 0)
+
+        self.join(main, other) # bootstrap channel fails because other not main
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 0)
+
+        # now fix it so other can accept vacuous joins
+        other.main = True
+        other.keep.auto = raeting.autoModes.once
+
+        self.join(main, other) # bootstrap channel since allow requires remote
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+
+        # force unjoined already unallowed unalived
+        for stack in [main, other]:
+            stack.remotes.values()[0].joined = None
+
+        for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+        self.allow(main, other, cascade=True) # now allow cascade so join then allow
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # cascade will include alive
+
+        console.terse("\nAlive Other to Main Cascade *********\n")
+        main.server.close()
+        other.server.close()
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 0)
+
+        self.join(other, main) # bootstrap channel
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+
+        # force unjoined already unallowed unalived
+        for stack in [main, other]:
+            stack.remotes.values()[0].joined = None
+
+        for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+        self.alive(other, main, cascade=True) # now alive cascade
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # cascade will include alive
+
+        console.terse("\nAlive Main to Other Cascade *********\n")
+        main.server.close()
+        other.server.close()
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 0)
+
+        self.join(main, other) # bootstrap channel fails because other not main
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 0)
+
+        # now fix it so other can accept vacuous joins
+        other.main = True
+        other.keep.auto = raeting.autoModes.once
+
+        self.join(main, other) # bootstrap channel
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+
+        # force unjoined already unallowed unalived
+        for stack in [main, other]:
+            stack.remotes.values()[0].joined = None
+
+        for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, None)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+        self.alive(main, other, cascade=True) # now alive cascade
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # cascade will include alive
 
         main.server.close()
         main.clearLocalKeep()
@@ -1691,8 +1905,8 @@ def runSome():
     tests =  []
     names = ['testAlive',
              'testAliveMultiple',
-             'testAliveUnjoinedUnallowedUnalivedBoth',
-             'testAliveFromOtherUnjoinedBoth',
+             'testAliveUnjoinedUnallowedBoth',
+             'testJoinAllowAliveCascadeBoth',
              'testManageJoinedAllowed',
              'testJoinFromMain',
              'testYokeFromMain',
@@ -1722,6 +1936,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testAliveUnjoinedUnallowedUnalivedBoth')
+    #runOne('testJoinAllowAliveCascadeBoth')
