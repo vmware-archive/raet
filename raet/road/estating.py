@@ -106,6 +106,9 @@ class Estate(lotting.Lot):
         ti = tid, Transaction ID, TID
         bf = Broadcast Flag, BcstFlag
         '''
+        if index in self.transactions:
+            emsg = "Cannot add transaction at index '{0}', alreadys exists".format(index)
+            raise raeting.EstateError(emsg)
         self.transactions[index] = transaction
         transaction.remote = self
         console.verbose( "Added transaction to {0} at '{1}'\n".format(self.name, index))
