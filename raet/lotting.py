@@ -55,6 +55,7 @@ class Lot(object):
     def validSid(self, sid):
         '''
         Compare new sid to old .sid and return True
+        If old is zero Then new is always valid
         If new is >= old modulo N where N is 2^32 = 0x100000000
         And >= means the difference is less than N//2 = 0x80000000
         (((new - old) % 0x100000000) < (0x100000000 // 2))
@@ -67,10 +68,11 @@ class Lot(object):
         Compare new sid to old sid and return True
         If old is zero Then new is always valid
         If new is >= old modulo N where N is 2^32 = 0x100000000
-        And greater means the difference is less than N//2 = 0x80000000
-
+        And >= means the difference is less than N//2 = 0x80000000
+        0 = 0 % anything
         '''
-        if not old: # if current sid is 0 then always valid
+        # If old sid == 0 then new always valid. If new sid == 0 then always valid
+        if not old or not new:
             return True
         return (((new - old) % raeting.SID_WRAP_MODULO) <
                                              (raeting.SID_WRAP_DELTA))

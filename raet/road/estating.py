@@ -273,6 +273,7 @@ class RemoteEstate(Estate):
     def validRsid(self, rsid):
         '''
         Compare new rsid to old .rsid and return True
+        If old is zero Then new is always valid
         If new is >= old modulo N where N is 2^32 = 0x100000000
         And >= means the difference is less than N//2 = 0x80000000
         (((new - old) % 0x100000000) < (0x100000000 // 2))
@@ -329,14 +330,16 @@ class RemoteEstate(Estate):
             self.stack.incStat("remote_unreap")
             self.reaped = False
 
-    def removeStaleCorrespondents(self, renew=False):
+    def removeStaleCorrespondents(self):
         '''
-        Remove stale correspondent transactions associated with remote
+        Remove local stale correspondent transactions associated with remote
 
-        If renew then remove all correspondents from this remote with nonzero sid
+        Local correspondent is indicated by rf ==True
 
         Stale means the sid in the transaction is older than the current .rsid
-        or if renew (rejoining with .rsid == zero)
+        assuming neither is zero, that is sid in index is older than remote.rsid
+
+        old rsid == 0 means new always valid
 
         When sid in index is older than remote.rsid
         Where index is tuple: (rf, le, re, si, ti, bf,)
@@ -350,7 +353,7 @@ class RemoteEstate(Estate):
         for index, transaction in self.transactions.items():
             sid = index[3]
             rf = index[0] # correspondent
-            if rf and  ((renew and sid != 0) or (not renew and not self.validRsid(sid))):
+            if rf and not self.validRsid(sid):
                 transaction.nack()
                 self.removeTransaction(index)
                 emsg = ("Stack {0}: Stale correspondent {1} from remote {1} at {2}"
@@ -361,19 +364,20 @@ class RemoteEstate(Estate):
                 console.terse(emsg)
                 self.stack.incStat('stale_correspondent')
 
-    def replaceStaleInitiators(self, renew=False):
+    def replaceStaleInitiators(self):
         '''
         Save and remove any messages from messenger transactions initiated locally
         with remote
 
-        Remove non message stale initiator transactions associated with remote
+        Remove non message stale local initiator transactions associated with remote
+        Also save and requeue any stale locally initiated message transactions.
 
-        If renew Then remove all initiators from this remote with nonzero sid
+        Local inititors have rf flag == False
 
         Stale means the sid in the transaction is older than the current .sid
-        or if renew (rejoining with .sid == zero)
+        assuming neither is zero, that is  sid in index is older than remote.sid
 
-        When sid in index is older than remote.sid
+        old sid == 0 means new always valid
 
         Where index is tuple: (rf, le, re, si, ti, bf,)
             rf = Remotely Initiated Flag, RmtFlag
@@ -384,9 +388,10 @@ class RemoteEstate(Estate):
             bf = Broadcast Flag, BcstFlag
         '''
         for index, transaction in self.transactions.items():
-            sid = index[3]
             rf = index[0]
-            if not rf and ((renew and sid != 0) or (not renew and not self.validSid(sid))):
+            sid = index[3]
+
+            if not rf and not self.validSid(sid): # transaction sid newer or equal
                 if transaction.kind in [raeting.trnsKinds.message]:
                     self.saveMessage(transaction)
                 transaction.nack()

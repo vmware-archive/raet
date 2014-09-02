@@ -331,7 +331,7 @@ class Joiner(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.sid = 0 #self.remote.sid always 0 for join
+        self.sid = 0 #always 0 for join
         self.tid = self.remote.nextTid()
         # fuid is assigned during join but want to preserve vacuousness for remove
         self.vacuous = (self.remote.fuid == 0)
@@ -503,7 +503,7 @@ class Joiner(Initiator):
         self.remove(index=self.txPacket.index)
         if self.remote:
             # reset remote to default values and move to zero
-            self.remote.replaceStaleInitiators(renew=True)
+            #self.remote.replaceStaleInitiators()
             self.remote.fuid =  0
             self.stack.dumpRemote(self.remote)
         self.stack.join(uid=self.remote.uid, timeout=self.timeout, renewal=True)
@@ -677,8 +677,10 @@ class Joiner(Initiator):
         '''
         Finalize full acceptance
         '''
-        self.remote.replaceStaleInitiators(renew=(self.sid==0))
-        self.remote.nextSid() # start new session
+
+        if self.remote.sid == 0: # session id  must be non-zero after join
+            self.remote.nextSid() # start new session
+            self.remote.replaceStaleInitiators() # this join not stale since sid == 0
         self.remote.joined = True #accepted
         self.stack.dumpRemote(self.remote)
         self.ackAccept()
@@ -1248,11 +1250,10 @@ class Joinent(Correspondent):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("join_correspond_complete")
 
-        # Responsiblity of remote iniators to restart themselves after sid change
-        self.remote.removeStaleCorrespondents(renew=(self.sid==0))
+        if self.remote.sid == 0: # session id  must be non-zero after join
+            self.remote.nextSid() # start new session
+            self.remote.replaceStaleInitiators()
         self.remote.joined = True # accepted
-        self.remote.nextSid()
-        self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
         self.remove(index=self.rxPacket.index)
 
@@ -1620,7 +1621,7 @@ class Allower(Initiator):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
 
-        self.remote.nextSid() # start new session
+        self.remote.nextSid() # start new session always on successful allow
         self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
         self.remote.sendSavedMessages() # could include messages saved on rejoin
@@ -2074,7 +2075,7 @@ class Allowent(Correspondent):
         Perform allowment
         '''
         self.remote.allowed = True
-        self.remote.nextSid() # start new session
+        self.remote.nextSid() # start new session always on successful allow
         self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
 
