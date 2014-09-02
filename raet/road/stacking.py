@@ -477,8 +477,7 @@ class RoadStack(stacking.KeepStack):
                                                        fuid=fuid,
                                                        sid=rsid,
                                                        ha=rha)
-                        # self.joinees[rha] = remote
-                        # added to joinees in joinent if vacuous
+                        # in joinent if vacuous self.joinees[rha] = remote
                 else: # nonvacuous join match by nuid from .remotes
                     remote = self.remotes.get(nuid, None)
                     if not remote: # remote with nuid not exist
@@ -491,8 +490,7 @@ class RoadStack(stacking.KeepStack):
                                                         fuid=fuid,
                                                         sid=rsid,
                                                         ha=rha)
-                        #self.replyStale(packet, renew=True) # nack stale transaction
-                        #self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+                        self.replyStale(packet, remote, renew=True) # nack stale transaction
                         return
 
         else: # not join transaction
@@ -627,14 +625,13 @@ class RoadStack(stacking.KeepStack):
                                     rxPacket=packet)
         staler.nack()
 
-    def replyStale(self, packet, remote):
+    def replyStale(self, packet, remote, renew=False):
         '''
         Correspond to stale initiated transaction
         '''
         if packet.data['pk'] in [raeting.pcktKinds.nack,
                                  raeting.pcktKinds.unjoined,
                                  raeting.pcktKinds.unallowed,
-                                 raeting.pcktKinds.renew,
                                  raeting.pcktKinds.refuse,
                                  raeting.pcktKinds.reject,]:
             return # ignore stale nacks
@@ -646,7 +643,10 @@ class RoadStack(stacking.KeepStack):
                                       tid=packet.data['ti'],
                                       txData=data,
                                       rxPacket=packet)
-        stalent.nack()
+        if renew:
+            stalent.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+        else:
+            stalent.nack()
 
     def join(self, uid=None, timeout=None, cascade=False, renewal=False):
         '''

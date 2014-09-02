@@ -274,7 +274,7 @@ class Stalent(Correspondent):
                             fk=raeting.footKinds.nada
                            )
 
-    def nack(self):
+    def nack(self, kind=raeting.pcktKinds.nack):
         '''
         Send nack to stale packet from initiator.
         This is used when a initiator packet is received but with a stale session id
@@ -294,7 +294,7 @@ class Stalent(Correspondent):
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.nack,
+                                    kind=kind,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -304,14 +304,34 @@ class Stalent(Correspondent):
             self.stack.incStat("packing_error")
             return
 
+        if kind == raeting.pcktKinds.renew:
+            console.terse("Stalent {0}. Do Renew of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        elif kind == raeting.pcktKinds.refuse:
+            console.terse("Stalent {0}. Do Refuse of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        elif kind == raeting.pcktKinds.reject:
+            console.terse("Stalent {0}. Do Reject of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        elif kind == raeting.pcktKinds.nack:
+            console.terse("Stalent {0}. Do Nack of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        else:
+            console.terse("Stalent {0}. Invalid nack kind of {1} nacking anyway "
+                    " at {2}\n".format(self.stack.name,
+                                       kind,
+                                       self.stack.store.stamp))
+            kind == raeting.pcktKinds.nack
+
         self.stack.txes.append((packet.packed, ha))
-        console.terse("Stalent {0}. Nack stale initiator from '{1}' at {2}\n".format(
-                self.stack.name, ha, self.stack.store.stamp))
         self.stack.incStat('stale_initiator_nack')
 
 class Joiner(Initiator):
     '''
     RAET protocol Joiner Initiator class Dual of Joinent
+
+    Joiner must always add new remote since always must anticipate response to
+    request.
     '''
     RedoTimeoutMin = 1.0 # initial timeout
     RedoTimeoutMax = 4.0 # max timeout
@@ -800,6 +820,8 @@ class Joiner(Initiator):
 class Joinent(Correspondent):
     '''
     RAET protocol Joinent transaction class, dual of Joiner
+
+    Joinent does not add new remote to .remotes if rejected
     '''
     RedoTimeoutMin = 0.1 # initial timeout
     RedoTimeoutMax = 2.0 # max timeout
