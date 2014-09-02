@@ -178,6 +178,9 @@ class RemoteYard(Yard):
         '''
         Safely add book at index,(si, bi) If not already there
         '''
+        if index in self.books:
+            emsg = "Cannot add book at index '{0}', alreadys exists".format(index)
+            raise raeting.YardError(emsg)
         self.books[index] = book
         console.verbose( "Added book to {0} at '{1}'\n".format(self.name, index))
 
