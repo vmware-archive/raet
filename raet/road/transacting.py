@@ -435,8 +435,6 @@ class Joiner(Initiator):
                 self.stack.incStat('redo_join')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    #data = self.stack.keep.loadRemote(self.remote)
-                    #if data:
                     status = self.stack.keep.statusRemote(self.remote,
                                                           self.remote.verfer.keyhex,
                                                           self.remote.pubber.keyhex,
@@ -446,8 +444,6 @@ class Joiner(Initiator):
                     elif status == raeting.acceptances.rejected:
                         "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                 self.stack.name, self.remote.name, self.remote.uid)
-                        #self.remote.joined = False
-                        #self.stack.dumpRemote(self.remote)
                         self.stack.removeRemote(self.remote, clear=True)
                         self.nack(kind=raeting.pcktKinds.reject)
 
@@ -522,10 +518,8 @@ class Joiner(Initiator):
         self.stack.incStat(self.statKey())
         self.remove(index=self.txPacket.index)
         if self.remote:
-            # reset remote to default values and move to zero
-            #self.remote.replaceStaleInitiators()
-            self.remote.fuid =  0
-            self.stack.dumpRemote(self.remote)
+            self.remote.fuid = 0 # forces vacuous join
+            self.stack.dumpRemote(self.remote) # since change fuid
         self.stack.join(uid=self.remote.uid, timeout=self.timeout, renewal=True)
 
     def pend(self):
@@ -651,8 +645,6 @@ class Joiner(Initiator):
                 # remove also nacks so reject
             else:
                 self.nack(kind=raeting.pcktKinds.reject)
-            #self.remote.joined = False
-            #self.stack.dumpRemote(self.remote)
             return
 
         # accepted or pending
@@ -684,7 +676,7 @@ class Joiner(Initiator):
             if pubhex != self.remote.pubber.keyhex:
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
-        #self.stack.dumpRemote(self.remote)
+            # do not dump until complete in case hijack
 
         if status == raeting.acceptances.accepted: # accepted
             self.complete()
@@ -726,8 +718,6 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Rejected by {1} at {2}\n".format(
                  self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        #self.remote.joined = False
-        #self.stack.dumpRemote(self.remote)
         self.stack.removeRemote(self.remote, clear=True)
         self.remove(index=self.txPacket.index)
 
@@ -912,8 +902,6 @@ class Joinent(Correspondent):
                 self.stack.incStat('redo_accept')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    #data = self.stack.keep.loadRemote(self.remote)
-                    #if data:
                     status = self.stack.keep.statusRemote(self.remote,
                                                           self.remote.verfer.keyhex,
                                                           self.remote.pubber.keyhex,
@@ -923,8 +911,6 @@ class Joinent(Correspondent):
                     elif status == raeting.acceptances.rejected:
                         "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                 self.stack.name, self.remote.name, self.remote.uid)
-                        #self.remote.joined = False
-                        #self.stack.dumpRemote(self.remote)
                         self.stack.removeRemote(self.remote,clear=True)
                         self.nack(kind=raeting.pcktKinds.reject)
 
@@ -1135,7 +1121,7 @@ class Joinent(Correspondent):
             console.concise(emsg)
             if sameRoleKeys and self.remote.uid in self.stack.remotes:
                 self.stack.removeRemote(self.remote, clear=Ture) #clear remote
-                #removeRemote also nacks which is a reject
+                # removeRemote also nacks which is a reject
             else: # reject as keys rejected
                 self.nack(kind=raeting.pcktKinds.reject)
             return
@@ -1158,7 +1144,7 @@ class Joinent(Correspondent):
                                           self.remote.ha,
                                           self.remote.role))
                 console.concise(emsg)
-                #self.stack.dumpRemote(self.remote)
+                # do not need to dump since no change
 
         else: # not sameAll (and mutable)
             # do both unique name check first so only change road if new unique
@@ -1187,8 +1173,7 @@ class Joinent(Correspondent):
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
             if pubhex != self.remote.pubber.keyhex:
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
-
-            #self.stack.dumpRemote(self.remote)
+            #do not dump until complete
 
         # add transaction
         self.add(remote=self.remote, index=self.rxPacket.index)
@@ -1289,9 +1274,6 @@ class Joinent(Correspondent):
         console.terse("Joinent {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-
-        #self.remote.joined = False
-        #self.stack.dumpRemote(self.remote)
         self.stack.removeRemote(self.remote, clear=True)
         self.remove(index=self.rxPacket.index)
 
@@ -1622,7 +1604,8 @@ class Allower(Initiator):
     def ackFinal(self):
         '''
         Send ack to ack Initiate to terminate transaction
-        Why do we need this? could we just let transaction timeout on allowent
+        This is so both sides wait on acks so transaction is not restarted until
+        boths sides see completion.
         '''
         body = ""
         packet = packeting.TxPacket(stack=self.stack,
