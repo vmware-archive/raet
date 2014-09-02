@@ -321,7 +321,6 @@ class RemoteEstate(Estate):
                     self.stack.name, self.name, self.stack.store.stamp))
             self.stack.incStat("remote_reap")
             self.reaped = True
-            #self.stack.removeRemote(self, clear=False) #remove from memory but not disk
 
     def unreap(self):
         '''

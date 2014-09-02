@@ -437,8 +437,7 @@ class Joiner(Initiator):
                 if self.remote:
                     status = self.stack.keep.statusRemote(self.remote,
                                                           self.remote.verfer.keyhex,
-                                                          self.remote.pubber.keyhex,
-                                                          main=self.stack.main)
+                                                          self.remote.pubber.keyhex)
                     if status == raeting.acceptances.accepted:
                         self.complete()
                     elif status == raeting.acceptances.rejected:
@@ -636,7 +635,6 @@ class Joiner(Initiator):
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
-                                              main=self.stack.main,
                                               dump=True)
 
         if status == raeting.acceptances.rejected:
@@ -904,8 +902,7 @@ class Joinent(Correspondent):
                 if self.remote:
                     status = self.stack.keep.statusRemote(self.remote,
                                                           self.remote.verfer.keyhex,
-                                                          self.remote.pubber.keyhex,
-                                                          main=self.stack.main)
+                                                          self.remote.pubber.keyhex)
                     if status == raeting.acceptances.accepted:
                         self.accept()
                     elif status == raeting.acceptances.rejected:
@@ -1107,7 +1104,6 @@ class Joinent(Correspondent):
         status = self.stack.keep.statusRemote(self.remote,
                                               verhex=verhex,
                                               pubhex=pubhex,
-                                              main=self.stack.main,
                                               dump=True)
 
         if status == raeting.acceptances.rejected:

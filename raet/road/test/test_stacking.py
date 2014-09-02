@@ -62,22 +62,23 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(mainDirpath)
         keeping.clearAllKeep(otherDirpath)
 
-        self.main = stacking.RoadStack(name=mainName,
-                                       #uid=1,
+        self.main = stacking.RoadStack(store=self.store,
+                                       name=mainName,
+                                       main=True,
+                                       auto=raeting.autoModes.once,
                                        sigkey=mainSignKeyHex,
                                        prikey=mainPriKeyHex,
-                                       auto=True,
-                                       main=True,
                                        dirpath=mainDirpath,
-                                       store=self.store)
+                                       )
 
-        self.other = stacking.RoadStack(name=otherName,
-                                        #uid=1,
+        self.other = stacking.RoadStack(store=self.store,
+                                        name=otherName,
+                                        auto=raeting.autoModes.once,
                                         ha=("", raeting.RAET_TEST_PORT),
                                         sigkey=otherSignKeyHex,
                                         prikey=otherPriKeyHex,
                                         dirpath=otherDirpath,
-                                        store=self.store)
+                                        )
 
 
 

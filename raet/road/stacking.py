@@ -242,7 +242,6 @@ class RoadStack(stacking.KeepStack):
             return None
 
         remote = estating.RemoteEstate(stack=self,
-                                       # uid=0, # auto generate non zero
                                        fuid=0, # vacuous join
                                        sid=0, # always 0 for join
                                        ha=ha) #if ha is not None else dha

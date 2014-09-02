@@ -313,7 +313,7 @@ class RoadKeep(keeping.Keep):
 
             self.clearRemoteRoleData(old) # now delete old role file
 
-    def statusRemote(self, remote, verhex, pubhex, main=True, dump=True, extant=False):
+    def statusRemote(self, remote, verhex, pubhex, dump=True, extant=False):
         '''
         Calls statusRole and updates remote appropriately
 
@@ -329,7 +329,7 @@ class RoadKeep(keeping.Keep):
         Otherwise do nothing and return None
         '''
         status, change = self.statusRole(remote.role, verhex=verhex, pubhex=pubhex,
-                                         main=main, dump=dump, extant=extant)
+                                         dump=dump, extant=extant)
 
         if status != raeting.acceptances.rejected:
             # update changed keys if any when accepted or pending
@@ -343,7 +343,7 @@ class RoadKeep(keeping.Keep):
 
         return status
 
-    def statusRole(self, role, verhex, pubhex, main=True, dump=True, extant=False):
+    def statusRole(self, role, verhex, pubhex, dump=True, extant=False):
         '''
         Returns duple of (status, change)
         Where status is acceptance status of role and provided keys
@@ -368,76 +368,22 @@ class RoadKeep(keeping.Keep):
 
         status = data.get('acceptance') if data else None # pre-existing status
 
-        if main: #main estate logic
-            if self.auto == raeting.autoModes.always:
-                status = raeting.acceptances.accepted
-                change = True
+        if self.auto == raeting.autoModes.always:
+            status = raeting.acceptances.accepted
+            change = True
 
-            elif self.auto == raeting.autoModes.once:
-                if status is None: # first time so accept once
-                    status = raeting.acceptances.accepted
-                    change = True
-
-                elif status == raeting.acceptances.accepted:
-                    # already been accepted if keys not match then reject
-                    if (data and (
-                            (verhex != data.get('verhex')) or
-                            (pubhex != data.get('pubhex')) )):
-                        status = raeting.acceptances.rejected
-                    else: # reapply existing status
-                        change = True
-
-                elif status == raeting.acceptances.pending:
-                    # already pending prior mode of never if keys not match then reject
-                    if (data and (
-                            (verhex != data.get('verhex')) or
-                            (pubhex != data.get('pubhex')) )):
-                        status = raeting.acceptances.rejected
-                    else: # in once mode convert pending to accepted
-                        status = raeting.acceptances.accepted
-                        change = True
-
-                else: # status == raeting.acceptances.rejected
-                    change = True
-
-            elif self.auto == raeting.autoModes.never:
-                if status is None: # first time so pend
-                    status = raeting.acceptances.pending
-                    change = True
-
-                elif status == raeting.acceptances.accepted:
-                    # already been accepted if keys not match then reject
-                    if (data and (
-                            (verhex != data.get('verhex')) or
-                            (pubhex != data.get('pubhex')) )):
-                        status = raeting.acceptances.rejected
-                    else: # reapply existing status
-                        change = True
-
-                elif status == raeting.acceptances.pending:
-                    # already pending if keys not match then reject
-                    if (data and (
-                            (verhex != data.get('verhex')) or
-                            (pubhex != data.get('pubhex')) )):
-                        status = raeting.acceptances.rejected
-                    else: # stay pending
-                        change = True
-
-                else: # status == raeting.acceptances.rejected
-                    change = True
-
-        else: #other estate logic same as once.
-            if status is None:
+        elif self.auto == raeting.autoModes.once:
+            if status is None: # first time so accept once
                 status = raeting.acceptances.accepted
                 change = True
 
             elif status == raeting.acceptances.accepted:
-                if (  data and (
+                # already been accepted if keys not match then reject
+                if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-                    # do not change acceptance since old keys kept and were accepted
-                else: #in case new remote
+                else: # reapply existing status
                     change = True
 
             elif status == raeting.acceptances.pending:
@@ -448,6 +394,32 @@ class RoadKeep(keeping.Keep):
                     status = raeting.acceptances.rejected
                 else: # in once mode convert pending to accepted
                     status = raeting.acceptances.accepted
+                    change = True
+
+            else: # status == raeting.acceptances.rejected
+                change = True
+
+        elif self.auto == raeting.autoModes.never:
+            if status is None: # first time so pend
+                status = raeting.acceptances.pending
+                change = True
+
+            elif status == raeting.acceptances.accepted:
+                # already been accepted if keys not match then reject
+                if (data and (
+                        (verhex != data.get('verhex')) or
+                        (pubhex != data.get('pubhex')) )):
+                    status = raeting.acceptances.rejected
+                else: # reapply existing status
+                    change = True
+
+            elif status == raeting.acceptances.pending:
+                # already pending if keys not match then reject
+                if (data and (
+                        (verhex != data.get('verhex')) or
+                        (pubhex != data.get('pubhex')) )):
+                    status = raeting.acceptances.rejected
+                else: # stay pending
                     change = True
 
             else: # status == raeting.acceptances.rejected
