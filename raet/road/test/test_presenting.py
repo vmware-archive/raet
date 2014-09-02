@@ -1386,7 +1386,6 @@ class BasicTestCase(unittest.TestCase):
         other1Dirpath = other1Data['dirpath']
         keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
-                                     uid=0,
                                      main=None,
                                      auto=None,
                                      ha=("", 7532))
@@ -1406,6 +1405,248 @@ class BasicTestCase(unittest.TestCase):
             for remote in stack.remotes.values():
                 self.assertIs(remote.alived, True)
 
+        main.manage(immediate=True)
+        other.manage(immediate=True)
+        other1.manage(immediate=True)
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+        self.assertEqual(len(other.transactions), 1) # started 1 alive transactions
+        self.assertEqual(len(other1.transactions), 1) # started 1 alive transactions
+
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.alived, True)
+
+        self.serviceManageStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.alived, True)
+
+        # now test if main rebooted
+        console.terse("\nMake all alive with cascade after main reboots *********\n")
+        main.server.close()
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        stacks = [main, other, other1]
+
+        for stack in [main]:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True) #joined status is persisted
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        for stack in [other, other1]:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True) #joined status is persisted
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
+
+        main.manage(immediate=True, cascade=True)
+        other.manage(cascade=True)
+        other1.manage(cascade=True)
+        self.assertEqual(len(main.transactions), 2)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertEqual(len(other1.transactions), 0)
+
+        for stack in [main]:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.alived, None)
+
+        for stack in [other, other1]:
+             for remote in stack.remotes.values():
+                self.assertIs(remote.alived, True)
+
+        self.serviceManageStacks(stacks, duration=3.0, cascade=True)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True) #joined status is persisted
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
+
+        # Now test as if others are rebooted but not main
+        console.terse("\nMake all alive with cascade after others reboot *********\n")
+        other.server.close()
+        other1.server.close()
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+        other1 = stacking.RoadStack(dirpath=other1Dirpath, store=self.store)
+        stacks = [main, other, other1]
+
+        for stack in [main]:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.alived, True)
+
+        for stack in [other, other1]:
+             for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        main.manage(cascade=True)
+        other.manage(immediate=True,cascade=True)
+        other1.manage(immediate=True,cascade=True)
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(other.transactions), 1)
+        self.assertEqual(len(other1.transactions), 1)
+
+        for stack in [main]:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.alived, True)
+
+        for stack in [other, other1]:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        self.serviceManageStacks(stacks, duration=3.0, cascade=True)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
+
+        # now close down all and reload from saved data and manage
+        console.terse("\nMake all alive with cascade after all reboot *********\n")
+        main.server.close()
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        other.server.close()
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+        other1.server.close()
+        other1 = stacking.RoadStack(dirpath=other1Dirpath, store=self.store)
+
+        stacks = [main, other, other1]
+
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True) #joined status is persisted
+                self.assertIs(remote.allowed, None) # None on reload from file
+                self.assertIs(remote.alived, None) # None on reload from file
+
+        main.manage(immediate=True, cascade=True)
+        other.manage(immediate=True, cascade=True)
+        other1.manage(immediate=True, cascade=True)
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+        self.assertEqual(len(other.transactions), 1) # started 1 alive transactions
+        self.assertEqual(len(other1.transactions), 1) # started 1 alive transactions
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True) #joined status is persisted
+                self.assertIs(remote.allowed, None) # None on reload from file
+                self.assertIs(remote.alived, None) # None on reload from file
+
+        self.serviceManageStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
+
+        # now close down all and reload from saved data but loose joined status
+        console.terse("\nMake all alive with cascade after all reboot and lose join *********\n")
+        main.server.close()
+        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        other.server.close()
+        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
+        other1.server.close()
+        other1 = stacking.RoadStack(dirpath=other1Dirpath, store=self.store)
+
+        stacks = [main, other, other1]
+
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                remote.joined = None
+                self.assertIs(remote.joined, None) #joined status is persisted
+                self.assertIs(remote.allowed, None) # None on reload from file
+                self.assertIs(remote.alived, None) # None on reload from file
+
+        main.manage(immediate=True, cascade=True)
+        other.manage(immediate=True, cascade=True)
+        other1.manage(immediate=True, cascade=True)
+        self.assertEqual(len(main.transactions), 2) # started 2 alive transactions
+        self.assertEqual(len(other.transactions), 1) # started 1 alive transactions
+        self.assertEqual(len(other1.transactions), 1) # started 1 alive transactions
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, None) #joined status is persisted
+                self.assertIs(remote.allowed, None) # None on reload from file
+                self.assertIs(remote.alived, None) # None on reload from file
+
+        self.serviceManageStacks(stacks, duration=3.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
+
+        main.server.close()
+        main.clearLocalKeep()
+        main.clearRemoteKeeps()
+
+        other.server.close()
+        other.clearLocalKeep()
+        other.clearRemoteKeeps()
+
+        other1.server.close()
+        other1.clearLocalKeep()
+        other1.clearRemoteKeeps()
+
+
+    def testManageRebootCascadeBothSidesAlt(self):
+        '''
+        Test stack manage remotes as if main were rebooted and main name
+        means it loses simultaneous join name resolution
+        '''
+        console.terse("{0}\n".format(self.testManageRebootCascadeBothSidesAlt.__doc__))
+
+        mainData = self.createRoadData(name='zmain',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        mainDirpath = mainData['dirpath']
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other', base=self.base)
+        otherDirpath = otherData['dirpath']
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        other1Data = self.createRoadData(name='other1', base=self.base)
+        other1Dirpath = other1Data['dirpath']
+        keeping.clearAllKeep(other1Data['dirpath'])
+        other1 = self.createRoadStack(data=other1Data,
+                                     main=None,
+                                     auto=None,
+                                     ha=("", 7532))
+
+
+        for stack in (other, other1):
+            self.join(stack, main, cascade=True)
+            self.allow(stack, main, cascade=True)
+
+        stacks = [main, other, other1]
+        self.serviceStacks(stacks, duration=3.0)
+        for stack in stacks:
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, True)
+
+
+        console.terse("\nTest manage remotes presence *********\n")
         main.manage(immediate=True)
         other.manage(immediate=True)
         other1.manage(immediate=True)
@@ -1620,7 +1861,8 @@ def runSome():
              'testManageOneSide',
              'testManageBothSides',
              'testManageMainRebootCascade',
-             'testManageRebootCascadeBothSides', ]
+             'testManageRebootCascadeBothSides',
+             'testManageRebootCascadeBothSidesAlt', ]
 
     tests.extend(map(BasicTestCase, names))
 
