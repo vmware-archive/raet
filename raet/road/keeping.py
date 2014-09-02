@@ -299,20 +299,6 @@ class RoadKeep(keeping.Keep):
 
         self.dumpRemoteRole(remote)
 
-    def replaceRemoteRole(self, remote, old):
-        '''
-        Replace old role when remote.role has changed
-        '''
-        new = remote.role
-        if new != old:
-            data = odict(role=remote.role,
-                             acceptance=remote.acceptance,
-                             verhex=remote.verhex,
-                             pubhex=remote.pubhex)
-            self.dumpRemoteRoleData(data, remote.role)
-
-            self.clearRemoteRoleData(old) # now delete old role file
-
     def statusRemote(self, remote, verhex, pubhex, dump=True, extant=False):
         '''
         Calls statusRole and updates remote appropriately
