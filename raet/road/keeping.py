@@ -301,42 +301,31 @@ class RoadKeep(keeping.Keep):
 
     def statusRemote(self, remote, dump=True):
         '''
-        Calls statusRole and updates remote appropriately
+        Calls .statusRole on remote role and keys and updates remote.acceptance
+        dump indicates if statusRole should update persisted values when
+        appropriate.
 
         Returns status
-        Where status is acceptance status of role and provided keys
+        Where status is acceptance status of role and keys
         and has value from raeting.acceptances
-
-
-        Evaluate acceptance status of estate per its keys
-        persist key data differentially based on status
-
-        extant is flag to only update status and acceptance if roleData in preexistent
-        Otherwise do nothing and return None
         '''
-        status, change = self.statusRole(remote.role,
-                                         verhex=remote.verfer.keyhex,
-                                         pubhex=remote.pubber.keyhex,
-                                         dump=dump, )
+        status = self.statusRole(role=remote.role,
+                                 verhex=remote.verfer.keyhex,
+                                 pubhex=remote.pubber.keyhex,
+                                 dump=dump, )
 
-        if change:
-            remote.acceptance = status
+        remote.acceptance = status
 
         return status
 
     def statusRole(self, role, verhex, pubhex, dump=True):
         '''
-        Returns duple of (status, change)
+        Returns status
 
-        Where status is acceptance status of role and provided keys
+        Where status is acceptance status of role and keys
         and has value from raeting.acceptances
 
-        Where change is flag True or False to indicate that the remote associated
-        with role should change its remote.acceptance to the returned status.
-
-        Evaluate acceptance status of estate per its keys
-
-        If dump and something is different (as given by dirty flag)
+        If dump  when appropriate
         Then persist key data differentially based on status
 
         In many cases a status of rejected is returned because the provided keys are
@@ -347,19 +336,15 @@ class RoadKeep(keeping.Keep):
         set to rejected by this function, that is, a status of rejected may be returned
         but the persisted status on disk is not changed to rejected.
         '''
-        change = False
-
         data = self.loadRemoteRoleData(role)
         status = data.get('acceptance') if data else None # pre-existing status
 
         if self.auto == raeting.autoModes.always:
             status = raeting.acceptances.accepted
-            change = True
 
         elif self.auto == raeting.autoModes.once:
             if status is None: # first time so accept once
                 status = raeting.acceptances.accepted
-                change = True
 
             elif status == raeting.acceptances.accepted:
                 # already been accepted if keys not match then reject
@@ -367,8 +352,6 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-                else: # reapply existing status accepted
-                    change = True
 
             elif status == raeting.acceptances.pending:
                 # already pending prior mode of never if keys not match then reject
@@ -378,15 +361,12 @@ class RoadKeep(keeping.Keep):
                     status = raeting.acceptances.rejected
                 else: # in once mode convert pending to accepted
                     status = raeting.acceptances.accepted
-                    change = True
 
-            else: # status == raeting.acceptances.rejected
-                change = True # reapply existing status rejected
+            #else: # status == raeting.acceptances.rejected
 
         elif self.auto == raeting.autoModes.never:
             if status is None: # first time so pend
                 status = raeting.acceptances.pending
-                change = True
 
             elif status == raeting.acceptances.accepted:
                 # already been accepted if keys not match then reject
@@ -394,8 +374,6 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-                else: # reapply existing status accepted
-                    change = True
 
             elif status == raeting.acceptances.pending:
                 # already pending if keys not match then reject
@@ -403,11 +381,8 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-                else: # reapply existing status pending
-                    change = True
 
-            else: # status == raeting.acceptances.rejected
-                change = True # reapply existing status rejected
+            #else: # status == raeting.acceptances.rejected
 
         else: # unrecognized autoMode
             raise raeting.KeepError("Unrecognized auto mode '{0}'".format(self.auto))
@@ -430,7 +405,7 @@ class RoadKeep(keeping.Keep):
                                                remoteFields=self.RemoteRoleFields):
                 self.dumpRemoteRoleData(data, role)
 
-        return (status, change)
+        return status
 
     def rejectRemote(self, remote):
         '''

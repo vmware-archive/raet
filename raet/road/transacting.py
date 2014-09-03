@@ -624,7 +624,7 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        status, change = self.stack.keep.statusRole(role=role,
+        status = self.stack.keep.statusRole(role=role,
                                                     verhex=verhex,
                                                     pubhex=pubhex,
                                                     dump=True)
@@ -638,8 +638,7 @@ class Joiner(Initiator):
             return
 
         # accepted or pending
-        if change: # change acceptance of remote
-            self.remote.acceptance = status
+        self.remote.acceptance = status # change acceptance of remote
 
         if not sameAll: # (and mutable)
             if (name in self.stack.nameRemotes and
@@ -1090,10 +1089,10 @@ class Joinent(Correspondent):
             self.nack(kind=raeting.pcktKinds.reject)
             return
 
-        status, change = self.stack.keep.statusRole(role=role,
-                                                   verhex=verhex,
-                                                   pubhex=pubhex,
-                                                   dump=True)
+        status = self.stack.keep.statusRole(role=role,
+                                            verhex=verhex,
+                                            pubhex=pubhex,
+                                            dump=True)
 
 
         if status == raeting.acceptances.rejected:
@@ -1113,8 +1112,7 @@ class Joinent(Correspondent):
             return
 
         #accepted or pended
-        if change:
-            self.remote.acceptance = status
+        self.remote.acceptance = status
 
         if sameAll: #ephemeral will always be sameAll because assigned above
             if self.remote.uid not in self.stack.remotes: # ephemeral
