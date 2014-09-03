@@ -662,23 +662,22 @@ class BasicTestCase(unittest.TestCase):
                 main.keep.acceptRemote(remote)
 
         self.service(main, other, duration=3.0)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
 
         main.server.close()
         main.clearLocalKeep()
@@ -718,7 +717,9 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertFalse(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.never)
+        self.assertEqual(other.local.role, 'other')
+        self.assertEqual(main.local.role, 'main')
 
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 1)
@@ -752,28 +753,30 @@ class BasicTestCase(unittest.TestCase):
         other.restoreRemotes()
         other.restoreLocal()
 
-        remote = main.remotes.values()[0]
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        # because main remote was not completely joined and was created as
+        # part of vacuous join it was not dumped
+        self.assertEqual(len(main.remotes), 0)
+        roleData = main.keep.loadRemoteRoleData(other.local.role)
+        self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
 
         self.join(other, main, duration=5.0)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
 
-        #now change name of other to see if can still join with same ha
+        # now change name of other to see rejected on imutable road
         other.local.name = "whowho"
         self.join(other, main, duration=5.0)
         self.assertEqual(len(main.transactions), 0)
@@ -781,9 +784,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False)
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(len(other.remotes), 0) # since rejected
+        # but role of main on other from previous join still ok
+        roleData = other.keep.loadRemoteRoleData(main.local.role)
+        self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
+
+        #remote = other.remotes.values()[0]
+        #self.assertIs(remote.joined, False)
+        #self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         # change main to mutable and retry
         main.mutable = True

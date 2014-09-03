@@ -442,7 +442,7 @@ class Joiner(Initiator):
                         "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                 self.stack.name, self.remote.name, self.remote.uid)
                         self.stack.removeRemote(self.remote, clear=True)
-                        self.nack(kind=raeting.pcktKinds.reject)
+                        # removeRemote also nacks
 
     def prep(self):
         '''
@@ -711,8 +711,8 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Rejected by {1} at {2}\n".format(
                  self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.removeRemote(self.remote, clear=True)
         self.remove(index=self.txPacket.index)
+        self.stack.removeRemote(self.remote, clear=True)
 
     def ackAccept(self):
         '''
@@ -902,7 +902,7 @@ class Joinent(Correspondent):
                         "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                 self.stack.name, self.remote.name, self.remote.uid)
                         self.stack.removeRemote(self.remote,clear=True)
-                        self.nack(kind=raeting.pcktKinds.reject)
+                        # removeRemote also nacks
 
     def prep(self):
         '''
@@ -1261,8 +1261,8 @@ class Joinent(Correspondent):
         console.terse("Joinent {0}. Rejected by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.removeRemote(self.remote, clear=True)
         self.remove(index=self.rxPacket.index)
+        self.stack.removeRemote(self.remote, clear=True)
 
     def refuse(self):
         '''
