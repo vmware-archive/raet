@@ -686,6 +686,8 @@ class Joiner(Initiator):
         if self.remote.sid == 0: # session id  must be non-zero after join
             self.remote.nextSid() # start new session
             self.remote.replaceStaleInitiators() # this join not stale since sid == 0
+        if self.vacuous:
+            self.remote.rsid = 0 # reset .rsid on vacuous join so allow will work
         self.remote.joined = True #accepted
         self.stack.dumpRemote(self.remote)
         self.ackAccept()
@@ -1247,6 +1249,8 @@ class Joinent(Correspondent):
         if self.remote.sid == 0: # session id  must be non-zero after join
             self.remote.nextSid() # start new session
             self.remote.replaceStaleInitiators()
+        if self.vacuous:
+            self.remote.rsid = 0 # reset .rsid on vacuous join so allow will work
         self.remote.joined = True # accepted
         self.stack.dumpRemote(self.remote)
         self.remove(index=self.rxPacket.index)
