@@ -1495,7 +1495,6 @@ class BasicTestCase(unittest.TestCase):
         different from previous successful join
         '''
         console.terse("{0}\n".format(self.testLostMainKeep.__doc__))
-        #self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
         auto = raeting.autoModes.once
         data = self.createRoadData(name='main',
                                    base=self.base,
@@ -1512,6 +1511,7 @@ class BasicTestCase(unittest.TestCase):
         data = self.createRoadData(name='other',
                                    base=self.base,
                                    auto=raeting.autoModes.once)
+        savedOtherData = data
         keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      main=None,
@@ -1519,22 +1519,17 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
+        self.assertIs(main.mutable, None)
 
         self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
-        self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
 
         #now forget the main data only to simulate main changing all data
         main.server.close()
@@ -1552,6 +1547,8 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
+        self.assertIs(main.mutable, None)
 
         # attempt to join to main with main auto accept enabled
         self.join(other, main) # main will refuse and other will renew

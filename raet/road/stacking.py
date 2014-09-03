@@ -414,12 +414,6 @@ class RoadStack(stacking.KeepStack):
 
         nuid = packet.data['de']
 
-        if (nuid != 0 and nuid not in self.remotes):
-            emsg = "Invalid destination uid = {0}.\n".format(nuid)
-            console.concise( emsg)
-            self.incStat('destination_uid_invalid')
-            return
-
         fuid = packet.data['se']
         tk = packet.data['tk']
         cf = packet.data['cf']
@@ -494,7 +488,7 @@ class RoadStack(stacking.KeepStack):
 
         else: # not join transaction
             if rsid == 0: # cannot use sid == 0 on nonjoin transaction
-                emsg = "Invalid sid '{0}' in packet\n".format(rsid)
+                emsg = "{0} Invalid sid '{1}' in packet\n".format(self.name, rsid)
                 console.terse(emsg)
                 self.incStat('invalid_sid')
                 return
@@ -506,8 +500,7 @@ class RoadStack(stacking.KeepStack):
                 self.incStat('invalid_uid')
                 return
 
-            if not remote: # otherwise get remote based on nuid.
-                remote = self.remotes.get(nuid, None)
+            remote = self.remotes.get(nuid, None)
 
             if remote:
                 if not cf: # packet from remotely initiated transaction
@@ -537,9 +530,9 @@ class RoadStack(stacking.KeepStack):
             return
 
         if not remote:
-            emsg = "Unknown remote destination '{0}'\n".format(nuid)
+            emsg = "{0} Unknown remote destination '{1}'\n".format(self.name, nuid)
             console.terse(emsg)
-            self.incStat('unknown_remote')
+            self.incStat('unknown_destination_uid')
             return
 
         self.correspond(packet, remote) # correspond to new transaction initiated by remote
