@@ -99,12 +99,17 @@ class BasicTestCase(unittest.TestCase):
 
         return stack
 
-    def join(self, initiator, correspondent, deid=None, mha=None, duration=1.0):
+    def join(self, initiator, correspondent, deid=None, duration=1.0):
         '''
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        initiator.join(uid=deid, ha=mha)
+        if not initiator.remotes:
+            initiator.addRemote(estating.RemoteEstate(stack=initiator,
+                                                      fuid=0, # vacuous join
+                                                      sid=0, # always 0 for join
+                                                      ha=correspondent.local.ha))
+        initiator.join(uid=deid)
         self.service(correspondent, initiator, duration=duration)
 
     def allow(self, other, main, duration=1.0):
@@ -630,7 +635,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
 
-        data = self.createRoadData(name='other', base=self.base)
+        data = self.createRoadData(name='other',
+                                   base=self.base,
+                                   auto=raeting.autoModes.once)
         keeping.clearAllKeep(data['dirpath'])
         other = self.createRoadStack(data=data,
                                      main=None,
@@ -638,7 +645,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        self.assertFalse(main.keep.auto)
+        self.assertIs(main.keep.auto, raeting.autoModes.never)
 
         self.join(other, main, duration=2.0)
         self.assertEqual(len(main.transactions), 1)
