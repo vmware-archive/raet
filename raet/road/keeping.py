@@ -175,7 +175,8 @@ class RoadKeep(keeping.Keep):
         if not data:
             return None
         roleData = self.loadLocalRoleData() # if not present defaults None values
-        data.update(sighex=roleData.get('sighex'), prihex=roleData.get('prihex'))
+        data.update([('sighex', roleData.get('sighex')),
+                     ('prihex', roleData.get('prihex'))])
         return data
 
     def clearLocalData(self):
@@ -211,12 +212,12 @@ class RoadKeep(keeping.Keep):
         roles = self.loadAllRemoteRoleData()
         for name, data in keeps.items():
             role = data['role']
-            roleData = roles.get(role, odict(acceptance=None,
-                                             verhex=None,
-                                             pubhex=None))
-            keeps[name].update(acceptance=roleData['acceptance'],
-                               verhex=roleData['verhex'],
-                               pubhex=roleData['pubhex'])
+            roleData = roles.get(role, odict([('acceptance', None),
+                                              ('verhex', None),
+                                              ('pubhex', None)]) )
+            keeps[name].update([('acceptance', roleData['acceptance']),
+                                 ('verhex', roleData['verhex']),
+                                 ('pubhex', roleData['pubhex'])])
         return keeps
 
     def clearAllRemoteData(self):
