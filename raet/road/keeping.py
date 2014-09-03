@@ -332,12 +332,20 @@ class RoadKeep(keeping.Keep):
         and has value from raeting.acceptances
 
         Where change is flag True or False to indicate that the remote associated
-        with role should change its remote.acceptance to returned status
+        with role should change its remote.acceptance to the returned status.
 
         Evaluate acceptance status of estate per its keys
 
-        If dump and something is different
+        If dump and something is different (as given by dirty flag)
         Then persist key data differentially based on status
+
+        In many cases a status of rejected is returned because the provided keys are
+        different but this does not change the acceptance status for
+        the persisted keys which keys were not changed.
+
+        Persisted status is only set to rejected by an outside entity. It is never
+        set to rejected by this function, that is, a status of rejected may be returned
+        but the persisted status on disk is not changed to rejected.
         '''
         change = False
 
@@ -401,6 +409,9 @@ class RoadKeep(keeping.Keep):
             else: # status == raeting.acceptances.rejected
                 change = True # reapply existing status rejected
 
+        else: # unrecognized autoMode
+            raise raeting.KeepError("Unrecognized auto mode '{0}'".format(self.auto))
+
         if dump:
             dirty = False
             # update changed keys if any when accepted or pending
@@ -411,11 +422,12 @@ class RoadKeep(keeping.Keep):
                 if (pubhex and pubhex != data.get('pubhex')):
                     data['pubhex'] = pubhex
                     dirty = True
-            if change:
-                data['acceptance'] = status
-                dirty = True
+                if status != data.get('acceptance'):
+                    data['acceptance'] = status
+                    dirty = True
 
-            if dirty and self.verifyRemoteData(data, remoteFields=self.RemoteRoleFields):
+            if dirty and self.verifyRemoteData(data,
+                                               remoteFields=self.RemoteRoleFields):
                 self.dumpRemoteRoleData(data, role)
 
         return (status, change)
