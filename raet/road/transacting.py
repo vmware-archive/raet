@@ -632,9 +632,9 @@ class Joiner(Initiator):
         if status == raeting.acceptances.rejected:
             if sameRoleKeys:
                 self.stack.removeRemote(self.remote, clear=True)
-                # remove also nacks so reject
+                # remove also nacks so will also reject
             else:
-                self.nack(kind=raeting.pcktKinds.reject)
+                self.nack(kind=raeting.pcktKinds.reject) # reject
             return
 
         # accepted or pending
