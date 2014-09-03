@@ -299,7 +299,7 @@ class RoadKeep(keeping.Keep):
 
         self.dumpRemoteRole(remote)
 
-    def statusRemote(self, remote, verhex, pubhex, dump=True):
+    def statusRemote(self, remote, dump=True):
         '''
         Calls statusRole and updates remote appropriately
 
@@ -315,16 +315,9 @@ class RoadKeep(keeping.Keep):
         Otherwise do nothing and return None
         '''
         status, change = self.statusRole(remote.role,
-                                         verhex=verhex,
-                                         pubhex=pubhex,
+                                         verhex=remote.verfer.keyhex,
+                                         pubhex=remote.pubber.keyhex,
                                          dump=dump, )
-
-        if status != raeting.acceptances.rejected:
-            # update changed keys if any when accepted or pending
-            if (verhex and verhex != remote.verfer.keyhex):
-                remote.verfer = nacling.Verifier(verhex)
-            if (pubhex and pubhex != remote.pubber.keyhex):
-                remote.pubber = nacling.Publican(pubhex)
 
         if change:
             remote.acceptance = status
@@ -366,7 +359,7 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-                else: # reapply existing status
+                else: # reapply existing status accepted
                     change = True
 
             elif status == raeting.acceptances.pending:
@@ -380,7 +373,7 @@ class RoadKeep(keeping.Keep):
                     change = True
 
             else: # status == raeting.acceptances.rejected
-                change = True
+                change = True # reapply existing status rejected
 
         elif self.auto == raeting.autoModes.never:
             if status is None: # first time so pend
@@ -393,7 +386,7 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-                else: # reapply existing status
+                else: # reapply existing status accepted
                     change = True
 
             elif status == raeting.acceptances.pending:
@@ -402,11 +395,11 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-                else: # stay pending
+                else: # reapply existing status pending
                     change = True
 
             else: # status == raeting.acceptances.rejected
-                change = True
+                change = True # reapply existing status rejected
 
         if dump:
             dirty = False

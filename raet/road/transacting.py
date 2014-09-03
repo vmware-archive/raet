@@ -435,9 +435,7 @@ class Joiner(Initiator):
                 self.stack.incStat('redo_join')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    status = self.stack.keep.statusRemote(self.remote,
-                                                          self.remote.verfer.keyhex,
-                                                          self.remote.pubber.keyhex)
+                    status = self.stack.keep.statusRemote(self.remote, dump=True)
                     if status == raeting.acceptances.accepted:
                         self.complete()
                     elif status == raeting.acceptances.rejected:
@@ -626,16 +624,10 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        # if we have to rerole then need to change status parameter to
-        # role not remote also acceptance
-        if self.remote.role != role:
-            self.remote.role = role # change role of remote estate
-
-        # check if remote keys are accepted here
-        status = self.stack.keep.statusRemote(self.remote,
-                                              verhex=verhex,
-                                              pubhex=pubhex,
-                                              dump=True)
+        status, change = self.stack.keep.statusRole(role=role,
+                                                    verhex=verhex,
+                                                    pubhex=pubhex,
+                                                    dump=True)
 
         if status == raeting.acceptances.rejected:
             if sameRoleKeys:
@@ -646,6 +638,9 @@ class Joiner(Initiator):
             return
 
         # accepted or pending
+        if change: # change acceptance of remote
+            self.remote.acceptance = status
+
         if not sameAll: # (and mutable)
             if (name in self.stack.nameRemotes and
                     self.stack.nameRemotes[name] is not self.remote): # non unique name
@@ -668,7 +663,8 @@ class Joiner(Initiator):
                 self.remote.ha = rha
             if fuid != self.remote.fuid:
                 self.remote.fuid = fuid
-            # already assigned self.remote.role = role above
+            if self.remote.role != role:
+                self.remote.role = role # rerole
             if verhex != self.remote.verfer.keyhex:
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
             if pubhex != self.remote.pubber.keyhex:
@@ -900,9 +896,7 @@ class Joinent(Correspondent):
                 self.stack.incStat('redo_accept')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    status = self.stack.keep.statusRemote(self.remote,
-                                                          self.remote.verfer.keyhex,
-                                                          self.remote.pubber.keyhex)
+                    status = self.stack.keep.statusRemote(self.remote, dump=True)
                     if status == raeting.acceptances.accepted:
                         self.accept()
                     elif status == raeting.acceptances.rejected:
@@ -1096,15 +1090,11 @@ class Joinent(Correspondent):
             self.nack(kind=raeting.pcktKinds.reject)
             return
 
-        # if we have to rerole then need to change status parameter to
-        # role not remote also acceptance
-        if role != self.remote.role:
-            self.remote.role = role
+        status, change = self.stack.keep.statusRole(role=role,
+                                                   verhex=verhex,
+                                                   pubhex=pubhex,
+                                                   dump=True)
 
-        status = self.stack.keep.statusRemote(self.remote,
-                                              verhex=verhex,
-                                              pubhex=pubhex,
-                                              dump=True)
 
         if status == raeting.acceptances.rejected:
             emsg = ("Joinent {0}. Keys of role='{1}' rejected for remote name='{2}'"
@@ -1123,7 +1113,10 @@ class Joinent(Correspondent):
             return
 
         #accepted or pended
-        if sameAll:
+        if change:
+            self.remote.acceptance = status
+
+        if sameAll: #ephemeral will always be sameAll because assigned above
             if self.remote.uid not in self.stack.remotes: # ephemeral
                 try:
                     self.stack.addRemote(self.remote)
@@ -1140,7 +1133,7 @@ class Joinent(Correspondent):
                                           self.remote.ha,
                                           self.remote.role))
                 console.concise(emsg)
-                # do not need to dump since no change
+                # do dump until complete
 
         else: # not sameAll (and mutable)
             # do both unique name check first so only change road if new unique
@@ -1164,7 +1157,8 @@ class Joinent(Correspondent):
                 self.remote.ha = rha
             if reid != self.remote.fuid:
                 self.remote.fuid = reid
-            # already assigned self.remote.role = role above
+            if role != self.remote.role: # rerole
+                self.remote.role = role
             if verhex != self.remote.verfer.keyhex:
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
             if pubhex != self.remote.pubber.keyhex:
@@ -1186,7 +1180,6 @@ class Joinent(Correspondent):
 
         # status == raeting.acceptance.pending or status == None:
         self.ackPend()  # change to ackPend
-        return
 
     def ackPend(self):
         '''
