@@ -779,71 +779,90 @@ class BasicTestCase(unittest.TestCase):
         # now change name of other to see rejected on imutable road
         other.local.name = "whowho"
         self.join(other, main, duration=5.0)
+        # main still has remote from prior join unchanged
         self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(main.remotes), 1)
         remote = main.remotes.values()[0]
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(remote.name, 'other') # not whowho
+        # other has no remotes
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0) # since rejected
         # but role of main on other from previous join still ok
         roleData = other.keep.loadRemoteRoleData(main.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
 
-        #remote = other.remotes.values()[0]
-        #self.assertIs(remote.joined, False)
-        #self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
-
         # change main to mutable and retry
         main.mutable = True
         self.join(other, main, duration=5.0)
+        # main now has original and a new remote with new name
         self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
+        self.assertEqual(len(main.remotes), 2)
+        remote = main.remotes[3]
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(remote.name, 'whowho')
+
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
-        self.allow(other, main)
+        self.allow(other, main, other.remotes.values()[0].uid)
         self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
+        remote = main.remotes[3]
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertTrue(remote.allowed)
 
-        # now change ha to see if can still join change back mutable
+        # now change ha  and unset unmutable
         main.mutable = None
         other.server.close()
-        data = savedOtherData
+        data = savedOtherData  # local keep will be there so it uses that data
         other = self.createRoadStack(data=data,
-                                     main=None,
-                                     ha=("", 7532))
+                                     main=None,)
 
+        other.ha = ("0.0.0.0", 7532)
+        other.local.ha = ("127.0.0.1", 7532)
+        self.assertEqual(other.local.ha, ("127.0.0.1", 7532))
+        self.assertEqual(len(main.remotes), 2)
+        self.assertEqual(len(other.remotes), 1)
         self.join(other, main, duration=5.0)
+        # old remote still there but ha unchanged
         self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
+        remote = main.remotes[3]
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(remote.name, 'whowho')
+        self.assertEqual(remote.ha, ('127.0.0.1', 7531))
+        # other remote deleted since rejected
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False)
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(len(other.remotes), 0)
 
         # change main to mutable and retry
         main.mutable = True
         other.server.close()
+        other.clearLocalKeep()
+        other.clearRemoteKeeps()
+
         data = savedOtherData
         other = self.createRoadStack(data=data,
                                      main=None,
                                      ha=("", 7532))
+        self.assertEqual(other.local.ha, ("127.0.0.1", 7532))
+        other.local.name = "whowho"
 
         self.join(other, main, duration=5.0)
+        # should reuse previous remote named whowho and update ha
         self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
+        remote = main.remotes[3]
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(remote.name, 'whowho')
+        self.assertEqual(remote.ha, ('127.0.0.1', 7532))
+
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertTrue(remote.joined)
@@ -851,7 +870,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
+        remote = main.remotes[3]
         self.assertTrue(remote.allowed)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
