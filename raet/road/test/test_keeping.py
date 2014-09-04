@@ -1551,22 +1551,28 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(main.mutable, None)
 
         # attempt to join to main with main auto accept enabled
-        # should renew join
+        # renew request refused by other since not mutable
+        self.assertEqual(other.mutable, None)
+        self.join(other, main, duration=4.0) # main will refuse renew
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(other.transactions), 0)
+        self.assertEqual(len(other.remotes), 1)
+        self.assertIs(remote.joined, None)
+
+        # renew attempt refused by other since main credentials different and accept once
+        other.mutable = True
+        self.assertEqual(other.mutable, True)
         self.join(other, main, duration=4.0) # main will refuse and other will renew
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(main.remotes), 0)
-        #remote = main.remotes.values()[0]
-        #self.assertIs(remote.joined, False)
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
+        self.assertEqual(len(other.remotes), 1)
         self.assertIs(remote.joined, None)
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # no lost main still accepted
 
-        self.allow(other, main)
+        self.allow(other, main) # will fail
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(main.remotes), 0)
-        #remote = main.remotes.values()[0]
-        #self.assertIs(remote.allowed, None)
         self.assertEqual(len(other.transactions), 0) # not joined so aborts
         remote = other.remotes.values()[0]
         self.assertIs(remote.allowed, None) # new other not joined so aborted allow
@@ -1579,11 +1585,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.rxMsgs), 0)
         self.assertEqual(len(other.transactions), 0) #not allowed so aborted
         self.assertEqual(len(other.rxMsgs), 0)
-        #main.rxMsgs.pop()
-        #other.rxMsgs.pop()
 
-
-        # now restore original main keys to see if works
+        # now restore original main keys  so it will work
         #now forget the new main data
         main.server.close()
         main.clearLocalKeep()
@@ -1594,43 +1597,48 @@ class BasicTestCase(unittest.TestCase):
         data = savedMainData
         main = self.createRoadStack(data=data,
                                      main=True,
-                                     auto=auto,
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
+        self.assertIs(main.mutable, None)
+        other.mutable = None
+        self.assertEqual(other.mutable, None)
 
         # attempt to join to main with main auto accept enabled and immutable
         # will fail since renew not allowd on immutable other
         self.join(other, main)
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(main.remotes), 0)
-        #remote = main.remotes.values()[0]
-        #self.assertTrue(remote.joined)
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertIs(remote.joined, None)
 
         # attempt to join to main with main auto accept enabled and mutable other
         other.mutable = True
+        self.assertEqual(other.mutable, True)
         self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         # so try to send messages should succeed
+        self.assertEqual(main.remotes.values()[0].fuid, other.remotes.values()[0].nuid)
+        self.assertEqual(main.remotes.values()[0].nuid, other.remotes.values()[0].fuid)
         mains = [odict(content="Hello other body")]
         others = [odict(content="Hello main body")]
         self.message(main, other, mains, others,  duration=2.0)

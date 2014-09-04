@@ -561,7 +561,7 @@ class TxPacket(Packet):
         Return (cipher, nonce) duple resulting from encrypting message
         with short term keys
         '''
-        remote = self.stack.remotes[self.data['de']]
+        remote = self.stack.remotes[self.data['se']]
         return (remote.privee.encrypt(msg, remote.publee.key))
 
     def prepack(self):
@@ -632,7 +632,7 @@ class RxPacket(Packet):
         Return msg resulting from decrypting cipher and nonce
         with short term keys
         '''
-        remote = self.stack.remotes[self.data['se']]
+        remote = self.stack.remotes[self.data['de']]
         return (remote.privee.decrypt(cipher, nonce, remote.publee.key))
 
     def parse(self, packed=None):
