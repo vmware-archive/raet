@@ -282,14 +282,17 @@ class Stalent(Correspondent):
         Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        emsg = "Stalent {0}. Stale transaction from '{1}' nacking ...\n".format(self.stack.name, ha )
+        emsg = "Stalent {0}. Stale transaction from '{1}' nacking ...\n".format(
+                self.stack.name, ha )
         console.terse(emsg)
         self.stack.incStat('stale_initiator_attempt')
 
         if self.rxPacket.data['se'] not in self.stack.remotes:
-            emsg = "Unknown initiator estate id '{0}'\n".format(self.rxPacket.data['se'])
+            emsg = "Stalent {0} Unknown initiator estate id '{1}'\n".format(
+                    self.stack.name,
+                    self.rxPacket.data['se'])
             console.terse(emsg)
-            self.stack.incStat('unknown_initiator_eid')
+            self.stack.incStat('unknown_initiator_uid')
             #return #maybe we should return and not respond at all in this case
 
         body = odict()

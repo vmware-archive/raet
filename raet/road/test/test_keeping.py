@@ -1551,7 +1551,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(main.mutable, None)
 
         # attempt to join to main with main auto accept enabled
-        self.join(other, main) # main will refuse and other will renew
+        # should renew join
+        self.join(other, main, duration=4.0) # main will refuse and other will renew
         self.assertEqual(len(main.transactions), 0)
         self.assertEqual(len(main.remotes), 0)
         #remote = main.remotes.values()[0]
@@ -2043,7 +2044,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testLostMainKeep')
+    runOne('testLostMainKeep')
 
