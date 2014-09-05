@@ -1878,6 +1878,8 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
+        self.assertIs(main.mutable, None)
 
         data = self.createRoadData(name='other',
                                    base=self.base,
@@ -1890,22 +1892,25 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
+        self.assertIs(other.keep.auto, raeting.autoModes.once)
+        self.assertIs(other.mutable, None)
 
         self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         #save copy of other remotes
         otherRemotes = odict(other.remotes)
@@ -1950,18 +1955,14 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, True) # Previous joined still there
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.joined, False) # Previous joined still there
-        #self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
+        self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.allowed, None)
+        self.assertIs(remote.allowed, None) # not persisted
         self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertIs(remote.allowed, None) # Previous joined still there
-        #self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
+        self.assertEqual(len(other.remotes), 0) # join nacked so remote deleted
 
         # so try to send messages should fail since keys not match
         mains = [odict(content="Hello other body")]
@@ -1980,11 +1981,9 @@ class BasicTestCase(unittest.TestCase):
         other.clearLocalKeep()
 
         # reload with original saved data
-        auto = raeting.autoModes.once
         data = savedMainData
         main = self.createRoadStack(data=data,
                                      main=True,
-                                     auto=auto,
                                      ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
@@ -1993,37 +1992,38 @@ class BasicTestCase(unittest.TestCase):
                                     main=None,
                                     ha=("", raeting.RAET_TEST_PORT))
 
-        # the failed join attempt deleted the remote
-        #for remote in otherRemotes.values():
-            #other.addRemote(remote)
-        #other.dumpRemotes()
-
         self.assertTrue(main.keep.dirpath.endswith('road/keep/main'))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
+        self.assertIs(main.keep.auto, raeting.autoModes.once)
+        self.assertIs(main.mutable, None)
         remote = main.remotes.values()[0]
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
 
         self.assertTrue(other.keep.dirpath.endswith('road/keep/other'))
         self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
-        remote = other.remotes.values()[0]
-        self.assertEqual(remote.acceptance, raeting.acceptances.accepted) # saved still accepted
+        self.assertIs(other.keep.auto, raeting.autoModes.once)
+        self.assertIs(other.mutable, None)
+        # the failed join attempt deleted the remote
+        self.assertEqual(len(other.remotes), 0)
 
         # attempt to join to main with main auto accept enabled
         self.join(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.joined)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.joined)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
 
         self.allow(other, main)
-        self.assertEqual(len(main.transactions), 0)
-        remote = main.remotes.values()[0]
-        self.assertTrue(remote.allowed)
-        self.assertEqual(len(other.transactions), 0)
-        remote = other.remotes.values()[0]
-        self.assertTrue(remote.allowed)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
         # so try to send messages should succeed
         mains = [odict(content="Hello other body")]
@@ -2095,7 +2095,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testLostBothKeepLocal')
+    #runOne('testLostBothKeepLocal')
 
