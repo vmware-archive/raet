@@ -53,19 +53,43 @@ class RoadKeep(keeping.Keep):
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
     Auto = raeting.autoModes.never #auto accept
 
-    def __init__(self, prefix='estate', auto=None, **kwa):
+    def __init__(self, stackname='stack', prefix='estate', auto=None, roledirpath='', **kwa):
         '''
         Setup RoadKeep instance
         '''
-        super(RoadKeep, self).__init__(prefix=prefix, **kwa)
+        super(RoadKeep, self).__init__(stackname=stackname, prefix=prefix, **kwa)
         self.auto = auto if auto is not None else self.Auto
 
-        self.localrolepath = os.path.join(self.localdirpath,
+        if not roledirpath:
+            roledirpath = os.path.join(self.dirpath, 'role')
+        roledirpath = os.path.abspath(os.path.expanduser(roledirpath))
+
+        if not os.path.exists(roledirpath):
+            try:
+                os.makedirs(roledirpath)
+            except OSError as ex:
+                roledirpath = os.path.join(self.AltKeepDir, stackname, 'role')
+                roledirpath = os.path.abspath(os.path.expanduser(roledirpath))
+                if not os.path.exists(roledirpath):
+                    os.makedirs(roledirpath)
+        else:
+            if not os.access(roledirpath, os.R_OK | os.W_OK):
+                roledirpath = os.path.join(self.AltKeepDir, stackname, 'role')
+                roledirpath = os.path.abspath(os.path.expanduser(roledirpath))
+                if not os.path.exists(roledirpath):
+                    os.makedirs(roledirpath)
+
+        self.roledirpath = roledirpath
+
+        localroledirpath = os.path.join(self.roledirpath, 'local')
+        if not os.path.exists(localroledirpath):
+            os.makedirs(localroledirpath)
+
+        self.localroledirpath = localroledirpath
+
+        self.localrolepath = os.path.join(self.localroledirpath,
                 "{0}.{1}".format('role', self.ext))
 
-        self.roledirpath = os.path.join(self.dirpath, 'role')
-        if not os.path.exists(self.roledirpath):
-            os.makedirs(self.roledirpath)
 
     def dumpLocalRoleData(self, data):
         '''

@@ -31,9 +31,6 @@ from . import nacling
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-KEEP_DIR = os.path.join('/var', 'cache', 'raet', 'keep')
-ALT_KEEP_DIR = os.path.join('~', '.raet', 'keep')
-
 class Keep(object):
     '''
     RAET protocol base class for data persistence of objects that follow the Lot
@@ -42,6 +39,8 @@ class Keep(object):
     LocalFields = ['uid', 'name', 'ha', 'sid', 'puid']
     RemoteFields = ['uid', 'name', 'ha']
     Ext = 'json' # default serialization type of json and msgpack
+    KeepDir = os.path.join('/var', 'cache', 'raet', 'keep')
+    AltKeepDir = os.path.join('~', '.raet', 'keep')
 
     def __init__(self,
                  dirpath='',
@@ -63,7 +62,7 @@ class Keep(object):
         '''
         if not dirpath:
             if not basedirpath:
-                basedirpath = KEEP_DIR
+                basedirpath = self.KeepDir
             dirpath = os.path.join(basedirpath, stackname)
         dirpath = os.path.abspath(os.path.expanduser(dirpath))
 
@@ -71,14 +70,14 @@ class Keep(object):
             try:
                 os.makedirs(dirpath)
             except OSError as ex:
-                dirpath = os.path.join(ALT_KEEP_DIR, stackname)
+                dirpath = os.path.join(self.AltKeepDir, stackname)
                 dirpath = os.path.abspath(os.path.expanduser(dirpath))
                 if not os.path.exists(dirpath):
                     os.makedirs(dirpath)
 
         else:
             if not os.access(dirpath, os.R_OK | os.W_OK):
-                dirpath = os.path.join(ALT_KEEP_DIR, stackname)
+                dirpath = os.path.join(self.AltKeepDir, stackname)
                 dirpath = os.path.abspath(os.path.expanduser(dirpath))
                 if not os.path.exists(dirpath):
                     os.makedirs(dirpath)

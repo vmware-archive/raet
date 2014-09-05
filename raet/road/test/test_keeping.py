@@ -169,7 +169,7 @@ class BasicTestCase(unittest.TestCase):
         #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
         self.assertTrue(stack.keep.localfilepath.endswith('/road/keep/main/local/estate.json'))
-        self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/local/role.json'))
+        self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/role/local/role.json'))
         self.assertTrue(stack.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test round trip
@@ -390,7 +390,7 @@ class BasicTestCase(unittest.TestCase):
         #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
         self.assertTrue(stack.keep.dirpath.endswith('/road/keep/main'))
         self.assertTrue(stack.keep.localfilepath.endswith('/road/keep/main/local/estate.msgpack'))
-        self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/local/role.msgpack'))
+        self.assertTrue(stack.keep.localrolepath.endswith('/road/keep/main/role/local/role.msgpack'))
         self.assertTrue(stack.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test round trip
