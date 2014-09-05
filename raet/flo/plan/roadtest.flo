@@ -2,144 +2,167 @@
 
 house master
 
-init .raet.road.stack.local to uid 1 name "master" host "" port 7530 \
-    basedirpath "/tmp/raet/test/keep/" main True auto True
+    init .raet.road.stack.local to uid 1 name "master" host "" port 7530 \
+        basedirpath "/tmp/raet/test/keep/" main True auto True
 
 
-framer masterroadstack be active first start
-    frame start
-        enter
-            do raet road stack setup per inode ".raet.road.stack"
-        exit
-            do raet road stack closer per inode ".raet.road.stack."
+    framer masterroadstack be active first start
+        frame start
+            enter
+                do salt raet road cleanup per inode ".raet.road.stack"
+                do raet road stack setup per inode ".raet.road.stack"
+            exit
+                do raet road stack closer per inode ".raet.road.stack."
 
-framer servicerx be active first start
-    frame start
-        do raet road stack rx servicer per inode ".raet.road.stack"
+    framer servicerx be active first start
+        frame start
+            do raet road stack rx servicer per inode ".raet.road.stack"
 
 
-framer receiver be active first start
-    frame start
-        do raet road stack printer per inode ".raet.road.stack."
-        timeout 5
+    framer receiver be active first start
+        frame start
+            do raet road stack printer per inode ".raet.road.stack."
+            timeout 5
 
-    frame abort
-        bid stop all
+        frame abort
+            bid stop all
 
-framer servicetx be active first start
-    frame start
-        do raet road stack tx servicer per inode ".raet.road.stack"
+    framer servicetx be active first start
+        frame start
+            do raet road stack tx servicer per inode ".raet.road.stack"
 
 house minion1
 
-init .raet.road.stack.local to uid 0 name "minion1" host "" port 7531 \
-    basedirpath "/tmp/raet/test/keep/" main False auto True
+    init .raet.road.stack.local to uid 0 name "minion1" host "" port 7531 \
+        basedirpath "/tmp/raet/test/keep/" main False auto True \
+        masterhost "127.0.0.1" masterport 7530
 
 
-framer minionudpstack be active first start
-    frame start
-        do raet road stack per inode ".raet.road.stack"
-        exit
-            do raet road stack closer per inode ".raet.road.stack."
+    framer minionudpstack be active first start
+        frame start
+            enter
+                do raet road stack setup per inode ".raet.road.stack"
 
-framer bootstrap be active first join
-    frame join
-        print Joining Minion1...
-        enter
-            do raet road stack joiner per inode ".raet.road.stack."
-        recur
-            do raet road stack joined per inode ".raet.road.stack."
+            exit
+                do raet road stack closer per inode ".raet.road.stack."
 
-    go next if joined in .raet.road.stack.status
-    go abort if elapsed >= 5
+    framer servicerx be active first start
+        frame start
+            do raet road stack rx servicer per inode ".raet.road.stack"
 
-    frame joined
-        print Joined Minion1
-        go next
+    framer bootstrap be active first join
+        frame join
+            print Joining Minion1...
+            enter
+                do raet road stack joiner per inode ".raet.road.stack."
+            recur
+                do raet road stack joined per inode ".raet.road.stack."
 
-    frame allow
-        print Allowing Minion1...
-        enter
-            do raet road stack allower per inode ".raet.road.stack."
-        recur
-            do raet road stack allowed per inode ".raet.road.stack."
+        go next if joined in .raet.road.stack.status
+        go abort if elapsed >= 5
 
-    go next if allowed in .raet.road.stack.status
-    go abort if elapsed >= 5
+        frame joined
+            print Joined Minion1
+            go next
+
+        frame allow
+            print Allowing Minion1...
+            enter
+                do raet road stack allower per inode ".raet.road.stack."
+            recur
+                do raet road stack allowed per inode ".raet.road.stack."
+
+        go next if allowed in .raet.road.stack.status
+        go abort if elapsed >= 5
 
 
-    frame allowed
-        print Allowed Minion1
-        go next
+        frame allowed
+            print Allowed Minion1
+            go next
 
-    frame message
-        print Messaging Minion1...
-        enter
-            do raet road stack messenger to contents "Minion 1 Hello" code 15 \
-                per inode ".raet.road.stack."
-        go next
+        frame message
+            print Messaging Minion1...
+            enter
+                do raet road stack messenger to contents "Minion 1 Hello" code 15 \
+                    per inode ".raet.road.stack."
+            go next
 
-    frame idle
-        print Idling Minion1...
-        do raet road stack idled per inode ".raet.road.stack."
-        go abort if idled in .raet.road.stack.status
+        frame idle
+            print Idling Minion1...
+            do raet road stack idled per inode ".raet.road.stack."
+            go abort if idled in .raet.road.stack.status
 
-    frame abort
-        bid stop all
+        frame abort
+            bid stop all
+
+    framer servicetx be active first start
+        frame start
+            do raet road stack tx servicer per inode ".raet.road.stack"
 
 house minion2
 
-init .raet.road.stack.local to uid 0 name "minion2" host "" port 7532 \
-    basedirpath "/tmp/raet/test/keep/" main False auto True
+    init .raet.road.stack.local to uid 0 name "minion2" host "" port 7532 \
+        basedirpath "/tmp/raet/test/keep/" main False auto True \
+        masterhost "127.0.0.1" masterport 7530
 
 
-framer minionudpstack be active first start
-    frame start
-        do raet road stack per inode ".raet.road.stack"
-        exit
-            do raet road stack closer per inode ".raet.road.stack."
+    framer minionudpstack be active first start
+        frame start
+            enter
+                do raet road stack setup per inode ".raet.road.stack"
 
-framer bootstrap be active first join
-    frame join
-        print Joining Minion2...
-        enter
-            do raet road stack joiner per inode ".raet.road.stack."
-        recur
-            do raet road stack joined per inode ".raet.road.stack."
+            exit
+                do raet road stack closer per inode ".raet.road.stack."
 
-    go next if joined in .raet.road.stack.status
-    go abort if elapsed >= 5
+    framer servicerx be active first start
+        frame start
+            do raet road stack rx servicer per inode ".raet.road.stack"
 
-    frame joined
-        print Joined Minion2
-        go next
+    framer bootstrap be active first join
+        frame join
+            print Joining Minion2...
+            enter
+                do raet road stack joiner per inode ".raet.road.stack."
+            recur
+                do raet road stack joined per inode ".raet.road.stack."
 
-    frame allow
-        print Allowing Minion2...
-        enter
-            do raet road stack allower per inode ".raet.road.stack."
-        recur
-            do raet road stack allowed per inode ".raet.road.stack."
+        go next if joined in .raet.road.stack.status
+        go abort if elapsed >= 5
 
-    go next if allowed in .raet.road.stack.status
-    go abort if elapsed >= 5
+        frame joined
+            print Joined Minion2
+            go next
+
+        frame allow
+            print Allowing Minion2...
+            enter
+                do raet road stack allower per inode ".raet.road.stack."
+            recur
+                do raet road stack allowed per inode ".raet.road.stack."
+
+        go next if allowed in .raet.road.stack.status
+        go abort if elapsed >= 5
 
 
-    frame allowed
-        print Allowed Minion2
-        go next
+        frame allowed
+            print Allowed Minion2
+            go next
 
-    frame message
-        print Messaging Minion2...
-        enter
-            do raet road stack messenger to contents "Minion 2 Hello" code 15 \
-                per inode ".raet.road.stack."
-        go next
+        frame message
+            print Messaging Minion2...
+            enter
+                do raet road stack messenger to contents "Minion 2 Hello" code 15 \
+                    per inode ".raet.road.stack."
+            go next
 
-    frame idle
-        print Idling Minion2...
-        do raet road stack idled per inode ".raet.road.stack."
-        go abort if idled in .raet.road.stack.status
+        frame idle
+            print Idling Minion2...
+            do raet road stack idled per inode ".raet.road.stack."
+            go abort if idled in .raet.road.stack.status
 
-    frame abort
-        bid stop all
+        frame abort
+            bid stop all
+
+    framer servicetx be active first start
+        frame start
+            do raet road stack tx servicer per inode ".raet.road.stack"
