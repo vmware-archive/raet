@@ -463,5 +463,7 @@ def clearAllKeep(dirpath):
     '''
     road = RoadKeep(dirpath=dirpath)
     road.clearLocalData()
+    road.clearLocalRoleData()
     road.clearAllRemoteData()
+    road.clearAllRemoteRoleData()
 
