@@ -442,13 +442,9 @@ class StackTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        self.main.server.close()
-        self.other.server.close()
-
-        self.main.clearLocalKeep()
-        self.main.clearRemoteKeeps()
-        self.other.clearLocalKeep()
-        self.other.clearRemoteKeeps()
+        for stack in [self.main, self.other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
         if os.path.exists(self.dirpathBase):
             shutil.rmtree(self.dirpathBase)

@@ -280,13 +280,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.alived, True)
 
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testAliveDead(self):
         '''
@@ -389,13 +385,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(main.remotes.values()[0].alived,  True)
         self.assertIs(other.remotes.values()[0].alived,  False)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testAliveDeadMultiple(self):
         '''
@@ -607,17 +599,9 @@ class BasicTestCase(unittest.TestCase):
                         other1.remotes.values()[0]]:
             self.assertIs(remote.alived, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
-
-        other1.server.close()
-        other1.clearLocalKeep()
-        other1.clearRemoteKeeps()
+        for stack in [main, other, other1]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
 
     def testAliveUnjoinedUnallowedBoth(self):
@@ -794,13 +778,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.allowed, True)
             self.assertIs(remote.alived, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testCascadeBoth(self):
         '''
@@ -1085,13 +1065,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.allowed, True)
             self.assertIs(remote.alived, True)  # cascade will include alive
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testManageOneSide(self):
         '''
@@ -1159,17 +1135,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertTrue(remote.alived)
 
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
-
-        other1.server.close()
-        other1.clearLocalKeep()
-        other1.clearRemoteKeeps()
+        for stack in [main, other, other1]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testManageBothSides(self):
         '''
@@ -1246,17 +1214,9 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, True)
 
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
-
-        other1.server.close()
-        other1.clearLocalKeep()
-        other1.clearRemoteKeeps()
+        for stack in [main, other, other1]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testManageMainRebootCascade(self):
         '''
@@ -1369,17 +1329,9 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.allowed, True)
                 self.assertIs(remote.alived, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
-
-        other1.server.close()
-        other1.clearLocalKeep()
-        other1.clearRemoteKeeps()
+        for stack in [main, other, other1]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testManageRebootCascadeBothSides(self):
         '''
@@ -1613,17 +1565,9 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.allowed, True)
                 self.assertIs(remote.alived, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
-
-        other1.server.close()
-        other1.clearLocalKeep()
-        other1.clearRemoteKeeps()
+        for stack in [main, other, other1]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
 
     def testManageRebootCascadeBothSidesAlt(self):
@@ -1859,17 +1803,9 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.allowed, True)
                 self.assertIs(remote.alived, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
-
-        other1.server.close()
-        other1.clearLocalKeep()
-        other1.clearRemoteKeeps()
+        for stack in [main, other, other1]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
 def runOne(test):
     '''

@@ -711,3 +711,7 @@ class KeepStack(Stack):
         '''
         self.keep.clearAllRemoteData()
 
+    def clearAllKeeps(self):
+        self.clearLocalKeep()
+        self.clearRemoteKeeps()
+

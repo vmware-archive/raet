@@ -175,15 +175,18 @@ class BasicTestCase(unittest.TestCase):
         # test round trip
         stack.clearLocalKeep()
         stack.clearRemoteKeeps()
+        stack.clearLocalRoleKeep()
+        stack.clearRemoteRoleKeeps()
 
         stack.dumpLocal()
         stack.dumpRemotes()
 
-        self.assertTrue(os.path.exists(stack.keep.localfilepath))
-        self.assertTrue(os.path.exists(stack.keep.localrolepath))
         self.assertTrue(os.path.exists(stack.keep.localdirpath))
         self.assertTrue(os.path.exists(stack.keep.remotedirpath))
+        self.assertTrue(os.path.exists(stack.keep.localfilepath))
         self.assertTrue(os.path.exists(stack.keep.roledirpath))
+        self.assertTrue(os.path.exists(stack.keep.remoteroledirpath))
+        self.assertTrue(os.path.exists(stack.keep.localrolepath))
 
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
@@ -261,11 +264,11 @@ class BasicTestCase(unittest.TestCase):
                 "{0}.{1}.{2}".format(stack.keep.prefix,
                                      other2Data['name'],
                                      stack.keep.ext))))
-        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
                 "{0}.{1}.{2}".format('role',
                                      other1Data['name'],
                                      stack.keep.ext))))
-        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
                 "{0}.{1}.{2}".format('role',
                                      other2Data['name'],
                                      stack.keep.ext))))
@@ -370,8 +373,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
-        stack.clearLocalKeep()
-        stack.clearRemoteKeeps()
+        stack.clearAllKeeps()
 
     def testBasicMsgpack(self):
         '''
@@ -396,6 +398,8 @@ class BasicTestCase(unittest.TestCase):
         # test round trip
         stack.clearLocalKeep()
         stack.clearRemoteKeeps()
+        stack.clearLocalRoleKeep()
+        stack.clearRemoteRoleKeeps()
 
         stack.dumpLocal()
         stack.dumpRemotes()
@@ -404,7 +408,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(stack.keep.localrolepath))
         self.assertTrue(os.path.exists(stack.keep.localdirpath))
         self.assertTrue(os.path.exists(stack.keep.remotedirpath))
-        self.assertTrue(os.path.exists(stack.keep.roledirpath))
+        self.assertTrue(os.path.exists(stack.keep.remoteroledirpath))
 
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
@@ -477,11 +481,11 @@ class BasicTestCase(unittest.TestCase):
                 "{0}.{1}.{2}".format(stack.keep.prefix,
                                      other2Data['name'],
                                      stack.keep.ext))))
-        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
                 "{0}.{1}.{2}".format('role',
                                      other1Data['name'],
                                      stack.keep.ext))))
-        self.assertTrue(os.path.exists(os.path.join(stack.keep.roledirpath,
+        self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
                 "{0}.{1}.{2}".format('role',
                                      other2Data['name'],
                                      stack.keep.ext))))
@@ -588,9 +592,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
-        stack.clearLocalKeep()
-        stack.clearRemoteKeeps()
-
+        stack.clearAllKeeps()
 
     def testAltDirpath(self):
         '''
@@ -616,13 +618,14 @@ class BasicTestCase(unittest.TestCase):
         # test can write
         stack.clearLocalKeep()
         stack.clearRemoteKeeps()
+        stack.clearLocalRoleKeep()
+        stack.clearRemoteRoleKeeps()
 
         stack.dumpLocal()
         stack.dumpRemotes()
 
         stack.server.close()
-        stack.clearLocalKeep()
-        stack.clearRemoteKeeps()
+        stack.clearAllKeeps()
 
     def testPending(self):
         '''
@@ -686,13 +689,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testPendingSavedKeep(self):
         '''
@@ -853,6 +852,8 @@ class BasicTestCase(unittest.TestCase):
         other.server.close()
         other.clearLocalKeep()
         other.clearRemoteKeeps()
+        other.clearLocalRoleKeep()
+        other.clearRemoteRoleKeeps()
 
         data = savedOtherData
         other = self.createRoadStack(data=data,
@@ -883,14 +884,9 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         self.assertTrue(remote.allowed)
 
-
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testRejoin(self):
         '''
@@ -1013,13 +1009,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testRejoinFromMain(self):
         '''
@@ -1107,13 +1099,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testLostOtherKeep(self):
         '''
@@ -1165,9 +1153,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.allowed, True)
 
         #now forget the other data
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
         # reload with new data
         data = self.createRoadData(name='other',
@@ -1194,9 +1182,9 @@ class BasicTestCase(unittest.TestCase):
 
         # now repeate with auto accept off but use old data
         # now forget the other data again
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
         # reload with old data
         other = self.createRoadStack(data=savedOtherData,
@@ -1226,9 +1214,9 @@ class BasicTestCase(unittest.TestCase):
 
         # now repeate with auto accept off but use new data
         # now forget the other data again
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
         # reload with new data
         data = self.createRoadData(name='other',
@@ -1262,13 +1250,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(other.transactions), 0)
         self.assertNotEqual(len(mains), len(other.rxMsgs))
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testLostOtherKeepLocal(self):
         '''
@@ -1481,13 +1465,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.joined, True)
             self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testLostMainKeep(self):
         '''
@@ -1534,9 +1514,9 @@ class BasicTestCase(unittest.TestCase):
 
 
         #now forget the main data only to simulate main changing all data
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
+        for stack in [main]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
         # reload with new data
         data = self.createRoadData(name='main',
@@ -1590,9 +1570,9 @@ class BasicTestCase(unittest.TestCase):
 
         # now restore original main keys  so it will work
         #now forget the new main data
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
+        for stack in [main]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
         # reload with original saved data
         auto = raeting.autoModes.once
@@ -1655,13 +1635,9 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
             self.assertDictEqual(mains[i], msg[0])
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
     def testLostMainKeepLocal(self):
         '''
@@ -1849,13 +1825,9 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
             self.assertDictEqual(mains[i], msg[0])
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
 
     def testLostBothKeepLocal(self):
@@ -2040,14 +2012,9 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(other.local.name, msg))
             self.assertDictEqual(mains[i], msg[0])
 
-        main.server.close()
-        main.clearLocalKeep()
-        main.clearRemoteKeeps()
-
-        other.server.close()
-        other.clearLocalKeep()
-        other.clearRemoteKeeps()
-
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
 def runOne(test):
     '''

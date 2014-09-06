@@ -43,8 +43,8 @@ class Keep(object):
     AltKeepDir = os.path.join('~', '.raet', 'keep')
 
     def __init__(self,
-                 dirpath='',
                  basedirpath='',
+                 dirpath='',
                  stackname='stack',
                  prefix='data',
                  ext='',

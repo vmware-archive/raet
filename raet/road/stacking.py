@@ -255,6 +255,12 @@ class RoadStack(stacking.KeepStack):
 
         return remote
 
+    def dumpLocalRole(self):
+        '''
+        Dump role keep of local
+        '''
+        self.keep.dumpLocalRole(self.local)
+
     def restoreLocal(self):
         '''
         Load local estate if keeps found and verified and return
@@ -283,6 +289,18 @@ class RoadStack(stacking.KeepStack):
             else:
                 self.keep.clearLocalData()
         return local
+
+    def clearLocalRoleKeep(self):
+        '''
+        Clear local keep
+        '''
+        self.keep.clearLocalRoleData()
+
+    def dumpRemoteRole(self, remote):
+        '''
+        Dump keeps of remote
+        '''
+        self.keep.dumpRemoteRole(remote)
 
     def restoreRemote(self, name):
         '''
@@ -340,11 +358,16 @@ class RoadStack(stacking.KeepStack):
                 else:
                     self.keep.clearRemoteData(name)
 
-    def clearRemoteKeeps(self):
+    def clearRemoteRoleKeeps(self):
         '''
         Clear all remote keeps
         '''
-        super(RoadStack, self).clearRemoteKeeps()
+        self.keep.clearAllRemoteRoleData()
+
+    def clearAllKeeps(self):
+        super(RoadStack, self).clearAllKeeps()
+        self.clearLocalRoleKeep()
+        self.clearRemoteRoleKeeps()
 
     def manage(self, cascade=False, immediate=False):
         '''

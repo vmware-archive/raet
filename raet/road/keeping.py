@@ -53,15 +53,26 @@ class RoadKeep(keeping.Keep):
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
     Auto = raeting.autoModes.never #auto accept
 
-    def __init__(self, stackname='stack', prefix='estate', auto=None, roledirpath='', **kwa):
+    def __init__(self,
+                 stackname='stack',
+                 prefix='estate',
+                 auto=None,
+                 baseroledirpath='',
+                 roledirpath='',
+                 **kwa):
         '''
         Setup RoadKeep instance
         '''
-        super(RoadKeep, self).__init__(stackname=stackname, prefix=prefix, **kwa)
+        super(RoadKeep, self).__init__(stackname=stackname,
+                                       prefix=prefix,
+                                       **kwa)
         self.auto = auto if auto is not None else self.Auto
 
         if not roledirpath:
-            roledirpath = os.path.join(self.dirpath, 'role')
+            if baseroledirpath:
+                roledirpath = os.path.join(baseroledirpath, stackname, 'role')
+            else:
+                roledirpath = os.path.join(self.dirpath, 'role')
         roledirpath = os.path.abspath(os.path.expanduser(roledirpath))
 
         if not os.path.exists(roledirpath):
@@ -81,15 +92,25 @@ class RoadKeep(keeping.Keep):
 
         self.roledirpath = roledirpath
 
+        remoteroledirpath = os.path.join(self.roledirpath, 'remote')
+        if not os.path.exists(remoteroledirpath):
+            os.makedirs(remoteroledirpath)
+        self.remoteroledirpath = remoteroledirpath
+
         localroledirpath = os.path.join(self.roledirpath, 'local')
         if not os.path.exists(localroledirpath):
             os.makedirs(localroledirpath)
-
         self.localroledirpath = localroledirpath
 
         self.localrolepath = os.path.join(self.localroledirpath,
                 "{0}.{1}".format('role', self.ext))
 
+    def clearRoleDir(self):
+        '''
+        Clear the Role directory
+        '''
+        if os.path.exists(self.roledirpath):
+            os.rmdir(self.roledirpath)
 
     def dumpLocalRoleData(self, data):
         '''
@@ -114,11 +135,18 @@ class RoadKeep(keeping.Keep):
         if os.path.exists(self.localrolepath):
             os.remove(self.localrolepath)
 
+    def clearLocalRoleDir(self):
+        '''
+        Clear the Local Role directory
+        '''
+        if os.path.exists(self.localroledirpath):
+            os.rmdir(self.localroledirpath)
+
     def dumpRemoteRoleData(self, data, role):
         '''
         Dump the role data to file
         '''
-        filepath = os.path.join(self.roledirpath,
+        filepath = os.path.join(self.remoteroledirpath,
                 "{0}.{1}.{2}".format('role', role, self.ext))
 
         self.dump(data, filepath)
@@ -135,7 +163,7 @@ class RoadKeep(keeping.Keep):
         Load and Return the data from the role file
         '''
         data = odict([(key, None) for key in self.RemoteRoleFields])
-        filepath = os.path.join(self.roledirpath,
+        filepath = os.path.join(self.remoteroledirpath,
                 "{0}.{1}.{2}".format('role', role, self.ext))
         if not os.path.exists(filepath):
             return data
@@ -148,14 +176,14 @@ class RoadKeep(keeping.Keep):
         indexed by role in filenames
         '''
         roles = odict()
-        for filename in os.listdir(self.roledirpath):
+        for filename in os.listdir(self.remoteroledirpath):
             root, ext = os.path.splitext(filename)
             if ext not in ['.json', '.msgpack']:
                 continue
             prefix, sep, role = root.partition('.')
             if not role or prefix != 'role':
                 continue
-            filepath = os.path.join(self.roledirpath, filename)
+            filepath = os.path.join(self.remoteroledirpath, filename)
             roles[role] = self.load(filepath)
         return roles
 
@@ -163,7 +191,7 @@ class RoadKeep(keeping.Keep):
         '''
         Clear data from the role data file
         '''
-        filepath = os.path.join(self.roledirpath,
+        filepath = os.path.join(self.remoteroledirpath,
                 "{0}.{1}.{2}".format('role', role, self.ext))
         if os.path.exists(filepath):
             os.remove(filepath)
@@ -172,23 +200,23 @@ class RoadKeep(keeping.Keep):
         '''
         Remove all the role data files
         '''
-        for filename in os.listdir(self.roledirpath):
+        for filename in os.listdir(self.remoteroledirpath):
             root, ext = os.path.splitext(filename)
             if ext not in ['.json', '.msgpack']:
                 continue
             prefix, sep, role = root.partition('.')
             if not role or prefix != 'role':
                 continue
-            filepath = os.path.join(self.roledirpath, filename)
+            filepath = os.path.join(self.remoteroledirpath, filename)
             if os.path.exists(filepath):
                 os.remove(filepath)
 
     def clearRemoteRoleDir(self):
         '''
-        Clear the Role directory
+        Clear the Remote Role directory
         '''
-        if os.path.exists(self.roledirpath):
-            os.rmdir(self.roledirpath)
+        if os.path.exists(self.remoteroledirpath):
+            os.rmdir(self.remoteroledirpath)
 
     def loadLocalData(self):
         '''
@@ -202,15 +230,6 @@ class RoadKeep(keeping.Keep):
         data.update([('sighex', roleData.get('sighex')),
                      ('prihex', roleData.get('prihex'))])
         return data
-
-    def clearLocalData(self):
-        '''
-        Clear the local files
-        '''
-        if os.path.exists(self.localfilepath):
-            os.remove(self.localfilepath)
-        if os.path.exists(self.localrolepath):
-            os.remove(self.localrolepath)
 
     def loadRemoteData(self, name):
         '''
@@ -244,20 +263,6 @@ class RoadKeep(keeping.Keep):
                                  ('pubhex', roleData['pubhex'])])
         return keeps
 
-    def clearAllRemoteData(self):
-        '''
-        Remove all the remote estate files
-        '''
-        super(RoadKeep, self).clearAllRemoteData()
-        self.clearAllRemoteRoleData()
-
-    def clearRemoteDir(self):
-        '''
-        Clear the remote directory
-        '''
-        super(RoadKeep, self).clearRemoteDir()
-        self.clearRemoteRoleDir()
-
     def dumpLocalRole(self, local):
         '''
         Dump role data for local
@@ -289,7 +294,6 @@ class RoadKeep(keeping.Keep):
             self.dumpLocalData(data)
 
         self.dumpLocalRole(local)
-
 
     def dumpRemoteRole(self, remote):
         '''
