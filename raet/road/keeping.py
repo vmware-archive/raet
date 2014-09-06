@@ -272,7 +272,7 @@ class RoadKeep(keeping.Keep):
                             ('sighex', local.signer.keyhex),
                             ('prihex', local.priver.keyhex),
                          ])
-        if self.verifyLocalData(data, localFields =self.LocalRoleFields):
+        if self.verifyLocalData(data, localFields=self.LocalRoleFields):
             self.dumpLocalRoleData(data)
 
     def dumpLocal(self, local):
