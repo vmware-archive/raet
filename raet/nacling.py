@@ -4,6 +4,7 @@ nacling.py raet protocol nacl (crypto) management classes
 '''
 
 # Import python libs
+import sys
 import time
 import binascii
 import six
@@ -549,7 +550,10 @@ def uuid(size=16):
     Minimum size is 16
     '''
     size = max(int(size), 16)
-    front =  "{0:0x}".format(int(time.time() * 1000000)) # microseconds
+    if sys.platform == 'win32':
+        front =  "{0:0x}".format(int(time.clock() * 1000000)) # microseconds
+    else:
+        front =  "{0:0x}".format(int(time.time() * 1000000)) # microseconds
     extra = size - len(front)
     back = binascii.hexlify(libnacl.randombytes(extra // 2 + extra % 2))
     return ((front + back)[:size])
