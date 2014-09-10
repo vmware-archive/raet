@@ -553,7 +553,8 @@ def uuid(size=16):
 
     # Python package 'timeit' (not used here) prefers time.clock() over
     # time.time() on for Win32.  Tests of rapid uuid generation fail
-    # to generate unique uuids (or uuuids: universally un-unique ids)
+    # to generate unique uuids (or generate uuuids: universally 
+    # un-unique ids) on Windows with time.time().
     # See http://www.pythoncentral.io/measure-time-in-python-time-time-vs-time-clock/
     # for discussion.
     if sys.platform == 'win32':
