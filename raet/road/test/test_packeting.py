@@ -78,6 +78,9 @@ class BasicTestCase(unittest.TestCase):
                                             'de': 0,
                                             'cf': False,
                                             'bf': False,
+                                            'nf': False,
+                                            'df': False,
+                                            'vf': False,
                                             'si': 0,
                                             'ti': 0,
                                             'tk': 0,
@@ -129,6 +132,9 @@ class BasicTestCase(unittest.TestCase):
                                             'de': 0,
                                             'cf': False,
                                             'bf': False,
+                                            'nf': False,
+                                            'df': False,
+                                            'vf': False,
                                             'si': 0,
                                             'ti': 0,
                                             'tk': 0,
@@ -180,6 +186,9 @@ class BasicTestCase(unittest.TestCase):
                                             'de': 0,
                                             'cf': False,
                                             'bf': False,
+                                            'nf': False,
+                                            'df': False,
+                                            'vf': False,
                                             'si': 0,
                                             'ti': 0,
                                             'tk': 0,
@@ -231,6 +240,9 @@ class BasicTestCase(unittest.TestCase):
                                             'de': 0,
                                             'cf': False,
                                             'bf': False,
+                                            'nf': False,
+                                            'df': False,
+                                            'vf': False,
                                             'si': 0,
                                             'ti': 0,
                                             'tk': 0,
@@ -282,6 +294,9 @@ class BasicTestCase(unittest.TestCase):
                                             'de': 0,
                                             'cf': False,
                                             'bf': False,
+                                            'nf': False,
+                                            'df': False,
+                                            'vf': False,
                                             'si': 0,
                                             'ti': 0,
                                             'tk': 0,
@@ -343,6 +358,9 @@ class BasicTestCase(unittest.TestCase):
                                            'de': 0,
                                            'cf': False,
                                            'bf': False,
+                                           'nf': False,
+                                           'df': False,
+                                           'vf': False,
                                            'si': 0,
                                            'ti': 0,
                                            'tk': 0,
@@ -358,7 +376,7 @@ class BasicTestCase(unittest.TestCase):
                                            'ck': 0,
                                            'fk': 0,
                                            'fl': 0,
-                                           'fg': '10'})
+                                           'fg': '08'})
         self.assertEquals( tray1.body, stuff)
 
 class StackTestCase(unittest.TestCase):
@@ -488,6 +506,9 @@ class StackTestCase(unittest.TestCase):
                                           'de': 3,
                                           'cf': False,
                                           'bf': False,
+                                          'nf': False,
+                                          'df': False,
+                                          'vf': False,
                                           'si': 0,
                                           'ti': 0,
                                           'tk': 0,
@@ -503,7 +524,7 @@ class StackTestCase(unittest.TestCase):
                                           'ck': 0,
                                           'fk': 1,
                                           'fl': 64,
-                                          'fg': '10'})
+                                          'fg': '08'})
         self.assertEqual( tray1.body, self.stuff)
 
         # Json body
@@ -538,6 +559,9 @@ class StackTestCase(unittest.TestCase):
                                           'de': 3,
                                           'cf': False,
                                           'bf': False,
+                                          'nf': False,
+                                          'df': False,
+                                          'vf': False,
                                           'si': 0,
                                           'ti': 0,
                                           'tk': 0,
@@ -553,7 +577,7 @@ class StackTestCase(unittest.TestCase):
                                           'ck': 0,
                                           'fk': 1,
                                           'fl': 64,
-                                          'fg': '10'})
+                                          'fg': '08'})
 
         self.assertEqual( tray1.body, body)
 
@@ -600,6 +624,9 @@ class StackTestCase(unittest.TestCase):
                                           'de': 3,
                                           'cf': False,
                                           'bf': False,
+                                          'nf': False,
+                                          'df': False,
+                                          'vf': False,
                                           'si': 0,
                                           'ti': 0,
                                           'tk': 0,
@@ -615,7 +642,7 @@ class StackTestCase(unittest.TestCase):
                                           'ck': 1,
                                           'fk': 1,
                                           'fl': 64,
-                                          'fg': '10'})
+                                          'fg': '08'})
 
         self.assertEqual( tray1.body, body)
 

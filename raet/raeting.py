@@ -45,6 +45,9 @@ header data =
     de: Destination Estate ID (DEID)
     cf: Correspondent Flag (CrdtFlag) Default 0
     bf: BroadCast Flag (BcstFlag)  Default 0
+    nf: NAT Flag (NatFlag) Default 0
+    df: Dynamic IP Flag (DynFlag) Default 0
+    vf: IPv6 Flag (IP) (Ipv6Flag) Default 0
 
     si: Session ID (SID) Default 0
     ti: Transaction ID (TID) Default 0
@@ -70,7 +73,7 @@ header data =
     fl: Footer length (FootLen) Default 0
 
     fg: flags  packed (Flags) Default '00' hs
-         2 char Hex string with bits (0, 0, af, sf, 0, wf, bf, cf)
+         2 char Hex string with bits (vf, df, nf, af, sf, wf, bf, cf)
          Zeros are TBD flags
 }
 
@@ -221,6 +224,9 @@ PACKET_DEFAULTS = odict([
                             ('de', 0),
                             ('cf', False),
                             ('bf', False),
+                            ('nf', False),
+                            ('df', False),
+                            ('vf', False),
                             ('si', 0),
                             ('ti', 0),
                             ('tk', 0),
@@ -241,17 +247,17 @@ PACKET_DEFAULTS = odict([
 
 PACKET_FIELDS = ['sh', 'sp', 'dh', 'dp',
                  'ri', 'vn', 'pk', 'pl', 'hk', 'hl',
-                 'se', 'de', 'cf', 'bf', 'si', 'ti', 'tk',
+                 'se', 'de', 'cf', 'bf', 'nf', 'df', 'vf', 'si', 'ti', 'tk',
                  'dt', 'oi', 'wf', 'sn', 'sc', 'ml', 'sf', 'af',
                  'bk', 'ck', 'fk', 'fl', 'fg']
 
 PACKET_HEAD_FIELDS = ['ri', 'vn', 'pk', 'pl', 'hk', 'hl',
-               'se', 'de', 'cf', 'bf', 'si', 'ti', 'tk',
+               'se', 'de', 'cf', 'bf', 'nf', 'df', 'vf', 'si', 'ti', 'tk',
                'dt', 'oi', 'wf', 'sn', 'sc', 'ml', 'sf', 'af',
                'bk', 'bl', 'ck', 'cl', 'fk', 'fl', 'fg']
 
-PACKET_FLAGS = ['af', 'sf', 'wf', 'bf', 'cf']
-PACKET_FLAG_FIELDS = ['', '', 'af', 'sf', '', 'wf', 'bf', 'cf']
+PACKET_FLAGS = ['vf', 'df', 'nf' 'af', 'sf', 'wf', 'bf', 'cf']
+PACKET_FLAG_FIELDS = ['vf', 'df', 'nf', 'af', 'sf', 'wf', 'bf', 'cf']
 
 PACKET_FIELD_FORMATS = odict([
                     ('ri', '.4s'),
@@ -264,6 +270,9 @@ PACKET_FIELD_FORMATS = odict([
                     ('de', 'x'),
                     ('cf', ''),
                     ('bf', ''),
+                    ('nf', ''),
+                    ('df', ''),
+                    ('vf', ''),
                     ('si', 'x'),
                     ('ti', 'x'),
                     ('tk', 'x'),
