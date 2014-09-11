@@ -574,7 +574,7 @@ class Joiner(Initiator):
             self.remove(index=self.rxPacket.index)
             return
         application = int(mode[:2], 16)
-        operation = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)
+        main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
 
         fuid = body.get('uid')
         if not fuid: # None or zero
@@ -631,7 +631,8 @@ class Joiner(Initiator):
                         self.stack.incStat(self.statKey())
                         self.remove(index=self.txPacket.index)
                         return
-
+                self.remote.main = main
+                self.remote.application = application
                 self.remote.fuid = fuid
                 self.remote.role = role
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
@@ -644,7 +645,9 @@ class Joiner(Initiator):
         sameAll = (sameRoleKeys and
                    name == self.remote.name and
                    rha == self.remote.ha and
-                   fuid == self.remote.fuid)
+                   fuid == self.remote.fuid and
+                   main == self.remote.main and
+                   application == self.remote.application)
 
         if not sameAll and not self.stack.mutable:
             emsg = ("Joiner {0}. Attempt to change immutable road "
@@ -693,6 +696,10 @@ class Joiner(Initiator):
                 self.remote.ha = rha
             if fuid != self.remote.fuid:
                 self.remote.fuid = fuid
+            if main != self.remote.main:
+                self.remote.main = main
+            if application != self.remote.application:
+                self.remote.application = application
             if self.remote.role != role:
                 self.remote.role = role # rerole
             if verhex != self.remote.verfer.keyhex:
@@ -999,7 +1006,7 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
         application = int(mode[:2], 16)
-        operation = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)
+        main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
 
         verhex = body.get('verhex')
         if not verhex:
@@ -1094,6 +1101,8 @@ class Joinent(Correspondent):
 
             else: # ephemeral and unique name
                 self.remote.name = name
+                self.remote.main = main
+                self.remote.application = application
                 self.remote.rha = rha
                 self.remote.role = role
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
@@ -1121,7 +1130,9 @@ class Joinent(Correspondent):
         sameAll = (sameRoleKeys and
                    name == self.remote.name and
                    rha == self.remote.ha and
-                   reid == self.remote.fuid)
+                   reid == self.remote.fuid and
+                   main == self.remote.main and
+                   application == self.remote.application)
 
         if not sameAll and not self.stack.mutable:
             emsg = ("Joinent {0}. Attempt to change immutable road "
@@ -1198,6 +1209,10 @@ class Joinent(Correspondent):
                 self.remote.ha = rha
             if reid != self.remote.fuid:
                 self.remote.fuid = reid
+            if main != self.remote.main:
+                self.remote.main = main
+            if application != self.remote.application:
+                self.remote.application = application
             if role != self.remote.role: # rerole
                 self.remote.role = role
             if verhex != self.remote.verfer.keyhex:
