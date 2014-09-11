@@ -33,6 +33,8 @@ class Estate(lotting.Lot):
                  ha=None,
                  iha=None,
                  natted=None,
+                 fqdn='',
+                 dyned=None,
                  uid=None,
                  tid=0,
                  role=None,
@@ -63,7 +65,8 @@ class Estate(lotting.Lot):
             iha = (host, port)
         self.iha = iha # internal host address duple (host, port)
         self.natted = natted # is estate behind nat router
-        self.fqdn = socket.getfqdn(self.ha[0]) if self.ha else None
+        self.fqdn = fqdn or socket.getfqdn(self.ha[0]) if self.ha else ''
+        self.dyned = dyned
         self.role = role if role is not None else self.name
         self.transactions = odict() # estate transactions keyed by transaction index
 
@@ -179,6 +182,8 @@ class RemoteEstate(Estate):
                  prefix='estate',
                  uid=None,
                  fuid=0,
+                 operation=None,
+                 application=None,
                  verkey=None,
                  pubkey=None,
                  acceptance=None,
@@ -208,6 +213,8 @@ class RemoteEstate(Estate):
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
         super(RemoteEstate, self).__init__(stack, prefix=prefix, uid=uid, **kwa)
         self.fuid = fuid
+        self.operation = operation
+        self.application = application
         self.joined = joined
         self.allowed = None
         self.alived = None

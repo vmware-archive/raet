@@ -42,14 +42,15 @@ class RoadKeep(keeping.Keep):
                 role.role.ext
                 role.role.ext
     '''
-    LocalFields = ['name', 'uid', 'ha', 'iha', 'natted', 'sid', 'puid', 'aha',
-                   'role', 'sighex','prihex']
-    LocalDumpFields = ['name', 'uid', 'ha', 'iha', 'natted', 'sid', 'puid', 'aha', 'role']
+    LocalFields = ['name', 'uid', 'ha', 'iha', 'natted', 'fqdn', 'dyned', 'sid',
+                   'puid', 'aha', 'role', 'sighex','prihex']
+    LocalDumpFields = ['name', 'uid', 'ha', 'iha', 'natted', 'fqdn', 'dyned', 'sid',
+                       'puid', 'aha', 'role']
     LocalRoleFields = ['role', 'sighex','prihex']
-    RemoteFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'sid', 'joined',
-                         'role', 'acceptance', 'verhex', 'pubhex']
-    RemoteDumpFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'sid',
-                        'joined', 'role']
+    RemoteFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'fqdn', 'dyned',
+                    'sid', 'joined', 'role', 'acceptance', 'verhex', 'pubhex']
+    RemoteDumpFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'fqdn', 'dyned',
+                         'sid', 'joined', 'role']
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
     Auto = raeting.autoModes.never #auto accept
 
@@ -285,6 +286,8 @@ class RoadKeep(keeping.Keep):
                         ('ha', local.ha),
                         ('iha', local.iha),
                         ('natted', local.natted),
+                        ('fqdn', local.fqdn),
+                        ('dyned', local.dyned),
                         ('sid', local.sid),
                         ('puid', local.stack.puid),
                         ('aha', local.stack.aha),
@@ -319,6 +322,8 @@ class RoadKeep(keeping.Keep):
                         ('ha', remote.ha),
                         ('iha', remote.iha),
                         ('natted', remote.natted),
+                        ('fqdn', remote.fqdn),
+                        ('dyned', remote.dyned),
                         ('sid', remote.sid),
                         ('joined', remote.joined),
                         ('role', remote.role),
