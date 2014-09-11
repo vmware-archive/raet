@@ -318,7 +318,6 @@ PAGE_FIELD_FORMATS = odict([
 
 PAGE_FIELDS = ['ri', 'vn', 'pk', 'sn', 'dn', 'si', 'bi', 'pn', 'pc']
 
-
 class RaetError(Exception):
     '''
     Exceptions in RAET Protocol processing

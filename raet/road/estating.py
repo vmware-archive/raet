@@ -182,7 +182,7 @@ class RemoteEstate(Estate):
                  prefix='estate',
                  uid=None,
                  fuid=0,
-                 operation=None,
+                 main=None,
                  application=None,
                  verkey=None,
                  pubkey=None,
@@ -213,7 +213,7 @@ class RemoteEstate(Estate):
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
         super(RemoteEstate, self).__init__(stack, prefix=prefix, uid=uid, **kwa)
         self.fuid = fuid
-        self.operation = operation
+        self.main = main
         self.application = application
         self.joined = joined
         self.allowed = None

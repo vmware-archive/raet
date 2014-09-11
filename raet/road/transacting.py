@@ -18,6 +18,7 @@ except ImportError:
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
+from ioflo.base.aiding import packByte, unpackByte
 
 from .. import raeting
 from .. import nacling
@@ -482,7 +483,23 @@ class Joiner(Initiator):
 
         self.remote.joined = None
 
+        if not self.stack.application:
+            application = 0
+        else:
+            if self.stack.application < 0 or self.stack.application > 255:
+                emsg = ("Joiner {0}. Invalid application field value {1} for {2}. "
+                                "Aborting...\n".format(
+                                                       self.stack.name,
+                                                       self.stack.application,
+                                                       self.remote.name))
+                console.concise(emsg)
+                return
+
+        fields = [0, 0, 0, 0, 0, 0, 0, self.stack.main]
+        operation = packByte(fmt='11111111', fields=fields)
+
         body = odict([('name', self.stack.local.name),
+                      ('mode', "{0:02x}{0:02x}".format(application, operation)),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
                       ('role', self.stack.local.role)])
@@ -548,6 +565,16 @@ class Joiner(Initiator):
             self.stack.incStat('invalid_accept')
             self.remove(index=self.txPacket.index)
             return
+
+        mode = body.get('mode')
+        if not mode or len(mode) != 4:
+            emsg = "Missing or invalid remote operation application mode in accept packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_accept')
+            self.remove(index=self.rxPacket.index)
+            return
+        application = int(mode[:2], 16)
+        operation = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)
 
         fuid = body.get('uid')
         if not fuid: # None or zero
@@ -964,6 +991,16 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
+        mode = body.get('mode')
+        if not mode or len(mode) != 4:
+            emsg = "Missing or invalid remote operation application mode in join packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_join')
+            self.remove(index=self.rxPacket.index)
+            return
+        application = int(mode[:2], 16)
+        operation = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)
+
         verhex = body.get('verhex')
         if not verhex:
             emsg = "Missing remote verifier key in join packet\n"
@@ -1210,7 +1247,23 @@ class Joinent(Correspondent):
         '''
         Send accept response to join request
         '''
+        if not self.stack.application:
+            application = 0
+        else:
+            if self.stack.application < 0 or self.stack.application > 255:
+                emsg = ("Joinent {0}. Invalid application field value {1} for {2}. "
+                                "Aborting...\n".format(
+                                                       self.stack.name,
+                                                       self.stack.application,
+                                                       self.remote.name))
+                console.concise(emsg)
+                return
+
+        fields = [0, 0, 0, 0, 0, 0, 0, self.stack.main]
+        operation = packByte(fmt='11111111', fields=fields)
+
         body = odict([ ('name', self.stack.local.name),
+                       ('mode', "{0:02x}{0:02x}".format(application, operation)),
                        ('uid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),
                        ('pubhex', self.stack.local.priver.pubhex),

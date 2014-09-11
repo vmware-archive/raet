@@ -44,8 +44,6 @@ class Stack(object):
     def __init__(self,
                  store=None,
                  version=raeting.VERSION,
-                 operation=None,
-                 application=None,
                  main=None,
                  puid=None,
                  local=None, #passed up from subclass
@@ -66,8 +64,6 @@ class Stack(object):
         self.store = store or storing.Store(stamp=0.0)
 
         self.version = version
-        self.operation = operation
-        self.application = application
         self.main = main
 
         if getattr(self, 'puid', None) is None:
