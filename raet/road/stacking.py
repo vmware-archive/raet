@@ -196,6 +196,7 @@ class RoadStack(stacking.KeepStack):
         if remote.timer.store is not self.store:
             raise raeting.StackError("Store reference mismatch between remote"
                     " '{0}' and stack '{1}'".format(remote.name, stack.name))
+        return remote
 
     def removeRemote(self, remote, clear=True):
         '''

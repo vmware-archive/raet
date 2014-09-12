@@ -155,6 +155,7 @@ class Stack(object):
         remote.stack = self
         self.uidRemotes[uid] = remote
         self.nameRemotes[remote.name] = remote
+        return remote
 
     def moveRemote(self, remote, new):
         '''
@@ -557,6 +558,7 @@ class KeepStack(Stack):
         super(KeepStack, self).addRemote(remote=remote)
         if dump:
             self.dumpRemote(remote)
+        return remote
 
     def moveRemote(self, remote, new, clear=False, dump=False):
         '''

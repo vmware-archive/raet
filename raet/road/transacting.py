@@ -771,7 +771,7 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        console.concise("Joiner {0}. Do Accept of {1} at {2}\n".format(
+        console.concise("Joiner {0}. Do Ack Accept, Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("join_initiate_complete")
 
@@ -798,7 +798,7 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        console.concise("Joiner {0}. Do Pend of {1} at {2}\n".format(
+        console.concise("Joiner {0}. Do Ack Pend of {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
 
         self.transmit(packet)
@@ -822,10 +822,10 @@ class Joiner(Initiator):
             return
 
         if kind == raeting.pcktKinds.refuse:
-            console.terse("Joiner {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Joiner {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif  kind == raeting.pcktKinds.reject:
-            console.terse("Joiner {0}. Do Reject of {1} at {2}\n".format(
+            console.terse("Joiner {0}. Do Nack Reject of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Joiner {0}. Do Nack of {1} at {2}\n".format(
@@ -1254,7 +1254,7 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        console.concise("Joinent {0}. Pending Accept of {1} at {2}\n".format(
+        console.concise("Joinent {0}. Do Ack Pending accept of {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.transmit(packet)
 
@@ -1377,13 +1377,13 @@ class Joinent(Correspondent):
             return
 
         if kind == raeting.pcktKinds.renew:
-            console.terse("Joinent {0}. Do Renew of {1} at {2}\n".format(
+            console.terse("Joinent {0}. Do Nack Renew of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.refuse:
-            console.terse("Joinent {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Joinent {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Joinent {0}. Do Reject of {1} at {2}\n".format(
+            console.terse("Joinent {0}. Do Nack Reject of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Joinent {0}. Do Nack of {1} at {2}\n".format(
@@ -1685,7 +1685,7 @@ class Allower(Initiator):
 
         self.transmit(packet)
         self.remove()
-        console.concise("Allower {0}. Ack Final of {1} at {2}\n".format(
+        console.concise("Allower {0}. Do Ack Final, Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
 
@@ -1714,10 +1714,10 @@ class Allower(Initiator):
             return
 
         if kind == raeting.pcktKinds.refuse:
-            console.terse("Allower {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Allower {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Allower {0}. Do Reject of {1} at {2}\n".format(
+            console.terse("Allower {0}. Do Nack Reject of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Allower {0}. Do Nack of {1} at {2}\n".format(
@@ -2133,7 +2133,7 @@ class Allowent(Correspondent):
             return
 
         self.transmit(packet)
-        console.concise("Allowent {0}. Do Ack with {1} at {2}\n".format(
+        console.concise("Allowent {0}. Do Ack Initiate with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
 
         self.allow()
@@ -2157,7 +2157,7 @@ class Allowent(Correspondent):
             return
 
         self.remove()
-        console.concise("Allowent {0}. Do Final with {1} at {2}\n".format(
+        console.concise("Allowent {0}. Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_correspond_complete")
         self.remote.sendSavedMessages() # could include messages saved on rejoin
@@ -2206,10 +2206,10 @@ class Allowent(Correspondent):
             return
 
         if kind==raeting.pcktKinds.refuse:
-            console.terse("Allowent {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Allowent {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind==raeting.pcktKinds.reject:
-            console.concise("Allowent {0}. Do Reject {1} at {2}\n".format(
+            console.concise("Allowent {0}. Do Nack Reject {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Allowent {0}. Do Nack of {1} at {2}\n".format(
