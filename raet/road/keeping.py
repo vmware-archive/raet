@@ -107,6 +107,13 @@ class RoadKeep(keeping.Keep):
         self.localrolepath = os.path.join(self.localroledirpath,
                 "{0}.{1}".format('role', self.ext))
 
+    def clearAllDir(self):
+        '''
+        Clear all the directories
+        '''
+        super(RoadKeep, self).clearAllDir()
+        self.clearRoleDir()
+
     def clearRoleDir(self):
         '''
         Clear the Role directory

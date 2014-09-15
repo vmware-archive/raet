@@ -60,6 +60,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         data = odict()
         data['name'] = name
+        data['auto'] = auto
         data['basedirpath'] = os.path.join(base, 'road', 'keep')
         data['dirpath'] = os.path.join(data['basedirpath'], name)
         signer = nacling.Signer()
@@ -68,7 +69,7 @@ class BasicTestCase(unittest.TestCase):
         privateer = nacling.Privateer()
         data['prihex'] = privateer.keyhex
         data['pubhex'] = privateer.pubhex
-        data['auto'] = auto
+        
 
         return data
 
@@ -105,10 +106,11 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("\nJoin Transaction **************\n")
         if not initiator.remotes:
-            initiator.addRemote(estating.RemoteEstate(stack=initiator,
+            remote = initiator.addRemote(estating.RemoteEstate(stack=initiator,
                                                       fuid=0, # vacuous join
                                                       sid=0, # always 0 for join
                                                       ha=correspondent.local.ha))
+            deid = remote.uid
         initiator.join(uid=deid)
         self.service(correspondent, initiator, duration=duration)
 
