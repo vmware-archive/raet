@@ -109,7 +109,7 @@ class RoadKeep(keeping.Keep):
 
     def clearAllDir(self):
         '''
-        Clear all the directories
+        Clear all keep directories
         '''
         super(RoadKeep, self).clearAllDir()
         self.clearRoleDir()
