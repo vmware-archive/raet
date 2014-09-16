@@ -32,6 +32,8 @@ def setUpModule():
 def tearDownModule():
     pass
 
+def tempbasedir(prefix='', suffix='', dir='', lane='', keep=''):
+    return tempfile.mkdtemp(prefix=prefix, suffix=suffix)
 
 class BasicTestCase(unittest.TestCase):
     '''
@@ -370,7 +372,7 @@ class StackTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        self.dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="base")
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack

@@ -8,6 +8,7 @@ stacking.py raet protocol stacking classes
 # Import python libs
 import socket
 import os
+import sys
 import errno
 
 from collections import deque,  Mapping
@@ -87,8 +88,13 @@ class LaneStack(stacking.Stack):
         if not self.local:
             return None
 
-        server = aiding.SocketUxdNb(ha=self.local.ha,
-                            bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
+        if not sys.platform == 'win32':
+            server = aiding.SocketUxdNb(ha=self.local.ha,
+                                bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
+        else:
+            server = aiding.WinmailslotNb(ha=self.local.ha,
+                                bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
+
         return server
 
     def _handleOneRx(self):
@@ -96,13 +102,14 @@ class LaneStack(stacking.Stack):
         Handle on message from .rxes deque
         Assumes that there is a message on the .rxes deque
         '''
+
         raw, sa, da = self.rxes.popleft()
         console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
         page = paging.RxPage(packed=raw)
 
         try:
             page.head.parse()
-        except PageError as ex:
+        except raeting.PageError as ex:
             console.terse(str(ex) + '\n')
             self.incStat('invalid_page_header')
 
