@@ -1177,7 +1177,7 @@ class Joinent(Correspondent):
                     self.stack.incStat(self.statKey())
                     return
 
-                emsg = ("Joinent {0}. Added new remote name='{1}' nuid='{2}' fuid='{3}'"
+                emsg = ("Joinent {0}. Added new remote name='{1}' nuid='{2}' fuid='{3}' "
                         "ha='{4}' role='{5}'\n".format(self.stack.name,
                                           self.remote.name,
                                           self.remote.nuid,
