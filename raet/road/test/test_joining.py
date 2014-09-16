@@ -99,7 +99,7 @@ class BasicTestCase(unittest.TestCase):
         return stack
 
     def join(self, initiator, correspondent, deid=None, duration=1.0,
-                cascade=False):
+                cascade=False, renewal=False):
         '''
         Utility method to do join. Call from test method.
         '''
@@ -111,7 +111,7 @@ class BasicTestCase(unittest.TestCase):
                                                       ha=correspondent.local.ha))
             deid = remote.uid
 
-        initiator.join(uid=deid, cascade=cascade)
+        initiator.join(uid=deid, cascade=cascade, renewal=renewal)
         self.serviceStacks([correspondent, initiator], duration=duration)
 
     def allow(self, initiator, correspondent, deid=None, duration=1.0,
@@ -203,6 +203,123 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, True)
                 self.assertIs(remote.alived, None)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinBasic(self):
+        '''
+        Test join
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alphaData = self.createRoadData(base=self.base,
+                                       name='alpha',
+                                       ha=("", raeting.RAET_PORT),
+                                       main=True,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData)
+
+        betaData = self.createRoadData(base=self.base,
+                                        name='beta',
+                                        ha=("", raeting.RAET_TEST_PORT),
+                                        main=None,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData)
+
+        console.terse("\nJoin from Beta to Alpha *********\n")
+        self.assertIs(alpha.main, True)
+        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(alpha.remotes), 0)
+        self.assertIs(beta.main, None)
+        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(beta.remotes), 0)
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow Beta to Alpha *********\n")
+        self.allow(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, True)
+                self.assertIs(remote.alived, None)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerA1(self):
+        '''
+        Test join
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alphaData = self.createRoadData(base=self.base,
+                                       name='alpha',
+                                       ha=("", raeting.RAET_PORT),
+                                       main=True,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData)
+
+        betaData = self.createRoadData(base=self.base,
+                                        name='beta',
+                                        ha=("", raeting.RAET_TEST_PORT),
+                                        main=None,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData)
+
+        console.terse("\nJoin from Beta to Alpha *********\n")
+        self.assertIs(alpha.main, True)
+        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(alpha.remotes), 0)
+        self.assertIs(beta.main, None)
+        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(beta.remotes), 0)
+
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        beta.name='beta_new'
+        self.join(beta, alpha, renewal=True)
+
+        self.assertEqual(len(alpha.transactions), 0)
+        self.assertEqual(len(alpha.remotes), 1)
+        self.assertEqual(len(alpha.nameRemotes), 1)
+        for remote in alpha.remotes.values():
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertEqual(len(beta.remotes), 0)
+        self.assertEqual(len(beta.nameRemotes), 0)
+        for remote in beta.remotes.values():
+            self.assertIs(remote.joined, False)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
 
         for stack in [alpha, beta]:
             stack.server.close()
