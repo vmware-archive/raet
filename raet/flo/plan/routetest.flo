@@ -2,9 +2,9 @@
 
 house master
 
-init .raet.road.stack.local to did 1 name "master" host "" port 7530 \
+init .raet.road.stack.local to name "master" host "" port 7530 \
     basedirpath "/tmp/raet/test/keep/" main True auto True
-init .raet.lane.stack.local to name "boss" lane "ash" yid 0 \
+init .raet.lane.stack.local to name "boss" lane "ash" \
     basedirpath "/tmp/raet/test/lane/keep/"
 
 framer masterudpstack be active first start
@@ -38,7 +38,7 @@ framer uxdreceiver be active first start
 framer setupuxdyard be active first start
     frame start
         enter
-            do raet lane stack yard add to lane "ash" yid 1
+            do raet lane stack yard add to lane "ash"  name "yard1"
 
     frame send
         enter
@@ -51,7 +51,7 @@ framer setupuxdyard be active first start
 
 house serf
 
-init .raet.lane.stack.local to name "serf" lane "ash" yid 1 \
+init .raet.lane.stack.local to name "serf" lane "ash" name "yard1" \
     basedirpath "/tmp/raet/test/lane/keep/"
 
 framer serfuxdstack be active first start
@@ -72,7 +72,7 @@ framer uxdreceiver be active first start
 framer setupuxdyard be active first start
     frame start
         enter
-            do raet lane stack yard add to lane "ash" yid 0
+            do raet lane stack yard add to lane "ash" name "boss"
         timeout 0.5
 
     frame send
@@ -86,7 +86,7 @@ framer setupuxdyard be active first start
 
 house minion1
 
-init .raet.road.stack.local to did 0 name "minion1" host "" port 7531 \
+init .raet.road.stack.local to name "minion1" host "" port 7531 \
     basedirpath "/tmp/raet/test/keep/"
 
 

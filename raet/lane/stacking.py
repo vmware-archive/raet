@@ -37,15 +37,16 @@ class LaneStack(stacking.Stack):
     RAET protocol UXD (unix domain) socket stack object
     '''
     Count = 0
+    Uid =  0
     Pk = raeting.packKinds.json # serialization pack kind of Uxd message
     Accept = True # accept any uxd messages if True from yards not already in lanes
 
     def __init__(self,
+                 local=None, #passed up from subclass
                  name='',
-                 main=None,
-                 local=None,
+                 puid=None,
+                 uid=None,
                  lanename='lane',
-                 yid=None,
                  sockdirpath='',
                  ha='',
                  bufcnt=10,
@@ -54,49 +55,56 @@ class LaneStack(stacking.Stack):
                  ):
         '''
         Setup LaneStack instance
-
-        stack.name and stack.local.name will match
         '''
-        self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
-        if not name:
-            name = "lane{0}".format(LaneStack.Count)
-            LaneStack.Count += 1
+        if getattr(self, 'puid', None) is None:
+            self.puid = puid if puid is not None else self.Uid
 
-        if not local:
-            self.remotes = odict()
-            local = yarding.LocalYard(  stack=self,
-                                        yid=yid,
-                                        name=name,
-                                        main=main,
-                                        ha=ha,
-                                        dirpath=sockdirpath,
-                                        lanename=lanename)
-        else:
-            if main is not None:
-                local.main = True if main else False
+        local = local or yarding.Yard(stack=self,
+                                            name=name,
+                                            uid=uid,
+                                            ha=ha,
+                                            dirpath=sockdirpath,
+                                            lanename=lanename)
 
-        super(LaneStack, self).__init__(name=name,
+        super(LaneStack, self).__init__(puid=puid,
                                         local=local,
                                         bufcnt=bufcnt,
                                         **kwa)
 
+        self.haRemotes = odict() # remotes indexed by ha host address
+        self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
+
     def serverFromLocal(self):
         '''
-        Create server from local data
+        Create local listening server for stack
         '''
-        if not self.local:
-            return None
-
-        server = aiding.SocketUxdNb(ha=self.local.ha,
+        server = aiding.SocketUxdNb(ha=self.ha,
                             bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
+
+    def addRemote(self, remote):
+        '''
+        Add a remote to indexes
+        '''
+        if remote.ha in self.haRemotes or remote.ha == self.local.ha:
+            emsg = "Cannot add remote at ha '{0}', alreadys exists".format(remote.ha)
+            raise raeting.StackError(emsg)
+        super(LaneStack, self).addRemote(remote)
+        self.haRemotes[remote.ha] = remote
+
+    def removeRemote(self, remote):
+        '''
+        Remove remote from all remotes dicts
+        '''
+        super(LaneStack, self).removeRemote(remote)
+        del self.haRemotes[remote.ha]
 
     def _handleOneRx(self):
         '''
         Handle on message from .rxes deque
         Assumes that there is a message on the .rxes deque
         '''
-        raw, sa, da = self.rxes.popleft()
+        raw, sa = self.rxes.popleft()
         console.verbose("{0} received raw message \n{1}\n".format(self.name, raw))
         page = paging.RxPage(packed=raw)
 
@@ -207,7 +215,7 @@ class LaneStack(stacking.Stack):
             self.server.send(tx, ta)
         except Exception as ex:
             console.concise("Error sending to '{0}' from '{1}: {2}\n".format(
-                ta, self.local.ha, ex))
+                ta, self.ha, ex))
             if ex.errno == errno.ECONNREFUSED or ex.errno == errno.ENOENT:
                 self.incStat("stale_transmit_yard")
                 yard = self.haRemotes.get(ta)

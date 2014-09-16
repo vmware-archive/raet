@@ -548,15 +548,14 @@ def uuid(size=16):
     Generate universally unique id hex string with size characters
     Timebased with random bytes
     Minimum size is 16
+
+    Uses time.clock instead of time.time on windows.
+    Tests of rapid uuid generation fail to generate unique uuids
+    on Windows with time.time().
+    See http://www.pythoncentral.io/measure-time-in-python-time-time-vs-time-clock/
+    for discussion.
     '''
     size = max(int(size), 16)
-
-    # Python package 'timeit' (not used here) prefers time.clock() over
-    # time.time() on for Win32.  Tests of rapid uuid generation fail
-    # to generate unique uuids (or generate uuuids: universally 
-    # un-unique ids) on Windows with time.time().
-    # See http://www.pythoncentral.io/measure-time-in-python-time-time-vs-time-clock/
-    # for discussion.
     if sys.platform == 'win32':
         front =  "{0:0x}".format(int(time.clock() * 1000000)) # microseconds
     else:

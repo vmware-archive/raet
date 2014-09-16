@@ -26,13 +26,13 @@ ALT_YARD_UXD_DIR = os.path.join('~', '.raet', 'uxd')
 
 class Yard(lotting.Lot):
     '''
-    RAET protocol Yard
+    RAET protocol Yard ie Lane Lot
     '''
-    Yid = 2 # class attribute
 
     def  __init__(self,
-                  stack=None,
-                  yid=None,
+                  stack,
+                  uid=None,
+                  prefix='lane',
                   name='',
                   ha='',
                   sid=None,
@@ -41,9 +41,11 @@ class Yard(lotting.Lot):
                   bid=0,
                   **kwa):
         '''
-        Initialize instance
+        Setup instance
+
+        stack is required parameter
         '''
-        self.yid = yid if yid is not None else self.Yid # yard ID
+        uid = uid if uid is not None else stack.nextUid()
 
         if lanename and  " " in lanename:
             emsg = "Invalid lanename '{0}'".format(lanename)
@@ -66,11 +68,16 @@ class Yard(lotting.Lot):
             lanename = lname
             name = yname
 
-        name = name or "yard{0}".format(self.yid)
+        name = name or "{0}_{1}".format(prefix, nacling.uuid(18))
 
         sid = sid if sid is not None else self.nextSid() #if not given unique sid
 
-        super(Yard, self).__init__(stack=stack, name=name, ha=ha, sid=sid, **kwa)
+        super(Yard, self).__init__(stack=stack,
+                                   name=name,
+                                   uid=uid,
+                                   ha=ha,
+                                   sid=sid,
+                                   **kwa)
 
         self.lanename = lanename or 'lane'
         self.bid = bid #current book id
@@ -107,20 +114,6 @@ class Yard(lotting.Lot):
             ha = os.path.join(dirpath, "{0}.{1}.uxd".format(self.lanename, self.name))
 
         self.ha = ha
-
-    @property
-    def uid(self):
-        '''
-        property that returns unique identifier
-        '''
-        return self.yid
-
-    @uid.setter
-    def uid(self, value):
-        '''
-        setter for uid property
-        '''
-        self.yid = value
 
     @staticmethod
     def namesFromHa(ha):
@@ -162,47 +155,22 @@ class Yard(lotting.Lot):
             self.bid = 1  # rollover to 1
         return self.bid
 
-class LocalYard(Yard):
-    '''
-    RAET UXD Protocol endpoint local Yard
-    '''
-    def __init__(self, stack=None, name='', yid=None, nyid=None, main=None, **kwa):
-        '''
-        Setup Yard instance
-        '''
-        self.nyid = nyid if nyid is not None else self.Yid # next yid
-        if yid is None:
-            yid = self.nextYid()
-
-        super(LocalYard, self).__init__(stack=stack, name=name, yid=yid, **kwa)
-        self.main = main # main yard on lane
-
-    def nextYid(self):
-        '''
-        Generates next yard id number.
-        '''
-        self.nyid += 1
-        if self.nyid > 0xffffffffL:
-            self.nyid = 1  # rollover to 1
-        return self.nyid
-
 class RemoteYard(Yard):
     '''
-    RAET protocol endpoint remote yard
-    '''
-    def __init__(self, stack=None, yid=None, rsid=0, **kwa):
-        '''
-        Setup Yard instance
-        '''
-        if yid is None:
-            if stack:
-                yid = stack.local.nextYid()
-                while yid in stack.remotes or yid == stack.local.yid:
-                    yid = stack.local.nextYid()
-            else:
-                yid = 0
+    RAET protocol endpoint remote yard ie Remote Lane Lot
 
-        super(RemoteYard, self).__init__(stack=stack, yid=yid, **kwa)
+    stack is required parameter
+    '''
+    def __init__(self, stack, prefix='yard', uid=None, rsid=0, **kwa):
+        '''
+        Setup instance
+        '''
+        if uid is None:
+            uid = stack.nextUid()
+            while uid in stack.remotes or uid == stack.local.uid:
+                uid = stack.nextUid()
+
+        super(RemoteYard, self).__init__(stack=stack, prefix=prefix, uid=uid, **kwa)
         self.rsid = rsid # last sid received from remote
         self.books = odict()
 
@@ -210,6 +178,9 @@ class RemoteYard(Yard):
         '''
         Safely add book at index,(si, bi) If not already there
         '''
+        if index in self.books:
+            emsg = "Cannot add book at index '{0}', alreadys exists".format(index)
+            raise raeting.YardError(emsg)
         self.books[index] = book
         console.verbose( "Added book to {0} at '{1}'\n".format(self.name, index))
 

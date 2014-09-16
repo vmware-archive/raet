@@ -21,52 +21,26 @@ from ioflo.base.odicting import odict
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from . import raeting
+from . import raeting, nacling
 
 class Lot(object):
     '''
     RAET protocol stack endpoint
     way is group of lots
     '''
-    Count = 0
+    Uid = 0
 
-    def __init__(self, stack=None, uid=None, name="", ha=None, sid=0):
+    def __init__(self, stack, uid=None, name='', prefix='lot', ha=None, sid=0):
         '''
         Setup Lot instance
+
+        stack is a required parameter
         '''
         self.stack = stack
-        Lot.Count += 1
-        if uid is None:
-            uid = Lot.Count
-        self._uid = uid
-        self.name = name or "lot{0}".format(self._uid)
-        self._ha = ha
+        self.name = name or "{0}_{1}".format(prefix, nacling.uuid(size=16))
+        self.uid = uid if uid is not None else self.stack.nextUid()
+        self.ha = ha
         self.sid = sid # current session ID
-
-    @property
-    def uid(self):
-        '''
-        property that returns unique identifier
-        '''
-        return self._uid
-
-    @uid.setter
-    def uid(self, value):
-        '''
-        setter for uid property
-        '''
-        self._uid = value
-
-    @property
-    def ha(self):
-        '''
-        property that returns host address
-        '''
-        return self._ha
-
-    @ha.setter
-    def ha(self, value):
-        self._ha = value
 
     def nextSid(self):
         '''
@@ -81,6 +55,7 @@ class Lot(object):
     def validSid(self, sid):
         '''
         Compare new sid to old .sid and return True
+        If old is zero Then new is always valid
         If new is >= old modulo N where N is 2^32 = 0x100000000
         And >= means the difference is less than N//2 = 0x80000000
         (((new - old) % 0x100000000) < (0x100000000 // 2))
@@ -93,21 +68,11 @@ class Lot(object):
         Compare new sid to old sid and return True
         If old is zero Then new is always valid
         If new is >= old modulo N where N is 2^32 = 0x100000000
-        And greater means the difference is less than N//2 = 0x80000000
-
+        And >= means the difference is less than N//2 = 0x80000000
+        0 = 0 % anything
         '''
-        if not old: # if current sid is 0 then always valid
+        # If old sid == 0 then new always valid. If new sid == 0 then always valid
+        if not old or not new:
             return True
         return (((new - old) % raeting.SID_WRAP_MODULO) <
                                              (raeting.SID_WRAP_DELTA))
-
-class LocalLot(Lot):
-    '''
-    Raet protocol local endpoint
-    '''
-    def  __init__(self, stack=None, name="", main=None, **kwa):
-        '''
-        Setup instance
-        '''
-        super(LocalLot, self).__init__(stack=stack, name=name, **kwa)
-        self.main = main # main lot on way

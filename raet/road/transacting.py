@@ -18,6 +18,7 @@ except ImportError:
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
+from ioflo.base.aiding import packByte, unpackByte
 
 from .. import raeting
 from .. import nacling
@@ -26,7 +27,6 @@ from . import estating
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
-
 
 class Transaction(object):
     '''
@@ -50,7 +50,7 @@ class Transaction(object):
         self.timeout = timeout
         self.timer = aiding.StoreTimer(self.stack.store, duration=self.timeout)
 
-        self.rmt = rmt # cf flag
+        self.rmt = rmt # remote initiator
         self.bcst = bcst # bf flag
         self.wait = wait # wf flag
 
@@ -65,13 +65,11 @@ class Transaction(object):
     def index(self):
         '''
         Property is transaction tuple (rf, le, re, si, ti, bf,)
+        Not to be used in join (Joiner and Joinent) since bootstrapping
+        Use the txPacket (Joiner) or rxPacket (Joinent) .data instead
         '''
-        le = self.stack.local.uid
-        if le == 0: # bootstrapping onto channel use ha
-            le = self.stack.local.ha
-        re = self.remote.uid
-        if re == 0: # bootstrapping onto channel use ha from zeroth remote
-            re = self.stack.remotes[0].ha
+        le = self.remote.nuid
+        re = self.remote.fuid
         return ((self.rmt, le, re, self.sid, self.tid, self.bcst,))
 
     def process(self):
@@ -111,7 +109,7 @@ class Transaction(object):
 
     def remove(self, remote=None, index=None):
         '''
-        Remove self from stack transactions
+        Remove self from remote transactions
         '''
         if not index:
             index = self.index
@@ -141,7 +139,7 @@ class Initiator(Transaction):
         '''
         Setup Transaction instance
         '''
-        kwa['rmt'] = False  # force rmt to False
+        kwa['rmt'] = False  # force rmt to False since local initator
         super(Initiator, self).__init__(**kwa)
 
     def process(self):
@@ -161,7 +159,7 @@ class Correspondent(Transaction):
         '''
         Setup Transaction instance
         '''
-        kwa['rmt'] = True  # force rmt to True
+        kwa['rmt'] = True  # force rmt to True since remote initiator
 
         missing = []
         for arg in self.Requireds:
@@ -193,11 +191,10 @@ class Staler(Initiator):
         '''
         Prepare .txData for nack to stale
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.rxPacket.data['sh'],
-                            dp=self.rxPacket.data['sp'],
-                            se=self.stack.local.uid,
+        self.txData.update(
+                            dh=self.rxPacket.data['sh'], # may need for index
+                            dp=self.rxPacket.data['sp'], # may need for index
+                            se=self.remote.nuid,
                             de=self.rxPacket.data['se'],
                             tk=self.kind,
                             cf=self.rmt,
@@ -206,7 +203,8 @@ class Staler(Initiator):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada)
+                            fk=raeting.footKinds.nada
+                          )
 
     def nack(self):
         '''
@@ -221,9 +219,10 @@ class Staler(Initiator):
         self.stack.incStat('stale_correspondent_attempt')
 
         if self.rxPacket.data['se'] not in self.stack.remotes:
-            emsg = "Unknown correspondent estate id '{0}'\n".format(self.rxPacket.data['se'])
+            emsg = "Staler {0}. Unknown correspondent estate id '{1}'\n".format(
+                    self.stack.name, self.rxPacket.data['se'])
             console.terse(emsg)
-            self.stack.incStat('unknown_correspondent_eid')
+            self.stack.incStat('unknown_correspondent_uid')
             #return #maybe we should return and not respond at all in this case
 
         body = odict()
@@ -262,11 +261,10 @@ class Stalent(Correspondent):
         '''
         Prepare .txData for nack to stale
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.rxPacket.data['sh'],
-                            dp=self.rxPacket.data['sp'],
-                            se=self.stack.local.uid,
+        self.txData.update(
+                            dh=self.rxPacket.data['sh'], # may need for index
+                            dp=self.rxPacket.data['sp'], # may need for index
+                            se=self.rxPacket.data['de'],
                             de=self.rxPacket.data['se'],
                             tk=self.kind,
                             cf=self.rmt,
@@ -275,9 +273,10 @@ class Stalent(Correspondent):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada)
+                            fk=raeting.footKinds.nada
+                           )
 
-    def nack(self):
+    def nack(self, kind=raeting.pcktKinds.nack):
         '''
         Send nack to stale packet from initiator.
         This is used when a initiator packet is received but with a stale session id
@@ -285,19 +284,22 @@ class Stalent(Correspondent):
         Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        emsg = "Stalent {0}. Stale transaction from '{1}' nacking ...\n".format(self.stack.name, ha )
+        emsg = "Stalent {0}. Stale transaction from '{1}' nacking ...\n".format(
+                self.stack.name, ha )
         console.terse(emsg)
         self.stack.incStat('stale_initiator_attempt')
 
         if self.rxPacket.data['se'] not in self.stack.remotes:
-            emsg = "Unknown initiator estate id '{0}'\n".format(self.rxPacket.data['se'])
+            emsg = "Stalent {0} Unknown initiator estate id '{1}'\n".format(
+                    self.stack.name,
+                    self.rxPacket.data['se'])
             console.terse(emsg)
-            self.stack.incStat('unknown_initiator_eid')
+            self.stack.incStat('unknown_initiator_uid')
             #return #maybe we should return and not respond at all in this case
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.nack,
+                                    kind=kind,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -307,20 +309,40 @@ class Stalent(Correspondent):
             self.stack.incStat("packing_error")
             return
 
+        if kind == raeting.pcktKinds.renew:
+            console.terse("Stalent {0}. Do Renew of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        elif kind == raeting.pcktKinds.refuse:
+            console.terse("Stalent {0}. Do Refuse of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        elif kind == raeting.pcktKinds.reject:
+            console.terse("Stalent {0}. Do Reject of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        elif kind == raeting.pcktKinds.nack:
+            console.terse("Stalent {0}. Do Nack of {1} at {2}\n".format(
+                    self.stack.name, ha, self.stack.store.stamp))
+        else:
+            console.terse("Stalent {0}. Invalid nack kind of {1} nacking anyway "
+                    " at {2}\n".format(self.stack.name,
+                                       kind,
+                                       self.stack.store.stamp))
+            kind == raeting.pcktKinds.nack
+
         self.stack.txes.append((packet.packed, ha))
-        console.terse("Stalent {0}. Nack stale initiator from '{1}' at {2}\n".format(
-                self.stack.name, ha, self.stack.store.stamp))
         self.stack.incStat('stale_initiator_nack')
 
 class Joiner(Initiator):
     '''
     RAET protocol Joiner Initiator class Dual of Joinent
+
+    Joiner must always add new remote since always must anticipate response to
+    request.
     '''
     RedoTimeoutMin = 1.0 # initial timeout
     RedoTimeoutMax = 4.0 # max timeout
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
-                 cascade=False, **kwa):
+                 cascade=False, renewal=False, **kwa):
         '''
         Setup Transaction instance
         '''
@@ -334,10 +356,13 @@ class Joiner(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.sid = 0 #self.remote.sid always 0 for join
+        self.sid = 0 #always 0 for join
         self.tid = self.remote.nextTid()
+        # fuid is assigned during join but want to preserve vacuousness for remove
+        self.vacuous = (self.remote.fuid == 0)
+        self.renewal = renewal # is current join a renew, vacuous rejoin
         self.prep()
-        # don't dump remote yet since its ephemeral until we join and get valid eid
+        # don't dump remote yet since its ephemeral until we join and get valid uid
 
     def transmit(self, packet):
         '''
@@ -346,6 +371,25 @@ class Joiner(Initiator):
         super(Joiner, self).transmit(packet)
         self.redoTimer.restart()
 
+    def add(self, remote=None, index=None):
+        '''
+        Augment with add self.remote to stack.joinees if vacuous
+        '''
+        super(Joiner, self).add(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            self.stack.joinees[self.remote.ha] = self.remote
+
+    def remove(self, remote=None, index=None):
+        '''
+        Remove self from stack transactions
+        '''
+        super(Joiner, self).remove(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            if self.remote.ha in self.stack.joinees:
+                del self.stack.joinees[self.remote.ha]
+
     def receive(self, packet):
         """
         Process received packet belonging to this transaction
@@ -353,9 +397,9 @@ class Joiner(Initiator):
         super(Joiner, self).receive(packet) #  self.rxPacket = packet
 
         if packet.data['tk'] == raeting.trnsKinds.join:
-            if packet.data['pk'] == raeting.pcktKinds.ack: # maybe pending
+            if packet.data['pk'] == raeting.pcktKinds.pend: # pending
                 self.pend()
-            elif packet.data['pk'] == raeting.pcktKinds.response:
+            elif packet.data['pk'] == raeting.pcktKinds.response: # accepted
                 self.accept()
             elif packet.data['pk'] == raeting.pcktKinds.nack: #stale
                 self.refuse()
@@ -394,17 +438,26 @@ class Joiner(Initiator):
                 console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
                          self.stack.name, self.remote.name, self.stack.store.stamp))
                 self.stack.incStat('redo_join')
+            else: #check to see if status has changed to accept after other kind
+                if self.remote:
+                    status = self.stack.keep.statusRemote(self.remote, dump=True)
+                    if status == raeting.acceptances.accepted:
+                        self.complete()
+                    elif status == raeting.acceptances.rejected:
+                        "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
+                                self.stack.name, self.remote.name, self.remote.uid)
+                        self.stack.removeRemote(self.remote, clear=True)
+                        # removeRemote also nacks
 
     def prep(self):
         '''
         Prepare .txData
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+        self.txData.update(
+                            dh=self.remote.ha[0], # may need for index
+                            dp=self.remote.ha[1], # may need for index
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -412,39 +465,41 @@ class Joiner(Initiator):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada)
+                            fk=raeting.footKinds.nada
+                          )
 
     def join(self):
         '''
         Send join request
         '''
-        if self.stack.local.main:
-            emsg = ("Joiner {0}. Main may not initiate join\n".format(self.stack.name))
-            console.terse(emsg)
-            return
-
         joins = self.remote.joinInProcess()
         if joins:
-            emsg = ("Joiner {0}. Initiator join with{1} already in process\n".format(
-                                                self.stack.name,
-                                                self.remote.name))
+            emsg = ("Joiner {0}. Join with {1} already in process. "
+                    "Aborting...\n".format(
+                                           self.stack.name,
+                                           self.remote.name))
             console.concise(emsg)
             return
 
-        yokes = self.remote.yokeInProcess()
-        if yokes: # remove any correspondent yokes
-            for yoke in yokes:
-                if yoke.rmt: # correspondent
-                    emsg = ("Joiner {0}. Removing in process "
-                            "correspondent yoke with {1}\n".format(
-                                        self.stack.name,
-                                        self.remote.name))
-                    console.concise(emsg)
-                    yoke.nack(kind=raeting.pcktKinds.refuse)
-
         self.remote.joined = None
-        self.add()
+
+        if not self.stack.application:
+            application = 0
+        else:
+            if self.stack.application < 0 or self.stack.application > 255:
+                emsg = ("Joiner {0}. Invalid application field value {1} for {2}. "
+                                "Aborting...\n".format(
+                                                       self.stack.name,
+                                                       self.stack.application,
+                                                       self.remote.name))
+                console.concise(emsg)
+                return
+
+        fields = [0, 0, 0, 0, 0, 0, 0, self.stack.main]
+        operation = packByte(fmt='11111111', fields=fields)
+
         body = odict([('name', self.stack.local.name),
+                      ('mode', "{0:02x}{0:02x}".format(application, operation)),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
                       ('role', self.stack.local.role)])
@@ -462,17 +517,14 @@ class Joiner(Initiator):
         console.concise("Joiner {0}. Do Join with {1} at {2}\n".format(
                         self.stack.name, self.remote.name, self.stack.store.stamp))
         self.transmit(packet)
+        self.add(index=self.txPacket.index)
 
     def renew(self):
         '''
         Reset to vacuous Road data and try joining again if not main
         Otherwise act as if rejected
         '''
-        if self.stack.local.main: # main never renews so just reject
-            self.refuse()
-            return
-
-        if not self.stack.local.mutable: # renew not allowed on immutable road
+        if not self.stack.mutable: # renew not allowed on immutable road
             emsg = ("Joiner {0}. Renew from '{1}' not allowed on immutable"
                     " road\n".format(self.stack.name, self.remote.name))
             console.terse(emsg)
@@ -484,26 +536,13 @@ class Joiner(Initiator):
         self.stack.incStat(self.statKey())
         self.remove(index=self.txPacket.index)
         if self.remote:
-            # reset remote to default values and move to zero
-            self.remote.replaceStaleInitiators(renew=True)
-            self.remote.sid = 0
-            self.remote.tid = 0
-            self.remote.rsid = 0
-            if self.remote.uid != 0:
-                try:
-                    self.stack.moveRemote(self.remote, new=0)
-                except raeting.StackError as ex:
-                    console.terse(str(ex) + '\n')
-                    self.reject()
-                    return
-            self.stack.dumpRemote(self.remote)
-        self.stack.local.eid = 0
-        self.stack.dumpLocal()
-        self.stack.join(ha=self.remote.ha, timeout=self.timeout)
+            self.remote.fuid = 0 # forces vacuous join
+            self.stack.dumpRemote(self.remote) # since change fuid
+        self.stack.join(uid=self.remote.uid, timeout=self.timeout, renewal=True)
 
     def pend(self):
         '''
-        Process ack to join packet
+        Process ack pend to join packet
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -516,34 +555,30 @@ class Joiner(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if self.stack.local.main:
-            emsg = ("Joiner {0}. Invalid accept on main\n".format(self.stack.name))
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
         data = self.rxPacket.data
         body = self.rxPacket.body.data
-
-        leid = body.get('leid')
-        if not leid: # None or zero
-            emsg = "Missing or invalid local estate id in accept packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_accept')
-            self.remove(index=self.txPacket.index)
-            return
-
-        reid = body.get('reid')
-        if not reid: # None or zero
-            emsg = "Missing or invalid remote estate id in accept packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_accept')
-            self.remove(index=self.txPacket.index)
-            return
 
         name = body.get('name')
         if not name:
             emsg = "Missing remote name in accept packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_accept')
+            self.remove(index=self.txPacket.index)
+            return
+
+        mode = body.get('mode')
+        if not mode or len(mode) != 4:
+            emsg = "Missing or invalid remote operation application mode in accept packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_accept')
+            self.remove(index=self.rxPacket.index)
+            return
+        application = int(mode[:2], 16)
+        main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
+
+        fuid = body.get('uid')
+        if not fuid: # None or zero
+            emsg = "Missing or invalid remote farside uid in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(index=self.txPacket.index)
@@ -573,14 +608,35 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        ha = (data['sh'], data['sp'])
-        if (ha in self.stack.haRemotes and
-                self.remote is not self.stack.haRemotes[ha]): # something is wrong
-            emsg = "Joinent {0}. Invalid ha '{1}' for remote {2}\n".format(
-                            self.stack.name, ha, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
+        rha = (data['sh'], data['sp'])
+        reid = data['se']
+        leid = data['de']
+
+        if self.vacuous:
+            self.remote.fuid = fuid
+            if not self.renewal: # ephemeral like
+                if name != self.remote.name:
+                    if name in self.stack.nameRemotes:
+                        emsg = ("Joiner {0}.  New name '{1}' unavailable for "
+                                "remote {2}\n".format(self.stack.name,
+                                                      name,
+                                                      self.remote.name))
+                        console.terse(emsg)
+                        self.nack(kind=raeting.pcktKinds.reject)
+                        return
+                    try:
+                        self.stack.renameRemote(self.remote, new=name)
+                    except raeting.StackError as ex:
+                        console.terse(str(ex) + '\n')
+                        self.stack.incStat(self.statKey())
+                        self.remove(index=self.txPacket.index)
+                        return
+                self.remote.main = main
+                self.remote.application = application
+                self.remote.fuid = fuid
+                self.remote.role = role
+                self.remote.verfer = nacling.Verifier(verhex) # verify key manager
+                self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
         sameRoleKeys = (role == self.remote.role and
                         verhex == self.remote.verfer.keyhex and
@@ -588,100 +644,90 @@ class Joiner(Initiator):
 
         sameAll = (sameRoleKeys and
                    name == self.remote.name and
-                   ha == self.remote.ha)
+                   rha == self.remote.ha and
+                   fuid == self.remote.fuid and
+                   main == self.remote.main and
+                   application == self.remote.application)
 
-        # if we have to rerole then need to change status parameter to
-        # role not remote also acceptance
-        if self.remote.role != role:
-            self.remote.role = role # change role of remote estate
+        if not sameAll and not self.stack.mutable:
+            emsg = ("Joiner {0}. Attempt to change immutable road "
+                                   "'{1}'\n".format(self.stack.name,
+                                                    self.remote.name))
+            console.terse(emsg)
+            self.nack(kind=raeting.pcktKinds.reject) # reject not mutable road
+            self.remove(index=self.txPacket.index)
+            return
 
-        # check if remote keys are accepted here
-        status = self.stack.keep.statusRemote(self.remote,
-                                              verhex=verhex,
-                                              pubhex=pubhex,
-                                              main=self.stack.local.main,
-                                              dump=True)
+        status = self.stack.keep.statusRole(role=role,
+                                                    verhex=verhex,
+                                                    pubhex=pubhex,
+                                                    dump=True)
 
         if status == raeting.acceptances.rejected:
             if sameRoleKeys:
                 self.stack.removeRemote(self.remote, clear=True)
-                # remove also nacks so reject
+                # remove also nacks so will also reject
             else:
+                self.nack(kind=raeting.pcktKinds.reject) # reject
+            return
+
+        # accepted or pending
+        self.remote.acceptance = status # change acceptance of remote
+
+        if not sameAll: # (and mutable)
+            if (name in self.stack.nameRemotes and
+                    self.stack.nameRemotes[name] is not self.remote): # non unique name
+                emsg = "Joiner {0}. Name '{1}' unavailable for remote {2}\n".format(
+                                self.stack.name, name, self.remote.name)
+                console.terse(emsg)
                 self.nack(kind=raeting.pcktKinds.reject)
-            #self.remote.joined = False
-            #self.stack.dumpRemote(self.remote)
-            return
-
-        vacuous = (self.remote.uid == 0)
-
-        # otherwise status == raeting.acceptances.accepted
-        # not vacuous and not sameAll and not mutable then reject
-        if not (vacuous or sameAll or self.stack.local.mutable):
-            emsg = ("Joiner {0}. Invalid accept nonvacuous change or imutable "
-                        "'{1}'\n".format(self.stack.name,
-                                         self.remote.name))
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        #vacuous or sameAll or self.stack.local.mutable then accept
-        # check unique first so do not change road unless unique
-        if (reid in self.stack.remotes and
-                    self.stack.remotes[reid] is not self.remote): # non unquie reid
-            emsg = "Joiner {0}. Reid '{1}' unavailable for remote {2}\n".format(
-                                self.stack.name, reid, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        if (name in self.stack.nameRemotes and
-                self.stack.nameRemotes[name] is not self.remote): # non unique name
-            emsg = "Joiner {0}. Name '{1}' unavailable for remote {2}\n".format(
-                            self.stack.name, name, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        if (leid in self.stack.remotes): # verify leid unique
-            emsg = "Joiner {0}. Leid '{1}' unavailable for remote {2}\n".format(
-                                        self.stack.name, leid, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        #self.remote.role = role
-        if verhex != self.remote.verfer.keyhex:
-            self.remote.verfer = nacling.Verifier(verhex) # verify key manager
-        if pubhex != self.remote.pubber.keyhex:
-            self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
-
-        if self.remote.uid != reid: #change id of remote estate
-            try:
-                self.stack.moveRemote(self.remote, new=reid)
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.remove(index=self.txPacket.index)
                 return
 
-        if self.remote.name != name: # rename remote estate to new name
-            try:
-                self.stack.renameRemote(self.remote, new=name)
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.remove(index=self.txPacket.index)
-                return
+            if name != self.remote.name:
+                try:
+                    self.stack.renameRemote(self.remote, new=name)
+                except raeting.StackError as ex:
+                    console.terse(str(ex) + '\n')
+                    self.stack.incStat(self.statKey())
+                    self.remove(index=self.txPacket.index)
+                    return
 
-        if self.stack.local.uid != leid:
-            self.stack.local.uid = leid # change id of local estate
-            self.stack.dumpLocal() # only dump if changed
+            if rha != self.remote.ha:
+                self.remote.ha = rha
+            if fuid != self.remote.fuid:
+                self.remote.fuid = fuid
+            if main != self.remote.main:
+                self.remote.main = main
+            if application != self.remote.application:
+                self.remote.application = application
+            if self.remote.role != role:
+                self.remote.role = role # rerole
+            if verhex != self.remote.verfer.keyhex:
+                self.remote.verfer = nacling.Verifier(verhex) # verify key manager
+            if pubhex != self.remote.pubber.keyhex:
+                self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
-        self.remote.replaceStaleInitiators(renew=(self.sid==0))
-        self.remote.nextSid() # start new session
+            # do not dump until complete in case hijack
+
+        if status == raeting.acceptances.accepted: # accepted
+            self.complete()
+            return
+
+        # else status == raeting.acceptance.pending or None
+        self.ackPend()
+
+    def complete(self):
+        '''
+        Finalize full acceptance
+        '''
+
+        if self.remote.sid == 0: # session id  must be non-zero after join
+            self.remote.nextSid() # start new session
+            self.remote.replaceStaleInitiators() # this join not stale since sid == 0
+        if self.vacuous:
+            self.remote.rsid = 0 # reset .rsid on vacuous join so allow will work
         self.remote.joined = True #accepted
         self.stack.dumpRemote(self.remote)
-
         self.ackAccept()
 
     def refuse(self):
@@ -705,13 +751,12 @@ class Joiner(Initiator):
         console.terse("Joiner {0}. Rejected by {1} at {2}\n".format(
                  self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.remote.joined = False
-        self.stack.dumpRemote(self.remote)
         self.remove(index=self.txPacket.index)
+        self.stack.removeRemote(self.remote, clear=True)
 
     def ackAccept(self):
         '''
-        Send ack to accept response
+        Send ack accepted to accept response
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -726,7 +771,7 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        console.concise("Joiner {0}. Do Accept of {1} at {2}\n".format(
+        console.concise("Joiner {0}. Do Ack Accept, Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("join_initiate_complete")
 
@@ -734,7 +779,30 @@ class Joiner(Initiator):
         self.remove(index=self.txPacket.index) # self.rxPacket.index
 
         if self.cascade:
-            self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.allow(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+
+    def ackPend(self):
+        '''
+        Send ack pending to accept response
+        '''
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.pend,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove(index=self.txPacket.index)
+            return
+
+        console.concise("Joiner {0}. Do Ack Pend of {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+
+        self.transmit(packet)
+        self.remove(index=self.txPacket.index) # self.rxPacket.index
 
     def nack(self, kind=raeting.pcktKinds.nack):
         '''
@@ -754,10 +822,10 @@ class Joiner(Initiator):
             return
 
         if kind == raeting.pcktKinds.refuse:
-            console.terse("Joiner {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Joiner {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif  kind == raeting.pcktKinds.reject:
-            console.terse("Joiner {0}. Do Reject of {1} at {2}\n".format(
+            console.terse("Joiner {0}. Do Nack Reject of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Joiner {0}. Do Nack of {1} at {2}\n".format(
@@ -775,6 +843,8 @@ class Joiner(Initiator):
 class Joinent(Correspondent):
     '''
     RAET protocol Joinent transaction class, dual of Joiner
+
+    Joinent does not add new remote to .remotes if rejected
     '''
     RedoTimeoutMin = 0.1 # initial timeout
     RedoTimeoutMax = 2.0 # max timeout
@@ -789,7 +859,7 @@ class Joinent(Correspondent):
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
         self.redoTimer = aiding.StoreTimer(self.stack.store, duration=0.0)
-
+        self.vacuous = None # gets set in join method
         self.prep()
 
     def transmit(self, packet):
@@ -798,6 +868,25 @@ class Joinent(Correspondent):
         '''
         super(Joinent, self).transmit(packet)
         self.redoTimer.restart()
+
+    def add(self, remote=None, index=None):
+        '''
+        Augment with add self.remote to stack.joinees if vacuous
+        '''
+        super(Joinent, self).add(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            self.stack.joinees[self.remote.ha] = self.remote
+
+    def remove(self, remote=None, index=None):
+        '''
+        Remove self from stack transactions
+        '''
+        super(Joinent, self).remove(remote=remote, index=index)
+        # self.remote is now assigned
+        if self.vacuous: # vacuous
+            if self.remote.ha in self.stack.joinees:
+                del self.stack.joinees[self.remote.ha]
 
     def receive(self, packet):
         """
@@ -808,6 +897,8 @@ class Joinent(Correspondent):
         if packet.data['tk'] == raeting.trnsKinds.join:
             if packet.data['pk'] == raeting.pcktKinds.request:
                 self.join()
+            elif packet.data['pk'] == raeting.pcktKinds.pend: # maybe pending
+                self.pend()
             elif packet.data['pk'] == raeting.pcktKinds.ack: #accepted by joiner
                 self.complete()
             elif packet.data['pk'] == raeting.pcktKinds.nack: #stale
@@ -844,87 +935,58 @@ class Joinent(Correspondent):
                 self.stack.incStat('redo_accept')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
-                    data = self.stack.keep.loadRemote(self.remote)
-                    if data:
-                        status = self.stack.keep.statusRemote(self.remote,
-                                                              data['verhex'],
-                                                              data['pubhex'],
-                                                              main=self.stack.local.main)
-                        if status == raeting.acceptances.accepted:
-                            self.accept()
-                        elif status == raeting.acceptances.rejected:
-                            "Stack {0}: Estate '{1}' eid '{2}' keys rejected\n".format(
-                                    self.stack.name, self.remote.name, self.remote.uid)
-                            self.remote.joined = False
-                            self.stack.dumpRemote(self.remote)
-                            #self.stack.removeRemote(self.remote) #reap remote
-                            self.nack(kind=raeting.pcktKinds.reject)
+                    status = self.stack.keep.statusRemote(self.remote, dump=True)
+                    if status == raeting.acceptances.accepted:
+                        self.accept()
+                    elif status == raeting.acceptances.rejected:
+                        "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
+                                self.stack.name, self.remote.name, self.remote.uid)
+                        self.stack.removeRemote(self.remote,clear=True)
+                        # removeRemote also nacks
 
     def prep(self):
         '''
         Prepare .txData
         '''
         #since bootstrap transaction use the reversed seid and deid from packet
-        self.txData.update(sh=self.stack.local.host,
-                           sp=self.stack.local.port,
-                           se=self.rxPacket.data['de'],
-                           de=self.rxPacket.data['se'],
-                           tk=self.kind,
-                           cf=self.rmt,
-                           bf=self.bcst,
-                           wf=self.wait,
-                           si=self.sid,
-                           ti=self.tid,
-                           ck=raeting.coatKinds.nada,
-                           fk=raeting.footKinds.nada,)
+        self.txData.update(
+                            dh=self.rxPacket.data['sh'], # may need for index
+                            dp=self.rxPacket.data['sp'], # may need for index
+                            se=self.rxPacket.data['de'],
+                            de=self.rxPacket.data['se'],
+                            tk=self.kind,
+                            cf=self.rmt,
+                            bf=self.bcst,
+                            wf=self.wait,
+                            si=self.sid,
+                            ti=self.tid,
+                            ck=raeting.coatKinds.nada,
+                            fk=raeting.footKinds.nada,
+                          )
 
     def join(self):
         '''
         Process join packet
         Each estate must have a set of unique credentials on the road
         The credentials are.
-        eid (estate id), name, ha (host address, port)
+        uid (estate id), name, ha (host address, port)
         Each of the three credentials must be separably unique on the Road, that is
-        the eid must be unique, the name must be unique, the ha must be unique.
+        the uid must be unique, the name must be unique, the ha must be unique.
 
         The other credentials are the role and keys. Multiple estates may share
         the same role and associated keys. The keys are the signing key and the
         encryption key.
 
-        Once an estate has joined the first time it will be assigned an eid.
+        Once an estate has joined the first time it will be assigned an uid.
         Changing any of the credentials after this requires that the Road be mutable.
 
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        if not self.stack.local.main:
-            emsg = "Joinent {0}. Invalid join not main\n".format(self.stack.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
+        # Don't add transaction yet wait till later until transaction is permitted
+        # as not a duplicate and role keys are not rejected
 
-        joins = self.remote.joinInProcess()
-        if joins:
-            for join in joins:
-                emsg = "Joinent {0}. Join with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
-                console.concise(emsg)
-                self.stack.incStat('duplicate_join_attempt')
-                if join is not self:
-                    self.nack(kind=raeting.pcktKinds.refuse)
-            return
-
-        yokes = self.remote.yokeInProcess()
-        if yokes: # remove any initiator yokes
-            for yoke in yokes:
-                if not yoke.rmt:
-                    emsg = ("Joinent {0}. Removing in process initiator yoke with"
-                            " {1} \n".format(self.stack.name, self.remote.name))
-                    console.concise(emsg)
-                    yoke.nack(kind=raeting.pcktKinds.refuse)
-
-        #Don't add transaction yet wait till later until remote is not rejected
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
@@ -935,6 +997,16 @@ class Joinent(Correspondent):
             self.stack.incStat('invalid_join')
             self.remove(index=self.rxPacket.index)
             return
+
+        mode = body.get('mode')
+        if not mode or len(mode) != 4:
+            emsg = "Missing or invalid remote operation application mode in join packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_join')
+            self.remove(index=self.rxPacket.index)
+            return
+        application = int(mode[:2], 16)
+        main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
 
         verhex = body.get('verhex')
         if not verhex:
@@ -960,54 +1032,95 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        #host = data['sh']
-        #port = data['sp']
-        # responses use received host port since index includes
-        #self.txData.update( dh=host, dp=port,)
-        ha = (data['sh'], data['sp'])
-
+        rha = (data['sh'], data['sp'])
         reid = data['se']
         leid = data['de']
 
-        if (self.stack.local.uid == 0):
-            emsg = "Joinent {0}. Main has invalid uid of {1}\n".format(
-                                self.stack.name,  self.stack.local.uid)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.refuse) # refuse
-            return
+        self.vacuous = (leid == 0)
 
-        vacuous = (reid == 0)
-
-        if not vacuous: # non vacuous join
-            if reid not in self.stack.remotes: # ephemeral or missing
-                emsg = "Joinent {0}. Received stale reid {1} for remote {2}\n".format(
-                                            self.stack.name, reid, name)
-                console.terse(emsg)
-                self.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+        joins = self.remote.joinInProcess()
+        for join in joins: # only one join at a time is permitted
+            if join is self: # duplicate join packet so drop
+                emsg = ("Joinent {0}. Duplicate join from {1}. "
+                        "Dropping...\n".format(self.stack.name, self.remote.name))
+                console.concise(emsg)
+                self.stack.incStat('duplicate_join_attempt')
                 return
-            if self.remote is not self.stack.remotes[reid]: # something is wrong
-                emsg = "Joinent {0}. Mishandled join reid '{1}' for remote {2}\n".format(
-                                                    self.stack.name, reid, name)
+
+            if join.rmt: # is already a correspondent to a join
+                emsg = ("Joinent {0}. Another joinent already in process with {1}. "
+                       "Aborting...\n".format(self.stack.name, self.remote.name))
+                console.concise(emsg)
+                self.stack.incStat('redundant_join_attempt')
+                self.nack(kind=raeting.pcktKinds.refuse)
+                return
+
+            else: # already initiator join in process, resolve race condition
+                if self.vacuous and not join.vacuous: # non-vacuous beats vacuous
+                    emsg = ("Joinent {0}. Already initiated non-vacuous join with {1}. "
+                            "Aborting because vacuous...\n".format(
+                                self.stack.name, self.remote.name))
+                    console.concise(emsg)
+                    self.stack.incStat('redundant_join_attempt')
+                    self.nack(kind=raeting.pcktKinds.refuse)
+                    return
+
+                if not self.vacuous and join.vacuous: # non-vacuous beats vacuous
+                    emsg = ("Joinent {0}. Removing vacuous initiator join with"
+                            " {1}. Proceeding because not vacuous...\n".format(
+                                            self.stack.name, self.remote.name))
+                    console.concise(emsg)
+                    join.nack(kind=raeting.pcktKinds.refuse)
+
+                else: # both vacuous or non-vacuous, so use name to resolve
+                    if self.stack.local.name < name: # abort correspondent
+                        emsg = ("Joinent {0}. Already initiated join with {1}. "
+                                "Aborting because lesser local name...\n".format(
+                                    self.stack.name, self.remote.name))
+                        console.concise(emsg)
+                        self.stack.incStat('redundant_join_attempt')
+                        self.nack(kind=raeting.pcktKinds.refuse)
+                        return
+
+                    else: # abort initiator, could let other side nack do this
+                        emsg = ("Joinent {0}. Removing initiator join with {1}. "
+                                "Proceeding because lesser local name...\n".format(
+                                    self.stack.name, self.remote.name))
+                        console.concise(emsg)
+                        join.nack(kind=raeting.pcktKinds.refuse)
+
+        if self.vacuous: # vacuous join
+            if not self.stack.main:
+                emsg = "Joinent {0}. Invalid vacuous join not main\n".format(self.stack.name)
                 console.terse(emsg)
                 self.nack(kind=raeting.pcktKinds.reject)
                 return
-        else: # vacuous join
-            if ha in self.stack.haRemotes: # non ephemeral ha match
-                if self.remote is not self.stack.haRemotes[ha]: # something is wrong
-                    emsg = "Joinent {0}. Mishandled join ha '{1}' for remote {2}\n".format(
-                                self.stack.name, ha, name)
+
+            if name in self.stack.nameRemotes: # non ephemeral name match
+                self.remote = self.stack.nameRemotes[name] # replace so not ephemeral
+
+            else: # ephemeral and unique name
+                self.remote.name = name
+                self.remote.main = main
+                self.remote.application = application
+                self.remote.rha = rha
+                self.remote.role = role
+                self.remote.verfer = nacling.Verifier(verhex) # verify key manager
+                self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
+                if self.remote.fuid != reid: # created in stack with fuid = reid
+                    emsg = ("Joinent {0}. Mishandled join reid='{1}' !=  fuid='{2}' for "
+                           "remote {2}\n".format(self.stack.name, reid, remote.fuid, name))
                     console.terse(emsg)
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
 
-            elif name in self.stack.nameRemotes: # non ephemeral name match
-                self.remote = self.stack.nameRemotes[name] # replace
-
-            else: # ephemeral and unique
-                self.remote.name = name
-                self.remote.role = role
-                self.remote.verfer = nacling.Verifier(verhex) # verify key manager
-                self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
+        else: # non vacuous join
+            if self.remote is not self.stack.remotes[leid]: # something is wrong
+                emsg = "Joinent {0}. Mishandled join leid '{1}' for remote {2}\n".format(
+                                                    self.stack.name, leid, name)
+                console.terse(emsg)
+                self.nack(kind=raeting.pcktKinds.reject)
+                return
 
 
         sameRoleKeys = (role == self.remote.role and
@@ -1016,130 +1129,121 @@ class Joinent(Correspondent):
 
         sameAll = (sameRoleKeys and
                    name == self.remote.name and
-                   ha == self.remote.ha)
+                   rha == self.remote.ha and
+                   reid == self.remote.fuid and
+                   main == self.remote.main and
+                   application == self.remote.application)
 
-        # if we have to rerole then need to change status parameter to
-        # role not remote also acceptance
-        if role != self.remote.role:
-            self.remote.role = role
+        if not sameAll and not self.stack.mutable:
+            emsg = ("Joinent {0}. Attempt to change immutable road "
+                                   "'{1}'\n".format(self.stack.name,
+                                                    self.remote.name))
+            console.terse(emsg)
+            # reject not mutable road
+            self.nack(kind=raeting.pcktKinds.reject)
+            return
 
-        status = self.stack.keep.statusRemote(self.remote,
-                                              verhex=verhex,
-                                              pubhex=pubhex,
-                                              main=self.stack.local.main,
-                                              dump=True)
+        status = self.stack.keep.statusRole(role=role,
+                                            verhex=verhex,
+                                            pubhex=pubhex,
+                                            dump=True)
+
 
         if status == raeting.acceptances.rejected:
-            emsg = ("Joinent {0}. Keys of role='{1}' rejected for remote"
-                    "  name='{2}' eid='{3}' ha='{4}'\n".format(self.stack.name,
-                                                               self.remote.role,
-                                                               self.remote.name,
-                                                               self.remote.uid,
-                                                               self.remote.ha))
+            emsg = ("Joinent {0}. Keys of role='{1}' rejected for remote name='{2}'"
+                    " nuid='{3}' fuid='{4}' ha='{5}'\n".format(self.stack.name,
+                                                              self.remote.role,
+                                                              self.remote.name,
+                                                              self.remote.nuid,
+                                                              self.remote.fuid,
+                                                              self.remote.ha))
             console.concise(emsg)
-            #self.remote.joined = False
-            #self.stack.dumpRemote(self.remote)
             if sameRoleKeys and self.remote.uid in self.stack.remotes:
                 self.stack.removeRemote(self.remote, clear=Ture) #clear remote
-                #removeRemote also nacks which is a reject
+                # removeRemote also nacks which is a reject
             else: # reject as keys rejected
                 self.nack(kind=raeting.pcktKinds.reject)
             return
 
         #accepted or pended
-        if sameAll or self.stack.local.mutable:
+        self.remote.acceptance = status
+
+        if sameAll: #ephemeral will always be sameAll because assigned above
             if self.remote.uid not in self.stack.remotes: # ephemeral
                 try:
                     self.stack.addRemote(self.remote)
                 except raeting.StackError as ex:
                     console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
-                    #self.remove(index=self.rxPacket.index)
                     return
 
-                emsg = ("Joinent {0}. Added new remote name='{1}' eid='{2}' "
-                        "ha='{3}' role='{4}'\n".format(self.stack.name,
+                emsg = ("Joinent {0}. Added new remote name='{1}' nuid='{2}' fuid='{3}'"
+                        "ha='{4}' role='{5}'\n".format(self.stack.name,
                                           self.remote.name,
-                                          self.remote.uid,
+                                          self.remote.nuid,
+                                          self.remote.fuid,
                                           self.remote.ha,
                                           self.remote.role))
                 console.concise(emsg)
-                self.stack.dumpRemote(self.remote)
+                # do dump until complete
 
-            elif not sameAll:
-                # do both unique checks first so only change road if both unique
-                if (name in self.stack.nameRemotes and
-                        self.stack.nameRemotes[name] is not self.remote): # non unique name
-                    emsg = "Joinent {0}.  Name '{1}' unavailable for remote {2}\n".format(
-                                    self.stack.name, name, self.remote.name)
-                    console.terse(emsg)
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
-                if (ha in self.stack.haRemotes and
-                         self.stack.haRemotes[ha] is not self.remote):
-                    emsg = ("Joinent {0}. Ha '{1}' unavailable for remote"
-                            " {2}\n".format(self.stack.name, str(ha), name))
-                    console.terse(emsg)
-                    # reject as (host, port) already in use by another estate
-                    # possible udp collision nack goes to wrong host
-                    # but in any event the transaction will fail
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
-
-                if name != self.remote.name:
-                    try:
-                        self.stack.renameRemote(self.remote, new=name)
-                    except raeting.StackError as ex:
-                        console.terse(str(ex) + '\n')
-                        self.stack.incStat(self.statKey())
-                        return
-                if ha != self.remote.ha:
-                    try:
-                        self.stack.readdressRemote(self.remote, new=ha)
-                    except raeting.StackError as ex:
-                        console.terse(str(ex) + '\n')
-                        self.stack.incStat(self.statKey())
-                        return
-
-                if verhex != self.remote.verfer.keyhex:
-                    self.remote.verfer = nacling.Verifier(verhex) # verify key manager
-                if pubhex != self.remote.pubber.keyhex:
-                    self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
-
-                self.stack.dumpRemote(self.remote)
-
-            # add transaction
-            self.add(remote=self.remote, index=self.rxPacket.index)
-            self.remote.joined = None
-            if status == raeting.acceptances.accepted:
-                duration = min(
-                                max(self.redoTimeoutMin,
-                                  self.redoTimer.duration * 2.0),
-                                self.redoTimeoutMax)
-                self.redoTimer.restart(duration=duration)
-                self.accept()
+        else: # not sameAll (and mutable)
+            # do both unique name check first so only change road if new unique
+            if (name in self.stack.nameRemotes and
+                    self.stack.nameRemotes[name] is not self.remote): # non unique name
+                emsg = "Joinent {0}.  Name '{1}' unavailable for remote {2}\n".format(
+                                self.stack.name, name, self.remote.name)
+                console.terse(emsg)
+                self.nack(kind=raeting.pcktKinds.reject)
                 return
 
-            else: # status == raeting.acceptance.pending or status == None:
-                self.ackJoin()
-                return
+            if name != self.remote.name:
+                try:
+                    self.stack.renameRemote(self.remote, new=name)
+                except raeting.StackError as ex:
+                    console.terse(str(ex) + '\n')
+                    self.stack.incStat(self.statKey())
+                    return
 
-        else:  # not mutable and not sameAll so reject
-            emsg = ("Joinent {0}. Attempt to change immutable road "
-                        "'{1}'\n".format(self.stack.name,
-                                         self.remote.name))
-            console.terse(emsg)
-            # reject not mutable road
-            self.nack(kind=raeting.pcktKinds.reject)
+            if rha != self.remote.ha:
+                self.remote.ha = rha
+            if reid != self.remote.fuid:
+                self.remote.fuid = reid
+            if main != self.remote.main:
+                self.remote.main = main
+            if application != self.remote.application:
+                self.remote.application = application
+            if role != self.remote.role: # rerole
+                self.remote.role = role
+            if verhex != self.remote.verfer.keyhex:
+                self.remote.verfer = nacling.Verifier(verhex) # verify key manager
+            if pubhex != self.remote.pubber.keyhex:
+                self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
+            #do not dump until complete
+
+        # add transaction
+        self.add(remote=self.remote, index=self.rxPacket.index)
+        self.remote.joined = None
+
+        if status == raeting.acceptances.accepted:
+            duration = min(
+                            max(self.redoTimeoutMin,
+                              self.redoTimer.duration * 2.0),
+                            self.redoTimeoutMax)
+            self.redoTimer.restart(duration=duration)
+            self.accept()
             return
 
-    def ackJoin(self):
+        # status == raeting.acceptance.pending or status == None:
+        self.ackPend()  # change to ackPend
+
+    def ackPend(self):
         '''
         Send ack to join request
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.ack,
+                                    kind=raeting.pcktKinds.pend,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -1150,7 +1254,7 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        console.concise("Joinent {0}. Pending Accept of {1} at {2}\n".format(
+        console.concise("Joinent {0}. Do Ack Pending accept of {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.transmit(packet)
 
@@ -1158,9 +1262,24 @@ class Joinent(Correspondent):
         '''
         Send accept response to join request
         '''
-        body = odict([ ('leid', self.remote.uid),
-                       ('reid', self.stack.local.uid),
-                       ('name', self.stack.local.name),
+        if not self.stack.application:
+            application = 0
+        else:
+            if self.stack.application < 0 or self.stack.application > 255:
+                emsg = ("Joinent {0}. Invalid application field value {1} for {2}. "
+                                "Aborting...\n".format(
+                                                       self.stack.name,
+                                                       self.stack.application,
+                                                       self.remote.name))
+                console.concise(emsg)
+                return
+
+        fields = [0, 0, 0, 0, 0, 0, 0, self.stack.main]
+        operation = packByte(fmt='11111111', fields=fields)
+
+        body = odict([ ('name', self.stack.local.name),
+                       ('mode', "{0:02x}{0:02x}".format(application, operation)),
+                       ('uid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),
                        ('pubhex', self.stack.local.priver.pubhex),
                        ('role', self.stack.local.role), ])
@@ -1180,10 +1299,63 @@ class Joinent(Correspondent):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.transmit(packet)
 
+    def pend(self):
+        '''
+        Process ack pend to join packet
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        pass
+
+    def complete(self):
+        '''
+        process ack to accept response
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        console.terse("Joinent {0}. Done with {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat("join_correspond_complete")
+
+        if self.remote.sid == 0: # session id  must be non-zero after join
+            self.remote.nextSid() # start new session
+            self.remote.replaceStaleInitiators()
+        if self.vacuous:
+            self.remote.rsid = 0 # reset .rsid on vacuous join so allow will work
+        self.remote.joined = True # accepted
+        self.stack.dumpRemote(self.remote)
+        self.remove(index=self.rxPacket.index)
+
+    def reject(self):
+        '''
+        Process reject nack because keys rejected
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        console.terse("Joinent {0}. Rejected by {1} at {2}\n".format(
+                self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.remove(index=self.rxPacket.index)
+        self.stack.removeRemote(self.remote, clear=True)
+
+    def refuse(self):
+        '''
+        Process refuse nack because join already in progress or stale
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        console.terse("Joinent {0}. Refused by {1} at {2}\n".format(
+                 self.stack.name, self.remote.name, self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+        self.remove(index=self.rxPacket.index)
+
     def nack(self, kind=raeting.pcktKinds.nack):
         '''
         Send nack to join request.
-        Sometimes nack occurs without remote being added so have to nack using ha.
+        Sometimes nack occurs without remote being added so have to nack using
+        rxPacket source ha.
         '''
         if not self.remote or self.remote.uid not in self.stack.remotes:
             self.txData.update( dh=self.rxPacket.data['sh'], dp=self.rxPacket.data['sp'],)
@@ -1205,13 +1377,13 @@ class Joinent(Correspondent):
             return
 
         if kind == raeting.pcktKinds.renew:
-            console.terse("Joinent {0}. Do Renew of {1} at {2}\n".format(
+            console.terse("Joinent {0}. Do Nack Renew of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.refuse:
-            console.terse("Joinent {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Joinent {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Joinent {0}. Do Reject of {1} at {2}\n".format(
+            console.terse("Joinent {0}. Do Nack Reject of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Joinent {0}. Do Nack of {1} at {2}\n".format(
@@ -1229,846 +1401,6 @@ class Joinent(Correspondent):
             self.stack.txes.append((packet.packed, ha))
         else:
             self.transmit(packet)
-        self.remove(index=self.rxPacket.index)
-
-    def complete(self):
-        '''
-        process ack to accept response
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
-        console.terse("Joinent {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat("join_correspond_complete")
-
-        self.remote.removeStaleCorrespondents(renew=(self.sid==0))
-        self.remote.joined = True # accepted
-        self.remote.nextSid()
-        self.remote.replaceStaleInitiators()
-        self.stack.dumpRemote(self.remote)
-        self.remove(index=self.rxPacket.index)
-
-    def reject(self):
-        '''
-        Process reject nack because keys rejected
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
-        console.terse("Joinent {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-
-        self.remote.joined = False
-        self.stack.dumpRemote(self.remote)
-        self.remove(index=self.rxPacket.index)
-
-    def refuse(self):
-        '''
-        Process refuse nack because join already in progress or stale
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        console.terse("Joinent {0}. Refused by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-        self.remove(index=self.rxPacket.index)
-
-class Yoker(Initiator):
-    '''
-    RAET protocol Yoker Initiator class Dual of Yokent
-    This accompishes joining but initiated by main
-    '''
-    RedoTimeoutMin = 1.0 # initial timeout
-    RedoTimeoutMax = 4.0 # max timeout
-
-    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
-                 cascade=False, **kwa):
-        '''
-        Setup Transaction instance
-        '''
-        kwa['kind'] = raeting.trnsKinds.yoke
-        super(Yoker, self).__init__(**kwa)
-
-        self.cascade = cascade
-
-        self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
-        self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
-                                           duration=self.redoTimeoutMin)
-
-        self.sid = 0 #self.remote.sid
-        self.tid = self.remote.nextTid()
-        self.prep()
-
-    def transmit(self, packet):
-        '''
-        Augment transmit with restart of redo timer
-        '''
-        super(Yoker, self).transmit(packet)
-        self.redoTimer.restart()
-
-    def receive(self, packet):
-        """
-        Process received packet belonging to this transaction
-        """
-        super(Yoker, self).receive(packet) #  self.rxPacket = packet
-
-        if packet.data['tk'] == raeting.trnsKinds.join:
-            if packet.data['pk'] == raeting.pcktKinds.ack: # success
-                self.complete()
-            elif packet.data['pk'] == raeting.pcktKinds.nack: #stale
-                self.refuse()
-            elif packet.data['pk'] == raeting.pcktKinds.refuse: #refused
-                self.refuse()
-            elif packet.data['pk'] == raeting.pcktKinds.reject: #rejected
-                self.reject()
-
-    def process(self):
-        '''
-        Perform time based processing of transaction
-        '''
-        if self.timeout > 0.0 and self.timer.expired:
-            self.remove()
-
-            console.concise("Yoker {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
-
-            return
-
-        # need keep sending join until accepted or timed out
-        if self.redoTimer.expired:
-            duration = min(
-                         max(self.redoTimeoutMin,
-                              self.redoTimer.duration * 2.0),
-                         self.redoTimeoutMax)
-            self.redoTimer.restart(duration=duration)
-            if (self.txPacket and
-                    self.txPacket.data['pk'] == raeting.pcktKinds.request):
-                self.transmit(self.txPacket) #redo
-                console.concise("Yoker {0}. Redo Join with {1} at {2}\n".format(
-                         self.stack.name, self.remote.name, self.stack.store.stamp))
-                self.stack.incStat('redo_join')
-
-    def prep(self):
-        '''
-        Prepare .txData
-        '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
-                            tk=self.kind,
-                            cf=self.rmt,
-                            bf=self.bcst,
-                            wf=self.wait,
-                            si=self.sid,
-                            ti=self.tid,
-                            ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada)
-
-    def yoke(self):
-        '''
-        Send yoke request
-
-        Only send yoke if status is accepted
-        '''
-        if not self.stack.local.main:
-            emsg = ("Yoker {0}. Non main may not initiate yoke\n".format(self.stack.name))
-            console.terse(emsg)
-            return
-
-        joins = self.remote.joinInProcess()
-        if joins:
-            emsg = "Yoker {0}. Join with {1} already in process\n".format(
-                    self.stack.name, self.remote.name)
-            console.concise(emsg)
-            self.stack.incStat('unecessary_yoke_attempt')
-            return
-
-        yokes = self.remote.yokeInProcess()
-        if yokes:
-            emsg = "Yoker {0}. Yoke with {1} already in process\n".format(
-                    self.stack.name, self.remote.name)
-            self.stack.incStat('duplicate_yoke_attempt')
-            console.concise(emsg)
-            return
-
-        if (self.stack.local.uid == 0):
-            emsg = "Yoker {0}. Main has invalid uid of {1}\n".format(
-                                self.stack.name,  self.stack.local.uid)
-            console.terse(emsg)
-            return
-
-        status = self.stack.keep.statusRemote(self.remote,
-                                              verhex=self.remote.verfer.keyhex,
-                                              pubhex=self.remote.pubber.keyhex,
-                                              main=self.stack.local.main,
-                                              dump=True)
-
-        if status == raeting.acceptances.rejected:
-            emsg = ("Yoker {0}. Keys of role='{1}' rejected for remote"
-                    "  name='{2}' eid='{3}' ha='{4}'\n".format(self.stack.name,
-                                                               self.remote.role,
-                                                               self.remote.name,
-                                                               self.remote.uid,
-                                                               self.remote.ha))
-            console.concise(emsg)
-            self.remote.joined = False
-            self.stack.dumpRemote(self.remote)
-            return
-
-        if status == raeting.acceptances.pending:
-            emsg = ("Yoker {0}. Keys of role='{1}' pending for remote"
-                    "  name='{2}' eid='{3}' ha='{4}'\n".format(self.stack.name,
-                                                               self.remote.role,
-                                                               self.remote.name,
-                                                               self.remote.uid,
-                                                               self.remote.ha))
-            console.concise(emsg)
-            self.remote.joined = None
-            self.stack.dumpRemote(self.remote)
-            return
-
-        self.remote.joined = None
-        self.add()
-        body = odict([
-                      ('leid', self.remote.uid), # viewpoint of receipient
-                      ('lname', self.remote.name),
-                      ('lrole', self.remote.role),
-                      ('lverhex', self.remote.verfer.keyhex),
-                      ('lpubhex', self.remote.pubber.keyhex),
-                      ('name', self.stack.local.name),
-                      ('role', self.stack.local.role),
-                      ('verhex', self.stack.local.signer.verhex),
-                      ('pubhex', self.stack.local.priver.pubhex),
-                    ])
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.request,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove()
-            return
-        console.concise("Yoker {0}. Do Yoke with {1} at {2}\n".format(
-                        self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.transmit(packet)
-
-    def refuse(self):
-        '''
-        Process nack to join packet refused as join already in progress or some
-        other problem that does not change the joined attribute
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        console.terse("Yoker {0}. Refused by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-        self.remove()
-
-    def reject(self):
-        '''
-        Process nack to yoke packet, join rejected
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        console.terse("Yoker {0}. Rejected by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-        self.remote.joined = False
-        self.stack.dumpRemote(self.remote)
-        self.remove()
-
-    def nack(self, kind=raeting.pcktKinds.nack):
-        '''
-        Send nack to accept response
-        '''
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=kind,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove()
-            return
-
-        if kind==raeting.pcktKinds.refuse:
-            console.terse("Yoker {0}. Do Refuse of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
-        elif  kind==raeting.pcktKinds.reject:
-            console.terse("Yoker {0}. Do Reject of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
-        elif kind == raeting.pcktKinds.nack:
-            console.terse("Yoker {0}. Do Nack of {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        else:
-            console.terse("Yoker {0}. Invalid nack kind of {1} nacking anyway "
-                    " at {2}\n".format(self.stack.name,
-                                       kind,
-                                       self.stack.store.stamp))
-            kind == raeting.pcktKinds.nack
-
-        self.stack.incStat(self.statKey())
-        self.transmit(packet)
-        self.remove()
-
-    def complete(self):
-        '''
-        Completion in response to yoke ack packet
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
-        console.concise("Joiner {0}. Done yoke with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat("yoke_initiate_complete")
-
-        self.remote.replaceStaleInitiators(renew=(self.sid==0))
-        self.remote.nextSid() # start new session
-        self.remote.joined = True #accepted
-        self.stack.dumpRemote(self.remote)
-
-class Yokent(Correspondent):
-    '''
-    RAET protocol Yokent transaction class, dual of Yoker
-    '''
-    RedoTimeoutMin = 0.1 # initial timeout
-    RedoTimeoutMax = 2.0 # max timeout
-
-    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
-        '''
-        Setup Transaction instance
-        '''
-        kwa['kind'] = raeting.trnsKinds.yoke
-        super(Yokent, self).__init__(**kwa)
-
-        self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
-        self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store, duration=0.0)
-
-        self.prep()
-
-    def transmit(self, packet):
-        '''
-        Augment transmit with restart of redo timer
-        '''
-        super(Yokent, self).transmit(packet)
-        self.redoTimer.restart()
-
-    def receive(self, packet):
-        """
-        Process received packet belonging to this transaction
-        """
-        super(Yokent, self).receive(packet) #  self.rxPacket = packet
-
-        if packet.data['tk'] == raeting.trnsKinds.yoke:
-            if packet.data['pk'] == raeting.pcktKinds.request:
-                self.yoke()
-            elif packet.data['pk'] == raeting.pcktKinds.nack: #stale
-                self.refuse()
-            elif packet.data['pk'] == raeting.pcktKinds.refuse: #refused
-                self.refuse()
-            elif packet.data['pk'] == raeting.pcktKinds.reject: #rejected
-                self.reject()
-
-    def process(self):
-        '''
-        Perform time based processing of transaction
-
-        '''
-        if self.timeout > 0.0 and self.timer.expired:
-            self.nack() # stale
-            console.concise("Yokent {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
-            return
-
-    def prep(self):
-        '''
-        Prepare .txData
-        '''
-        #since bootstrap transaction use the reversed seid and deid from packet
-        self.txData.update(sh=self.stack.local.host,
-                           sp=self.stack.local.port,
-                           se=self.rxPacket.data['de'],
-                           de=self.rxPacket.data['se'],
-                           tk=self.kind,
-                           cf=self.rmt,
-                           bf=self.bcst,
-                           wf=self.wait,
-                           si=self.sid,
-                           ti=self.tid,
-                           ck=raeting.coatKinds.nada,
-                           fk=raeting.footKinds.nada,)
-
-    def yoke(self):
-        '''
-        Handle yoke request packet
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
-        if self.stack.local.main:
-            emsg = "Yokent {0}. Invalid yoke on main\n".format(self.stack.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        joins = self.remote.joinInProcess()
-        if joins:
-            emsg = "Yokent {0}. Join with {1} already in process\n".format(
-                    self.stack.name, self.remote.name)
-            console.concise(emsg)
-            self.stack.incStat('unnecessary_yoke_attempt')
-            self.nack(kind=raeting.pcktKinds.refuse)
-            return
-
-        yokes = self.remote.yokeInProcess()
-        if yokes:
-            for yoke in yokes:
-                emsg = "Yokent {0}. Yoke with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
-                console.concise(emsg)
-                self.stack.incStat('duplicate_yoke_attempt')
-                if yoke is not self:
-                    self.nack(kind=raeting.pcktKinds.refuse)
-            return
-
-        data = self.rxPacket.data
-        body = self.rxPacket.body.data
-
-        leid = body.get('leid')
-        if not leid: # None or zero
-            emsg = "Missing or invalid local estate id in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        lname = body.get('lname')
-        if not lname:
-            emsg = "Missing or invalid local estate name in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        lrole = body.get('lrole')
-        if not lrole:
-            emsg = "Missing or invalid local estate role in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        lverhex = body.get('lverhex')
-        if not lverhex:
-            emsg = "Missing or invalid local estate verhex in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        lpubhex = body.get('lpubhex')
-        if not lpubhex:
-            emsg = "Missing or invalid local estate pubhex in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        name = body.get('name')
-        if not name:
-            emsg = "Missing remote name in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        role = body.get('role')
-        if not role:
-            emsg = "Missing remote role in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        verhex = body.get('verhex')
-        if not verhex:
-            emsg = "Missing remote verifier key in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        pubhex = body.get('pubhex')
-        if not pubhex:
-            emsg = "Missing remote crypt key in yoke packet\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        reid = data['se']
-        if not reid: # reid of zero not allowed
-            emsg = "Invalid source remote estate id in yoke packet header\n"
-            console.terse(emsg)
-            self.stack.incStat('invalid_yoke')
-            self.remove(index=self.rxPacket.index)
-            return
-
-        ha = (data['sh'], data['sp'])
-
-        localSameAll = (lrole == self.stack.local.role and
-                        lverhex == self.stack.local.signer.verhex and
-                        lpubhex == self.stack.local.priver.keyhex and
-                        lname == self.stack.local.name and
-                        leid == self.stack.local.uid )
-
-        # what if data['de'] == 0 and self.stack.local.uid == 0
-
-        vacuous = (self.remote.uid == 0)
-
-        if not vacuous: # non vacuous join
-            if self.remote.uid not in self.stack.remotes: # ephemeral
-                emsg = ("Yokent {0}. Ephemeral non vacuous yoke from remote {1} "
-                        "ha={2} \n".format(self.stack.name, name, ha))
-                console.terse(emsg)
-                self.renew()
-                return
-
-            if reid not in self.stack.remotes: # not ephemeral ha matched
-                if self.remote is not self.stack.haRemotes[ha]: # something is wrong
-                    emsg = "Yokent {0}. Mishandled yoke ha '{1}' for remote {2}\n".format(
-                                self.stack.name, ha, name)
-                    console.terse(emsg)
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
-
-                # not ephemeral matched ha
-                emsg = ("Yokent {0}. Inconsistent yoke from remote {1} "
-                        "ha={2} uid={3}\n".format(self.stack.name,
-                                                 self.remote.name,
-                                                 self.remote.ha,
-                                                 self.remote.uid))
-                console.terse(emsg)
-                if self.local.mutable:
-                    self.renew()
-                else:
-                    self.nack(kind=raeting.pcktKinds.reject)
-                return
-
-            # not ephemeral reid match verify consistent
-            if self.remote is not self.stack.remotes[reid]: # something is wrong
-                emsg = "Yokent {0}. Mishandled yoke reid '{1}' for remote {2}\n".format(
-                                                    self.stack.name, reid, name)
-                console.terse(emsg)
-                self.nack(kind=raeting.pcktKinds.reject)
-                return
-
-            if not localSameAll:
-                emsg = ("Yokent {0}. Local yoke credentials do not match from remote {2}"
-                        " leid='{1}' role='{2}' verhex='{3}' pubhex='{4}'\n".format(
-                                self.stack.name,
-                                self.remote.name,
-                                leid,
-                                lname,
-                                lrole,
-                                lverhex,
-                                lpubhex))
-                console.terse(emsg)
-
-                if self.local.mutable:
-                    self.renew()
-                else:
-                    self.nack(kind=raeting.pcktKinds.reject)
-                return
-
-        else: # vacuous join
-            if ha not in self.stack.remotes: # ephemeral
-                emsg = "Yokent {0}. Vacuous and ephemeral for remote {1}\n".format(
-                                                        self.stack.name, name)
-                console.terse(emsg)
-                if name in self.stack.nameRemotes:
-                    if self.remote is not self.stack.nameRemotes[name]: # name collision
-                        pass
-                        # what to do there is another remote at a same name and but
-                        # different ha so not unique
-                self.remote.name = name
-                self.remote.role = role
-                self.remote.verfer = nacling.Verifier(verhex) # verify key manager
-                self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
-                self.renew()
-                return
-
-            else: # non ephemeral ha match
-                if self.remote is not self.stack.haRemotes[ha]: # something is wrong
-                    emsg = "Yokent {0}. Mishandled vacuous yoke ha '{1}' for remote {2}\n".format(
-                                self.stack.name, ha, name)
-                    console.terse(emsg)
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
-
-            if not localSameAll:
-                emsg = ("Yokent {0}. Local yoke credentials do not match from remote {2}"
-                        " leid='{1}' role='{2}' verhex='{3}' pubhex='{4}'\n".format(
-                                self.stack.name,
-                                self.remote.name,
-                                leid,
-                                lname,
-                                lrole,
-                                lverhex,
-                                lpubhex))
-                console.terse(emsg)
-                self.nack(kind=raeting.pcktKinds.reject)
-                return
-
-
-        sameRoleKeys = (role == self.remote.role and
-                        verhex == self.remote.verfer.keyhex and
-                        pubhex == self.remote.pubber.keyhex)
-
-        sameAll = (sameRoleKeys and
-                   name == self.remote.name and
-                   ha == self.remote.ha)
-
-        # if we have to rerole then need to change status parameter to
-        # role not remote also acceptance
-        if self.remote.role != role:
-            self.remote.role = role # change role of remote estate
-
-        # check if remote keys are accepted here
-        status = self.stack.keep.statusRemote(self.remote,
-                                              verhex=verhex,
-                                              pubhex=pubhex,
-                                              main=self.stack.local.main,
-                                              dump=True)
-
-        if status == raeting.acceptances.rejected:
-            if sameRoleKeys:
-                self.stack.removeRemote(self.remote, clear=True)
-                # remove also nacks so reject
-            else:
-                self.nack(kind=raeting.pcktKinds.reject)
-            #self.remote.joined = False
-            #self.stack.dumpRemote(self.remote)
-            return
-
-        # otherwise status == raeting.acceptances.accepted
-        # not vacuous and not sameAll and not mutable then reject
-        if not (self.remote.uid == 0 or sameAll or self.stack.local.mutable):
-            emsg = ("Yokent {0}. Invalid yoke nonvacuous change or imutable "
-                        "'{1}'\n".format(self.stack.name,
-                                         self.remote.name))
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        #self.remote.reid == 0 or sameAll or self.stack.local.mutable then accept
-        # check unique first so do not change road unless unique
-        if (reid in self.stack.remotes and
-                    self.stack.remotes[reid] is not self.remote): # non unquie reid
-            emsg = "Yokent {0}. Reid '{1}' unavailable for remote {2}\n".format(
-                                self.stack.name, reid, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        if (name in self.stack.nameRemotes and
-                self.stack.nameRemotes[name] is not self.remote): # non unique name
-            emsg = "Yokent {0}. Name '{1}' unavailable for remote {2}\n".format(
-                            self.stack.name, name, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        if (leid in self.stack.remotes): # verify leid unique
-            emsg = "Yokent {0}. Leid '{1}' unavailable for remote {2}\n".format(
-                                        self.stack.name, leid, self.remote.name)
-            console.terse(emsg)
-            self.nack(kind=raeting.pcktKinds.reject)
-            return
-
-        #self.remote.role = role
-        if verhex != self.remote.verfer.keyhex:
-            self.remote.verfer = nacling.Verifier(verhex) # verify key manager
-        if pubhex != self.remote.pubber.keyhex:
-            self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
-
-        if self.remote.uid != reid: #change id of remote estate
-            try:
-                self.stack.moveRemote(self.remote, new=reid)
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.nack(kind=raeting.pcktKinds.refuse)
-                return
-
-        if self.remote.name != name: # rename remote estate to new name
-            try:
-                self.stack.renameRemote(self.remote, new=name)
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.stack.incStat(self.statKey())
-                self.nack(kind=raeting.pcktKinds.refuse)
-                return
-
-        if self.stack.local.uid != leid:
-            self.stack.local.uid = leid # change id of local estate
-            self.stack.dumpLocal() # only dump if changed
-
-        console.terse("Yokent {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat("yoke_correspond_complete")
-
-        # add transaction
-        self.add(remote=self.remote, index=self.rxPacket.index)
-        self.remote.removeStaleCorrespondents(renew=(self.sid==0))
-        self.remote.joined = True # accepted
-        self.remote.nextSid()
-        self.remote.replaceStaleInitiators()
-        self.stack.dumpRemote(self.remote)
-        self.remove(index=self.rxPacket.index)
-
-        self.ackYoke()
-
-    def ackYoke(self):
-        '''
-        Send ack to yoke request
-        '''
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.ack,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove(index=self.rxPacket.index)
-            return
-
-        console.concise("Yokent {0}. Do ack of {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat("yoke_correspond_complete")
-
-        self.transmit(packet)
-        self.remove(index=self.rxPacket.index) # self.rxPacket.index
-
-        if self.cascade:
-            self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
-
-    def renew(self):
-        '''
-        Reset to vacuous Road data and try joining again
-        '''
-        console.terse("Yokent {0}. Renew with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-        self.nack(kind=raeting.pcktKinds.refuse)
-        self.remove(index=self.rxPacket.index)
-        if self.remote:
-            # reset remote to default values and move to zero
-            self.remote.replaceStaleInitiators(renew=True)
-            self.remote.sid = 0
-            self.remote.tid = 0
-            self.remote.rsid = 0
-            if self.remote.uid != 0:
-                try:
-                    self.stack.moveRemote(self.remote, new=0)
-                except raeting.StackError as ex:
-                    console.terse(str(ex) + '\n')
-                    self.remote.joined = False
-                    self.stack.dumpRemote(self.remote)
-                    return
-            self.stack.dumpRemote(self.remote)
-        self.stack.local.eid = 0
-        self.stack.dumpLocal()
-        self.stack.join(ha=self.remote.ha, timeout=self.timeout)
-
-    def nack(self, kind=raeting.pcktKinds.nack):
-        '''
-        Send nack to join request.
-        Sometimes nack occurs without remote being added so have to nack using ha.
-        '''
-        if not self.remote or self.remote.uid not in self.stack.remotes:
-            self.txData.update( dh=self.rxPacket.data['sh'], dp=self.rxPacket.data['sp'],)
-            ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        else:
-            ha = self.remote.ha
-
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=kind,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove(index=self.rxPacket.index)
-            return
-
-        if kind == raeting.pcktKinds.refuse:
-            console.terse("Yokent {0}. Do Refuse of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
-        elif kind == raeting.pcktKinds.reject:
-            console.terse("Yokent {0}. Do Reject of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
-        elif kind == raeting.pcktKinds.nack:
-            console.terse("Yokent {0}. Do Nack of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
-        else:
-            console.terse("Yokent {0}. Invalid nack kind of {1} nacking anyway "
-                          " at {2}\n".format( self.stack.name,
-                                              kind,
-                                              self.stack.store.stamp))
-            kind == raeting.pcktKinds.nack
-
-        self.stack.incStat(self.statKey())
-
-        if ha:
-            self.stack.txes.append((packet.packed, ha))
-        else:
-            self.transmit(packet)
-        self.remove(index=self.rxPacket.index)
-
-    def reject(self):
-        '''
-        Process reject nack because keys rejected
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-
-        console.terse("Yokent {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
-
-        self.remote.joined = False
-        self.stack.dumpRemote(self.remote)
-        self.remove(index=self.rxPacket.index)
-
-    def refuse(self):
-        '''
-        Process refuse nack because join already in progress or stale
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        console.terse("Yokent {0}. Refused by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
-        self.stack.incStat(self.statKey())
         self.remove(index=self.rxPacket.index)
 
 class Allower(Initiator):
@@ -2167,18 +1499,18 @@ class Allower(Initiator):
         '''
         Prepare .txData
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid, #self.reid,
+        self.txData.update(
+                            dh=self.remote.ha[0], # maybe needed for index
+                            dp=self.remote.ha[1], # maybe needed for index
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
                             wf=self.wait,
                             si=self.sid,
-                            ti=self.tid, )
+                            ti=self.tid,
+                          )
 
     def hello(self):
         '''
@@ -2186,40 +1518,17 @@ class Allower(Initiator):
         '''
         allows = self.remote.allowInProcess()
         if allows:
-            if self.stack.local.main:
-                emsg = "Allower {0}. Allow with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
-                console.concise(emsg)
-                return
-            else: # not main so remove any correspondent allows
-                already = False
-                for allow in allows:
-                    if allow.rmt:
-                        emsg = ("Allower {0}. Removing correspondent allow with"
-                                " {1} already in process\n".format(
-                                            self.stack.name,
-                                            self.remote.name))
-                        console.concise(emsg)
-                        allow.nack(kind=raeting.pcktKinds.refuse)
-                    else: # already initiated
-                        already = True
-                if already:
-                    emsg = ("Allower {0}. Initiator allow with"
-                            " {1} already in process\n".format(
-                                        self.stack.name,
-                                        self.remote.name))
-                    console.concise(emsg)
-                    return
+            emsg = ("Allower {0}. Allow with {1} already in process\n".format(
+                                    self.stack.name, self.remote.name))
+            console.concise(emsg)
+            return
 
         self.remote.allowed = None
         if not self.remote.joined:
             emsg = "Allower {0}. Must be joined first\n".format(self.stack.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            if self.stack.local.main:
-                self.stack.yoke(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
-            else:
-                self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             return
 
         self.remote.rekey() # refresh short term keys and reset .allowed to None
@@ -2292,7 +1601,7 @@ class Allower(Initiator):
 
         shortraw, seid, deid, oreo = raeting.COOKIESTUFF_PACKER.unpack(msg)
 
-        if seid != self.remote.uid or deid != self.stack.local.uid:
+        if seid != self.remote.fuid or deid != self.remote.nuid:
             emsg = "Invalid seid or deid fields in cookie stuff\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
@@ -2358,7 +1667,8 @@ class Allower(Initiator):
     def ackFinal(self):
         '''
         Send ack to ack Initiate to terminate transaction
-        Why do we need this? could we just let transaction timeout on allowent
+        This is so both sides wait on acks so transaction is not restarted until
+        boths sides see completion.
         '''
         body = ""
         packet = packeting.TxPacket(stack=self.stack,
@@ -2375,16 +1685,16 @@ class Allower(Initiator):
 
         self.transmit(packet)
         self.remove()
-        console.concise("Allower {0}. Ack Final of {1} at {2}\n".format(
+        console.concise("Allower {0}. Do Ack Final, Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
 
-        self.remote.nextSid() # start new session
+        self.remote.nextSid() # start new session always on successful allow
         self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
         self.remote.sendSavedMessages() # could include messages saved on rejoin
         if self.cascade:
-            self.stack.alive(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.alive(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
     def nack(self, kind=raeting.pcktKinds.nack):
         '''
@@ -2404,10 +1714,10 @@ class Allower(Initiator):
             return
 
         if kind == raeting.pcktKinds.refuse:
-            console.terse("Allower {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Allower {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Allower {0}. Do Reject of {1} at {2}\n".format(
+            console.terse("Allower {0}. Do Nack Reject of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Allower {0}. Do Nack of {1} at {2}\n".format(
@@ -2429,7 +1739,7 @@ class Allower(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        console.concise("Allower {0}. Refusted by {1} at {2}\n".format(
+        console.concise("Allower {0}. Refused by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.remove()
@@ -2460,7 +1770,7 @@ class Allower(Initiator):
         console.concise("Allower {0}. Rejected unjoin by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+        self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
 class Allowent(Correspondent):
     '''
@@ -2513,7 +1823,6 @@ class Allowent(Correspondent):
             elif packet.data['pk'] == raeting.pcktKinds.reject: # rejected
                 self.reject()
 
-
     def process(self):
         '''
         Perform time based processing of transaction
@@ -2550,12 +1859,12 @@ class Allowent(Correspondent):
         '''
         Prepare .txData
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+        self.txData.update( #sh=self.stack.local.ha[0],
+                            #sp=self.stack.local.ha[1],
+                            dh=self.remote.ha[0], # maybe needed for index
+                            dp=self.remote.ha[1], # maybe needed for index
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -2571,33 +1880,83 @@ class Allowent(Correspondent):
             return
 
         allows = self.remote.allowInProcess()
-        if allows:
-            if not self.stack.local.main:
-                emsg = "Allowent {0}. Allow with {1} already in process\n".format(
-                        self.stack.name, self.remote.name)
+        for allow in allows:
+            if allow is self:
+                emsg = ("Allowent {0}. Duplicate allow hello from {1}. "
+                        "Dropping...\n".format(self.stack.name, self.remote.name))
                 console.concise(emsg)
                 self.stack.incStat('duplicate_allow_attempt')
+                return
+
+            if allow.rmt: # is already a correspondent to an allow
+                emsg = ("Allowent {0}. Another allowent already in process with {1}. "
+                        "Aborting...\n".format(self.stack.name, self.remote.name))
+                console.concise(emsg)
+                self.stack.incStat('redundant_allow_attempt')
                 self.nack(kind=raeting.pcktKinds.refuse)
                 return
-            else: # main so remove any initiator allows
-                already = False
-                for allow in allows:
-                    if not allow.rmt:
-                        emsg = ("Allower {0}. Removing initiator allow with"
-                                " {1} already in process\n".format(
-                                            self.stack.name,
-                                            self.remote.name))
-                        console.concise(emsg)
-                        allow.nack(kind=raeting.pcktKinds.refuse)
-                    else: # already correspondent
-                        already = True
-                if already:
-                    emsg = ("Allower {0}. Correspondent allow with"
-                            " {1} already in process\n".format(
-                                        self.stack.name,
-                                        self.remote.name))
+
+            else: # already initiator allow in process, resolve race condition
+                if self.stack.local.name < self.remote.name: # abort correspondent
+                    emsg = ("Allowent {0}. Already initiated allow with {1}. "
+                            "Aborting because lesser local name...\n".format(
+                                self.stack.name, self.remote.name))
                     console.concise(emsg)
+                    self.stack.incStat('redundant_allow_attempt')
+                    self.nack(kind=raeting.pcktKinds.refuse)
                     return
+
+                else: # abort initiator, could let otherside nack do this
+                    emsg = ("Allowent {0}. Removing initiator allow with {1}. "
+                            "Proceeding because lesser local name...\n".format(
+                                self.stack.name, self.remote.name))
+                    console.concise(emsg)
+                    allow.nack(kind=raeting.pcktKinds.refuse)
+
+        joins = self.remote.joinInProcess()
+        for join in joins: # only one join at a time is permitted
+            if join is self: # duplicate join packet so drop
+                emsg = ("Joinent {0}. Duplicate join from {1}. "
+                        "Dropping...\n".format(self.stack.name, self.remote.name))
+                console.concise(emsg)
+                self.stack.incStat('duplicate_join_attempt')
+                return
+
+            if join.rmt: # is already a correspondent to a join
+                emsg = ("Joinent {0}. Another joinent already in process with {1}. "
+                       "Aborting...\n".format(self.stack.name, self.remote.name))
+                console.concise(emsg)
+                self.stack.incStat('redundant_join_attempt')
+                self.nack(kind=raeting.pcktKinds.refuse)
+                return
+
+            else: # already initiator join in process, resolve race condition
+                if self.vacuous and not join.vacuous: # non-vacuous beats vacuous
+                    emsg = ("Joinent {0}. Already initiated non-vacuous join with {1}. "
+                            "Aborting ...\n".format(
+                                self.stack.name, self.remote.name))
+                    console.concise(emsg)
+                    self.stack.incStat('redundant_join_attempt')
+                    self.nack(kind=raeting.pcktKinds.refuse)
+                    return
+
+                if not self.vacuous and join.vacuous: # non-vacuous beats vacuous
+                    emsg = ("Joinent {0}. Removing vacuous initiator join with"
+                            " {1}. Proceeding...\n".format(
+                                            self.stack.name, self.remote.name))
+                    console.concise(emsg)
+                    join.nack(kind=raeting.pcktKinds.refuse)
+
+                else: # both vacuous or non-vacuous, so use name to resolve
+                    if self.local.name < name: # lessor name wins
+                        emsg = ("Joinent {0}. Already initiated join with {1}. "
+                                "Aborting due to name...\n".format(
+                                    self.stack.name, self.remote.name))
+                        console.concise(emsg)
+                        self.stack.incStat('redundant_join_attempt')
+                        self.nack(kind=raeting.pcktKinds.refuse)
+                        return
+
 
         self.remote.allowed = None
 
@@ -2653,8 +2012,8 @@ class Allowent(Correspondent):
         self.oreo = binascii.hexlify(oreo)
 
         stuff = raeting.COOKIESTUFF_PACKER.pack(self.remote.privee.pubraw,
-                                                self.stack.local.uid,
-                                                self.remote.uid,
+                                                self.remote.nuid,
+                                                self.remote.fuid,
                                                 oreo)
 
         cipher, nonce = self.stack.local.priver.encrypt(stuff, self.remote.publee.key)
@@ -2774,7 +2133,7 @@ class Allowent(Correspondent):
             return
 
         self.transmit(packet)
-        console.concise("Allowent {0}. Do Ack with {1} at {2}\n".format(
+        console.concise("Allowent {0}. Do Ack Initiate with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
 
         self.allow()
@@ -2784,7 +2143,7 @@ class Allowent(Correspondent):
         Perform allowment
         '''
         self.remote.allowed = True
-        self.remote.nextSid() # start new session
+        self.remote.nextSid() # start new session always on successful allow
         self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)
 
@@ -2798,7 +2157,7 @@ class Allowent(Correspondent):
             return
 
         self.remove()
-        console.concise("Allowent {0}. Do Final with {1} at {2}\n".format(
+        console.concise("Allowent {0}. Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_correspond_complete")
         self.remote.sendSavedMessages() # could include messages saved on rejoin
@@ -2847,10 +2206,10 @@ class Allowent(Correspondent):
             return
 
         if kind==raeting.pcktKinds.refuse:
-            console.terse("Allowent {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Allowent {0}. Do Nack Refuse of {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind==raeting.pcktKinds.reject:
-            console.concise("Allowent {0}. Do Reject {1} at {2}\n".format(
+            console.concise("Allowent {0}. Do Nack Reject {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Allowent {0}. Do Nack of {1} at {2}\n".format(
@@ -2954,12 +2313,12 @@ class Aliver(Initiator):
         '''
         Prepare .txData
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+        self.txData.update( #sh=self.stack.local.ha[0],
+                            #sp=self.stack.local.ha[1],
+                            dh=self.remote.ha[0], # maybe needed for index
+                            dp=self.remote.ha[1], # maybe needed for index
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -2976,10 +2335,7 @@ class Aliver(Initiator):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_remote')
-            if self.stack.local.main:
-                self.stack.yoke(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
-            else:
-                self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             return
 
         if not self.remote.allowed:
@@ -2987,7 +2343,7 @@ class Aliver(Initiator):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_remote')
-            self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+            self.stack.allow(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
             return
 
         self.remote.refresh(alived=None) #Restart timer but do not change alived status
@@ -3060,7 +2416,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Refused unjoin by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.join(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+        self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
     def unallow(self):
         '''
@@ -3075,7 +2431,7 @@ class Aliver(Initiator):
         console.concise("Aliver {0}. Refused unallow by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.stack.allow(duid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
+        self.stack.allow(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
 class Alivent(Correspondent):
     '''
@@ -3118,12 +2474,12 @@ class Alivent(Correspondent):
         '''
         Prepare .txData
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+        self.txData.update( #sh=self.stack.local.ha[0],
+                            #sp=self.stack.local.ha[1],
+                            dh=self.remote.ha[0], # maybe needed for index
+                            dp=self.remote.ha[1], # maybe needed for index
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -3302,12 +2658,12 @@ class Messenger(Initiator):
         '''
         Prepare .txData
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+        self.txData.update( #sh=self.stack.local.ha[0],
+                            #sp=self.stack.local.ha[1],
+                            dh=self.remote.ha[0], # maybe needed for index
+                            dp=self.remote.ha[1], # maybe needed for index
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
@@ -3529,12 +2885,12 @@ class Messengent(Correspondent):
         '''
         Prepare .txData
         '''
-        self.txData.update( sh=self.stack.local.host,
-                            sp=self.stack.local.port,
-                            dh=self.remote.host,
-                            dp=self.remote.port,
-                            se=self.stack.local.uid,
-                            de=self.remote.uid,
+        self.txData.update( #sh=self.stack.local.ha[0],
+                            #sp=self.stack.local.ha[1],
+                            dh=self.remote.ha[0], # maybe needed for index
+                            dp=self.remote.ha[1], # maybe needed for index
+                            se=self.remote.nuid,
+                            de=self.remote.fuid,
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,

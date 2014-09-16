@@ -45,6 +45,9 @@ header data =
     de: Destination Estate ID (DEID)
     cf: Correspondent Flag (CrdtFlag) Default 0
     bf: BroadCast Flag (BcstFlag)  Default 0
+    nf: NAT Flag (NatFlag) Default 0
+    df: Dynamic IP Flag (DynFlag) Default 0
+    vf: IPv6 Flag (IP) (Ipv6Flag) Default 0
 
     si: Session ID (SID) Default 0
     ti: Transaction ID (TID) Default 0
@@ -70,7 +73,7 @@ header data =
     fl: Footer length (FootLen) Default 0
 
     fg: flags  packed (Flags) Default '00' hs
-         2 char Hex string with bits (0, 0, af, sf, 0, wf, bf, cf)
+         2 char Hex string with bits (vf, df, nf, af, sf, wf, bf, cf)
          Zeros are TBD flags
 }
 
@@ -168,7 +171,7 @@ TailSize = namedtuple('TailSize', TAIL_SIZES.keys())
 tailSizes = TailSize(**TAIL_SIZES)
 
 TRNS_KINDS = odict([('message', 0), ('join', 1),
-                    ('yoke', 2), ('allow', 3),
+                    ('bind', 2), ('allow', 3),
                     ('alive', 4), ('unknown', 255)])
 TRNS_KIND_NAMES = odict((v, k) for k, v in TRNS_KINDS.iteritems())  # inverse map
 TrnsKind = namedtuple('TrnsKind', TRNS_KINDS.keys())
@@ -179,7 +182,7 @@ PCKT_KINDS = odict([('message', 0), ('ack', 1), ('nack', 2), ('resend', 3),
                     ('hello', 6), ('cookie', 7), ('initiate', 8),
                     ('unjoined', 9), ('unallowed', 10),
                     ('renew', 11), ('refuse', 12), ('reject', 13),
-                    ('unknown', 255)])
+                    ('pend', 14), ('unknown', 255)])
 PCKT_KIND_NAMES = odict((v, k) for k, v in PCKT_KINDS.iteritems())  # inverse map
 PcktKind = namedtuple('PcktKind', PCKT_KINDS.keys())
 pcktKinds = PcktKind(**PCKT_KINDS)
@@ -221,6 +224,9 @@ PACKET_DEFAULTS = odict([
                             ('de', 0),
                             ('cf', False),
                             ('bf', False),
+                            ('nf', False),
+                            ('df', False),
+                            ('vf', False),
                             ('si', 0),
                             ('ti', 0),
                             ('tk', 0),
@@ -241,17 +247,17 @@ PACKET_DEFAULTS = odict([
 
 PACKET_FIELDS = ['sh', 'sp', 'dh', 'dp',
                  'ri', 'vn', 'pk', 'pl', 'hk', 'hl',
-                 'se', 'de', 'cf', 'bf', 'si', 'ti', 'tk',
+                 'se', 'de', 'cf', 'bf', 'nf', 'df', 'vf', 'si', 'ti', 'tk',
                  'dt', 'oi', 'wf', 'sn', 'sc', 'ml', 'sf', 'af',
                  'bk', 'ck', 'fk', 'fl', 'fg']
 
 PACKET_HEAD_FIELDS = ['ri', 'vn', 'pk', 'pl', 'hk', 'hl',
-               'se', 'de', 'cf', 'bf', 'si', 'ti', 'tk',
+               'se', 'de', 'cf', 'bf', 'nf', 'df', 'vf', 'si', 'ti', 'tk',
                'dt', 'oi', 'wf', 'sn', 'sc', 'ml', 'sf', 'af',
                'bk', 'bl', 'ck', 'cl', 'fk', 'fl', 'fg']
 
-PACKET_FLAGS = ['af', 'sf', 'wf', 'bf', 'cf']
-PACKET_FLAG_FIELDS = ['', '', 'af', 'sf', '', 'wf', 'bf', 'cf']
+PACKET_FLAGS = ['vf', 'df', 'nf' 'af', 'sf', 'wf', 'bf', 'cf']
+PACKET_FLAG_FIELDS = ['vf', 'df', 'nf', 'af', 'sf', 'wf', 'bf', 'cf']
 
 PACKET_FIELD_FORMATS = odict([
                     ('ri', '.4s'),
@@ -264,6 +270,9 @@ PACKET_FIELD_FORMATS = odict([
                     ('de', 'x'),
                     ('cf', ''),
                     ('bf', ''),
+                    ('nf', ''),
+                    ('df', ''),
+                    ('vf', ''),
                     ('si', 'x'),
                     ('ti', 'x'),
                     ('tk', 'x'),
@@ -309,13 +318,12 @@ PAGE_FIELD_FORMATS = odict([
 
 PAGE_FIELDS = ['ri', 'vn', 'pk', 'sn', 'dn', 'si', 'bi', 'pn', 'pc']
 
-
 class RaetError(Exception):
     '''
     Exceptions in RAET Protocol processing
 
        usage:
-           emsg = "Invalid estate id '{0}'".format(eid)
+           emsg = "Invalid unique id '{0}'".format(uid)
            raise raeting.RaetError(emsg)
     '''
     def __init__(self, message=None):
@@ -331,7 +339,7 @@ class StackError(RaetError):
        Exceptions in RAET stack processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.StackError(emsg)
     '''
     pass
@@ -341,7 +349,7 @@ class EstateError(RaetError):
        Exceptions in RAET estate processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.EstateError(emsg)
     '''
     pass
@@ -351,7 +359,7 @@ class TransactionError(RaetError):
        Exceptions in RAET transaction processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid uniqu id '{0}'".format(uid)
             raise raeting.TransactionError(emsg)
     '''
     pass
@@ -361,7 +369,7 @@ class PacketError(RaetError):
        Exceptions in RAET packet processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.PacketError(emsg)
     '''
     pass
@@ -382,7 +390,7 @@ class KeepError(RaetError):
        Exceptions in RAET keep processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.KeepError(emsg)
     '''
     pass
@@ -392,7 +400,7 @@ class YardError(RaetError):
        Exceptions in RAET yard processing
 
        Usage:
-            emsg = "Invalid yard id '{0}'".format(yid)
+            emsg = "Invalid unique id '{0}'".format(uid)
             raise raeting.YardError(emsg)
     '''
     pass

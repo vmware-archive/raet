@@ -6,7 +6,7 @@ estating.py raet protocol estate classes
 # pylint: disable=W0611
 
 import socket
-
+import uuid
 from collections import deque
 
 # Import ioflo libs
@@ -23,69 +23,67 @@ console = getConsole()
 
 class Estate(lotting.Lot):
     '''
-    RAET protocol endpoint estate object
+    RAET protocol endpoint estate object ie Road Lot
     '''
-    Eid = 1 # class attribute starting point for valid eids, eid == 0 is special
 
     def __init__(self,
-                 stack=None,
+                 stack,
                  name="",
+                 prefix='road',
                  ha=None,
-                 eid=None,
+                 iha=None,
+                 natted=None,
+                 fqdn='',
+                 dyned=None,
+                 uid=None,
                  tid=0,
-                 host="",
-                 port=raeting.RAET_PORT,
                  role=None,
                  **kwa):
         '''
-        Setup Estate instance
-        '''
-        self.eid = eid if eid is not None else self.Eid # estate ID
-        name = name or "estate{0}".format(self.uid)
+        Setup instance
 
-        super(Estate, self).__init__(stack=stack, name=name, ha=ha, **kwa)
+        stack is required parameter
+        '''
+        name = name or "{0}_{1}".format(prefix, uuid.uuid1().hex)
+        uid = uid if uid is not None else stack.nextUid()
+        super(Estate, self).__init__(stack=stack, name=name, ha=ha, uid=uid, **kwa)
 
         self.tid = tid # current transaction ID
 
-        if ha:  # takes precedence
+        if ha:
             host, port = ha
-        self.host = socket.gethostbyname(host)
-        self.port = port
-        if self.host == '0.0.0.0':
-            host = '127.0.0.1'
-        else:
-            host = self.host
-        self.fqdn = socket.getfqdn(host)
+            host = socket.gethostbyname(host)
+            if host in ['0.0.0.0', '']:
+                host = '127.0.0.1'
+            ha = (host, port)
+        self.ha = ha
+        if iha:  # takes precedence
+            host, port = iha
+            host = socket.gethostbyname(host)
+            if host in ['0.0.0.0', '']:
+                host = '127.0.0.1'
+            iha = (host, port)
+        self.iha = iha # internal host address duple (host, port)
+        self.natted = natted # is estate behind nat router
+        self.fqdn = fqdn or socket.getfqdn(self.ha[0]) if self.ha else ''
+        self.dyned = dyned
         self.role = role if role is not None else self.name
         self.transactions = odict() # estate transactions keyed by transaction index
 
     @property
-    def uid(self):
+    def eha(self):
         '''
-        property that returns unique identifier
+        property that returns  external ip address (host, port) tuple
+        alias for .ha
         '''
-        return self.eid
+        return self.ha
 
-    @uid.setter
-    def uid(self, value):
-        '''
-        setter for uid property
-        '''
-        self.eid = value
-
-    @property
-    def ha(self):
-        '''
-        property that returns ip address (host, port) tuple
-        '''
-        return (self.host, self.port)
-
-    @ha.setter
-    def ha(self, value):
+    @eha.setter
+    def eha(self, value):
         '''
         Expects value is tuple of (host, port)
         '''
-        self.host, self.port = value
+        self.ha = value
 
     def nextTid(self):
         '''
@@ -111,6 +109,9 @@ class Estate(lotting.Lot):
         ti = tid, Transaction ID, TID
         bf = Broadcast Flag, BcstFlag
         '''
+        if index in self.transactions:
+            emsg = "Cannot add transaction at index '{0}', alreadys exists".format(index)
+            raise raeting.EstateError(emsg)
         self.transactions[index] = transaction
         transaction.remote = self
         console.verbose( "Added transaction to {0} at '{1}'\n".format(self.name, index))
@@ -142,56 +143,57 @@ class Estate(lotting.Lot):
 
 class LocalEstate(Estate):
     '''
-    RAET protocol endpoint local estate object
+    RAET protocol endpoint local estate object ie Local Road Lot
     Maintains signer for signing and privateer for encrypt/decrypt
     '''
-    def __init__(self, stack=None, eid=None, name="", neid=None, main=None,
-                 sigkey=None, prikey=None, mutable=None, **kwa):
+    def __init__(self,
+                 sigkey=None,
+                 prikey=None,
+                 **kwa):
         '''
-        Setup Estate instance
+        Setup instance
+
+        stack is required argument
 
         sigkey is either nacl SigningKey or hex encoded key
         prikey is either nacl PrivateKey or hex encoded key
         '''
-        self.neid = neid if neid is not None else self.Eid # initialize neid used by .nextEid.
-        if eid is None:
-            eid = self.nextEid()
-        super(LocalEstate, self).__init__(stack=stack, eid=eid, name=name, **kwa)
-        self.main = main # main estate on road
+        if 'ha' not in kwa:
+            kwa['ha'] = ('127.0.0.1', raeting.RAET_PORT)
+        super(LocalEstate, self).__init__( **kwa)
         self.signer = nacling.Signer(sigkey)
         self.priver = nacling.Privateer(prikey) # Long term key
-        self.mutable = mutable # mutable road
-
-    def nextEid(self):
-        '''
-        Generates next estate id number.
-        '''
-        self.neid += 1
-        if self.neid > 0xffffffffL:
-            self.neid = 1  # rollover to 1
-        return self.neid
 
 class RemoteEstate(Estate):
     '''
-    RAET protocol endpoint remote estate object
+    RAET protocol endpoint remote estate object ie Remote Road Lot
     Maintains verifier for verifying signatures and publican for encrypt/decrypt
 
     .alived attribute is the dead or alive status of the remote
 
     .alived = True, alive, recently have received valid signed packets from remote
     .alive = False, dead, recently have not received valid signed packets from remote
+
+    .fuid is the far uid of the remote as owned by the farside stack
     '''
-    Period = 1.0
-    Offset = 0.5
-    Interim = 3600.0
 
-    def __init__(self, stack, eid=None, verkey=None, pubkey=None,
-                 acceptance=None, joined=None, rsid=0,
-                 period=None, offset=None, interim=None, **kwa):
+    def __init__(self,
+                 stack,
+                 prefix='estate',
+                 uid=None,
+                 fuid=0,
+                 main=False,
+                 application=0,
+                 verkey=None,
+                 pubkey=None,
+                 acceptance=None,
+                 joined=None,
+                 rsid=0,
+                 **kwa):
         '''
-        Setup Estate instance
+        Setup instance
 
-        stack is required parameter for RemoteEstate unlike its superclass
+        stack is required parameter
 
         verkey is either nacl VerifyKey or raw or hex encoded key
         pubkey is either nacl PublicKey or raw or hex encoded key
@@ -200,22 +202,19 @@ class RemoteEstate(Estate):
 
         rsid is last received session id used by remotely initiated transaction
 
-        period is timeout of keep alive heartbeat timer
-        offset is initial offset of keep alive heartbeat timer
 
-        interim is timeout of reapTimer (remove from memory if dead for reap time)
         '''
-        if eid is None:
-            if stack:
-                eid = stack.local.nextEid()
-                while eid in stack.remotes or eid == stack.local.eid:
-                    eid = stack.local.nextEid()
-            else:
-                eid = 0
+        if uid is None:
+            uid = stack.nextUid()
+            while uid in stack.remotes or uid == stack.local.uid:
+                uid = stack.nextUid()
 
-        if 'host' not in kwa and 'ha' not in kwa:
+        if 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
-        super(RemoteEstate, self).__init__(stack, eid=eid, **kwa)
+        super(RemoteEstate, self).__init__(stack, prefix=prefix, uid=uid, **kwa)
+        self.fuid = fuid
+        self.main = main
+        self.application = application
         self.joined = joined
         self.allowed = None
         self.alived = None
@@ -230,20 +229,48 @@ class RemoteEstate(Estate):
 
         # persistence keep alive heartbeat timer. Initial duration has offset so
         # not synced with other side persistence heatbeet
-        self.period = period if period is not None else self.Period
-        self.offset = offset if offset is not None else self.Offset
-        # by default do not use offset on main unless it is explicity provided
-        if self.stack.local.main and offset is None:
-            duration = self.period
+        # by default do not use offset on main
+        if self.stack.main:
+            duration = self.stack.period
         else:
-            duration = self.period + self.offset
+            duration = self.stack.period + self.stack.offset
         self.timer = aiding.StoreTimer(store=self.stack.store,
                                        duration=duration)
 
-        self.interim = interim if interim is not None else self.Interim
         self.reapTimer = aiding.StoreTimer(self.stack.store,
-                                           duration=self.interim)
+                                           duration=self.stack.interim)
         self.messages = deque() # deque of saved stale message body data to remote.uid
+
+    @property
+    def nuid(self):
+        '''
+        property that returns nuid, near uid, of remote as owned by nearside stack
+        alias for uid
+        '''
+        return self.uid
+
+    @nuid.setter
+    def nuid(self, value):
+        '''
+        setter for nuid, near uid, property
+        '''
+        self.uid = value
+
+    @property
+    def juid(self):
+        '''
+        property that returns juid, join uid, duple of (nuid, fuid)
+        nuid is near uid
+        fuid is far uid as owned by farside stack
+        '''
+        return (self.nuid, self.fuid)
+
+    @juid.setter
+    def juid(self, value):
+        '''
+        setter for juid, join uid, property, value is duple of (nuid, fuid)
+        '''
+        self.nuid, self.fuid = value
 
     def rekey(self):
         '''
@@ -256,6 +283,7 @@ class RemoteEstate(Estate):
     def validRsid(self, rsid):
         '''
         Compare new rsid to old .rsid and return True
+        If old is zero Then new is always valid
         If new is >= old modulo N where N is 2^32 = 0x100000000
         And >= means the difference is less than N//2 = 0x80000000
         (((new - old) % 0x100000000) < (0x100000000 // 2))
@@ -269,7 +297,7 @@ class RemoteEstate(Estate):
         If alived is True then set .alived to True and handle implications
         If alived is False the set .alived to False and handle implications
         '''
-        self.timer.restart(duration=self.period)
+        self.timer.restart(duration=self.stack.period)
         if alived is None:
             return
 
@@ -287,39 +315,40 @@ class RemoteEstate(Estate):
         if not self.reaped: # only manage alives if not already reaped
             if immediate or self.timer.expired:
                 # alive transaction restarts self.timer
-                self.stack.alive(duid=self.uid, cascade=cascade)
-            if self.interim >  0.0 and self.reapTimer.expired:
+                self.stack.alive(uid=self.uid, cascade=cascade)
+            if self.stack.interim >  0.0 and self.reapTimer.expired:
                 self.reap()
 
     def reap(self):
         '''
         Remote is dead, reap it if main estate.
         '''
-        if self.stack.local.main: # only main can reap
+        if self.stack.main: # only main can reap
             console.concise("Stack {0}: Reaping dead remote {1} at {2}\n".format(
                     self.stack.name, self.name, self.stack.store.stamp))
             self.stack.incStat("remote_reap")
             self.reaped = True
-            #self.stack.removeRemote(self, clear=False) #remove from memory but not disk
 
     def unreap(self):
         '''
         Remote packet received from remote so not dead anymore.
         '''
-        if self.stack.local.main: # only only main can reap or unreap
+        if self.stack.main: # only only main can reap or unreap
             console.concise("Stack {0}: Unreaping dead remote {1} at {2}\n".format(
                     self.stack.name, self.name, self.stack.store.stamp))
             self.stack.incStat("remote_unreap")
             self.reaped = False
 
-    def removeStaleCorrespondents(self, renew=False):
+    def removeStaleCorrespondents(self):
         '''
-        Remove stale correspondent transactions associated with remote
+        Remove local stale correspondent transactions associated with remote
 
-        If renew then remove all correspondents from this remote with nonzero sid
+        Local correspondent is indicated by rf ==True
 
         Stale means the sid in the transaction is older than the current .rsid
-        or if renew (rejoining with .rsid == zero)
+        assuming neither is zero, that is sid in index is older than remote.rsid
+
+        old rsid == 0 means new always valid
 
         When sid in index is older than remote.rsid
         Where index is tuple: (rf, le, re, si, ti, bf,)
@@ -332,8 +361,8 @@ class RemoteEstate(Estate):
         '''
         for index, transaction in self.transactions.items():
             sid = index[3]
-            rf = index[0]
-            if rf and  ((renew and sid != 0) or (not renew and not self.validRsid(sid))):
+            rf = index[0] # correspondent
+            if rf and not self.validRsid(sid):
                 transaction.nack()
                 self.removeTransaction(index)
                 emsg = ("Stack {0}: Stale correspondent {1} from remote {1} at {2}"
@@ -344,19 +373,20 @@ class RemoteEstate(Estate):
                 console.terse(emsg)
                 self.stack.incStat('stale_correspondent')
 
-    def replaceStaleInitiators(self, renew=False):
+    def replaceStaleInitiators(self):
         '''
         Save and remove any messages from messenger transactions initiated locally
         with remote
 
-        Remove non message stale initiator transactions associated with remote
+        Remove non message stale local initiator transactions associated with remote
+        Also save and requeue any stale locally initiated message transactions.
 
-        If renew Then remove all initiators from this remote with nonzero sid
+        Local inititors have rf flag == False
 
         Stale means the sid in the transaction is older than the current .sid
-        or if renew (rejoining with .sid == zero)
+        assuming neither is zero, that is  sid in index is older than remote.sid
 
-        When sid in index is older than remote.sid
+        old sid == 0 means new always valid
 
         Where index is tuple: (rf, le, re, si, ti, bf,)
             rf = Remotely Initiated Flag, RmtFlag
@@ -367,9 +397,10 @@ class RemoteEstate(Estate):
             bf = Broadcast Flag, BcstFlag
         '''
         for index, transaction in self.transactions.items():
-            sid = index[3]
             rf = index[0]
-            if not rf and ((renew and sid != 0) or (not renew and not self.validSid(sid))):
+            sid = index[3]
+
+            if not rf and not self.validSid(sid): # transaction sid newer or equal
                 if transaction.kind in [raeting.trnsKinds.message]:
                     self.saveMessage(transaction)
                 transaction.nack()
@@ -400,7 +431,7 @@ class RemoteEstate(Estate):
         '''
         while self.messages:
             body = self.messages.popleft()
-            self.stack.message(body=body, duid=self.uid)
+            self.stack.message(body=body, uid=self.uid)
             emsg = ("Stack {0}: Resent saved message with remote {1} at {2}"
                                         "\n".format(self.stack.name, index, self.name))
             console.concise(emsg)
@@ -421,10 +452,3 @@ class RemoteEstate(Estate):
         return ([t for t in self.transactions.values()
                      if t.kind == raeting.trnsKinds.join])
 
-    def yokeInProcess(self):
-        '''
-        Returns  list of transactions for all yoke transaction with this remote
-        that are already in process
-        '''
-        return ([t for t in self.transactions.values()
-                     if t.kind == raeting.trnsKinds.yoke])

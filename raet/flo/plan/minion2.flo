@@ -3,7 +3,7 @@
 
 house minion2
 
-init .raet.road.stack.local to eid 0 name "minion2" host "" port 7532 \
+init .raet.road.stack.local to uid 0 name "minion2" host "" port 7532 \
     basedirpath "/tmp/raet/test/keep/"
 
 

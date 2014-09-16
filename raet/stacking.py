@@ -39,16 +39,19 @@ class Stack(object):
     Should be subclassed for specific transport type such as UDP or UXD
     '''
     Count = 0
+    Uid = 0 # base for next unique id for local and remotes
 
     def __init__(self,
-                 name='',
-                 main=None,
-                 version=raeting.VERSION,
                  store=None,
-                 keep=None,
-                 local=None,
-                 bufcnt=2,
+                 version=raeting.VERSION,
+                 main=None,
+                 puid=None,
+                 local=None, #passed up from subclass
+                 name='',
+                 uid=None,
                  server=None,
+                 ha=None,
+                 bufcnt=2,
                  rxMsgs=None,
                  txMsgs=None,
                  rxes=None,
@@ -58,22 +61,22 @@ class Stack(object):
         '''
         Setup Stack instance
         '''
-        if not name:
-            name = "{0}{1}".format(self.__class__.__name__.lower(), Stack.Count)
-            Stack.Count += 1
+        self.store = store or storing.Store(stamp=0.0)
 
         self.version = version
-        self.store = store or storing.Store(stamp=0.0)
-        self.local = local or lotting.LocalLot(stack=self,
-                                               name=name,
-                                               main=main,)
+        self.main = main
+
+        if getattr(self, 'puid', None) is None:
+            self.puid = puid if puid is not None else self.Uid
+
+        self.local = local or lotting.Lot(stack=self,
+                                          name=name,
+                                          uid=uid,
+                                          ha=ha,)
         self.local.stack = self
-        if self.local.main is None and main is not None:
-            self.local.main = True if main else False
 
         self.remotes = self.uidRemotes = odict() # remotes indexed by uid
         self.nameRemotes = odict() # remotes indexed by name
-        self.haRemotes = odict() # remotes indexed by ha host address
 
         self.bufcnt = bufcnt
         if not server:
@@ -84,10 +87,11 @@ class Stack(object):
             if not self.server.reopen():  # open socket
                 raise raeting.StackError("Stack '{0}': Failed opening server at"
                             " '{1}'\n".format(self.name, self.server.ha))
-            if self.local:
-                self.local.ha = self.server.ha  # update local host address after open
 
-            console.verbose("Stack '{0}': Opened server at '{1}'\n".format(self.name, self.local.ha))
+            self.ha = self.server.ha  # update local host address after open
+
+            console.verbose("Stack '{0}': Opened server at '{1}'\n".format(self.name,
+                                                                           self.ha))
 
         self.rxMsgs = rxMsgs if rxMsgs is not None else deque() # messages received
         self.txMsgs = txMsgs if txMsgs is not None else deque() # messages to transmit
@@ -110,11 +114,31 @@ class Stack(object):
         '''
         self.local.name = value
 
+    @property
+    def ha(self):
+        '''
+        property that returns host address
+        '''
+        return self.local.ha
+
+    @ha.setter
+    def ha(self, value):
+        self.local.ha = value
+
     def serverFromLocal(self):
         '''
         Create server from local data
         '''
         return None
+
+    def nextUid(self):
+        '''
+        Generates next unique id number for local or remotes.
+        '''
+        self.puid += 1
+        if self.puid > 0xffffffffL:
+            self.puid = 1  # rollover to 1
+        return self.puid
 
     def addRemote(self, remote):
         '''
@@ -128,13 +152,10 @@ class Stack(object):
         if remote.name in  self.nameRemotes or remote.name == self.local.name:
             emsg = "Cannot add remote at name '{0}', alreadys exists".format(remote.name)
             raise raeting.StackError(emsg)
-        if remote.ha in self.haRemotes or remote.ha == self.local.ha:
-            emsg = "Cannot add remote at ha '{0}', alreadys exists".format(remote.ha)
-            raise raeting.StackError(emsg)
         remote.stack = self
         self.uidRemotes[uid] = remote
         self.nameRemotes[remote.name] = remote
-        self.haRemotes[remote.ha] = remote
+        return remote
 
     def moveRemote(self, remote, new):
         '''
@@ -183,29 +204,6 @@ class Stack(object):
             del self.nameRemotes[old]
             self.nameRemotes.insert(index, new, remote)
 
-    def readdressRemote(self, remote, new):
-        '''
-        readdress remote with old remote.ha to new ha but keep same index
-        '''
-        old = remote.ha
-        if new != old:
-            if new in self.haRemotes or new == self.local.ha:
-                emsg = "Cannot readdress remote to '{0}', already exists".format(new)
-                raise raeting.StackError(emsg)
-
-            if old not in self.haRemotes:
-                emsg = "Cannot rename remote '{0}', does not exist".format(old)
-                raise raeting.StackError(emsg)
-
-            if remote is not self.haRemotes[old]:
-                emsg = "Cannot rename remote '{0}', not identical".format(old)
-                raise raeting.StackError(emsg)
-
-            remote.ha = new
-            index = self.haRemotes.keys().index(old)
-            del self.haRemotes[old]
-            self.haRemotes.insert(index, new, remote)
-
     def removeRemote(self, remote):
         '''
         Remove remote from all remotes dicts
@@ -221,7 +219,6 @@ class Stack(object):
 
         del self.uidRemotes[uid]
         del self.nameRemotes[remote.name]
-        del self.haRemotes[remote.ha]
 
     def removeAllRemotes(self):
         '''
@@ -277,8 +274,8 @@ class Stack(object):
         rx, ra = self.server.receive()  # if no data the duple is ('',None)
         if not rx:  # no received data
             return False
-        # triple = ( packet, source address, destination address)
-        self.rxes.append((rx, ra, self.server.ha))
+        # duple = ( packet, source address)
+        self.rxes.append((rx, ra))
         return True
 
     def serviceReceives(self):
@@ -301,9 +298,9 @@ class Stack(object):
         Handle on message from .rxes deque
         Assumes that there is a message on the .rxes deque
         '''
-        raw, sa, da = self.rxes.popleft()
+        raw, sa = self.rxes.popleft()
         console.verbose("{0} received raw message\n{1}\n".format(self.name, raw))
-        processRx(received=raw)
+        processRx(packet=raw)
 
     def serviceRxes(self):
         '''
@@ -319,7 +316,7 @@ class Stack(object):
         if self.rxes:
             self.handleOnceRx()
 
-    def processRx(self, received):
+    def processRx(self, packet):
         '''
         Process
         '''
@@ -505,19 +502,27 @@ class KeepStack(Stack):
     RAET protocol base stack object with persistance via Keep attribute.
     Should be subclassed for specific transport type
     '''
+    Count = 0
+    Uid =  0
+
     def __init__(self,
-                 name='',
-                 main=None,
+                 puid=None,
+                 clean=False,
                  keep=None,
                  dirpath='',
                  basedirpath='',
-                 local=None,
-                 clean=False,
+                 local=None, #passed up from subclass
+                 name='',
+                 uid=None,
+                 ha=None,
                  **kwa
                  ):
         '''
         Setup Stack instance
         '''
+        if getattr(self, 'puid', None) is None:
+            self.puid = puid if puid is not None else self.Uid
+
         self.keep = keep or keeping.LotKeep(dirpath=dirpath,
                                             basedirpath=basedirpath,
                                             stackname=name)
@@ -525,15 +530,14 @@ class KeepStack(Stack):
         if clean: # clear persisted data so use provided or default data
             self.clearLocalKeep()
 
-        local = self.restoreLocal() or local or lotting.LocalLot(stack=self,
-                                                                 main=main,
-                                                                 name=name)
+        local = self.restoreLocal() or local or lotting.Lot(stack=self,
+                                                                 name=name,
+                                                                 uid=uid,
+                                                                 ha=ha,
+                                                                 )
         local.stack = self
-        if local.main is None and main is not None:
-            local.main = True if main else False
 
-        super(KeepStack, self).__init__(name=name,
-                                        main=main,
+        super(KeepStack, self).__init__(puid=puid,
                                         local=local,
                                         **kwa)
 
@@ -554,6 +558,7 @@ class KeepStack(Stack):
         super(KeepStack, self).addRemote(remote=remote)
         if dump:
             self.dumpRemote(remote)
+        return remote
 
     def moveRemote(self, remote, new, clear=False, dump=False):
         '''
@@ -621,7 +626,7 @@ class KeepStack(Stack):
         data = self.keep.loadLocalData()
         if data:
             if self.keep.verifyLocalData(data):
-                local = lotting.LocalLot(stack=self,
+                local = lotting.Lot(stack=self,
                                          uid=data['uid'],
                                          name=data['name'],
                                          ha=data['ha'],
@@ -707,4 +712,8 @@ class KeepStack(Stack):
         Clear all remote keeps
         '''
         self.keep.clearAllRemoteData()
+
+    def clearAllKeeps(self):
+        self.clearLocalKeep()
+        self.clearRemoteKeeps()
 

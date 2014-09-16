@@ -534,13 +534,12 @@ class TxPacket(Packet):
         Property is transaction tuple (rf, le, re, si, ti, bf,)
         '''
         data = self.data
+        cf = data['cf']
         le = data['se']
-        if le == 0:
-            le = (data['sh'], data['sp'])
         re = data['de']
-        if re == 0:
+        if (re == 0 and not cf) or (le == 0 and cf):
             re = (data['dh'], data['dp'])
-        return ((data['cf'], le, re, data['si'], data['ti'], data['bf']))
+        return ((cf, le, re, data['si'], data['ti'], data['bf']))
 
     def signature(self, msg):
         '''
@@ -562,7 +561,7 @@ class TxPacket(Packet):
         Return (cipher, nonce) duple resulting from encrypting message
         with short term keys
         '''
-        remote = self.stack.remotes[self.data['de']]
+        remote = self.stack.remotes[self.data['se']]
         return (remote.privee.encrypt(msg, remote.publee.key))
 
     def prepack(self):
@@ -612,28 +611,28 @@ class RxPacket(Packet):
         Property is transaction tuple (rf, le, re, si, ti, bf,)
         '''
         data = self.data
+        cf = data['cf']
         le = data['de']
-        if le == 0:
-            le = (data['dh'], data['dp'])
         re = data['se']
-        if re == 0:
+        if (re == 0 and cf) or (le == 0 and not cf):
             re = (data['sh'], data['sp'])
-        return ((not data['cf'], le, re, data['si'], data['ti'], data['bf']))
+        return ((not cf, le, re, data['si'], data['ti'], data['bf']))
 
     def verify(self, signature, msg):
         '''
         Return result of verifying msg with signature
         '''
-        if not self.data['se'] in self.stack.remotes:
+        nuid = self.data['de']
+        if not nuid in self.stack.remotes:
             return False
-        return (self.stack.remotes[self.data['se']].verfer.verify(signature, msg))
+        return (self.stack.remotes[nuid].verfer.verify(signature, msg))
 
     def decrypt(self, cipher, nonce):
         '''
         Return msg resulting from decrypting cipher and nonce
         with short term keys
         '''
-        remote = self.stack.remotes[self.data['se']]
+        remote = self.stack.remotes[self.data['de']]
         return (remote.privee.decrypt(cipher, nonce, remote.publee.key))
 
     def parse(self, packed=None):

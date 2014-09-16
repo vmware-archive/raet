@@ -34,6 +34,8 @@ try:
 except ImportError:
     import json
 
+import shutil
+
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base.globaling import *
@@ -51,6 +53,31 @@ from ..lane.stacking import  LaneStack
 from ..road import packeting, estating
 from ..lane import paging, yarding
 
+class SaltRaetRoadCleanup(deeding.Deed):
+    '''
+    Cleanup stray road keep directories
+
+    FloScript:
+
+    do salt raet road cleanup at enter
+
+    '''
+    Ioinits = odict(
+                     inode="raet.road.stack.",
+                     local=odict(
+                                 ipath='local',
+                                 ival=odict(basedirpath='/tmp/raet/keep')
+                                )
+                    )
+
+    def action(self):
+        '''
+        Should only run once to cleanup stale lane uxd files.
+        '''
+        basedirpath = os.path.abspath(os.path.expanduser(self.local.data.basedirpath))
+        console.concise("Cleaning up road files in {0}\n".format(basedirpath))
+        if os.path.exists(basedirpath):
+            shutil.rmtree(basedirpath)
 
 class RaetRoadStack(deeding.Deed):
     '''
@@ -70,7 +97,7 @@ class RaetRoadStack(deeding.Deed):
                                                  main=False,
                                                  mutable=True,
                                                  auto=raeting.autoModes.once,
-                                                 eid=None,
+                                                 uid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
                                                  sigkey=None,
@@ -89,24 +116,22 @@ class RaetRoadStack(deeding.Deed):
         mutable = self.local.data.mutable
         ha = (self.local.data.host, self.local.data.port)
 
-        eid = self.local.data.eid
-        local = estating.LocalEstate(  eid=eid,
-                                        name=name,
-                                        ha=ha,
-                                        sigkey=sigkey,
-                                        prikey=prikey,)
+        uid = self.local.data.uid
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
-        self.stack.value = RoadStack(  local=local,
-                                       store=self.store,
-                                       name=name,
-                                       auto=auto,
-                                       main=main,
-                                       mutable=mutable,
-                                       basedirpath=basedirpath,
-                                       txMsgs=txMsgs,
-                                       rxMsgs=rxMsgs, )
+        self.stack.value = RoadStack(store=self.store,
+                                     main=main,
+                                     mutable=mutable,
+                                     name=name,
+                                     uid=uid,
+                                     ha=ha,
+                                     sigkey=sigkey,
+                                     prikey=prikey,
+                                     auto=auto,
+                                     basedirpath=basedirpath,
+                                     txMsgs=txMsgs,
+                                     rxMsgs=rxMsgs, )
 
     def action(self, **kwa):
         '''
@@ -120,7 +145,7 @@ class RaetRoadStackSetup(deeding.Deed):
     Initialize  raet road stack
     FloScript:
 
-    do raet road stack setup
+    do salt raet road stack setup at enter
 
     '''
     Ioinits = odict(
@@ -133,7 +158,7 @@ class RaetRoadStackSetup(deeding.Deed):
                                                  main=False,
                                                  mutable=True,
                                                  auto=raeting.autoModes.once,
-                                                 eid=None,
+                                                 uid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
                                                  sigkey=None,
@@ -141,8 +166,20 @@ class RaetRoadStackSetup(deeding.Deed):
 
     def postinitio(self):
         '''
-        Setup stack instance
+        Assign class defaults
         '''
+        #RoadStack.Bk = raeting.bodyKinds.msgpack
+        RoadStack.JoinentTimeout = 0.0
+
+    def action(self):
+        '''
+        enter action
+        should only run once to setup road stack.
+        moved from postinitio so can do clean up before stack is initialized
+
+        do salt raet road stack setup at enter
+        '''
+
         sigkey = self.local.data.sigkey
         prikey = self.local.data.prikey
         name = self.local.data.name
@@ -152,24 +189,24 @@ class RaetRoadStackSetup(deeding.Deed):
         mutable = self.local.data.mutable
         ha = (self.local.data.host, self.local.data.port)
 
-        eid = self.local.data.eid
-        local = estating.LocalEstate(  eid=eid,
-                                        name=name,
-                                        ha=ha,
-                                        sigkey=sigkey,
-                                        prikey=prikey,)
+        uid = self.local.data.uid
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
-        self.stack.value = RoadStack(  local=local,
-                                       store=self.store,
-                                       name=name,
-                                       auto=auto,
-                                       main=main,
-                                       mutable=mutable,
-                                       basedirpath=basedirpath,
-                                       txMsgs=txMsgs,
-                                       rxMsgs=rxMsgs, )
+        self.stack.value = RoadStack(store=self.store,
+                                     name=name,
+                                     uid=uid,
+                                     ha=ha,
+                                     sigkey=sigkey,
+                                     prikey=prikey,
+                                     auto=auto,
+                                     main=main,
+                                     mutable=mutable,
+                                     basedirpath=basedirpath,
+                                     txMsgs=txMsgs,
+                                     rxMsgs=rxMsgs, )
+
+
 
 
 class RaetRoadStackCloser(deeding.Deed):
@@ -239,13 +276,34 @@ class RaetRoadStackJoiner(deeding.Deed):
         inode=".raet.road.stack.",
         stack='stack',)
 
+    Ioinits = odict(
+                     inode="raet.road.stack.",
+                     stack='stack',
+                     local=odict(
+                                 ipath='local',
+                                 ival=odict(masterhost='127.0.0.1',
+                                            masterport=raeting.RAET_PORT,
+                                            )
+                                )
+                    )
+
     def action(self, **kwa):
         '''
-
+        do raet road stack joiner at enter
         '''
         stack = self.stack.value
+        host = self.local.data.masterhost
+        if host == "" or  host == "0.0.0.0":
+            host = "127.0.0.1"
+        port = self.local.data.masterport
+        ha = (host, port)
         if stack and isinstance(stack, RoadStack):
-            stack.join()
+            if not stack.remotes:
+                stack.addRemote(estating.RemoteEstate(stack=stack,
+                                                      fuid=0, # vacuous join
+                                                      sid=0, # always 0 for join
+                                                      ha=ha))
+            stack.join(uid=stack.remotes.values()[0].uid)
 
 class RaetRoadStackJoined(deeding.Deed):
     '''
@@ -437,6 +495,42 @@ class RaetRoadStackPrinter(deeding.Deed):
             msg, name = rxMsgs.popleft()
             console.terse("\nReceived....\n{0}\n".format(msg))
 
+class SaltRaetLaneCleanup(deeding.Deed):
+    '''
+    Cleanup stray lane keep directories not reaped
+
+    FloScript:
+
+    do salt raet lane cleanup at enter
+
+    '''
+    Ioinits = {
+                'opts': '.salt.opts',
+            }
+
+    def action(self):
+        '''
+        Should only run once to cleanup stale lane uxd files.
+        '''
+        if self.opts.value.get('sock_dir'):
+            sockdirpath = os.path.abspath(self.opts.value['sock_dir'])
+            console.concise("Cleaning up uxd files in {0}\n".format(sockdirpath))
+            for name in os.listdir(sockdirpath):
+                path = os.path.join(sockdirpath, name)
+                if os.path.isdir(path):
+                    continue
+                root, ext = os.path.splitext(name)
+                if ext != '.uxd':
+                    continue
+                if not all(root.partition('.')):
+                    continue
+                try:
+                    os.unlink(path)
+                    console.concise("Removed {0}\n".format(path))
+                except OSError:
+                    console.concise("Failed removing {0}\n".format(path))
+                    raise
+
 class RaetLaneStack(deeding.Deed):
     '''
     Initialize and run raet lane stack
@@ -452,7 +546,7 @@ class RaetLaneStack(deeding.Deed):
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),
         local=odict(ipath='local', ival=odict(name='minion',
                                               lane="maple",
-                                              basedirpath="/tmp/raet/test/lane/keep/")),)
+                                              sockdirpath="/tmp/raet/test/lane/")),)
 
     def postinitio(self):
         '''
@@ -460,14 +554,14 @@ class RaetLaneStack(deeding.Deed):
         '''
         name = self.local.data.name
         lane = self.local.data.lane
-        basedirpath = self.local.data.basedirpath
+        sockdirpath = self.local.data.sockdirpath
         txMsgs = self.txmsgs.value
         rxMsgs = self.rxmsgs.value
 
         self.stack.value = LaneStack(
                                        store=self.store,
                                        name=name,
-                                       basedirpath=basedirpath,
+                                       sockdirpath=sockdirpath,
                                        lanename=lane,
                                        txMsgs=txMsgs,
                                        rxMsgs=rxMsgs, )
@@ -509,16 +603,20 @@ class RaetLaneStackYardAdd(deeding.Deed):
     Ioinits = odict(
         inode=".raet.lane.stack.",
         stack='stack',
-        local='yard',
-        yard=odict(ipath='local', ival=odict(name=None, lane="maple")),)
+        local=odict(ipath='local',
+                    ival=odict(sockdirpath="/tmp/raet/test/lane/")))
 
     def action(self, lane="lane", name=None, **kwa):
         '''
-        Adds new yard to stack on lane with yid
+        Adds new yard to stack on lane with name
         '''
         stack = self.stack.value
+        sockdirpath = self.local.data.sockdirpath
         if stack and isinstance(stack, LaneStack):
-            yard = yarding.RemoteYard(stack=stack, lanename=lane, name=name)
+            yard = yarding.RemoteYard(stack=stack,
+                                      lanename=lane,
+                                      name=name,
+                                      dirpath=sockdirpath)
             stack.addRemote(yard)
             self.local.value = yard
 

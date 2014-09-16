@@ -31,21 +31,20 @@ from . import nacling
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-KEEP_DIR = os.path.join('/var', 'cache', 'raet', 'keep')
-ALT_KEEP_DIR = os.path.join('~', '.raet', 'keep')
-
 class Keep(object):
     '''
     RAET protocol base class for data persistence of objects that follow the Lot
     protocol
     '''
-    LocalFields = ['uid', 'name', 'ha', 'sid']
+    LocalFields = ['uid', 'name', 'ha', 'sid', 'puid']
     RemoteFields = ['uid', 'name', 'ha']
     Ext = 'json' # default serialization type of json and msgpack
+    KeepDir = os.path.join('/var', 'cache', 'raet', 'keep')
+    AltKeepDir = os.path.join('~', '.raet', 'keep')
 
     def __init__(self,
-                 dirpath='',
                  basedirpath='',
+                 dirpath='',
                  stackname='stack',
                  prefix='data',
                  ext='',
@@ -63,7 +62,7 @@ class Keep(object):
         '''
         if not dirpath:
             if not basedirpath:
-                basedirpath = KEEP_DIR
+                basedirpath = self.KeepDir
             dirpath = os.path.join(basedirpath, stackname)
         dirpath = os.path.abspath(os.path.expanduser(dirpath))
 
@@ -71,14 +70,14 @@ class Keep(object):
             try:
                 os.makedirs(dirpath)
             except OSError as ex:
-                dirpath = os.path.join(ALT_KEEP_DIR, stackname)
+                dirpath = os.path.join(self.AltKeepDir, stackname)
                 dirpath = os.path.abspath(os.path.expanduser(dirpath))
                 if not os.path.exists(dirpath):
                     os.makedirs(dirpath)
 
         else:
             if not os.access(dirpath, os.R_OK | os.W_OK):
-                dirpath = os.path.join(ALT_KEEP_DIR, stackname)
+                dirpath = os.path.join(self.AltKeepDir, stackname)
                 dirpath = os.path.abspath(os.path.expanduser(dirpath))
                 if not os.path.exists(dirpath):
                     os.makedirs(dirpath)
@@ -289,10 +288,11 @@ class Keep(object):
         Dump local
         '''
         data = odict([
-                        ('uid', local.uid),
                         ('name', local.name),
+                        ('uid', local.uid),
                         ('ha', local.ha),
                         ('sid', local.sid),
+                        ('puid', local.stack.puid),
                     ])
         if self.verifyLocalData(data):
             self.dumpLocalData(data)
@@ -302,8 +302,8 @@ class Keep(object):
         Dump remote
         '''
         data = odict([
-                        ('uid', remote.uid),
                         ('name', remote.name),
+                        ('uid', remote.uid),
                         ('ha', remote.ha),
                         ('sid', remote.sid)
                     ])
@@ -326,9 +326,7 @@ class Keep(object):
 class LotKeep(Keep):
     '''
     RAET protocol endpoint lot persistence
-
     '''
-    Fields = ['uid', 'name', 'ha']
 
     def __init__(self, prefix='lot', **kwa):
         '''
