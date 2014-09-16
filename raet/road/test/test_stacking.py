@@ -25,6 +25,9 @@ console = getConsole()
 from raet import raeting, nacling
 from raet.road import keeping, estating, stacking, transacting
 
+def tempbasedir(prefix='', suffix='', dir='', lane='', keep=''):
+    return tempfile.mkdtemp(prefix=prefix, suffix=suffix)
+
 def setUpModule():
     console.reinit(verbosity=console.Wordage.concise)
 
@@ -38,7 +41,7 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        self.baseDirpath=tempbasedir(prefix="raet",  suffix="base")
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack
@@ -98,9 +101,6 @@ class BasicTestCase(unittest.TestCase):
 
         self.main.clearAllDir()
         self.other.clearAllDir()
-
-        if os.path.exists(self.baseDirpath):
-            shutil.rmtree(self.baseDirpath)
 
 
     def join(self, mha=None, timeout=None):
