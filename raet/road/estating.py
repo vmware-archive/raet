@@ -30,7 +30,7 @@ class Estate(lotting.Lot):
     def __init__(self,
                  stack,
                  name="",
-                 prefix='road',
+                 prefix='estate',
                  ha=None,
                  iha=None,
                  natted=None,
@@ -143,7 +143,7 @@ class Estate(lotting.Lot):
             transaction.process()
 
     @staticmethod
-    def nameGuid(prefix='road'):
+    def nameGuid(prefix='estate'):
         '''
         Returns string guid name for road estate given prefix using hex of uuid.uuid1
         '''
