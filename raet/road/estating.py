@@ -21,6 +21,7 @@ from .. import lotting
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
+
 class Estate(lotting.Lot):
     '''
     RAET protocol endpoint estate object ie Road Lot
@@ -44,7 +45,7 @@ class Estate(lotting.Lot):
 
         stack is required parameter
         '''
-        name = name or "{0}_{1}".format(prefix, uuid.uuid1().hex)
+        name = name or self.nameGuid(prefix=prefix)
         uid = uid if uid is not None else stack.nextUid()
         super(Estate, self).__init__(stack=stack, name=name, ha=ha, uid=uid, **kwa)
 
@@ -141,6 +142,13 @@ class Estate(lotting.Lot):
         for transaction in self.transactions.values():
             transaction.process()
 
+    @staticmethod
+    def nameGuid(prefix='road'):
+        '''
+        Returns string guid name for road estate given prefix using hex of uuid.uuid1
+        '''
+        return ("{0}_{1}".format(prefix, uuid.uuid1().hex))
+
 class LocalEstate(Estate):
     '''
     RAET protocol endpoint local estate object ie Local Road Lot
@@ -179,7 +187,6 @@ class RemoteEstate(Estate):
 
     def __init__(self,
                  stack,
-                 prefix='estate',
                  uid=None,
                  fuid=0,
                  main=False,
@@ -211,7 +218,7 @@ class RemoteEstate(Estate):
 
         if 'ha' not in kwa:
             kwa['ha'] = ('127.0.0.1', raeting.RAET_TEST_PORT)
-        super(RemoteEstate, self).__init__(stack, prefix=prefix, uid=uid, **kwa)
+        super(RemoteEstate, self).__init__(stack, uid=uid, **kwa)
         self.fuid = fuid
         self.main = main
         self.application = application
