@@ -208,63 +208,9 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
-    def testJoinBasic(self):
+    def testJoinerRejectH1(self):
         '''
-        Test join
-        '''
-        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
-
-        alphaData = self.createRoadData(base=self.base,
-                                       name='alpha',
-                                       ha=("", raeting.RAET_PORT),
-                                       main=True,
-                                       auto=raeting.autoModes.once)
-        keeping.clearAllKeep(alphaData['dirpath'])
-        alpha = self.createRoadStack(data=alphaData)
-
-        betaData = self.createRoadData(base=self.base,
-                                        name='beta',
-                                        ha=("", raeting.RAET_TEST_PORT),
-                                        main=None,
-                                        auto=raeting.autoModes.once)
-        keeping.clearAllKeep(betaData['dirpath'])
-        beta = self.createRoadStack(data=betaData)
-
-        console.terse("\nJoin from Beta to Alpha *********\n")
-        self.assertIs(alpha.main, True)
-        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
-        self.assertEqual(len(alpha.remotes), 0)
-        self.assertIs(beta.main, None)
-        self.assertIs(beta.keep.auto, raeting.autoModes.once)
-        self.assertEqual(len(beta.remotes), 0)
-        self.join(beta, alpha)
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.remotes), 1)
-            self.assertEqual(len(stack.nameRemotes), 1)
-            for remote in stack.remotes.values():
-                self.assertIs(remote.joined, True)
-                self.assertIs(remote.allowed, None)
-                self.assertIs(remote.alived, None)
-
-        console.terse("\nAllow Beta to Alpha *********\n")
-        self.allow(beta, alpha)
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.remotes), 1)
-            self.assertEqual(len(stack.nameRemotes), 1)
-            for remote in stack.remotes.values():
-                self.assertIs(remote.joined, True)
-                self.assertIs(remote.allowed, True)
-                self.assertIs(remote.alived, None)
-
-        for stack in [alpha, beta]:
-            stack.server.close()
-            stack.clearAllKeeps()
-
-    def testJoinerA1(self):
-        '''
-        Test join
+        Test join reject immutable not sameall re-join
         '''
         console.terse("{0}\n".format(self.testJoinBasic.__doc__))
 
@@ -291,6 +237,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(beta.main, None)
         self.assertIs(beta.keep.auto, raeting.autoModes.once)
         self.assertEqual(len(beta.remotes), 0)
+        self.assertIs(beta.mutable, None)
 
         self.join(beta, alpha)
         for stack in [alpha, beta]:
@@ -301,7 +248,12 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
+        self.assertIs(beta.mutable, None)
 
+        ar = alpha.remotes.itervalues().next()
+        br = beta.remotes.itervalues().next()
+
+        console.terse("\nRejoin (non-vacuoius) from Beta to Alpha with a new name *********\n")
         beta.name='beta_new'
         self.join(beta, alpha, renewal=True)
 
@@ -320,6 +272,11 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.joined, False)
             self.assertIs(remote.allowed, None)
             self.assertIs(remote.alived, None)
+            self.assertEqual(remote.fuid, 0)
+        self.assertIs(beta.mutable, None)
+
+        self.assertTrue(beta.stats['joiner_transaction_failure'] > 0)
+        self.assertTrue(alpha.stats['joinent_transaction_failure'] > 0)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -339,6 +296,7 @@ def runSome():
     '''
     tests =  []
     names = ['testJoinBasic',
+             'testJoinerRejectH1',
               ]
 
     tests.extend(map(BasicTestCase, names))
