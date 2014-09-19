@@ -484,7 +484,7 @@ class Joiner(Initiator):
         self.remote.joined = None
 
         if not self.stack.application:
-            application = 0
+            self.stack.application = 0
         else:
             if self.stack.application < 0 or self.stack.application > 255:
                 emsg = ("Joiner {0}. Invalid application field value {1} for {2}. "
@@ -499,7 +499,7 @@ class Joiner(Initiator):
         operation = packByte(fmt='11111111', fields=fields)
 
         body = odict([('name', self.stack.local.name),
-                      ('mode', "{0:02x}{0:02x}".format(application, operation)),
+                      ('mode', "{0:02x}{0:02x}".format(self.stack.application, operation)),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
                       ('role', self.stack.local.role)])
@@ -1263,7 +1263,7 @@ class Joinent(Correspondent):
         Send accept response to join request
         '''
         if not self.stack.application:
-            application = 0
+            self.stack.application = 0
         else:
             if self.stack.application < 0 or self.stack.application > 255:
                 emsg = ("Joinent {0}. Invalid application field value {1} for {2}. "
@@ -1278,7 +1278,7 @@ class Joinent(Correspondent):
         operation = packByte(fmt='11111111', fields=fields)
 
         body = odict([ ('name', self.stack.local.name),
-                       ('mode', "{0:02x}{0:02x}".format(application, operation)),
+                       ('mode', "{0:02x}{0:02x}".format(self.stack.application, operation)),
                        ('uid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),
                        ('pubhex', self.stack.local.priver.pubhex),

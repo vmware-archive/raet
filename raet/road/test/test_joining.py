@@ -27,7 +27,7 @@ from raet.road import estating, keeping, stacking
 
 
 def setUpModule():
-    console.reinit(verbosity=console.Wordage.concise)
+    console.reinit(verbosity=console.Wordage.verbose)
 
 def tearDownModule():
     pass
@@ -208,7 +208,7 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
-    def testJoinerRejectH1(self):
+    def testJoinentRejectH1(self):
         '''
         Test join reject immutable not sameall re-join
         '''
@@ -249,9 +249,6 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
         self.assertIs(beta.mutable, None)
-
-        ar = alpha.remotes.itervalues().next()
-        br = beta.remotes.itervalues().next()
 
         console.terse("\nRejoin (non-vacuoius) from Beta to Alpha with a new name *********\n")
         beta.name='beta_new'
@@ -562,8 +559,7 @@ def runSome():
     Unittest runner
     '''
     tests =  []
-    names = ['testJoinBasic',
-             'testJoinerRejectH1',
+    names = ['testJoinentVacuousAccept',
               ]
 
     tests.extend(map(BasicTestCase, names))
