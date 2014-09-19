@@ -282,6 +282,273 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
+    def testJoinentVacuousAccept(self):
+        '''
+        Test joinent accept
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alphaData = self.createRoadData(base=self.base,
+                                       name='alpha',
+                                       ha=("", raeting.RAET_PORT),
+                                       main=True,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData)
+
+        betaData = self.createRoadData(base=self.base,
+                                        name='beta',
+                                        ha=("", raeting.RAET_TEST_PORT),
+                                        main=None,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData)
+
+        console.terse("\nJoin from Beta to Alpha *********\n")
+
+        self.assertIs(alpha.main, True)
+        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(alpha.remotes), 0)
+        self.assertIs(beta.main, None)
+        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(beta.remotes), 0)
+        self.assertIs(beta.mutable, None)
+
+        remote =  beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                       fuid=0, # vacuous join
+                                                       sid=0, # always 0 for join
+                                                       ha=alpha.local.ha))
+        beta.join(uid=remote.uid)
+
+        # Send from beta that is Joiner
+        beta.serviceAllTx()
+        # Process on alpha that is Joinent
+        alpha.serviceAllRx()
+
+        # Alpha now is pending ack from beta
+        # Join again with a new name (hijack attempt)
+        remote.transactions.clear()
+        #beta.name = "beta-new"
+        beta.main = True
+        remote.sid=0
+        remote.fuid=0
+        beta.join(uid=remote.uid)
+
+        # Send from beta that is Joiner
+        beta.serviceAllTx()
+        # Process on alpha that is Joinent
+        alpha.serviceAllRx()
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def getAcceptedStacks(self):
+        alphaData = self.createRoadData(base=self.base,
+                                       name='alpha',
+                                       ha=("", raeting.RAET_PORT),
+                                       main=True,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData)
+
+        betaData = self.createRoadData(base=self.base,
+                                        name='beta',
+                                        ha=("", raeting.RAET_TEST_PORT),
+                                        main=None,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData)
+
+        console.terse("\nJoin from Beta to Alpha *********\n")
+
+        self.assertIs(alpha.main, True)
+        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(alpha.remotes), 0)
+        self.assertIs(beta.main, None)
+        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(beta.remotes), 0)
+        self.assertIs(beta.mutable, None)
+        self.assertIs(alpha.mutable, None)
+
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+        self.assertIs(beta.mutable, None)
+        self.assertIs(alpha.mutable, None)
+
+        return alpha, beta
+
+    def testJoinentVacuousAcceptD1(self):
+        '''
+        Test joinent accept
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alpha, beta = self.getAcceptedStacks()
+        remote = beta.remotes.itervalues().next()
+
+        # Status Accepted achieved
+
+        # Join again with a new main
+        alpha.mutable = True
+        beta.main = True
+        remote.sid=0
+        remote.fuid=0
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+        self.assertIs(beta.mutable, None)
+        self.assertIs(alpha.mutable, True)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentVacuousAcceptD2(self):
+        '''
+        Test joinent accept
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alpha, beta = self.getAcceptedStacks()
+        remote = beta.remotes.itervalues().next()
+
+        # Status Accepted achieved
+
+        # Join again with a new main
+        alpha.mutable = True
+        beta.application = 1
+        remote.sid=0
+        remote.fuid=0
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+        self.assertIs(beta.mutable, None)
+        self.assertIs(alpha.mutable, True)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentVacuousAcceptD3(self):
+        '''
+        Test joinent accept
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alpha, beta = self.getAcceptedStacks()
+        remote = beta.remotes.itervalues().next()
+
+        # Status Accepted achieved
+
+        # Join again with a new main
+        alpha.mutable = True
+        beta.application = 1
+        remote.sid=0
+        remote.fuid=0
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+        self.assertIs(beta.mutable, None)
+        self.assertIs(alpha.mutable, True)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentVacuousAcceptD4(self):
+        '''
+        Test joinent accept
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alpha, beta = self.getAcceptedStacks()
+        remote = beta.remotes.itervalues().next()
+
+        # Status Accepted achieved
+
+        # Join again with a new main
+        alpha.mutable = True
+        # Change source estate ID
+        old_id = remote.nuid
+        remote.nuid = 10
+        beta.remotes.clear()
+        beta.remotes[10] = remote
+        remote.sid=0
+        remote.fuid=0
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+        self.assertIs(beta.mutable, None)
+        self.assertIs(alpha.mutable, True)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentVacuousAcceptD6(self):
+        '''
+        Test joinent accept
+        '''
+        console.terse("{0}\n".format(self.testJoinBasic.__doc__))
+
+        alpha, beta = self.getAcceptedStacks()
+        remote = beta.remotes.itervalues().next()
+
+        # Status Accepted achieved
+
+        # Join again with a new main
+        alpha.mutable = True
+        beta.local.role = 'beta-new'
+        remote.sid=0
+        remote.fuid=0
+        self.join(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+        self.assertIs(beta.mutable, None)
+        self.assertIs(alpha.mutable, True)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
 def runOne(test):
     '''
     Unittest Runner
