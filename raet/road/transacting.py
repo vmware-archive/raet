@@ -483,8 +483,8 @@ class Joiner(Initiator):
 
         self.remote.joined = None
 
-        if not self.stack.application:
-            application = 0
+        if self.stack.application is None:
+            self.stack.application = 0
         else:
             if self.stack.application < 0 or self.stack.application > 255:
                 emsg = ("Joiner {0}. Invalid application field value {1} for {2}. "
@@ -499,7 +499,8 @@ class Joiner(Initiator):
         operation = packByte(fmt='11111111', fields=fields)
 
         body = odict([('name', self.stack.local.name),
-                      ('mode', "{0:02x}{0:02x}".format(application, operation)),
+                      ('mode', "{0:02x}{0:02x}".format(self.stack.application,
+                                                       operation)),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
                       ('role', self.stack.local.role)])
