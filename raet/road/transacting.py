@@ -499,7 +499,7 @@ class Joiner(Initiator):
         operation = packByte(fmt='11111111', fields=fields)
 
         body = odict([('name', self.stack.local.name),
-                      ('mode', "{0:02x}{0:02x}".format(self.stack.application, operation)),
+                      ('mode', "{0:02x}{1:02x}".format(self.stack.application, operation)),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
                       ('role', self.stack.local.role)])
@@ -1278,7 +1278,7 @@ class Joinent(Correspondent):
         operation = packByte(fmt='11111111', fields=fields)
 
         body = odict([ ('name', self.stack.local.name),
-                       ('mode', "{0:02x}{0:02x}".format(self.stack.application, operation)),
+                       ('mode', "{0:02x}{1:02x}".format(self.stack.application, operation)),
                        ('uid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),
                        ('pubhex', self.stack.local.priver.pubhex),
