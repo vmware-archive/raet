@@ -195,7 +195,7 @@ class BasicTestCase(unittest.TestCase):
 
         return alpha, beta
 
-    def getAutoAcceptedStacks(self):
+    def bootstrapJoinedRemotes(self):
         alphaData = self.createRoadData(base=self.base,
                                         name='alpha',
                                         ha=("", raeting.RAET_PORT),
@@ -314,7 +314,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.getAutoAcceptedStacks()
+        alpha, beta = self.bootstrapJoinedRemotes()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -382,7 +382,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.getAutoAcceptedStacks()
+        alpha, beta = self.bootstrapJoinedRemotes()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -452,7 +452,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.getAutoAcceptedStacks()
+        alpha, beta = self.bootstrapJoinedRemotes()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -520,7 +520,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.getAutoAcceptedStacks()
+        alpha, beta = self.bootstrapJoinedRemotes()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -586,7 +586,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.getAutoAcceptedStacks()
+        alpha, beta = self.bootstrapJoinedRemotes()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -658,7 +658,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.getAutoAcceptedStacks()
+        alpha, beta = self.bootstrapJoinedRemotes()
         # Mutable: Yes
         alpha.mutable = True
 
