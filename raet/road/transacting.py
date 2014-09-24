@@ -495,12 +495,11 @@ class Joiner(Initiator):
                 console.concise(emsg)
                 return
 
-        fields = [0, 0, 0, 0, 0, 0, 0, self.stack.main]
-        operation = packByte(fmt='11111111', fields=fields)
-
+        flags = [0, 0, 0, 0, 0, 0, 0, self.stack.main] # stack operation mode flags
+        operation = packByte(fmt='11111111', fields=flags)
         body = odict([('name', self.stack.local.name),
-                      ('mode', "{0:02x}{1:02x}".format(self.stack.kind,
-                                                       operation)),
+                      ('mode', operation),
+                      ('kind', self.stack.kind),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
                       ('role', self.stack.local.role)])
@@ -568,14 +567,22 @@ class Joiner(Initiator):
             return
 
         mode = body.get('mode')
-        if not mode or len(mode) != 4:
-            emsg = "Missing or invalid remote operation application mode in accept packet\n"
+        if mode is None or not isinstance(mode, int) or mode < 0 or mode > 255:
+            emsg = "Missing or invalid remote stack operation mode in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(index=self.rxPacket.index)
             return
-        kind = int(mode[:2], 16)
-        main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
+        flags = unpackByte(fmt='11111111', byte=mode, boolean=True)
+        main = flags[7]
+
+        kind = body.get('kind')
+        if kind is None:
+            emsg = "Missing or invalid remote application kind in accept packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_accept')
+            self.remove(index=self.rxPacket.index)
+            return
 
         fuid = body.get('uid')
         if not fuid: # None or zero
@@ -1000,14 +1007,22 @@ class Joinent(Correspondent):
             return
 
         mode = body.get('mode')
-        if not mode or len(mode) != 4:
-            emsg = "Missing or invalid remote operation application mode in join packet\n"
+        if mode is None or not isinstance(mode, int) or mode < 0 or mode > 255:
+            emsg = "Missing or invalid remote stack operation mode in join packet\n"
             console.terse(emsg)
-            self.stack.incStat('invalid_join')
+            self.stack.incStat('invalid_accept')
             self.remove(index=self.rxPacket.index)
             return
-        kind = int(mode[:2], 16)
-        main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
+        flags = unpackByte(fmt='11111111', byte=mode, boolean=True)
+        main = flags[7]
+
+        kind = body.get('kind')
+        if kind is None:
+            emsg = "Missing or invalid remote application kind in join packet\n"
+            console.terse(emsg)
+            self.stack.incStat('invalid_accept')
+            self.remove(index=self.rxPacket.index)
+            return
 
         verhex = body.get('verhex')
         if not verhex:
@@ -1275,16 +1290,15 @@ class Joinent(Correspondent):
                 console.concise(emsg)
                 return
 
-        fields = [0, 0, 0, 0, 0, 0, 0, self.stack.main]
-        operation = packByte(fmt='11111111', fields=fields)
-
+        flags = [0, 0, 0, 0, 0, 0, 0, self.stack.main] # stack operation mode flags
+        operation = packByte(fmt='11111111', fields=flags)
         body = odict([ ('name', self.stack.local.name),
-                       ('mode', "{0:02x}{1:02x}".format(self.stack.kind,
-                                                        operation)),
+                       ('mode', operation),
+                       ('kind', self.stack.kind),
                        ('uid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),
                        ('pubhex', self.stack.local.priver.pubhex),
-                       ('role', self.stack.local.role), ])
+                       ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.response,
                                     embody=body,
