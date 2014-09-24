@@ -1281,8 +1281,10 @@ class BasicTestCase(unittest.TestCase):
         # now close down main and reload from saved data and manage
         console.terse("\nMake all alive with cascade after main reboots *********\n")
         main.server.close()
-        main = stacking.RoadStack(dirpath=mainDirpath,
-                                  store=self.store)
+        main = stacking.RoadStack(store=self.store,
+                                  main=True,
+                                  dirpath=mainDirpath,
+                                  )
         stacks = [main, other, other1]
 
         for remote in main.remotes.values():
@@ -1306,8 +1308,10 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nMake all alive with cascade after others reboot *********\n")
         other.server.close()
         other1.server.close()
-        other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
-        other1 = stacking.RoadStack(dirpath=other1Dirpath, store=self.store)
+        other = stacking.RoadStack(dirpath=otherDirpath,
+                                   store=self.store)
+        other1 = stacking.RoadStack(dirpath=other1Dirpath,
+                                    store=self.store)
         stacks = [main, other, other1]
 
         for stack in [other, other1]:
@@ -1369,7 +1373,6 @@ class BasicTestCase(unittest.TestCase):
                                      auto=other1Data['auto'],
                                      ha=("", 7532))
 
-
         for stack in (other, other1):
             self.join(stack, main)
             self.allow(stack, main)
@@ -1405,7 +1408,9 @@ class BasicTestCase(unittest.TestCase):
         # now test if main rebooted
         console.terse("\nMake all alive with cascade after main reboots *********\n")
         main.server.close()
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(store=self.store,
+                                  main=True,
+                                  dirpath=mainDirpath,)
         stacks = [main, other, other1]
 
         for stack in [main]:
@@ -1491,7 +1496,9 @@ class BasicTestCase(unittest.TestCase):
         # now close down all and reload from saved data and manage
         console.terse("\nMake all alive with cascade after all reboot *********\n")
         main.server.close()
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(store=self.store,
+                                  main=True,
+                                  dirpath=mainDirpath,)
         other.server.close()
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
         other1.server.close()
@@ -1529,7 +1536,9 @@ class BasicTestCase(unittest.TestCase):
         # now close down all and reload from saved data but loose joined status
         console.terse("\nMake all alive with cascade after all reboot and lose join *********\n")
         main.server.close()
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(store=self.store,
+                                  main=True,
+                                  dirpath=mainDirpath,)
         other.server.close()
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
         other1.server.close()
@@ -1643,7 +1652,9 @@ class BasicTestCase(unittest.TestCase):
         # now test if main rebooted
         console.terse("\nMake all alive with cascade after main reboots *********\n")
         main.server.close()
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(store=self.store,
+                                  main=True,
+                                  dirpath=mainDirpath,)
         stacks = [main, other, other1]
 
         for stack in [main]:
@@ -1729,7 +1740,9 @@ class BasicTestCase(unittest.TestCase):
         # now close down all and reload from saved data and manage
         console.terse("\nMake all alive with cascade after all reboot *********\n")
         main.server.close()
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(store=self.store,
+                                  main=True,
+                                  dirpath=mainDirpath,)
         other.server.close()
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
         other1.server.close()
@@ -1767,7 +1780,9 @@ class BasicTestCase(unittest.TestCase):
         # now close down all and reload from saved data but loose joined status
         console.terse("\nMake all alive with cascade after all reboot and lose join *********\n")
         main.server.close()
-        main = stacking.RoadStack(dirpath=mainDirpath, store=self.store)
+        main = stacking.RoadStack(store=self.store,
+                                  main=True,
+                                  dirpath=mainDirpath,)
         other.server.close()
         other = stacking.RoadStack(dirpath=otherDirpath, store=self.store)
         other1.server.close()
@@ -1853,4 +1868,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testJoinFromMain')
+    #runOne('testManageRebootCascadeBothSides')
