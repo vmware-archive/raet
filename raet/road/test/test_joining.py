@@ -444,7 +444,6 @@ class BasicTestCase(unittest.TestCase):
         #keep['application'] = newAppl
         self.assertIs(self.sameAll(alphaRemote, keep), False)
         self.assertEqual(alphaRemote.application, newAppl)
-
         self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
         self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
 
@@ -455,30 +454,34 @@ class BasicTestCase(unittest.TestCase):
     def testJoinentVacuousAcceptNewRha(self):
         '''
         Test joinent accept vacuous join with updated remote host address (D3)
+
+        This test is not right
         '''
         console.terse("{0}\n".format(self.testJoinentVacuousAcceptNewRha.__doc__))
 
-        old_ha = '127.0.0.5'
-        new_ha = '127.0.0.1'
+
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
         alpha, beta = self.getAutoAcceptedStacks()
         # Mutable: Yes
         alpha.mutable = True
 
+        newHa = ('127.0.0.5', beta.local.ha[1])
+        oldHa = ('127.0.0.1', beta.local.ha[1])
+
         # Vacuous: Yes
-        beta_remote = beta.addRemote(estating.RemoteEstate(stack=beta,
+        betaRemote = beta.addRemote(estating.RemoteEstate(stack=beta,
                                                            fuid=0, # vacuous join
                                                            sid=0, # always 0 for join
                                                            ha=alpha.local.ha))
         # Ephemeral: No Name (the name is known)
-        alpha_remote = estating.RemoteEstate(stack=alpha,
-                                             fuid=beta_remote.nuid,
-                                             ha=(old_ha, beta.local.ha[1]),
+        alphaRemote = estating.RemoteEstate(stack=alpha,
+                                             fuid=betaRemote.nuid,
+                                             ha=newHa,
                                              name=beta.name,
                                              verkey=beta.local.signer.verhex,
                                              pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alpha_remote)
+        alpha.addRemote(alphaRemote)
 
         # Name: Old
         # Main: Either
@@ -491,11 +494,11 @@ class BasicTestCase(unittest.TestCase):
         # Role: Either
         # Keys: Either
         # Sameness: Not sameall
-        self.assertEqual(alpha_remote.ha[0], old_ha)
-        keep = self.copyData(alpha_remote)
+        self.assertEqual(alphaRemote.ha, newHa)
+        keep = self.copyData(alphaRemote)
 
         # Test
-        self.join(beta, alpha, deid=beta_remote.nuid)
+        self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Accept, Dump
         for stack in [alpha, beta]:
@@ -508,9 +511,10 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
         self.assertIs(beta.mutable, None)
         self.assertIs(alpha.mutable, True)
-        keep['ha'] = (new_ha, keep['ha'][1])
-        self.sameAllCheck(alpha_remote, keep)
-        self.assertEqual(alpha_remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(self.sameAll(alphaRemote, keep), False)
+        self.assertEqual(alphaRemote.ha, oldHa)
+        self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -519,6 +523,8 @@ class BasicTestCase(unittest.TestCase):
     def testJoinentVacuousAcceptNewFuid(self):
         '''
         Test joinent accept vacuous join with an updated fuid (D4)
+
+        This test is not right.
         '''
         console.terse("{0}\n".format(self.testJoinentVacuousAcceptNewFuid.__doc__))
 
@@ -529,38 +535,38 @@ class BasicTestCase(unittest.TestCase):
         alpha.mutable = True
 
         # Vacuous: Yes
-        beta_remote = beta.addRemote(estating.RemoteEstate(stack=beta,
+        betaRemote = beta.addRemote(estating.RemoteEstate(stack=beta,
                                                            fuid=0, # vacuous join
                                                            sid=0, # always 0 for join
                                                            ha=alpha.local.ha))
 
-        old_fuid = 33
-        new_fuid = beta_remote.nuid
+        newFuid = 33
+        oldFuid = betaRemote.nuid
 
         # Ephemeral: No Name (the name is known)
-        alpha_remote = estating.RemoteEstate(stack=alpha,
-                                             fuid=old_fuid,
+        alphaRemote = estating.RemoteEstate(stack=alpha,
+                                             fuid=newFuid,
                                              ha=beta.local.ha,
                                              name=beta.name,
                                              verkey=beta.local.signer.verhex,
                                              pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alpha_remote)
+        alpha.addRemote(alphaRemote)
 
         # Name: Old
         # Main: Either
         # Appl: Either
         # RHA:  Either
         # Nuid: Computed
-        # Fuid: New: alpha_remote has uid=33 that is 'old', beta_remote has uid=2
+        # Fuid: New: alphaRemote has uid=33 that is 'old', betaRemote has uid=2
         # Leid: 0
         # Reid: Either
         # Role: Either
         # Keys: Either
         # Sameness: Not sameall
-        keep = self.copyData(alpha_remote)
+        keep = self.copyData(alphaRemote)
 
         # Test
-        self.join(beta, alpha, deid=beta_remote.nuid)
+        self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Accept, Dump
         for stack in [alpha, beta]:
@@ -573,9 +579,10 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
         self.assertIs(beta.mutable, None)
         self.assertIs(alpha.mutable, True)
-        keep['fuid'] = new_fuid
-        self.sameAllCheck(alpha_remote, keep)
-        self.assertEqual(alpha_remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(self.sameAll(alphaRemote, keep), True) # this test is backwards
+        self.assertEqual(alphaRemote.fuid, oldFuid)
+        self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -594,19 +601,19 @@ class BasicTestCase(unittest.TestCase):
         alpha.mutable = True
 
         # Vacuous: Yes
-        beta_remote = beta.addRemote(estating.RemoteEstate(stack=beta,
+        betaRemote = beta.addRemote(estating.RemoteEstate(stack=beta,
                                                            fuid=0, # vacuous join
                                                            sid=0, # always 0 for join
                                                            ha=alpha.local.ha))
 
         # Ephemeral: No Name (the name is known)
-        alpha_remote = estating.RemoteEstate(stack=alpha,
-                                             fuid=beta_remote.nuid,
+        alphaRemote = estating.RemoteEstate(stack=alpha,
+                                             fuid=betaRemote.nuid,
                                              ha=beta.local.ha,
                                              name=beta.name,
                                              verkey=beta.local.signer.verhex,
                                              pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alpha_remote)
+        alpha.addRemote(alphaRemote)
 
         # Name: Old
         # Main: Either
@@ -621,10 +628,10 @@ class BasicTestCase(unittest.TestCase):
         beta.local.signer = nacling.Signer()
         beta.local.priver = nacling.Privateer()
         # Sameness: Not sameall
-        keep = self.copyData(alpha_remote)
+        keep = self.copyData(alphaRemote)
 
         # Test
-        self.join(beta, alpha, deid=beta_remote.nuid)
+        self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Accept, Dump
         for stack in [alpha, beta]:
@@ -637,15 +644,17 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
         self.assertIs(beta.mutable, None)
         self.assertIs(alpha.mutable, True)
-        keep['verhex'] = beta.local.signer.verhex
-        keep['pubhex'] = beta.local.priver.pubhex
-        self.sameAllCheck(alpha_remote, keep)
-        self.assertEqual(alpha_remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(self.sameAll(alphaRemote, keep), False)
+        self.assertIs(self.sameRoleKeys(alphaRemote, keep), False)
+        self.assertEqual(alphaRemote.verfer.keyhex, beta.local.signer.verhex)
+        self.assertEqual(alphaRemote.pubber.keyhex, beta.local.priver.pubhex)
+        self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
 
         # Keys: New
         beta.local.priver = nacling.Privateer()
-        beta_remote.fuid = 0
-        beta_remote.sid = 0
+        betaRemote.fuid = 0
+        betaRemote.sid = 0
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -664,21 +673,21 @@ class BasicTestCase(unittest.TestCase):
         alpha.mutable = True
 
         # Vacuous: Yes
-        beta_remote = beta.addRemote(estating.RemoteEstate(stack=beta,
+        betaRemote = beta.addRemote(estating.RemoteEstate(stack=beta,
                                                            fuid=0, # vacuous join
                                                            sid=0, # always 0 for join
                                                            ha=alpha.local.ha))
         # Ephemeral: No Name (the name is known)
-        alpha_remote = estating.RemoteEstate(stack=alpha,
-                                             fuid=beta_remote.nuid,
+        alphaRemote = estating.RemoteEstate(stack=alpha,
+                                             fuid=betaRemote.nuid,
                                              ha=beta.local.ha,
                                              name=beta.name,
                                              verkey=beta.local.signer.verhex,
                                              pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alpha_remote)
+        alpha.addRemote(alphaRemote)
 
-        old_role = 'beta'
-        new_role = 'beta_new'
+        oldRole = 'beta'
+        newRole = 'beta_new'
         # Name: Old
         # Main: Either
         # Appl: Either
@@ -688,14 +697,14 @@ class BasicTestCase(unittest.TestCase):
         # Leid: 0
         # Reid: Either
         # Role: New
-        self.assertIs(beta.local.role, old_role)
-        beta.local.role = new_role
+        self.assertIs(beta.local.role, oldRole)
+        beta.local.role = newRole
         # Keys: Either
         # Sameness: Not sameall
-        keep = self.copyData(alpha_remote)
+        keep = self.copyData(alphaRemote)
 
         # Test
-        self.join(beta, alpha, deid=beta_remote.nuid)
+        self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Accept, Dump
         for stack in [alpha, beta]:
@@ -708,9 +717,10 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
         self.assertIs(beta.mutable, None)
         self.assertIs(alpha.mutable, True)
-        keep['role'] = new_role
-        self.sameAllCheck(alpha_remote, keep)
-        self.assertEqual(alpha_remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(self.sameAll(alphaRemote, keep), False)
+        self.assertEqual(alphaRemote.role, newRole)
+        self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
 
         for stack in [alpha, beta]:
             stack.server.close()
