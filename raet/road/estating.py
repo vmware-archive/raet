@@ -190,7 +190,7 @@ class RemoteEstate(Estate):
                  uid=None,
                  fuid=0,
                  main=False,
-                 application=0,
+                 kind=0,
                  verkey=None,
                  pubkey=None,
                  acceptance=None,
@@ -221,7 +221,7 @@ class RemoteEstate(Estate):
         super(RemoteEstate, self).__init__(stack, uid=uid, **kwa)
         self.fuid = fuid
         self.main = main
-        self.application = application
+        self.kind = kind
         self.joined = joined
         self.allowed = None
         self.alived = None

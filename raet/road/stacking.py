@@ -106,7 +106,7 @@ class RoadStack(stacking.KeepStack):
                  sigkey=None,
                  prikey=None,
                  bufcnt=2,
-                 application=None,
+                 kind=None,
                  mutable=None,
                  period=None,
                  offset=None,
@@ -151,8 +151,8 @@ class RoadStack(stacking.KeepStack):
                                         local=local,
                                         bufcnt=bufcnt,
                                         **kwa)
-        self.application = application
-        self.mutable = mutable
+        self.kind = kind # application kind associated with the local estate
+        self.mutable = mutable # road data mutability
         self.joinees = odict() # remotes associated with vacuous joins, keyed by ha
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
@@ -329,7 +329,7 @@ class RoadStack(stacking.KeepStack):
                                                dyned=keepData['dyned'],
                                                sid=keepData['sid'],
                                                main=keepData['main'],
-                                               application=keepData['application'],
+                                               kind=keepData['kind'],
                                                joined=keepData['joined'],
                                                acceptance=keepData['acceptance'],
                                                verkey=keepData['verhex'],
@@ -361,7 +361,7 @@ class RoadStack(stacking.KeepStack):
                                                    dyned=keepData['dyned'],
                                                    sid=keepData['sid'],
                                                    main=keepData['main'],
-                                                   application=keepData['application'],
+                                                   kind=keepData['kind'],
                                                    joined=keepData['joined'],
                                                    acceptance=keepData['acceptance'],
                                                    verkey=keepData['verhex'],

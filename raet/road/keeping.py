@@ -48,10 +48,10 @@ class RoadKeep(keeping.Keep):
                        'puid', 'aha', 'role']
     LocalRoleFields = ['role', 'sighex','prihex']
     RemoteFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'fqdn', 'dyned',
-                    'sid', 'main', 'application', 'joined',
+                    'sid', 'main', 'kind', 'joined',
                     'role', 'acceptance', 'verhex', 'pubhex']
     RemoteDumpFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'fqdn', 'dyned',
-                         'sid', 'main', 'application', 'joined', 'role']
+                         'sid', 'main', 'kind', 'joined', 'role']
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
     Auto = raeting.autoModes.never #auto accept
 
@@ -334,7 +334,7 @@ class RoadKeep(keeping.Keep):
                         ('dyned', remote.dyned),
                         ('sid', remote.sid),
                         ('main', remote.main),
-                        ('application', remote.application),
+                        ('kind', remote.kind),
                         ('joined', remote.joined),
                         ('role', remote.role),
                     ])

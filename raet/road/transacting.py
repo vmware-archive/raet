@@ -483,14 +483,14 @@ class Joiner(Initiator):
 
         self.remote.joined = None
 
-        if self.stack.application is None:
-            self.stack.application = 0
+        if self.stack.kind is None:
+            self.stack.kind = 0
         else:
-            if self.stack.application < 0 or self.stack.application > 255:
-                emsg = ("Joiner {0}. Invalid application field value {1} for {2}. "
+            if self.stack.kind < 0 or self.stack.kind > 255:
+                emsg = ("Joiner {0}. Invalid application kind field value {1} for {2}. "
                                 "Aborting...\n".format(
                                                        self.stack.name,
-                                                       self.stack.application,
+                                                       self.stack.kind,
                                                        self.remote.name))
                 console.concise(emsg)
                 return
@@ -499,7 +499,7 @@ class Joiner(Initiator):
         operation = packByte(fmt='11111111', fields=fields)
 
         body = odict([('name', self.stack.local.name),
-                      ('mode', "{0:02x}{1:02x}".format(self.stack.application,
+                      ('mode', "{0:02x}{1:02x}".format(self.stack.kind,
                                                        operation)),
                       ('verhex', self.stack.local.signer.verhex),
                       ('pubhex', self.stack.local.priver.pubhex),
@@ -574,7 +574,7 @@ class Joiner(Initiator):
             self.stack.incStat('invalid_accept')
             self.remove(index=self.rxPacket.index)
             return
-        application = int(mode[:2], 16)
+        kind = int(mode[:2], 16)
         main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
 
         fuid = body.get('uid')
@@ -633,7 +633,7 @@ class Joiner(Initiator):
                         self.remove(index=self.txPacket.index)
                         return
                 self.remote.main = main
-                self.remote.application = application
+                self.remote.kind = kind
                 self.remote.fuid = fuid
                 self.remote.role = role
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
@@ -648,7 +648,7 @@ class Joiner(Initiator):
                    rha == self.remote.ha and
                    fuid == self.remote.fuid and
                    main == self.remote.main and
-                   application == self.remote.application)
+                   kind == self.remote.kind)
 
         if not sameAll and not self.stack.mutable:
             emsg = ("Joiner {0}. Attempt to change immutable road "
@@ -699,8 +699,8 @@ class Joiner(Initiator):
                 self.remote.fuid = fuid
             if main != self.remote.main:
                 self.remote.main = main
-            if application != self.remote.application:
-                self.remote.application = application
+            if kind != self.remote.kind:
+                self.remote.kind = kind
             if self.remote.role != role:
                 self.remote.role = role # rerole
             if verhex != self.remote.verfer.keyhex:
@@ -1006,7 +1006,7 @@ class Joinent(Correspondent):
             self.stack.incStat('invalid_join')
             self.remove(index=self.rxPacket.index)
             return
-        application = int(mode[:2], 16)
+        kind = int(mode[:2], 16)
         main = unpackByte(fmt='11111111', byte=int(mode[2:], 16), boolean=True)[7]
 
         verhex = body.get('verhex')
@@ -1103,7 +1103,7 @@ class Joinent(Correspondent):
             else: # ephemeral and unique name
                 self.remote.name = name
                 self.remote.main = main
-                self.remote.application = application
+                self.remote.kind = kind
                 self.remote.rha = rha
                 self.remote.role = role
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
@@ -1133,7 +1133,7 @@ class Joinent(Correspondent):
                    rha == self.remote.ha and
                    reid == self.remote.fuid and
                    main == self.remote.main and
-                   application == self.remote.application)
+                   kind == self.remote.kind)
 
         if not sameAll and not self.stack.mutable:
             emsg = ("Joinent {0}. Attempt to change immutable road "
@@ -1212,8 +1212,8 @@ class Joinent(Correspondent):
                 self.remote.fuid = reid
             if main != self.remote.main:
                 self.remote.main = main
-            if application != self.remote.application:
-                self.remote.application = application
+            if kind != self.remote.kind:
+                self.remote.kind = kind
             if role != self.remote.role: # rerole
                 self.remote.role = role
             if verhex != self.remote.verfer.keyhex:
@@ -1263,14 +1263,14 @@ class Joinent(Correspondent):
         '''
         Send accept response to join request
         '''
-        if self.stack.application is None:
-            self.stack.application = 0
+        if self.stack.kind is None:
+            self.stack.kind = 0
         else:
-            if self.stack.application < 0 or self.stack.application > 255:
-                emsg = ("Joinent {0}. Invalid application field value {1} for {2}. "
+            if self.stack.kind < 0 or self.stack.kind > 255:
+                emsg = ("Joinent {0}. Invalid application kind field value {1} for {2}. "
                                 "Aborting...\n".format(
                                                        self.stack.name,
-                                                       self.stack.application,
+                                                       self.stack.kind,
                                                        self.remote.name))
                 console.concise(emsg)
                 return
@@ -1279,7 +1279,7 @@ class Joinent(Correspondent):
         operation = packByte(fmt='11111111', fields=fields)
 
         body = odict([ ('name', self.stack.local.name),
-                       ('mode', "{0:02x}{1:02x}".format(self.stack.application,
+                       ('mode', "{0:02x}{1:02x}".format(self.stack.kind,
                                                         operation)),
                        ('uid', self.remote.uid),
                        ('verhex', self.stack.local.signer.verhex),

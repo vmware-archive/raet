@@ -234,7 +234,7 @@ class BasicTestCase(unittest.TestCase):
         keep['ha'] = remote.ha
         keep['fuid'] = remote.fuid
         keep['main'] = remote.main
-        keep['application'] = remote.application
+        keep['kind'] = remote.kind
         return keep
 
     def sameRoleKeys(self, remote, data):
@@ -250,7 +250,7 @@ class BasicTestCase(unittest.TestCase):
                 remote.name == data['name'] and
                 remote.ha == data['ha'] and
                 remote.main == data['main'] and
-                remote.application == data['application'])
+                remote.kind == data['kind'])
 
     def testJoinBasic(self):
         '''
@@ -376,7 +376,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentVacuousAcceptNewAppl(self):
         '''
-        Test joinent accept vacuous join with updated application (D2)
+        Test joinent accept vacuous join with updated application kind (D2)
         '''
         console.terse("{0}\n".format(self.testJoinentVacuousAcceptNewAppl.__doc__))
 
@@ -405,8 +405,8 @@ class BasicTestCase(unittest.TestCase):
         # Name: Old
         # Main: Either
         # Appl: New
-        self.assertIs(beta.application, oldAppl)
-        beta.application = newAppl
+        self.assertIs(beta.kind, oldAppl)
+        beta.kind = newAppl
         # RHA:  Either
         # Nuid: Computed
         # Fuid: Either
@@ -431,9 +431,8 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
         self.assertIs(beta.mutable, None)
         self.assertIs(alpha.mutable, True)
-        #keep['application'] = newAppl
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertEqual(alphaRemote.application, newAppl)
+        self.assertEqual(alphaRemote.kind, newAppl)
         self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
         self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
 
