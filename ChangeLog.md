@@ -1,6 +1,13 @@
 ------------------
 CHANGE LOG
 -------------------
+---------
+20140924
+----------
+v0.3.01
+
+New support for peer RAET channel. Changed semantics of how Join transactions
+works. This will allows peer to peer joining
 
 ---------
 20140729
