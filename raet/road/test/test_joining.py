@@ -237,16 +237,6 @@ class BasicTestCase(unittest.TestCase):
         keep['application'] = remote.application
         return keep
 
-    def sameAllCheck(self, remote, keep):
-        self.assertEqual(remote.role, keep['role'])
-        self.assertEqual(remote.verfer.keyhex, keep['verhex'])
-        self.assertEqual(remote.pubber.keyhex, keep['pubhex'])
-        self.assertEqual(remote.name, keep['name'])
-        self.assertEqual(remote.ha, keep['ha'])
-        self.assertEqual(remote.fuid, keep['fuid'])
-        self.assertEqual(remote.main, keep['main'])
-        self.assertEqual(remote.application, keep['application'])
-
     def sameRoleKeys(self, remote, data):
         '''
         Returns True if role and keys match, False otherwise
