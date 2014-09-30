@@ -1532,6 +1532,14 @@ class Allower(Initiator):
         '''
         Send hello request
         '''
+        joins = self.remote.joinInProcess()
+        if joins:
+            emsg = ("Allower {0}. Attempt to allow while join still in process with {1}.  "
+                                    "Aborting...\n".format(self.stack.name, self.remote.name))
+            console.concise(emsg)
+            self.stack.incStat('invalid_allow_attempt')
+            return
+
         allows = self.remote.allowInProcess()
         if allows:
             emsg = ("Allower {0}. Allow with {1} already in process\n".format(
@@ -1895,6 +1903,14 @@ class Allowent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
+        joins = self.remote.joinInProcess()
+        if joins:
+            emsg = ("Allowent {0}. Attempt to allow while join already in process with {1}.  "
+                                    "Aborting...\n".format(self.stack.name, self.remote.name))
+            console.concise(emsg)
+            self.stack.incStat('invalid_allow_attempt')
+            self.nack(kind=raeting.pcktKinds.refuse)
+
         allows = self.remote.allowInProcess()
         for allow in allows:
             if allow is self:
@@ -1928,51 +1944,6 @@ class Allowent(Correspondent):
                                 self.stack.name, self.remote.name))
                     console.concise(emsg)
                     allow.nack(kind=raeting.pcktKinds.refuse)
-
-        joins = self.remote.joinInProcess()
-        for join in joins: # only one join at a time is permitted
-            if join is self: # duplicate join packet so drop
-                emsg = ("Joinent {0}. Duplicate join from {1}. "
-                        "Dropping...\n".format(self.stack.name, self.remote.name))
-                console.concise(emsg)
-                self.stack.incStat('duplicate_join_attempt')
-                return
-
-            if join.rmt: # is already a correspondent to a join
-                emsg = ("Joinent {0}. Another joinent already in process with {1}. "
-                       "Aborting...\n".format(self.stack.name, self.remote.name))
-                console.concise(emsg)
-                self.stack.incStat('redundant_join_attempt')
-                self.nack(kind=raeting.pcktKinds.refuse)
-                return
-
-            else: # already initiator join in process, resolve race condition
-                if self.vacuous and not join.vacuous: # non-vacuous beats vacuous
-                    emsg = ("Joinent {0}. Already initiated non-vacuous join with {1}. "
-                            "Aborting ...\n".format(
-                                self.stack.name, self.remote.name))
-                    console.concise(emsg)
-                    self.stack.incStat('redundant_join_attempt')
-                    self.nack(kind=raeting.pcktKinds.refuse)
-                    return
-
-                if not self.vacuous and join.vacuous: # non-vacuous beats vacuous
-                    emsg = ("Joinent {0}. Removing vacuous initiator join with"
-                            " {1}. Proceeding...\n".format(
-                                            self.stack.name, self.remote.name))
-                    console.concise(emsg)
-                    join.nack(kind=raeting.pcktKinds.refuse)
-
-                else: # both vacuous or non-vacuous, so use name to resolve
-                    if self.local.name < name: # lessor name wins
-                        emsg = ("Joinent {0}. Already initiated join with {1}. "
-                                "Aborting due to name...\n".format(
-                                    self.stack.name, self.remote.name))
-                        console.concise(emsg)
-                        self.stack.incStat('redundant_join_attempt')
-                        self.nack(kind=raeting.pcktKinds.refuse)
-                        return
-
 
         self.remote.allowed = None
 
