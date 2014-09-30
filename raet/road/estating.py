@@ -66,7 +66,7 @@ class Estate(lotting.Lot):
             iha = (host, port)
         self.iha = iha # internal host address duple (host, port)
         self.natted = natted # is estate behind nat router
-        self.fqdn = fqdn or socket.getfqdn(self.ha[0]) if self.ha else ''
+        self.fqdn = fqdn or str(socket.getfqdn(self.ha[0])) if self.ha else ''
         self.dyned = dyned
         self.role = role if role is not None else self.name
         self.transactions = odict() # estate transactions keyed by transaction index
