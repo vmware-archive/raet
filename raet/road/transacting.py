@@ -1645,7 +1645,10 @@ class Allower(Initiator):
         vcipher, vnonce = self.stack.local.priver.encrypt(self.remote.privee.pubraw,
                                                 self.remote.pubber.key)
 
-        fqdn = self.remote.fqdn.ljust(128, ' ')
+        fqdn = self.remote.fqdn
+        if isinstance(fqdn, unicode):
+            fqdn = fqdn.encode('ascii', 'ignore')
+        fqdn = fqdn.ljust(128, ' ')[:128]
 
         stuff = raeting.INITIATESTUFF_PACKER.pack(self.stack.local.priver.pubraw,
                                                   vcipher,
@@ -2081,8 +2084,13 @@ class Allowent(Correspondent):
             self.nack(kind=raeting.pcktKinds.reject)
             return
 
+
         fqdn = fqdn.rstrip(' ')
-        if fqdn != self.stack.local.fqdn:
+        lfqdn = self.stack.local.fqdn
+        if isinstance(lfqdn, unicode):
+            lfqdn = lfqdn.encode('ascii', 'ignore')
+        lfqdn = lfqdn.ljust(128, ' ')[:128].rstrip(' ')
+        if fqdn != lfqdn:
             emsg = "Mismatch of fqdn in initiate stuff\n"
             console.terse(emsg)
             #self.stack.incStat('invalid_initiate')
