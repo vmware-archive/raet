@@ -2,6 +2,15 @@
 CHANGE LOG
 -------------------
 ---------
+20141002
+----------
+v0.3.02
+
+Fixed bug in allow transaction that prevented allow on restart
+Fixed issue with unicode fqdn on debian
+
+
+---------
 20140924
 ----------
 v0.3.01
