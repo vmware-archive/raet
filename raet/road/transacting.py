@@ -1175,7 +1175,7 @@ class Joinent(Correspondent):
                                                               self.remote.ha))
             console.concise(emsg)
             if sameRoleKeys and self.remote.uid in self.stack.remotes:
-                self.stack.removeRemote(self.remote, clear=Ture) #clear remote
+                self.stack.removeRemote(self.remote, clear=True) #clear remote
                 # removeRemote also nacks which is a reject
             else: # reject as keys rejected
                 self.nack(kind=raeting.pcktKinds.reject)
