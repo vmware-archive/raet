@@ -45,7 +45,7 @@ class BasicTestCase(unittest.TestCase):
         if os.path.exists(self.base):
             shutil.rmtree(self.base)
 
-    def createRoadData(self, name, base, auto=None):
+    def createRoadData(self, name, base, auto=None, role=None):
         '''
         Creates odict and populates with data to setup road stack
         {
@@ -60,6 +60,7 @@ class BasicTestCase(unittest.TestCase):
         data = odict()
         data['name'] = name
         data['dirpath'] = os.path.join(base, 'road', 'keep', name)
+        data['role'] = role if role is not None else name
         signer = nacling.Signer()
         data['sighex'] = signer.keyhex
         data['verhex'] = signer.verhex
@@ -86,6 +87,7 @@ class BasicTestCase(unittest.TestCase):
         stack = stacking.RoadStack(name=data['name'],
                                    uid=uid,
                                    ha=ha,
+                                   role=data['role'],
                                    sigkey=data['sighex'],
                                    prikey=data['prihex'],
                                    auto=auto if auto is not None else data['auto'],
@@ -199,6 +201,95 @@ class BasicTestCase(unittest.TestCase):
                 break
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
+
+
+    def testJoinNameRoleDiffer(self):
+        '''
+        Test join from other where name and role are different
+        '''
+        console.terse("{0}\n".format(self.testJoinNameRoleDiffer.__doc__))
+
+        mainData = self.createRoadData(name='main_stack',
+                                       role='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other_stack',
+                                        role='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=raeting.autoModes.never,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        self.assertNotEqual(main.local.name, main.local.role)
+        self.assertNotEqual(other.local.name, other.local.role)
+
+        console.terse("\nJoin Main to Other *********\n")
+        self.join(main, other) # vacuous join fails because other not main
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 0)
+            self.assertEqual(len(stack.nameRemotes), 0)
+
+        # now fix it so other can accept vacuous joins
+        other.main = True
+        other.keep.auto = raeting.autoModes.once
+
+        self.join(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow Main to Other *********\n")
+        self.allow(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAlive Main to other *********\n")
+        self.alive(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
+
+        console.terse("\nAlive Other to Main *********\n")
+        self.alive(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
+
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
 
 
     def testJoinFromMain(self):
@@ -1835,16 +1926,19 @@ def runSome():
     Unittest runner
     '''
     tests =  []
-    names = ['testJoinFromMain',
-             'testAliveDead',
-             'testAliveDeadMultiple',
-             'testAliveUnjoinedUnallowedBoth',
-             'testCascadeBoth',
-             'testManageOneSide',
-             'testManageBothSides',
-             'testManageMainRebootCascade',
-             'testManageRebootCascadeBothSides',
-             'testManageRebootCascadeBothSidesAlt', ]
+    names = [
+                'testJoinNameRoleDiffer',
+                'testJoinFromMain',
+                'testAliveDead',
+                'testAliveDeadMultiple',
+                'testAliveUnjoinedUnallowedBoth',
+                'testCascadeBoth',
+                'testManageOneSide',
+                'testManageBothSides',
+                'testManageMainRebootCascade',
+                'testManageRebootCascadeBothSides',
+                'testManageRebootCascadeBothSidesAlt',
+            ]
 
     tests.extend(map(BasicTestCase, names))
 
@@ -1868,4 +1962,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testManageRebootCascadeBothSides')
+    #runOne('testJoinNameRoleDiffer')
