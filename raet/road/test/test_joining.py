@@ -50,11 +50,10 @@ class BasicTestCase(unittest.TestCase):
                        name='',
                        ha=None,
                        main=None,
-                       auto=raeting.autoModes.never):
+                       auto=raeting.autoModes.never,
+                       role=None,
+                       kind=None, ):
         '''
-        name is local estate name (which is stack name property)
-        base is the base directory for the keep files
-        auto is the auto accept status mode ()
         Creates odict and populates with data to setup road stack
 
         '''
@@ -63,6 +62,8 @@ class BasicTestCase(unittest.TestCase):
         data['ha'] = ha
         data['main'] =  main
         data['auto'] = auto
+        data['role'] = role if role is not None else name
+        data['kind'] = kind
         data['dirpath'] = os.path.join(base, 'road', 'keep', name)
         signer = nacling.Signer()
         data['sighex'] = signer.keyhex
@@ -78,7 +79,9 @@ class BasicTestCase(unittest.TestCase):
                         uid=None,
                         ha=None,
                         main=None,
-                        auto=None,):
+                        auto=None,
+                        role=None,
+                        kind=None, ):
         '''
         Creates stack and local estate from data with
         and overrides with parameters
@@ -90,10 +93,12 @@ class BasicTestCase(unittest.TestCase):
                                    name=data['name'],
                                    uid=uid,
                                    ha=ha or data['ha'],
+                                   main=main if main is not None else data['main'],
+                                   role=role if role is not None else data['role'],
                                    sigkey=data['sighex'],
                                    prikey=data['prihex'],
-                                   auto=auto or data['auto'],
-                                   main=main or data['main'],
+                                   auto=auto if auto is not None else data['auto'],
+                                   kind=kind if kind is not None else data['kind'],
                                    dirpath=data['dirpath'],)
 
         return stack

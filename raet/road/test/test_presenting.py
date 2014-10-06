@@ -45,55 +45,61 @@ class BasicTestCase(unittest.TestCase):
         if os.path.exists(self.base):
             shutil.rmtree(self.base)
 
-    def createRoadData(self, name, base, auto=None, role=None):
+    def createRoadData(self,
+                       base,
+                       name='',
+                       ha=None,
+                       main=None,
+                       auto=raeting.autoModes.never,
+                       role=None,
+                       kind=None, ):
         '''
         Creates odict and populates with data to setup road stack
-        {
-            name: stack name local estate name
-            dirpath: dirpath for keep files
-            sighex: signing key
-            verhex: verify key
-            prihex: private key
-            pubhex: public key
-        }
+
         '''
         data = odict()
         data['name'] = name
-        data['dirpath'] = os.path.join(base, 'road', 'keep', name)
+        data['ha'] = ha
+        data['main'] =  main
+        data['auto'] = auto
         data['role'] = role if role is not None else name
+        data['kind'] = kind
+        data['dirpath'] = os.path.join(base, 'road', 'keep', name)
         signer = nacling.Signer()
         data['sighex'] = signer.keyhex
         data['verhex'] = signer.verhex
         privateer = nacling.Privateer()
         data['prihex'] = privateer.keyhex
         data['pubhex'] = privateer.pubhex
-        data['auto'] = auto
 
         return data
 
-    def createRoadStack(self, data, uid=None, main=None, auto=None, ha=None):
+    def createRoadStack(self,
+                        data,
+                        uid=None,
+                        ha=None,
+                        main=None,
+                        auto=None,
+                        role=None,
+                        kind=None, ):
         '''
         Creates stack and local estate from data with
-        local estate.uid = uid
-        stack.main = main
-        stack.auto = auto
-        stack.name = data['name']
-        local estate.name = data['name']
-        local estate.ha = ha
+        and overrides with parameters
 
         returns stack
 
         '''
-        stack = stacking.RoadStack(name=data['name'],
+        stack = stacking.RoadStack(store=self.store,
+                                   name=data['name'],
                                    uid=uid,
-                                   ha=ha,
-                                   role=data['role'],
+                                   ha=ha or data['ha'],
+                                   main=main if main is not None else data['main'],
+                                   role=role if role is not None else data['role'],
                                    sigkey=data['sighex'],
                                    prikey=data['prihex'],
                                    auto=auto if auto is not None else data['auto'],
-                                   main=main,
-                                   dirpath=data['dirpath'],
-                                   store=self.store)
+                                   kind=kind if kind is not None else data['kind'],
+                                   dirpath=data['dirpath'],)
 
         return stack
 
@@ -226,11 +232,87 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
-                                     auto=raeting.autoModes.never,
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.assertNotEqual(main.local.name, main.local.role)
         self.assertNotEqual(other.local.name, other.local.role)
+        self.assertIs(other.main, None)
+        self.assertIs(other.keep.auto, raeting.autoModes.once)
+
+        console.terse("\nJoin Other to Main *********\n")
+        self.join(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow Other to Main *********\n")
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAlive Other to Main *********\n")
+        self.alive(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
+
+        console.terse("\nAlive Main to Other *********\n")
+        self.alive(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+
+    def testJoinFromMain(self):
+        '''
+        Test join,initiated by main
+        '''
+        console.terse("{0}\n".format(self.testJoinFromMain.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.never)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        self.assertIs(other.keep.auto, raeting.autoModes.never)
+        self.assertIs(other.main, None)
 
         console.terse("\nJoin Main to Other *********\n")
         self.join(main, other) # vacuous join fails because other not main
@@ -242,6 +324,8 @@ class BasicTestCase(unittest.TestCase):
         # now fix it so other can accept vacuous joins
         other.main = True
         other.keep.auto = raeting.autoModes.once
+        self.assertIs(other.main, True)
+        self.assertIs(other.keep.auto, raeting.autoModes.once)
 
         self.join(main, other)
         for stack in [main, other]:
@@ -291,14 +375,14 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
-
-    def testJoinFromMain(self):
+    def testJoinFromMainNameRoleDiffer(self):
         '''
-        Test join,initiated by main
+        Test join from main where name and role are different
         '''
-        console.terse("{0}\n".format(self.testJoinFromMain.__doc__))
+        console.terse("{0}\n".format(self.testJoinFromMainNameRoleDiffer.__doc__))
 
-        mainData = self.createRoadData(name='main',
+        mainData = self.createRoadData(name='main_stack',
+                                       role='main',
                                        base=self.base,
                                        auto=raeting.autoModes.once)
         keeping.clearAllKeep(mainData['dirpath'])
@@ -307,14 +391,19 @@ class BasicTestCase(unittest.TestCase):
                                      auto=mainData['auto'],
                                      ha=None)
 
-        otherData = self.createRoadData(name='other',
+        otherData = self.createRoadData(name='other_stack',
+                                        role='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=raeting.autoModes.never)
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
-                                     auto=raeting.autoModes.never,
                                      ha=("", raeting.RAET_TEST_PORT))
+
+        self.assertNotEqual(main.local.name, main.local.role)
+        self.assertNotEqual(other.local.name, other.local.role)
+        self.assertIs(other.keep.auto, raeting.autoModes.never)
+        self.assertIs(other.main, None)
 
         console.terse("\nJoin Main to Other *********\n")
         self.join(main, other) # vacuous join fails because other not main
@@ -326,8 +415,124 @@ class BasicTestCase(unittest.TestCase):
         # now fix it so other can accept vacuous joins
         other.main = True
         other.keep.auto = raeting.autoModes.once
+        self.assertIs(other.main, True)
+        self.assertIs(other.keep.auto, raeting.autoModes.once)
+
 
         self.join(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow Main to Other *********\n")
+        self.allow(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAlive Main to other *********\n")
+        self.alive(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
+
+        console.terse("\nAlive Other to Main *********\n")
+        self.alive(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinFromMainKindChange(self):
+        '''
+        Test allow from main where name changed from join
+        This reproduces what happens if name changed after successful join
+        and reboot
+        so joined is persisted so allow fails
+        '''
+        console.terse("{0}\n".format(self.testJoinFromMainKindChange.__doc__))
+
+        mainData = self.createRoadData(name='main_stack',
+                                       role='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                     main=True,
+                                     auto=mainData['auto'],
+                                     ha=None)
+
+        otherData = self.createRoadData(name='other_stack',
+                                        role='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True,
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        self.assertNotEqual(main.local.name, main.local.role)
+        self.assertNotEqual(other.local.name, other.local.role)
+        self.assertIs(other.main, True)
+        self.assertIs(other.keep.auto, raeting.autoModes.once)
+
+        console.terse("\nJoin Main to Other *********\n")
+        self.join(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        # Change kind
+        other.kind =  1
+        self.assertNotEqual(other.kind, otherData['kind'])
+        main.kind =  1
+        self.assertNotEqual(main.kind, mainData['kind'])
+
+        self.join(main, other) # fails because not same all and immutable road
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(main.remotes), 0)
+        self.assertEqual(len(main.nameRemotes), 0)
+
+        self.assertEqual(len(other.remotes), 1)
+        self.assertEqual(len(other.nameRemotes), 1)
+        remote = other.remotes.values()[0]
+        self.assertIs(remote.joined, True)
+        self.assertIs(remote.allowed, None)
+        self.assertIs(remote.alived, None)
+
+        other.mutable = True
+        self.assertIs(other.mutable, True)
+        self.join(main, other) # fails because not same all and immutable road
         for stack in [main, other]:
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
@@ -1929,6 +2134,8 @@ def runSome():
     names = [
                 'testJoinNameRoleDiffer',
                 'testJoinFromMain',
+                'testJoinFromMainNameRoleDiffer',
+                'testJoinFromMainKindChange',
                 'testAliveDead',
                 'testAliveDeadMultiple',
                 'testAliveUnjoinedUnallowedBoth',
@@ -1960,6 +2167,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testJoinNameRoleDiffer')
+    runOne('testJoinFromMainKindChange')

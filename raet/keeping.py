@@ -167,6 +167,19 @@ class Keep(object):
             data[field] = None
         return data
 
+    def scrubData(self, data, defaults):
+        '''
+        Returns scrubbed copy of data that has the same field set as defaults
+        by either copying values for common fields or
+        adding fields with defaults
+        or leaving out extra fields
+        '''
+        scrubbed = odict(defaults)
+        for key in scrubbed:
+            if key in data:
+                scrubbed[key] = data[key]
+        return scrubbed
+
     def verifyLocalData(self, data, localFields=None):
         '''
         Returns True if the fields in .LocalFields match the fields in data

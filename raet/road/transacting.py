@@ -658,7 +658,7 @@ class Joiner(Initiator):
                    kind == self.remote.kind)
 
         if not sameAll and not self.stack.mutable:
-            emsg = ("Joiner {0}. Attempt to change immutable road "
+            emsg = ("Joiner {0}. Attempt to change immutable road by "
                                    "'{1}'\n".format(self.stack.name,
                                                     self.remote.name))
             console.terse(emsg)
@@ -1151,7 +1151,7 @@ class Joinent(Correspondent):
                    kind == self.remote.kind)
 
         if not sameAll and not self.stack.mutable:
-            emsg = ("Joinent {0}. Attempt to change immutable road "
+            emsg = ("Joinent {0}. Attempt to change immutable road by "
                                    "'{1}'\n".format(self.stack.name,
                                                     self.remote.name))
             console.terse(emsg)
@@ -2205,6 +2205,9 @@ class Allowent(Correspondent):
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind==raeting.pcktKinds.reject:
             console.concise("Allowent {0}. Do Nack Reject {1} at {2}\n".format(
+                    self.stack.name, self.remote.name, self.stack.store.stamp))
+        elif kind==raeting.pcktKinds.unjoined:
+            console.concise("Allowent {0}. Do Nack Unjoined {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
             console.terse("Allowent {0}. Do Nack of {1} at {2}\n".format(
