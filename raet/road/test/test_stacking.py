@@ -3,6 +3,7 @@
 Tests to try out stacking. Potentially ephemeral
 
 '''
+from __future__ import print_function
 # pylint: skip-file
 import sys
 if sys.version_info < (2, 7):
@@ -622,14 +623,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.main.transactions), 0)
         self.assertEqual(len(self.other.transactions), 0)
 
-        print "{0} Stats".format(self.main.name)
+        print("{0} Stats".format(self.main.name))
         for key, val in self.main.stats.items():
-            print "   {0}={1}".format(key, val)
-        print
-        print "{0} Stats".format(self.other.name)
+            print("   {0}={1}".format(key, val))
+        print()
+        print("{0} Stats".format(self.other.name))
         for key, val in self.other.stats.items():
-            print "   {0}={1}".format(key, val)
-        print
+            print("   {0}={1}".format(key, val))
+        print()
 
         self.assertTrue(self.other.stats.get('stale_correspondent_attempt') >= 1)
         self.assertTrue(self.other.stats.get('stale_correspondent_nack') >= 1)

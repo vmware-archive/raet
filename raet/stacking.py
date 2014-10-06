@@ -9,6 +9,9 @@ stacking.py raet protocol stacking classes
 import socket
 import os
 import errno
+import sys
+if sys.version_info > (3,):
+    long = int
 
 from collections import deque,  Mapping
 try:
@@ -136,7 +139,7 @@ class Stack(object):
         Generates next unique id number for local or remotes.
         '''
         self.puid += 1
-        if self.puid > 0xffffffffL:
+        if self.puid > long(0xffffffff):
             self.puid = 1  # rollover to 1
         return self.puid
 
