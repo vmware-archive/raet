@@ -402,8 +402,10 @@ class Stack(object):
         try:
             self.server.send(tx, ta)
         except socket.error as ex:
-            if ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
-                #busy with last message save it for later
+            if (ex.errno in [errno.EAGAIN, errno.EWOULDBLOCK,
+                             errno.ENETUNREACH, errno.ETIME,
+                             errno.EHOSTUNREACH, errno.EHOSTDOWN]):
+                # problem sending such as busy with last message. save it for later
                 laters.append((tx, ta))
                 blocks.append(ta)
             else:

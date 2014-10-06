@@ -5,6 +5,14 @@ CHANGE LOG
 ---------
 20141006
 ----------
+v0.3.4
+
+Added socket error handling for additional failure modes in Stack._handleOneTx
+for sending
+
+---------
+20141006
+----------
 v0.3.3
 
 Fixed Python3 incompatabilities
