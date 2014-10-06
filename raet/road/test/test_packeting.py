@@ -343,7 +343,7 @@ class BasicTestCase(unittest.TestCase):
         for packet in tray0.packets:
             tray1.parse(packet)
 
-        print tray1.data
+        print(tray1.data)
         self.assertDictEqual(tray1.data, {'sh': '',
                                            'sp': 7530,
                                            'dh': '127.0.0.1',

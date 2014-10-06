@@ -8,6 +8,10 @@ yarding.py raet protocol estate classes
 import socket
 import os
 import errno
+import sys
+
+if sys.version_info > (3,):
+    long = int
 
 # Import ioflo libs
 from ioflo.base.odicting import odict
@@ -151,7 +155,7 @@ class Yard(lotting.Lot):
         Generates next book id number.
         '''
         self.bid += 1
-        if self.bid > 0xffffffffL:
+        if self.bid > long(0xffffffff):
             self.bid = 1  # rollover to 1
         return self.bid
 

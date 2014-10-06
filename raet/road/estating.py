@@ -8,6 +8,9 @@ estating.py raet protocol estate classes
 import socket
 import uuid
 from collections import deque
+import sys
+if sys.version_info > (3,):
+    long = int
 
 # Import ioflo libs
 from ioflo.base.odicting import odict
@@ -91,7 +94,7 @@ class Estate(lotting.Lot):
         Generates next transaction id number.
         '''
         self.tid += 1
-        if self.tid > 0xffffffffL:
+        if self.tid > long(0xffffffff):
             self.tid = 1  # rollover to 1
         return self.tid
 
