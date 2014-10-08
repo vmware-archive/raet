@@ -175,6 +175,7 @@ class RoadKeep(keeping.Keep):
         filepath = os.path.join(self.remoteroledirpath,
                 "{0}.{1}.{2}".format('role', role, self.ext))
         if not os.path.exists(filepath):
+            data.update(role=role)
             return data
         data.update(self.load(filepath))
         return data
