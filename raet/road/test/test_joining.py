@@ -1431,14 +1431,13 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-        self.assertIs(beta.mutable, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
         self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, None)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
         self.assertIs(self.sameRoleKeys(alphaRemote, keep), False)
         self.assertEqual(alphaRemote.verfer.keyhex, beta.local.signer.verhex)
         self.assertEqual(alphaRemote.pubber.keyhex, beta.local.priver.pubhex)
-        self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
-        self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
@@ -1502,12 +1501,11 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
         self.assertIs(beta.mutable, None)
         self.assertIs(alpha.mutable, True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
         self.assertEqual(alphaRemote.role, newRole)
-        self.assertEqual(alphaRemote.acceptance, raeting.acceptances.accepted)
-        self.assertEqual(betaRemote.acceptance, raeting.acceptances.accepted)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
@@ -1723,8 +1721,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -1834,8 +1831,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -1948,8 +1944,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -2059,8 +2054,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -2169,8 +2163,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -2280,8 +2273,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -2383,8 +2375,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -2470,8 +2461,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertIs(roleData['role'], None)
-        # self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
 
@@ -3324,28 +3314,20 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        # Vacuous: No
+        # Ephemeral: No Nuid (the Nuid is known)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
         # Mutable: Yes
         alpha.mutable = True
-
-        # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
-        # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
         # Name: New
-        beta.name = 'beta_new'
+        oldName = beta.name
+        newName = '{0}_new'.format(oldName)
+        beta.name = newName
         # Main: Either
         # Appl: Either
         # RHA:  Either
@@ -3368,7 +3350,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
@@ -3377,17 +3359,17 @@ class BasicTestCase(unittest.TestCase):
         # Assert alphaRemote is modified
         self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertIs(alphaRemote.name, beta.name)
-
+        self.assertEqual(alphaRemote.name, newName)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
         # Check remote dump
-        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData = alpha.keep.loadRemoteData(oldName)
+        self.assertIs(remoteData, None)
+        remoteData = alpha.keep.loadRemoteData(newName)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['name'], beta.name)
+        # Assert updated alphaRemote is dumped
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
@@ -3407,26 +3389,16 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        # Vacuous: No
+        # Ephemeral: No Nuid (the Nuid is known)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
         # Mutable: Yes
         alpha.mutable = True
-
-        # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
-        # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
         oldMain = None
         newMain = True
         # Name: Either
@@ -3454,7 +3426,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
@@ -3463,17 +3435,15 @@ class BasicTestCase(unittest.TestCase):
         # Assert alphaRemote is modified
         self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertIs(alphaRemote.name, beta.name)
+        self.assertIs(alphaRemote.main, newMain)
 
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
         # Check remote dump
-        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData = alpha.keep.loadRemoteData(beta.name)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['name'], beta.name)
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
@@ -3493,32 +3463,22 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        # Vacuous: No
+        # Ephemeral: No Nuid (the Nuid is known)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
         # Mutable: Yes
         alpha.mutable = True
 
-        # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
-        # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
-        oldKind = None
-        newKind = 33
+        oldKind = beta.kind
+        newKind = oldKind + 10
         # Name: Either
         # Main: Either
         # Appl: New
-        self.assertIs(beta.kind, oldKind)
         beta.kind = newKind
         # RHA:  Either
         # Nuid: Old
@@ -3530,13 +3490,17 @@ class BasicTestCase(unittest.TestCase):
         # Sameness: Not SameAll
         keep = self.copyData(alphaRemote)
 
+        # Test
+        self.join(beta, alpha, deid=betaRemote.nuid)
+
+        # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
@@ -3545,17 +3509,15 @@ class BasicTestCase(unittest.TestCase):
         # Assert alphaRemote is modified
         self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertIs(alphaRemote.name, beta.name)
+        self.assertIs(alphaRemote.kind, newKind)
 
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
         # Check remote dump
-        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData = alpha.keep.loadRemoteData(beta.name)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['name'], beta.name)
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
@@ -3569,41 +3531,39 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentNonVacuousAcceptNewRha(self):
         '''
-        Test mutable joinent accept non-vacuous join with an updated remote host address (H4)
+        Test mutable joinent accept non-vacuous join with an updated remote host address (K4)
         '''
         console.terse("{0}\n".format(self.testJoinentNonVacuousAcceptNewRha.__doc__))
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        # Vacuous: No
+        # Ephemeral: No Nuid (the Nuid is known)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
         # Mutable: Yes
         alpha.mutable = True
-
-        # Simulate: alpha already know beta with ha='127.0.0.5'
-        #           beta connects with ha='127.0.0.1'
-        oldHa = ('127.0.0.5', beta.local.ha[1])
-        newHa = ('127.0.0.1', beta.local.ha[1])
-
-        # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
-        # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=betaRemote.nuid,
-                                            ha=oldHa,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
 
         # Name: Either
         # Main: Either
         # Appl: Either
-        # RHA:  New: alpha remote ha is set to 127.0.0.5, new ha received from beta is 127.0.0.1
+        # RHA:  New
+        oldHa = beta.local.ha
+        newHa = ('127.0.0.5', beta.local.ha[1])
+        self.assertNotEqual(oldHa, newHa)
+        # update beta HA
+        beta.server.close()
+        beta.ha = newHa
+        beta.local.ha = newHa
+        # recreate beta server socket
+        beta.server = beta.serverFromLocal()
+        reopenResult = beta.server.reopen()
+        self.assertIs(reopenResult, True)
+        self.assertEqual(beta.server.ha, newHa)
         # Nuid: Old
         # Fuid: Either
         # Leid: Old
@@ -3611,8 +3571,6 @@ class BasicTestCase(unittest.TestCase):
         # Role: Either
         # Keys: Either
         # Sameness: Not SameAll
-        self.assertEqual(alphaRemote.ha, oldHa)
-        self.assertEqual(beta.local.ha, newHa)
         keep = self.copyData(alphaRemote)
 
         # Test
@@ -3625,7 +3583,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
@@ -3634,7 +3592,7 @@ class BasicTestCase(unittest.TestCase):
         # Assert alphaRemote is modified
         self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertIs(alphaRemote.name, beta.name)
+        self.assertEqual(alphaRemote.ha, newHa)
 
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -3642,9 +3600,7 @@ class BasicTestCase(unittest.TestCase):
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['name'], beta.name)
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
@@ -3664,38 +3620,27 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        # Vacuous: No
+        # Ephemeral: No Nuid (the Nuid is known)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
         # Mutable: Yes
         alpha.mutable = True
-
-        # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
-
-        # Simulate: alpha already know beta with fuid=33
-        #           beta connects with a new fuid=newFuid
-        oldFuid = 33
-        newFuid = betaRemote.nuid
-
-        # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=oldFuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
         # Name: Either
         # Main: Either
         # Appl: Either
         # RHA:  Either
         # Nuid: Old
-        # Fuid: New: alphaRemote has uid=33 that is 'old', betaRemote has uid=2
+        # Fuid: New
+        oldFuid = betaRemote.nuid
+        newFuid = oldFuid + 10
+        betaRemote.nuid = newFuid
+        beta.remotes[newFuid] = beta.remotes[oldFuid]
+        del beta.remotes[oldFuid]
         # Leid: Old
         # Reid: New
         # Role: Either
@@ -3713,7 +3658,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
@@ -3722,7 +3667,7 @@ class BasicTestCase(unittest.TestCase):
         # Assert alphaRemote is modified
         self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertIs(alphaRemote.name, beta.name)
+        self.assertEqual(alphaRemote.fuid, newFuid)
 
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -3730,9 +3675,7 @@ class BasicTestCase(unittest.TestCase):
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['name'], beta.name)
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
@@ -3751,27 +3694,18 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentNonVacuousAcceptNewKeys.__doc__))
 
         # Status: Accepted (auto accept keys)
-        # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        # Vacuous: No
+        # Ephemeral: No Nuid (the Nuid is known)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
+        # Mode: Always
+        alpha.keep.auto = raeting.autoModes.always
         # Mutable: Yes
         alpha.mutable = True
-
-        # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
-        # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
         # Name: Either
         # Main: Either
         # Appl: Either
@@ -3797,26 +3731,24 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
         self.assertIs(alpha.mutable, True)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
-        self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
+        self.assertIs(self.sameRoleKeys(alphaRemote, keep), False)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertIs(alphaRemote.name, beta.name)
-
+        self.assertEqual(alphaRemote.verfer.keyhex, beta.local.signer.verhex)
+        self.assertEqual(alphaRemote.pubber.keyhex, beta.local.priver.pubhex)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), False)
-        self.assertEqual(remoteData['name'], beta.name)
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
@@ -3836,28 +3768,16 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        # Vacuous: No
+        # Ephemeral: No Nuid (the Nuid is known)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
         # Mutable: Yes
         alpha.mutable = True
-
-        # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
-        # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
-        oldRole = 'beta'
-        newRole = 'beta_new'
         # Name: Either
         # Main: Either
         # Appl: Either
@@ -3867,6 +3787,8 @@ class BasicTestCase(unittest.TestCase):
         # Leid: Old
         # Reid: Either
         # Role: New
+        oldRole = 'beta'
+        newRole = 'beta_new'
         self.assertIs(beta.local.role, oldRole)
         beta.local.role = newRole
         # Keys: Either
@@ -3883,26 +3805,23 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
         self.assertIs(alpha.mutable, True)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
-        self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
+        self.assertIs(self.sameRoleKeys(alphaRemote, keep), False)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertIs(alphaRemote.name, beta.name)
-
+        self.assertEqual(alphaRemote.role, newRole)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['name'], beta.name)
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
@@ -3922,26 +3841,16 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
-        # Mutable: Either
-        self.assertIs(alpha.mutable, None)
-
         # Vacuous: No
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha)
         # Ephemeral: No Nuid (the Nuid is known)
-        alphaRemote = estating.RemoteEstate(stack=alpha,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        betaRemote.fuid = alphaRemote.nuid
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
+        # Perform an auto-accepted join
+        alpha, beta = self.bootstrapJoinedRemotes()
 
+        alphaRemote = alpha.remotes.values()[0]
+        betaRemote = beta.remotes.values()[0]
+
+        # Mutable: Yes
+        alpha.mutable = True
         # Name: Old
         # Main: Old
         # Kind: Old
@@ -3965,7 +3874,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
+                self.assertIs(remote.joined, True)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertIs(remote.acceptance, raeting.acceptances.accepted)
@@ -3973,7 +3882,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote isn't modified
         self.assertIs(self.sameAll(alphaRemote, keep), True)
-
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertIn('join_initiate_complete', beta.stats)
 
@@ -4000,7 +3908,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4021,7 +3930,9 @@ class BasicTestCase(unittest.TestCase):
         beta.addRemote(betaRemote)
 
         # Name: New
-        beta.name = 'beta_new'
+        oldName = beta.name
+        newName = '{0}_new'.format(oldName)
+        beta.name = newName
         # Main: Either
         # Kind: Either
         # RHA:  Either
@@ -4052,20 +3963,52 @@ class BasicTestCase(unittest.TestCase):
         # Assert alphaRemote is modified
         self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertEqual(alphaRemote.name, beta.name)
+        self.assertEqual(alphaRemote.name, newName)
 
         self.assertIs(alphaRemote.acceptance, raeting.acceptances.pending)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
-        remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['name'], beta.name)
+        remoteData = alpha.keep.loadRemoteData(oldName)
+        self.assertIs(remoteData, None)
+        remoteData = alpha.keep.loadRemoteData(newName)
+        self.assertIs(remoteData, None)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(oldName)
+        self.assertIs(remoteData, None)
+        remoteData = alpha.keep.loadRemoteData(newName)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
@@ -4082,7 +4025,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4102,10 +4046,10 @@ class BasicTestCase(unittest.TestCase):
         alpha.addRemote(alphaRemote)
         beta.addRemote(betaRemote)
 
-        oldMain = None
-        newMain = True
         # Name: Either
         # Main: New
+        oldMain = None
+        newMain = True
         self.assertIs(beta.main, oldMain)
         beta.main = newMain
         # Kind: Either
@@ -4144,13 +4088,41 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['main'], newMain)
+        self.assertIs(remoteData, None)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
@@ -4167,7 +4139,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4187,12 +4160,12 @@ class BasicTestCase(unittest.TestCase):
         alpha.addRemote(alphaRemote)
         beta.addRemote(betaRemote)
 
-        oldKind = None
-        newKind = 33
         # Name: Either
         # Main: Either
         # Appl: New
-        self.assertIs(beta.kind, oldKind)
+        oldKind = beta.kind
+        newKind = 33
+        self.assertNotEqual(oldKind, newKind)
         beta.kind = newKind
         # RHA:  Either
         # Nuid: Old
@@ -4229,13 +4202,41 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['kind'], newKind)
+        self.assertIs(remoteData, None)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
@@ -4252,7 +4253,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4317,13 +4319,41 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['ha'], newHa)
+        self.assertIs(remoteData, None)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
@@ -4340,7 +4370,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4404,13 +4435,41 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), True)
-        self.assertEqual(remoteData['fuid'], newFuid)
+        self.assertIs(remoteData, None)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
@@ -4427,7 +4486,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4478,8 +4538,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(alpha.mutable, True)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
-        self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
+        self.assertIs(self.sameRoleKeys(alphaRemote, keep), False)
         self.assertEqual(alphaRemote.verfer.keyhex, beta.local.signer.verhex)
         self.assertEqual(alphaRemote.pubber.keyhex, beta.local.priver.pubhex)
 
@@ -4488,14 +4548,41 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), False)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertIs(remoteData, None)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
@@ -4512,7 +4599,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4565,22 +4653,50 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(alpha.mutable, True)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
-        self.assertIs(self.sameRoleKeys(alphaRemote, keep), True)
         self.assertIs(self.sameAll(alphaRemote, keep), False)
-        self.assertEqual(alphaRemote.role, beta.role)
+        self.assertIs(self.sameRoleKeys(alphaRemote, keep), False)
+        self.assertEqual(alphaRemote.role, newRole)
 
         self.assertIs(alphaRemote.acceptance, raeting.acceptances.pending)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertIs(self.sameAll(alphaRemote, remoteData), False)
-        self.assertIs(self.sameRoleKeys(alphaRemote, remoteData), False)
-        self.assertEqual(remoteData['role'], beta.role)
+        self.assertIs(remoteData, None)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertIs(self.sameAll(alphaRemote, remoteData), True)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
@@ -4597,7 +4713,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(raeting.autoModes.never)
+        alpha, beta = self.bootstrapRemotes()
+        alpha.keep.auto = raeting.autoModes.never
         # Mutable: Either
         alpha.mutable = True
 
@@ -4653,11 +4770,41 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        self.assertIs(remoteData, None)
+        # Check role/keys dump
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+
+        # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
+        beta.mutable = True
+        # Accept the transaction
+        alpha.keep.acceptRemote(alphaRemote)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+        self.assertIs(alpha.mutable, True)
+        self.assertIs(beta.mutable, True)
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertIn('join_initiate_complete', beta.stats)
+
+        # Check remote dump
+        remoteData = alpha.keep.loadRemoteData(beta.local.name)
         remoteData['ha'] = tuple(remoteData['ha'])
         self.assertIs(self.sameAll(alphaRemote, remoteData), True)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
         self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
