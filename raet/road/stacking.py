@@ -776,16 +776,50 @@ class RoadStack(stacking.KeepStack):
                                       rxPacket=packet)
         alivent.alive()
 
-    def message(self, body=None, uid=None, timeout=None):
+    def transmit(self, msg, uid=None, timeout=None):
+        '''
+        Append duple (msg, uid) to .txMsgs deque
+        If msg is not mapping then raises exception
+        If uid is None then it will default to the first entry in .remotes
+        If timeout is None then it will use Messenger default
+        timeout of 0 means never timeout of message transaction
+        '''
+        if not isinstance(msg, Mapping):
+            emsg = "Invalid msg, not a mapping {0}\n".format(msg)
+            console.terse(emsg)
+            self.incStat("invalid_transmit_body")
+            return
+        if uid is None:
+            if not self.remotes:
+                emsg = "No remote to send to\n"
+                console.terse(emsg)
+                self.incStat("invalid_destination")
+                return
+            uid = self.remotes.values()[0].uid
+        self.txMsgs.append((msg, uid, timeout))
+
+    def  _handleOneTxMsg(self):
+        '''
+        Take one message from .txMsgs deque and handle it
+        Assumes there is a message on the deque
+        '''
+        # triple (body dict, destination uid, timout)
+        body, uid, timeout = self.txMsgs.popleft()
+        self.message(body, uid=uid, timeout=timeout)
+        console.verbose("{0} sending\n{1}\n".format(self.name, body))
+
+    def message(self, body, uid=None, timeout=None):
         '''
         Initiate message transaction to remote at duid
-        If duid is None then create remote at ha
+        If uid is None then create remote at ha
+        If timeout is None then use Messenger default
+        If timeout is 0 then never timeout
         '''
         remote = self.retrieveRemote(uid=uid)
         if not remote:
             emsg = "Invalid remote destination estate id '{0}'\n".format(uid)
             console.terse(emsg)
-            self.incStat('invalid_remote_eid')
+            self.incStat('invalid_remote_uid')
             return
         data = odict(hk=self.Hk, bk=self.Bk, fk=self.Fk, ck=self.Ck)
         messenger = transacting.Messenger(stack=self,

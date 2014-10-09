@@ -2586,7 +2586,7 @@ class Messenger(Initiator):
     RAET protocol Messenger Initiator class Dual of Messengent
     Generic messages
     '''
-    Timeout = 10.0
+    Timeout = 0.0
     RedoTimeoutMin = 1.0 # initial timeout
     RedoTimeoutMax = 3.0 # max timeout
 
@@ -2818,7 +2818,7 @@ class Messengent(Correspondent):
     RAET protocol Messengent Correspondent class Dual of Messenger
     Generic Messages
     '''
-    Timeout = 10.0
+    Timeout = 0.0
     RedoTimeoutMin = 1.0 # initial timeout
     RedoTimeoutMax = 3.0 # max timeout
 

@@ -200,9 +200,9 @@ class BasicTestCase(unittest.TestCase):
         Utility to send messages both ways
         '''
         for msg in mains:
-            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
+            main.transmit(msg, uid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg,  duid=other.fetchUidByName(main.local.name))
+            other.transmit(msg,  uid=other.fetchUidByName(main.local.name))
 
         self.serviceMainOther(main, other, duration=duration)
 
@@ -682,9 +682,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(other.nameRemotes['main'].rsid, 0)
 
         for msg in mains:
-            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
+            main.transmit(msg, uid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg, duid=other.fetchUidByName(main.local.name))
+            other.transmit(msg, uid=other.fetchUidByName(main.local.name))
 
 
         self.assertEqual(len(main.txMsgs), 1)
@@ -755,7 +755,7 @@ class BasicTestCase(unittest.TestCase):
 
         #send a new message from main and reap stale book from other
         for msg in mains:
-            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
+            main.transmit(msg, uid=main.fetchUidByName(other.local.name))
 
         self.serviceMainOther(main, other, duration=1.0)
 
@@ -782,9 +782,9 @@ class BasicTestCase(unittest.TestCase):
 
         other.rxMsgs.pop()
         for msg in mains:
-            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
+            main.transmit(msg, uid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg, duid=other.fetchUidByName(main.local.name))
+            other.transmit(msg, uid=other.fetchUidByName(main.local.name))
 
         self.serviceOneAll(main, other)
 
@@ -824,9 +824,9 @@ class BasicTestCase(unittest.TestCase):
         main.nameRemotes['other'].sid = mainSid
         other.nameRemotes['main'].sid = otherSid
         for msg in mains:
-            main.transmit(msg, duid=main.fetchUidByName(other.local.name))
+            main.transmit(msg, uid=main.fetchUidByName(other.local.name))
         for msg in others:
-            other.transmit(msg,  duid=other.fetchUidByName(main.local.name))
+            other.transmit(msg,  uid=other.fetchUidByName(main.local.name))
 
         self.serviceOneAll(main, other)
 

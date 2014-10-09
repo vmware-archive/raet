@@ -471,7 +471,7 @@ class RaetRoadStackMessenger(deeding.Deed):
             stack = self.stack.value
             if stack and isinstance(stack, RoadStack):
                 deid = self.destination.value
-                stack.transmit(msg=msg, duid=deid)
+                stack.transmit(msg=msg, uid=deid)
 
 
 class RaetRoadStackPrinter(deeding.Deed):
@@ -643,7 +643,7 @@ class RaetLaneStackTransmit(deeding.Deed):
             stack = self.stack.value
             if stack and isinstance(stack, LaneStack):
                 name = self.dest.value #destination yard name
-                stack.transmit(msg=msg, duid=stack.fetchUidByName(name))
+                stack.transmit(msg=msg, uid=stack.fetchUidByName(name))
 
 
 class RaetLaneStackPrinter(deeding.Deed):

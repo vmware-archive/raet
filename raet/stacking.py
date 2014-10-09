@@ -325,33 +325,33 @@ class Stack(object):
         '''
         pass
 
-    def transmit(self, msg, duid=None):
+    def transmit(self, msg, uid=None):
         '''
-        Append duple (msg, duid) to .txMsgs deque
+        Append duple (msg, uid) to .txMsgs deque
         If msg is not mapping then raises exception
-        If duid is None then it will default to the first entry in .remotes
+        If uid is None then it will default to the first entry in .remotes
         '''
         if not isinstance(msg, Mapping):
             emsg = "Invalid msg, not a mapping {0}\n".format(msg)
             console.terse(emsg)
             self.incStat("invalid_transmit_body")
             return
-        if duid is None:
+        if uid is None:
             if not self.remotes:
                 emsg = "No remote to send to\n"
                 console.terse(emsg)
                 self.incStat("invalid_destination")
                 return
-            duid = self.remotes.values()[0].uid
-        self.txMsgs.append((msg, duid))
+            uid = self.remotes.values()[0].uid
+        self.txMsgs.append((msg, uid))
 
     def  _handleOneTxMsg(self):
         '''
         Take one message from .txMsgs deque and handle it
         Assumes there is a message on the deque
         '''
-        body, duid = self.txMsgs.popleft() # duple (body dict, destination uid
-        self.message(body, duid)
+        body, uid = self.txMsgs.popleft() # duple (body dict, destination uid
+        self.message(body, uid=uid)
         console.verbose("{0} sending\n{1}\n".format(self.name, body))
 
     def serviceTxMsgs(self):
@@ -368,9 +368,9 @@ class Stack(object):
         if self.txMsgs:
             self._handleOneTxMsg()
 
-    def message(self, body, duid):
+    def message(self, body, uid=None):
         '''
-        Sends message body remote at duid
+        Sends message body to remote at uid
         '''
         pass
 

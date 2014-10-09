@@ -194,9 +194,9 @@ class LaneStack(stacking.Stack):
         Take one message from .txMsgs deque and handle it
         Assumes there is a message on the deque
         '''
-        body, duid = self.txMsgs.popleft() # duple (body dict, destination name)
-        self.message(body, duid)
-        console.verbose("{0} sending to {1}\n{2}\n".format(self.name, duid, body))
+        body, uid = self.txMsgs.popleft() # duple (body dict, destination name)
+        self.message(body, uid=uid)
+        console.verbose("{0} sending to {1}\n{2}\n".format(self.name, uid, body))
 
     def _handleOneTx(self, laters, blocks):
         '''
@@ -232,23 +232,23 @@ class LaneStack(stacking.Stack):
                 self.incStat("error_transmit_yard")
                 raise
 
-    def message(self, body, duid):
+    def message(self, body, uid=None):
         '''
         Sends message body to yard name and manages paging of long messages
         '''
-        if duid is None:
+        if uid is None:
             if not self.remotes:
                 emsg = "No yard to send to\n"
                 console.terse(emsg)
                 self.incStat("invalid_destination")
                 return
-            duid = self.remotes.values()[0].name
-        if duid not in self.remotes:
-            emsg = "Invalid destination yard '{0}'\n".format(duid)
+            uid = self.remotes.values()[0].name
+        if uid not in self.remotes:
+            emsg = "Invalid destination yard '{0}'\n".format(uid)
             console.terse(emsg)
             self.incStat("invalid_destination")
             return
-        remote = self.remotes[duid]
+        remote = self.remotes[uid]
         data = odict(pk=self.Pk,
                      sn=self.local.name,
                      dn=remote.name,

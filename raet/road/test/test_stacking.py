@@ -244,7 +244,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMessage: other to main *********\n")
         body = odict(what="This is a message to the main estate. How are you", extra="I am fine.")
-        self.other.txMsgs.append((body, self.other.remotes.values()[0].fuid))
+        self.other.txMsgs.append((body, self.other.remotes.values()[0].fuid, None))
         #self.other.message(body=body, deid=self.main.local.uid)
         self.service()
 
@@ -256,7 +256,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMessage: main to other *********\n")
         body = odict(what="This is a message to the other estate. Get to Work", extra="Fix the fence.")
-        self.main.txMsgs.append((body, self.main.remotes.values()[0].fuid))
+        self.main.txMsgs.append((body, self.main.remotes.values()[0].fuid, None))
         #self.main.message(body=body, deid=self.other.local.uid)
         self.service()
 
@@ -597,7 +597,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMessage transaction *********\n")
         body = odict(what="This is a message to the main estate. How are you", extra="I am fine.")
-        self.other.txMsgs.append((body, self.other.remotes.values()[0].fuid))
+        self.other.txMsgs.append((body, self.other.remotes.values()[0].fuid, None))
         self.timer.restart(duration=1.0)
         while not self.timer.expired:
             self.other.serviceAllTx() # transmit but leave receives in socket buffer
