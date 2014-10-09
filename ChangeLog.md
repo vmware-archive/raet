@@ -2,6 +2,20 @@
 CHANGE LOG
 -------------------
 ---------
+20141009
+----------
+v0.3.6
+
+Made default timeout for Messenger and Messengent transaction to be 0.0, that is,
+never
+
+Added timout parameter to RoadStack.transmit() so timeout can be set on a
+message transaction by transaction basis
+Added timeout to txMsgs deque triple for RoadStack that is, (msg, uid, timeout)
+
+
+
+---------
 20141008
 ----------
 v0.3.5
