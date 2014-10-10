@@ -208,7 +208,7 @@ class LaneStack(stacking.Stack):
         '''
         Handle one message on .txes deque
         Assumes there is a message
-        aters is deque of messages to try again later
+        laters is deque of messages to try again later
         blocks is list of blocked destination address so put all associated into laters
         '''
         tx, ta = self.txes.popleft()  # duple = (packet, destination address)
