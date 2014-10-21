@@ -16,6 +16,7 @@ import sys
 import time
 import tempfile
 import shutil
+import socket
 
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer
@@ -199,13 +200,14 @@ class BasicTestCase(unittest.TestCase):
 
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
+	python_fqdn = socket.getfqdn('127.0.0.1')
         validLocalKeepData =  odict([
                                         ('name', mainData['name']),
                                         ('uid', 1),
                                         ('ha', ['127.0.0.1', 7530]),
                                         ('iha', None),
                                         ('natted', None),
-                                        ('fqdn', '1.0.0.127.in-addr.arpa'),
+                                        ('fqdn', python_fqdn),
                                         ('dyned', None),
                                         ('sid', 0),
                                         ('puid', 1),
@@ -291,6 +293,7 @@ class BasicTestCase(unittest.TestCase):
                      "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
             self.assertTrue(os.path.exists(path))
         remoteKeepData = stack.keep.loadAllRemoteData()
+	python_fqdn = socket.getfqdn('127.0.0.1')
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
         validRemoteKeepData = {
                                 'other1':
@@ -300,7 +303,7 @@ class BasicTestCase(unittest.TestCase):
                                      'ha': ['127.0.0.1', 7531],
                                      'iha': None,
                                      'natted': None,
-                                     'fqdn': '1.0.0.127.in-addr.arpa',
+                                     'fqdn': python_fqdn,
                                      'dyned': None,
                                      'sid': 0,
                                      'main': False,
@@ -317,7 +320,7 @@ class BasicTestCase(unittest.TestCase):
                                      'ha': ['127.0.0.1', 7532],
                                      'iha': None,
                                      'natted': None,
-                                     'fqdn': '1.0.0.127.in-addr.arpa',
+                                     'fqdn': python_fqdn,
                                      'dyned': None,
                                      'sid': 0,
                                      'main': False,
@@ -442,6 +445,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(stack.keep.remoteroledirpath))
 
         localKeepData = stack.keep.loadLocalData()
+	python_fqdn = socket.getfqdn('127.0.0.1')
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         validLocalKeepData =  odict([
                                         ('name', mainData['name']),
@@ -449,7 +453,7 @@ class BasicTestCase(unittest.TestCase):
                                         ('ha', ['127.0.0.1', 7530]),
                                         ('iha', None),
                                         ('natted',  None),
-                                        ('fqdn', '1.0.0.127.in-addr.arpa'),
+                                        ('fqdn', python_fqdn),
                                         ('dyned', None),
                                         ('sid', 0),
                                         ('puid', 1),
@@ -530,6 +534,7 @@ class BasicTestCase(unittest.TestCase):
                      "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
             self.assertTrue(os.path.exists(path))
         remoteKeepData = stack.keep.loadAllRemoteData()
+	python_fqdn = socket.getfqdn('127.0.0.1')
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
         validRemoteKeepData = {
                                 'other1':
@@ -539,7 +544,7 @@ class BasicTestCase(unittest.TestCase):
                                      'ha': ['127.0.0.1', 7531],
                                      'iha': None,
                                      'natted': None,
-                                     'fqdn': '1.0.0.127.in-addr.arpa',
+                                     'fqdn': python_fqdn,
                                      'dyned': None,
                                      'sid': 0,
                                      'main': False,
@@ -557,7 +562,7 @@ class BasicTestCase(unittest.TestCase):
                                      'ha': ['127.0.0.1', 7532],
                                      'iha': None,
                                      'natted': None,
-                                     'fqdn': '1.0.0.127.in-addr.arpa',
+                                     'fqdn': python_fqdn,
                                      'dyned': None,
                                      'sid': 0,
                                      'main': False,
@@ -665,7 +670,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
-        self.assertTrue(".raet/keep/main" in stack.keep.dirpath)
+        self.assertTrue(os.path.join('.raet','keep','main') in stack.keep.dirpath)
         self.assertEqual(stack.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test can write
