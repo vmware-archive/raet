@@ -84,7 +84,7 @@ class LaneStack(stacking.Stack):
             server = aiding.SocketUxdNb(ha=self.ha,
                                 bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         else:
-            server = aiding.WinmailslotNb(ha=self.ha,
+            server = aiding.WinMailslotNb(ha=self.ha,
                                 bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
