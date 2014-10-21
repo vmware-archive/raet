@@ -12,6 +12,7 @@ else:
     import unittest
 
 import os
+import sys
 import time
 import tempfile
 import shutil
@@ -26,6 +27,13 @@ console = getConsole()
 from raet import raeting, nacling
 from raet.road import keeping, estating, stacking, transacting
 
+if sys.platform == 'win32':
+    TEMPDIR = 'c:/temp'
+    if not os.path.exists(TEMPDIR):
+        os.mkdir(TEMPDIR)
+else:
+    TEMPDIR = '/tmp'
+
 def setUpModule():
     console.reinit(verbosity=console.Wordage.concise)
 
@@ -39,7 +47,7 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack
