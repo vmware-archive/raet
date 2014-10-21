@@ -11,6 +11,7 @@ else:
     import unittest
 
 import os
+import sys
 import time
 import tempfile
 import shutil
@@ -33,6 +34,20 @@ def tearDownModule():
     pass
 
 
+def tempbasedir(prefix='', suffix='', dir='', lane='', keep=''):
+    samplechars = 'abcdefghijklmnopqrstuvwxyz'
+    if not sys.platform == 'win32':
+        tempDirpath = tempfile.mkdtemp(prefix=prefix, suffix=suffix, dir=dir)
+    else:
+        tempDirpath = '\\\\.\\mailslot\\' + os.path.join(prefix, ''.join(sample(samplechars,4)),suffix)
+    baseDirpath = os.path.join(tempDirpath, lane, keep)
+
+    if not sys.platform == 'win32':
+        os.makedirs(baseDirpath)
+
+    return (tempDirpath, baseDirpath)
+
+
 
 class BasicTestCase(unittest.TestCase):
     """"""
@@ -41,8 +56,8 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.tempDirPath = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
-        self.baseDirpath = os.path.join(self.tempDirPath, 'lane', 'keep')
+        self.tempDirpath = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        self.baseDirpath = os.path.join(self.tempDirpath, 'lane', 'keep')
 
         # main stack
         self.main = stacking.LaneStack(name='main',
@@ -59,6 +74,9 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.main.server.close()
         self.other.server.close()
+
+        if not sys.platform == 'win32':
+            shutil.rmtree(self.tempDirpath)
 
     def service(self, duration=1.0, real=True):
         '''

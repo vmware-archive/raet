@@ -12,6 +12,7 @@ else:
     import unittest
 
 import os
+import sys
 import time
 import tempfile
 import shutil
@@ -22,6 +23,13 @@ from ioflo.base import storing
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
+
+if sys.platform == 'win32':
+    TEMPDIR = 'c:/temp'
+    if not os.path.exists(TEMPDIR):
+        os.mkdir(TEMPDIR)
+else:
+    TEMPDIR = '/tmp'
 
 from raet import raeting, nacling
 from raet.road import keeping, packeting, estating, stacking, transacting
@@ -388,7 +396,7 @@ class StackTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        self.dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
         stacking.RoadStack.Bk = raeting.bodyKinds.json
 
         #main stack
