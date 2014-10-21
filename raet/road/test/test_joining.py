@@ -35,7 +35,7 @@ else:
 
 
 def setUpModule():
-    console.reinit(verbosity=console.Wordage.verbose)
+    console.reinit(verbosity=console.Wordage.concise)
 
 def tearDownModule():
     pass
@@ -207,7 +207,7 @@ class BasicTestCase(unittest.TestCase):
 
         return alpha, beta
 
-    def bootstrapRemotes(self, autoMode = raeting.autoModes.once):
+    def bootstrapStacks(self, autoMode = raeting.autoModes.once):
         alphaData = self.createRoadData(base=self.base,
                                         name='alpha',
                                         ha=("", raeting.RAET_PORT),
@@ -325,7 +325,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -407,7 +407,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -487,14 +487,15 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
-        # Simulate: alpha already know beta with ha='127.0.0.5'
-        #           beta connects with ha='127.0.0.1'
-        oldHa = ('127.0.0.5', beta.local.ha[1])
-        newHa = ('127.0.0.1', beta.local.ha[1])
+        # Simulate: alpha already know beta with ha=('127.0.0.1', 7532)
+        #           beta connects with ha=('127.0.0.1', 7531)
+        oldHa = (beta.local.ha[0], 7532)
+        newHa = (beta.local.ha[0], beta.local.ha[1])
+
 
         # Vacuous: Yes
         betaRemote = beta.addRemote(estating.RemoteEstate(stack=beta,
@@ -513,7 +514,8 @@ class BasicTestCase(unittest.TestCase):
         # Name: Old
         # Main: Either
         # Appl: Either
-        # RHA:  New: alpha remote ha is set to 127.0.0.5, new ha received from beta is 127.0.0.1
+        # RHA:  New: alpha remote ha is set to (127.0.0.1, 7532)
+        #             new ha received from beta is (127.0.0.1, 7531)
         # Nuid: Computed
         # Fuid: Either
         # Leid: 0
@@ -526,7 +528,7 @@ class BasicTestCase(unittest.TestCase):
         keep = self.copyData(alphaRemote)
 
         # Test
-        self.join(beta, alpha, deid=betaRemote.nuid)
+        self.join(beta, alpha, deid=betaRemote.nuid, duration=2.0)
 
         # Action: Reject, nack
         for stack in [alpha, beta]:
@@ -570,7 +572,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -652,7 +654,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -730,7 +732,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -814,7 +816,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousRejectedRejectNewKeys.__doc__))
 
         # Mode: Never, Once
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -896,7 +898,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousRejectedRejectNewRole.__doc__))
 
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -981,7 +983,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousRejectedRejectSameRoleKeys.__doc__))
 
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1052,7 +1054,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousRejectedRejectSameAll.__doc__))
 
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1121,7 +1123,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousEphemeralRejectedRejectSameall.__doc__))
 
         # Mode: Never, Once
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
 
         self.join(beta, alpha)
 
@@ -1183,7 +1185,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1265,7 +1267,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1347,14 +1349,16 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: Yes
         alpha.mutable = True
 
-        # Simulate: alpha already know beta with ha='127.0.0.5'
-        #           beta connects with ha='127.0.0.1'
-        oldHa = ('127.0.0.5', beta.local.ha[1])
-        newHa = ('127.0.0.1', beta.local.ha[1])
+
+        # Simulate: alpha already know beta with ha=('127.0.0.1', 7532)
+        #           beta connects with ha=('127.0.0.1', 7531)
+        oldHa = (beta.local.ha[0], 7532)
+        newHa = (beta.local.ha[0], beta.local.ha[1])
+
 
         # Vacuous: Yes
         betaRemote = beta.addRemote(estating.RemoteEstate(stack=beta,
@@ -1373,7 +1377,8 @@ class BasicTestCase(unittest.TestCase):
         # Name: Old
         # Main: Either
         # Appl: Either
-        # RHA:  New: alpha remote ha is set to 127.0.0.5, new ha received from is 127.0.0.1
+        # RHA:  New: alpha remote ha is set to (127.0.0.1, 7532)
+        #             new ha received from beta is (127.0.0.1, 7531)
         # Nuid: Computed
         # Fuid: Either
         # Leid: 0
@@ -1432,7 +1437,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1516,7 +1521,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1598,7 +1603,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1685,7 +1690,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1761,7 +1766,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
 
         # Mutable: Yes
         alpha.mutable = True
@@ -1820,7 +1825,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -1932,7 +1937,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -2044,15 +2049,16 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
-        # Simulate: alpha already know beta with ha='127.0.0.5'
-        #           beta connects with ha='127.0.0.1'
-        oldHa = ('127.0.0.5', beta.local.ha[1])
-        newHa = ('127.0.0.1', beta.local.ha[1])
+        # Simulate: alpha already know beta with ha=('127.0.0.1', 7532)
+        #           beta connects with ha=('127.0.0.1', 7531)
+        oldHa = (beta.local.ha[0], 7532)
+        newHa = (beta.local.ha[0], beta.local.ha[1])
+
 
         # Vacuous: Yes
         betaRemote = beta.addRemote(estating.RemoteEstate(stack=beta,
@@ -2071,7 +2077,8 @@ class BasicTestCase(unittest.TestCase):
         # Name: Old
         # Main: Either
         # Appl: Either
-        # RHA:  New: alpha remote ha is set to 127.0.0.5, new ha received from beta is 127.0.0.1
+        # RHA:  New: alpha remote ha is set to (127.0.0.1, 7532)
+        #             new ha received from beta is (127.0.0.1, 7531)
         # Nuid: Computed
         # Fuid: Either
         # Leid: 0
@@ -2159,7 +2166,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -2271,7 +2278,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -2382,7 +2389,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -2499,7 +2506,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -2603,7 +2610,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
 
         # Mutable: Yes
@@ -2692,7 +2699,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -2772,7 +2779,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -2855,7 +2862,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -2938,14 +2945,15 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
-        # Simulate: alpha already know beta with ha='127.0.0.5'
-        #           beta connects with ha='127.0.0.1'
-        oldHa = ('127.0.0.5', beta.local.ha[1])
-        newHa = ('127.0.0.1', beta.local.ha[1])
+        # Simulate: alpha already know beta with ha=('127.0.0.1', 7532)
+        #           beta connects with ha=('127.0.0.1', 7531)
+        oldHa = (beta.local.ha[0], 7532)
+        newHa = (beta.local.ha[0], beta.local.ha[1])
+
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -2966,7 +2974,8 @@ class BasicTestCase(unittest.TestCase):
         # Name: Either
         # Main: Either
         # Appl: Either
-        # RHA:  New: alpha remote ha is set to 127.0.0.5, new ha received from beta is 127.0.0.1
+        # RHA:  New: alpha remote ha is set to (127.0.0.1, 7532)
+        #             new ha received from beta is (127.0.0.1, 7531)
         # Nuid: Old
         # Fuid: Either
         # Leid: Old
@@ -3024,7 +3033,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -3109,7 +3118,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -3190,7 +3199,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -3277,7 +3286,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentNonVacuousRejectedRejectNewKeys.__doc__))
 
         # Mode: Never, Once
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -3361,7 +3370,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentNonVacuousRejectedRejectNewRole.__doc__))
 
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -3448,7 +3457,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentNonVacuousRejectedRejectSameAll.__doc__))
 
         # Mode: Never, Once
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Either
         alpha.mutable = True
 
@@ -3519,7 +3528,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentNonVacuousRejectedRejectSameRoleKeys.__doc__))
 
         # Mode: Never, Once
-        alpha, beta = self.bootstrapRemotes(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -3838,7 +3847,7 @@ class BasicTestCase(unittest.TestCase):
         # Appl: Either
         # RHA:  New
         oldHa = beta.local.ha
-        newHa = ('127.0.0.5', beta.local.ha[1])
+        newHa = (beta.local.ha[0], 7532)
         self.assertNotEqual(oldHa, newHa)
         # update beta HA
         beta.server.close()
@@ -3849,6 +3858,7 @@ class BasicTestCase(unittest.TestCase):
         reopenResult = beta.server.reopen()
         self.assertTrue(reopenResult)
         self.assertEqual(beta.server.ha, newHa)
+        self.assertEqual(beta.local.ha, newHa)
         # Nuid: Old
         # Fuid: Either
         # Leid: Old
@@ -4203,7 +4213,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -4321,7 +4331,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -4436,7 +4446,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -4551,15 +4561,15 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
 
-        # Simulate: alpha already know beta with ha='127.0.0.5'
-        #           beta connects with ha='127.0.0.1'
-        oldHa = ('127.0.0.5', beta.local.ha[1])
-        newHa = ('127.0.0.1', beta.local.ha[1])
+        # Simulate: alpha already know beta with ha=('127.0.0.1', 7532)
+        #           beta connects with ha=('127.0.0.1', 7531)
+        oldHa = (beta.local.ha[0], 7532)
+        newHa = (beta.local.ha[0], beta.local.ha[1])
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -4580,7 +4590,8 @@ class BasicTestCase(unittest.TestCase):
         # Name: Either
         # Main: Either
         # Appl: Either
-        # RHA:  New: alpha remote ha is set to 127.0.0.5, new ha received from beta is 127.0.0.1
+        # RHA:  New: alpha remote ha is set to (127.0.0.1, 7532),
+        #             new ha received from beta is (127.0.0.1, 7531)
         # Nuid: Old
         # Fuid: Either
         # Leid: Old
@@ -4669,7 +4680,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -4786,7 +4797,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -4900,7 +4911,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Yes
         alpha.mutable = True
@@ -5015,7 +5026,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         # Mode: Never
-        alpha, beta = self.bootstrapRemotes()
+        alpha, beta = self.bootstrapStacks()
         alpha.keep.auto = raeting.autoModes.never
         # Mutable: Either
         alpha.mutable = True
@@ -5209,4 +5220,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testJoinFromMain')
+    #runOne('testJoinentNonVacuousAcceptNewRha')

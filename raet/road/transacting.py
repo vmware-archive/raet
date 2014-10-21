@@ -1373,11 +1373,13 @@ class Joinent(Correspondent):
         Sometimes nack occurs without remote being added so have to nack using
         rxPacket source ha.
         '''
-        if not self.remote or self.remote.uid not in self.stack.remotes:
-            self.txData.update( dh=self.rxPacket.data['sh'], dp=self.rxPacket.data['sp'],)
-            ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        else:
-            ha = self.remote.ha
+        #if not self.remote or self.remote.uid not in self.stack.remotes:
+            #self.txData.update( dh=self.rxPacket.data['sh'], dp=self.rxPacket.data['sp'],)
+            #ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
+        #else:
+            #ha = self.remote.ha
+
+        ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
