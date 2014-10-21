@@ -215,7 +215,6 @@ class BasicTestCase(unittest.TestCase):
                                         ('sighex', mainData['sighex']),
                                         ('prihex', mainData['prihex']),
                                     ])
-        import pdb; pdb.set_trace()
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         remoteKeepData = stack.keep.loadAllRemoteData()
