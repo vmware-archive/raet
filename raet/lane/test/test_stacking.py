@@ -33,21 +33,10 @@ def setUpModule():
 def tearDownModule():
     pass
 
-
-def tempbasedir(prefix='', suffix='', dir='', lane='', keep=''):
-    samplechars = 'abcdefghijklmnopqrstuvwxyz'
-    if not sys.platform == 'win32':
-        tempDirpath = tempfile.mkdtemp(prefix=prefix, suffix=suffix, dir=dir)
-    else:
-        tempDirpath = '\\\\.\\mailslot\\' + os.path.join(prefix, ''.join(sample(samplechars,4)),suffix)
-    baseDirpath = os.path.join(tempDirpath, lane, keep)
-
-    if not sys.platform == 'win32':
-        os.makedirs(baseDirpath)
-
-    return (tempDirpath, baseDirpath)
-
-
+if sys.platform == 'win32':
+    TEMPDIR = '\\\\.\\mailslot'
+else:
+    TEMPDIR = '/tmp'
 
 class BasicTestCase(unittest.TestCase):
     """"""
@@ -56,7 +45,13 @@ class BasicTestCase(unittest.TestCase):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
-        self.tempDirpath = tempfile.mkdtemp(prefix="raet",  suffix="base", dir='/tmp')
+        if sys.platform == 'win32':
+            self.tempDirpath = tempfile.mktemp(prefix="raet",  suffix="base", 
+                                               dir=TEMPDIR)
+        else:
+            self.tempDirpath = tempfile.mkdtemp(prefix="raet",  suffix="base", 
+                                                dir=TEMPDIR)
+
         self.baseDirpath = os.path.join(self.tempDirpath, 'lane', 'keep')
 
         # main stack
@@ -561,7 +556,8 @@ class BasicTestCase(unittest.TestCase):
                                        base=self.baseDirpath,
                                        lanename='apple')
         main = self.createLaneStack(data=mainData, main=True)
-        self.assertTrue(main.ha.endswith('/lane/keep/main/apple.main.uxd'))
+        self.assertTrue(main.ha.endswith(os.path.join('lane','keep','main',
+                                                      'apple.main.uxd')))
         self.assertTrue(main.main)
 
         otherData = self.createLaneData(name='other',
@@ -569,7 +565,8 @@ class BasicTestCase(unittest.TestCase):
                                         base=self.baseDirpath,
                                         lanename='apple')
         other = self.createLaneStack(data=otherData)
-        self.assertTrue(other.ha.endswith('/lane/keep/other/apple.other.uxd'))
+        self.assertTrue(other.ha.endswith(os.path.join('lane','keep','other',
+                                                      'apple.other.uxd')))
 
         main.addRemote(yarding.RemoteYard(stack=main, ha=other.ha))
         self.assertTrue('other' in main.nameRemotes)
