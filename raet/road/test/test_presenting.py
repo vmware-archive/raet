@@ -157,8 +157,7 @@ class BasicTestCase(unittest.TestCase):
         Flush any queued up udp packets in receive buffer
         '''
         stack.serviceReceives()
-        while stack.rxes:
-            stack.rxes.popleft()
+        stack.rxes.clear()
 
     def service(self, main, other, duration=1.0):
         '''

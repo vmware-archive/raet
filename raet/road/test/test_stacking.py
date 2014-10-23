@@ -466,7 +466,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0} Stats\n".format(self.other.name))
         for key, val in self.other.stats.items():
             console.terse("   {0}={1}\n".format(key, val))
-        self.assertEqual(self.other.stats.get('redo_join'), 6)
+        self.assertEqual(self.other.stats.get('joiner_tx_join_redo'), 6)
 
         # Now allow join to complete
         self.service()
@@ -545,7 +545,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0} Stats\n".format(self.other.name))
         for key, val in self.other.stats.items():
             console.terse("   {0}={1}\n".format(key, val))
-        self.assertEqual(self.other.stats.get('redo_join'), 12)
+        self.assertEqual(self.other.stats.get('joiner_tx_join_redo'), 12)
         self.assertEqual(self.other.stats.get('join_initiate_complete'), 1)
 
         # Now allow join to complete

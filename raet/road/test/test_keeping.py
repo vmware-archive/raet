@@ -115,9 +115,9 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nJoin Transaction **************\n")
         if not initiator.remotes:
             remote = initiator.addRemote(estating.RemoteEstate(stack=initiator,
-                                                      fuid=0, # vacuous join
-                                                      sid=0, # always 0 for join
-                                                      ha=correspondent.local.ha))
+                                                               fuid=0, # vacuous join
+                                                               sid=0, # always 0 for join
+                                                               ha=correspondent.local.ha))
             deid = remote.uid
         initiator.join(uid=deid)
         self.service(correspondent, initiator, duration=duration)
@@ -200,22 +200,22 @@ class BasicTestCase(unittest.TestCase):
 
         localKeepData = stack.keep.loadLocalData()
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
-	python_fqdn = socket.getfqdn('127.0.0.1')
+        python_fqdn = socket.getfqdn('127.0.0.1')
         validLocalKeepData =  odict([
-                                        ('name', mainData['name']),
-                                        ('uid', 1),
-                                        ('ha', ['127.0.0.1', 7530]),
-                                        ('iha', None),
-                                        ('natted', None),
-                                        ('fqdn', python_fqdn),
-                                        ('dyned', None),
-                                        ('sid', 0),
-                                        ('puid', 1),
-                                        ('aha', ['0.0.0.0', 7530]),
-                                        ('role', mainData['name']),
-                                        ('sighex', mainData['sighex']),
-                                        ('prihex', mainData['prihex']),
-                                    ])
+            ('name', mainData['name']),
+            ('uid', 1),
+            ('ha', ['127.0.0.1', 7530]),
+            ('iha', None),
+            ('natted', None),
+            ('fqdn', python_fqdn),
+            ('dyned', None),
+            ('sid', 0),
+            ('puid', 1),
+            ('aha', ['0.0.0.0', 7530]),
+            ('role', mainData['name']),
+            ('sighex', mainData['sighex']),
+            ('prihex', mainData['prihex']),
+        ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         remoteKeepData = stack.keep.loadAllRemoteData()
@@ -225,20 +225,20 @@ class BasicTestCase(unittest.TestCase):
         # test round trip with stack methods
         stack.restoreLocal()
         localKeepData = odict([
-                                ('uid', stack.local.uid),
-                                ('name', stack.local.name),
-                                ('ha', list(stack.local.ha)),
-                                ('iha', None),
-                                ('natted', None),
-                                ('fqdn', stack.local.fqdn),
-                                ('dyned', stack.local.dyned),
-                                ('sid', stack.local.sid),
-                                ('puid', stack.puid),
-                                ('aha', list(stack.ha)),
-                                ('role', stack.local.role),
-                                ('sighex', stack.local.signer.keyhex),
-                                ('prihex', stack.local.priver.keyhex),
-                              ])
+            ('uid', stack.local.uid),
+            ('name', stack.local.name),
+            ('ha', list(stack.local.ha)),
+            ('iha', None),
+            ('natted', None),
+            ('fqdn', stack.local.fqdn),
+            ('dyned', stack.local.dyned),
+            ('sid', stack.local.sid),
+            ('puid', stack.puid),
+            ('aha', list(stack.ha)),
+            ('role', stack.local.role),
+            ('sighex', stack.local.signer.keyhex),
+            ('prihex', stack.local.priver.keyhex),
+        ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         stack.removeAllRemotes(clear=False)
@@ -272,65 +272,65 @@ class BasicTestCase(unittest.TestCase):
 
         stack.dumpRemotes()
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
-                "{0}.{1}.{2}".format(stack.keep.prefix,
-                                     other1Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format(stack.keep.prefix,
+                                                                         other1Data['name'],
+                                                                         stack.keep.ext))))
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
-                "{0}.{1}.{2}".format(stack.keep.prefix,
-                                     other2Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format(stack.keep.prefix,
+                                                                         other2Data['name'],
+                                                                         stack.keep.ext))))
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
-                "{0}.{1}.{2}".format('role',
-                                     other1Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format('role',
+                                                                         other1Data['name'],
+                                                                         stack.keep.ext))))
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
-                "{0}.{1}.{2}".format('role',
-                                     other2Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format('role',
+                                                                         other2Data['name'],
+                                                                         stack.keep.ext))))
 
         for remote in stack.remotes.values():
             path = os.path.join(stack.keep.remotedirpath,
-                     "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
+                                "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
             self.assertTrue(os.path.exists(path))
         remoteKeepData = stack.keep.loadAllRemoteData()
-	python_fqdn = socket.getfqdn('127.0.0.1')
+        python_fqdn = socket.getfqdn('127.0.0.1')
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
         validRemoteKeepData = {
-                                'other1':
-                                    {'name': other1Data['name'],
-                                     'uid': 2,
-                                     'fuid': 0,
-                                     'ha': ['127.0.0.1', 7531],
-                                     'iha': None,
-                                     'natted': None,
-                                     'fqdn': python_fqdn,
-                                     'dyned': None,
-                                     'sid': 0,
-                                     'main': False,
-                                     'kind': 0,
-                                     'joined': None,
-                                     'acceptance': None,
-                                     'verhex': other1Data['verhex'],
-                                     'pubhex': other1Data['pubhex'],
-                                     'role': other1Data['name'],},
-                                'other2':
-                                    {'name': other2Data['name'],
-                                     'uid': 3,
-                                     'fuid': 0,
-                                     'ha': ['127.0.0.1', 7532],
-                                     'iha': None,
-                                     'natted': None,
-                                     'fqdn': python_fqdn,
-                                     'dyned': None,
-                                     'sid': 0,
-                                     'main': False,
-                                     'kind': 0,
-                                     'joined': None,
-                                     'acceptance': None,
-                                     'verhex': other2Data['verhex'],
-                                     'pubhex': other2Data['pubhex'],
-                                     'role': other2Data['name'],}
-                                }
+            'other1':
+            {'name': other1Data['name'],
+             'uid': 2,
+             'fuid': 0,
+             'ha': ['127.0.0.1', 7531],
+             'iha': None,
+             'natted': None,
+             'fqdn': python_fqdn,
+             'dyned': None,
+             'sid': 0,
+             'main': False,
+             'kind': 0,
+             'joined': None,
+             'acceptance': None,
+             'verhex': other1Data['verhex'],
+             'pubhex': other1Data['pubhex'],
+             'role': other1Data['name'],},
+            'other2':
+            {'name': other2Data['name'],
+             'uid': 3,
+             'fuid': 0,
+             'ha': ['127.0.0.1', 7532],
+             'iha': None,
+             'natted': None,
+             'fqdn': python_fqdn,
+             'dyned': None,
+             'sid': 0,
+             'main': False,
+             'kind': 0,
+             'joined': None,
+             'acceptance': None,
+             'verhex': other2Data['verhex'],
+             'pubhex': other2Data['pubhex'],
+             'role': other2Data['name'],}
+        }
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         # stack method
@@ -339,23 +339,23 @@ class BasicTestCase(unittest.TestCase):
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
-                                                ('name', remote.name),
-                                                ('uid', remote.uid),
-                                                ('fuid', remote.fuid),
-                                                ('ha', list(remote.ha)),
-                                                ('iha', remote.iha),
-                                                ('natted', remote.natted),
-                                                ('fqdn', remote.fqdn),
-                                                ('dyned', remote.dyned),
-                                                ('sid', remote.sid),
-                                                ('main', remote.main),
-                                                ('kind', remote.kind),
-                                                ('joined', remote.joined),
-                                                ('role', remote.role),
-                                                ('acceptance', remote.acceptance),
-                                                ('verhex', remote.verfer.keyhex),
-                                                ('pubhex', remote.pubber.keyhex),
-                                              ])
+                ('name', remote.name),
+                ('uid', remote.uid),
+                ('fuid', remote.fuid),
+                ('ha', list(remote.ha)),
+                ('iha', remote.iha),
+                ('natted', remote.natted),
+                ('fqdn', remote.fqdn),
+                ('dyned', remote.dyned),
+                ('sid', remote.sid),
+                ('main', remote.main),
+                ('kind', remote.kind),
+                ('joined', remote.joined),
+                ('role', remote.role),
+                ('acceptance', remote.acceptance),
+                ('verhex', remote.verfer.keyhex),
+                ('pubhex', remote.pubber.keyhex),
+            ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
@@ -366,43 +366,43 @@ class BasicTestCase(unittest.TestCase):
                                    dirpath=mainData['dirpath'],
                                    store=self.store)
         localKeepData = odict([
-                                ('name', stack.local.name),
-                                ('uid', stack.local.uid),
-                                ('ha', list(stack.local.ha)),
-                                ('iha', stack.local.iha),
-                                ('natted', stack.local.natted),
-                                ('fqdn', stack.local.fqdn),
-                                ('dyned', stack.local.dyned),
-                                ('sid', stack.local.sid),
-                                ('puid', stack.puid),
-                                ('aha', list(stack.ha)),
-                                ('role', stack.local.role),
-                                ('sighex', stack.local.signer.keyhex),
-                                ('prihex', stack.local.priver.keyhex),
-                              ])
+            ('name', stack.local.name),
+            ('uid', stack.local.uid),
+            ('ha', list(stack.local.ha)),
+            ('iha', stack.local.iha),
+            ('natted', stack.local.natted),
+            ('fqdn', stack.local.fqdn),
+            ('dyned', stack.local.dyned),
+            ('sid', stack.local.sid),
+            ('puid', stack.puid),
+            ('aha', list(stack.ha)),
+            ('role', stack.local.role),
+            ('sighex', stack.local.signer.keyhex),
+            ('prihex', stack.local.priver.keyhex),
+        ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
-                                                ('name', remote.name),
-                                                ('uid', remote.uid),
-                                                ('fuid', remote.fuid),
-                                                ('ha', list(remote.ha)),
-                                                ('iha', remote.iha),
-                                                ('natted', remote.natted),
-                                                ('fqdn', remote.fqdn),
-                                                ('dyned', remote.dyned),
-                                                ('sid', remote.sid),
-                                                ('main', remote.main),
-                                                ('kind', remote.kind),
-                                                ('joined', remote.joined),
-                                                ('role', remote.role),
-                                                ('acceptance', remote.acceptance),
-                                                ('verhex', remote.verfer.keyhex),
-                                                ('pubhex', remote.pubber.keyhex),
-                                               ])
+                ('name', remote.name),
+                ('uid', remote.uid),
+                ('fuid', remote.fuid),
+                ('ha', list(remote.ha)),
+                ('iha', remote.iha),
+                ('natted', remote.natted),
+                ('fqdn', remote.fqdn),
+                ('dyned', remote.dyned),
+                ('sid', remote.sid),
+                ('main', remote.main),
+                ('kind', remote.kind),
+                ('joined', remote.joined),
+                ('role', remote.role),
+                ('acceptance', remote.acceptance),
+                ('verhex', remote.verfer.keyhex),
+                ('pubhex', remote.pubber.keyhex),
+            ])
             validRemoteKeepData[remote.name]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -445,23 +445,23 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(stack.keep.remoteroledirpath))
 
         localKeepData = stack.keep.loadLocalData()
-	python_fqdn = socket.getfqdn('127.0.0.1')
+        python_fqdn = socket.getfqdn('127.0.0.1')
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         validLocalKeepData =  odict([
-                                        ('name', mainData['name']),
-                                        ('uid', 1),
-                                        ('ha', ['127.0.0.1', 7530]),
-                                        ('iha', None),
-                                        ('natted',  None),
-                                        ('fqdn', python_fqdn),
-                                        ('dyned', None),
-                                        ('sid', 0),
-                                        ('puid', 1),
-                                        ('aha', ['0.0.0.0', 7530]),
-                                        ('role', mainData['name']),
-                                        ('sighex', mainData['sighex']),
-                                        ('prihex', mainData['prihex']),
-                                    ])
+            ('name', mainData['name']),
+            ('uid', 1),
+            ('ha', ['127.0.0.1', 7530]),
+            ('iha', None),
+            ('natted',  None),
+            ('fqdn', python_fqdn),
+            ('dyned', None),
+            ('sid', 0),
+            ('puid', 1),
+            ('aha', ['0.0.0.0', 7530]),
+            ('role', mainData['name']),
+            ('sighex', mainData['sighex']),
+            ('prihex', mainData['prihex']),
+        ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         remoteKeepData = stack.keep.loadAllRemoteData()
@@ -471,20 +471,20 @@ class BasicTestCase(unittest.TestCase):
         # test round trip with stack methods
         stack.restoreLocal()
         localKeepData = odict([
-                                ('name', stack.local.name),
-                                ('uid', stack.local.uid),
-                                ('ha', list(stack.local.ha)),
-                                ('iha', stack.local.iha),
-                                ('natted', stack.local.natted),
-                                ('fqdn', stack.local.fqdn),
-                                ('dyned', stack.local.dyned),
-                                ('sid', stack.local.sid),
-                                ('puid', stack.puid),
-                                ('aha', list(stack.ha)),
-                                ('role', stack.local.role),
-                                ('sighex', stack.local.signer.keyhex),
-                                ('prihex', stack.local.priver.keyhex),
-                              ])
+            ('name', stack.local.name),
+            ('uid', stack.local.uid),
+            ('ha', list(stack.local.ha)),
+            ('iha', stack.local.iha),
+            ('natted', stack.local.natted),
+            ('fqdn', stack.local.fqdn),
+            ('dyned', stack.local.dyned),
+            ('sid', stack.local.sid),
+            ('puid', stack.puid),
+            ('aha', list(stack.ha)),
+            ('role', stack.local.role),
+            ('sighex', stack.local.signer.keyhex),
+            ('prihex', stack.local.priver.keyhex),
+        ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         stack.removeAllRemotes(clear=False)
@@ -513,67 +513,67 @@ class BasicTestCase(unittest.TestCase):
 
         stack.dumpRemotes()
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
-                "{0}.{1}.{2}".format(stack.keep.prefix,
-                                     other1Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format(stack.keep.prefix,
+                                                                         other1Data['name'],
+                                                                         stack.keep.ext))))
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remotedirpath,
-                "{0}.{1}.{2}".format(stack.keep.prefix,
-                                     other2Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format(stack.keep.prefix,
+                                                                         other2Data['name'],
+                                                                         stack.keep.ext))))
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
-                "{0}.{1}.{2}".format('role',
-                                     other1Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format('role',
+                                                                         other1Data['name'],
+                                                                         stack.keep.ext))))
         self.assertTrue(os.path.exists(os.path.join(stack.keep.remoteroledirpath,
-                "{0}.{1}.{2}".format('role',
-                                     other2Data['name'],
-                                     stack.keep.ext))))
+                                                    "{0}.{1}.{2}".format('role',
+                                                                         other2Data['name'],
+                                                                         stack.keep.ext))))
 
         for remote in stack.remotes.values():
             path = os.path.join(stack.keep.remotedirpath,
-                     "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
+                                "{0}.{1}.{2}".format(stack.keep.prefix, remote.name, stack.keep.ext))
             self.assertTrue(os.path.exists(path))
         remoteKeepData = stack.keep.loadAllRemoteData()
-	python_fqdn = socket.getfqdn('127.0.0.1')
+        python_fqdn = socket.getfqdn('127.0.0.1')
         console.terse("Remote keep data = '{0}'\n".format(remoteKeepData))
         validRemoteKeepData = {
-                                'other1':
-                                    {'name': other1Data['name'],
-                                     'uid': 2,
-                                     'fuid': 0,
-                                     'ha': ['127.0.0.1', 7531],
-                                     'iha': None,
-                                     'natted': None,
-                                     'fqdn': python_fqdn,
-                                     'dyned': None,
-                                     'sid': 0,
-                                     'main': False,
-                                     'kind': 0,
-                                     'joined': None,
-                                     'role': other1Data['name'],
-                                     'acceptance': None,
-                                     'verhex': other1Data['verhex'],
-                                     'pubhex': other1Data['pubhex'],
-                                     },
-                                'other2':
-                                    {'name': other2Data['name'],
-                                     'uid': 3,
-                                     'fuid': 0,
-                                     'ha': ['127.0.0.1', 7532],
-                                     'iha': None,
-                                     'natted': None,
-                                     'fqdn': python_fqdn,
-                                     'dyned': None,
-                                     'sid': 0,
-                                     'main': False,
-                                     'kind': 0,
-                                     'joined': None,
-                                     'role': other2Data['name'],
-                                     'acceptance': None,
-                                     'verhex': other2Data['verhex'],
-                                     'pubhex': other2Data['pubhex'],
-                                     }
-                                }
+            'other1':
+            {'name': other1Data['name'],
+             'uid': 2,
+             'fuid': 0,
+             'ha': ['127.0.0.1', 7531],
+             'iha': None,
+             'natted': None,
+             'fqdn': python_fqdn,
+             'dyned': None,
+             'sid': 0,
+             'main': False,
+             'kind': 0,
+             'joined': None,
+             'role': other1Data['name'],
+             'acceptance': None,
+             'verhex': other1Data['verhex'],
+             'pubhex': other1Data['pubhex'],
+             },
+            'other2':
+            {'name': other2Data['name'],
+             'uid': 3,
+             'fuid': 0,
+             'ha': ['127.0.0.1', 7532],
+             'iha': None,
+             'natted': None,
+             'fqdn': python_fqdn,
+             'dyned': None,
+             'sid': 0,
+             'main': False,
+             'kind': 0,
+             'joined': None,
+             'role': other2Data['name'],
+             'acceptance': None,
+             'verhex': other2Data['verhex'],
+             'pubhex': other2Data['pubhex'],
+             }
+        }
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         # stack method
@@ -582,23 +582,23 @@ class BasicTestCase(unittest.TestCase):
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
-                                                ('name', remote.name),
-                                                ('uid', remote.uid),
-                                                ('fuid', remote.fuid),
-                                                ('ha', list(remote.ha)),
-                                                ('iha', remote.iha),
-                                                ('natted', remote.natted),
-                                                ('fqdn', remote.fqdn),
-                                                ('dyned', remote.dyned),
-                                                ('sid', remote.sid),
-                                                ('main', remote.main),
-                                                ('kind', remote.kind),
-                                                ('joined', remote.joined),
-                                                ('role', remote.role),
-                                                ('acceptance', remote.acceptance),
-                                                ('verhex', remote.verfer.keyhex),
-                                                ('pubhex', remote.pubber.keyhex),
-                                              ])
+                ('name', remote.name),
+                ('uid', remote.uid),
+                ('fuid', remote.fuid),
+                ('ha', list(remote.ha)),
+                ('iha', remote.iha),
+                ('natted', remote.natted),
+                ('fqdn', remote.fqdn),
+                ('dyned', remote.dyned),
+                ('sid', remote.sid),
+                ('main', remote.main),
+                ('kind', remote.kind),
+                ('joined', remote.joined),
+                ('role', remote.role),
+                ('acceptance', remote.acceptance),
+                ('verhex', remote.verfer.keyhex),
+                ('pubhex', remote.pubber.keyhex),
+            ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
         stack.server.close()
@@ -609,43 +609,43 @@ class BasicTestCase(unittest.TestCase):
                                    dirpath=mainData['dirpath'],
                                    store=self.store)
         localKeepData = odict([
-                                ('name', stack.local.name),
-                                ('uid', stack.local.uid),
-                                ('ha', list(stack.local.ha)),
-                                ('iha', stack.local.iha),
-                                ('natted', stack.local.natted),
-                                ('fqdn', stack.local.fqdn),
-                                ('dyned', stack.local.dyned),
-                                ('sid', stack.local.sid),
-                                ('puid', stack.puid),
-                                ('aha', list(stack.ha)),
-                                ('role', stack.local.role),
-                                ('sighex', stack.local.signer.keyhex),
-                                ('prihex', stack.local.priver.keyhex),
-                              ])
+            ('name', stack.local.name),
+            ('uid', stack.local.uid),
+            ('ha', list(stack.local.ha)),
+            ('iha', stack.local.iha),
+            ('natted', stack.local.natted),
+            ('fqdn', stack.local.fqdn),
+            ('dyned', stack.local.dyned),
+            ('sid', stack.local.sid),
+            ('puid', stack.puid),
+            ('aha', list(stack.ha)),
+            ('role', stack.local.role),
+            ('sighex', stack.local.signer.keyhex),
+            ('prihex', stack.local.priver.keyhex),
+        ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
         remoteKeepData = odict()
         for remote in stack.remotes.values():
             remoteKeepData[remote.name] = odict([
-                                                ('name', remote.name),
-                                                ('uid', remote.uid),
-                                                ('fuid', remote.fuid),
-                                                ('ha', list(remote.ha)),
-                                                ('iha', remote.iha),
-                                                ('natted', remote.natted),
-                                                ('fqdn', remote.fqdn),
-                                                ('dyned', remote.dyned),
-                                                ('sid', remote.sid),
-                                                ('main', remote.main),
-                                                ('kind', remote.kind),
-                                                ('joined', remote.joined),
-                                                ('role', remote.role),
-                                                ('acceptance', remote.acceptance),
-                                                ('verhex', remote.verfer.keyhex),
-                                                ('pubhex', remote.pubber.keyhex),
-                                               ])
+                ('name', remote.name),
+                ('uid', remote.uid),
+                ('fuid', remote.fuid),
+                ('ha', list(remote.ha)),
+                ('iha', remote.iha),
+                ('natted', remote.natted),
+                ('fqdn', remote.fqdn),
+                ('dyned', remote.dyned),
+                ('sid', remote.sid),
+                ('main', remote.main),
+                ('kind', remote.kind),
+                ('joined', remote.joined),
+                ('role', remote.role),
+                ('acceptance', remote.acceptance),
+                ('verhex', remote.verfer.keyhex),
+                ('pubhex', remote.pubber.keyhex),
+            ])
             validRemoteKeepData[remote.name]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -696,8 +696,8 @@ class BasicTestCase(unittest.TestCase):
                                    auto=auto)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -763,8 +763,8 @@ class BasicTestCase(unittest.TestCase):
                                    auto=auto)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -958,8 +958,8 @@ class BasicTestCase(unittest.TestCase):
         mainDirpath = data['dirpath']
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1083,8 +1083,8 @@ class BasicTestCase(unittest.TestCase):
         mainDirpath = data['dirpath']
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1173,8 +1173,8 @@ class BasicTestCase(unittest.TestCase):
                                    auto=auto)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1324,9 +1324,9 @@ class BasicTestCase(unittest.TestCase):
                                    auto=auto)
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     mutable=None,
-                                     ha=None)
+                                    main=True,
+                                    mutable=None,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1540,8 +1540,8 @@ class BasicTestCase(unittest.TestCase):
         savedMainData = data
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
@@ -1581,8 +1581,8 @@ class BasicTestCase(unittest.TestCase):
                                    base=self.base,
                                    auto=auto)
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1636,8 +1636,8 @@ class BasicTestCase(unittest.TestCase):
         auto = raeting.autoModes.once
         data = savedMainData
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1710,8 +1710,8 @@ class BasicTestCase(unittest.TestCase):
         savedMainData = data
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1759,8 +1759,8 @@ class BasicTestCase(unittest.TestCase):
                                    base=self.base,
                                    auto=auto)
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1827,9 +1827,9 @@ class BasicTestCase(unittest.TestCase):
         auto = raeting.autoModes.once
         data = savedMainData
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     auto=auto,
-                                     ha=None)
+                                    main=True,
+                                    auto=auto,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1902,8 +1902,8 @@ class BasicTestCase(unittest.TestCase):
         savedMainData = data
         keeping.clearAllKeep(data['dirpath'])
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
@@ -1957,8 +1957,8 @@ class BasicTestCase(unittest.TestCase):
                                    base=self.base,
                                    auto=auto)
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         data = self.createRoadData(name='other',
@@ -2013,14 +2013,14 @@ class BasicTestCase(unittest.TestCase):
         # reload with original saved data
         data = savedMainData
         main = self.createRoadStack(data=data,
-                                     main=True,
-                                     ha=None)
+                                    main=True,
+                                    ha=None)
         #default ha is ("", raeting.RAET_PORT)
 
         data = savedOtherData
         other = self.createRoadStack(data=data,
-                                    main=None,
-                                    ha=("", raeting.RAET_TEST_PORT))
+                                     main=None,
+                                     ha=("", raeting.RAET_TEST_PORT))
 
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
@@ -2123,4 +2123,3 @@ if __name__ == '__main__' and __package__ is None:
     runSome()#only run some
 
     #runOne('testRejoinFromMain')
-

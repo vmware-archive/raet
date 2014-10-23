@@ -24,7 +24,7 @@ from ioflo.base.consoling import getConsole
 console = getConsole()
 
 from raet import raeting, nacling
-from raet.road import estating, keeping, stacking
+from raet.road import estating, keeping, stacking, packeting
 
 if sys.platform == 'win32':
     TEMPDIR = 'c:/temp'
@@ -60,7 +60,10 @@ class BasicTestCase(unittest.TestCase):
                        main=None,
                        auto=raeting.autoModes.never,
                        role=None,
-                       kind=None, ):
+                       sigkey=None,
+                       prikey=None,
+                       kind=None,
+                       mutable=None, ):
         '''
         Creates odict and populates with data to setup road stack
 
@@ -72,11 +75,12 @@ class BasicTestCase(unittest.TestCase):
         data['auto'] = auto
         data['role'] = role if role is not None else name
         data['kind'] = kind
+        data['mutable'] = mutable
         data['dirpath'] = os.path.join(base, 'road', 'keep', name)
-        signer = nacling.Signer()
+        signer = nacling.Signer(sigkey)
         data['sighex'] = signer.keyhex
         data['verhex'] = signer.verhex
-        privateer = nacling.Privateer()
+        privateer = nacling.Privateer(prikey)
         data['prihex'] = privateer.keyhex
         data['pubhex'] = privateer.pubhex
 
@@ -89,7 +93,8 @@ class BasicTestCase(unittest.TestCase):
                         main=None,
                         auto=None,
                         role=None,
-                        kind=None, ):
+                        kind=None,
+                        mutable=None, ):
         '''
         Creates stack and local estate from data with
         and overrides with parameters
@@ -107,6 +112,7 @@ class BasicTestCase(unittest.TestCase):
                                    prikey=data['prihex'],
                                    auto=auto if auto is not None else data['auto'],
                                    kind=kind if kind is not None else data['kind'],
+                                   mutable=mutable if mutable is not None else data['mutable'],
                                    dirpath=data['dirpath'],)
 
         return stack
@@ -150,8 +156,7 @@ class BasicTestCase(unittest.TestCase):
         Flush any queued up udp packets in receive buffer
         '''
         stack.serviceReceives()
-        while stack.rxes:
-            stack.rxes.popleft()
+        stack.rxes.clear()
 
     def serviceStacks(self, stacks, duration=1.0):
         '''
@@ -234,6 +239,44 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(alpha.mutable, None)
 
         return alpha, beta
+
+    def bootstrapStack(self,
+                       name='',
+                       ha=None,
+                       main=None,
+                       auto=raeting.autoModes.never,
+                       role=None,
+                       sigkey=None,
+                       prikey=None,
+                       kind=None,
+                       mutable=None, ):
+
+        data = self.createRoadData(base=self.base,
+                                   name=name,
+                                   ha=ha,
+                                   main=main,
+                                   auto=auto,
+                                   role=role,
+                                   sigkey=sigkey,
+                                   prikey=prikey,
+                                   kind=kind,
+                                   mutable=mutable)
+        keeping.clearAllKeep(data['dirpath'])
+        stack = self.createRoadStack(data=data)
+
+        self.assertIs(stack.main, main)
+        self.assertIs(data['main'], main)
+        self.assertIs(stack.keep.auto, auto)
+        self.assertIs(data['auto'], auto)
+        self.assertIs(stack.kind, kind)
+        self.assertIs(data['kind'], kind)
+        self.assertIs(stack.mutable, mutable)
+        self.assertIs(data['mutable'], mutable)
+
+        self.assertEqual(len(stack.remotes), 0)
+
+        return (stack, data)
+
 
     def copyData(self, remote, fuid=None):
         keep = {}
@@ -366,14 +409,17 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
+        self.assertIn('joinent_transaction_failure', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
         self.assertEqual(len(alpha.remotes), 1)
         self.assertEqual(len(alpha.nameRemotes), 1)
+        self.assertIn('joiner_transaction_failure', beta.stats)
+        self.assertEqual(beta.stats['joiner_transaction_failure'], 1)
         self.assertEqual(len(beta.remotes), 0)
         self.assertEqual(len(beta.nameRemotes), 0)
         # Assert alphaRemote isn't modified
@@ -449,7 +495,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -533,7 +578,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -615,7 +659,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -694,7 +737,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -773,7 +815,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -860,7 +901,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, don't clear
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
@@ -938,41 +978,44 @@ class BasicTestCase(unittest.TestCase):
         # Sameness: Not sameall
         keep = self.copyData(alphaRemote)
 
-        # Join with a new role
-        self.join(beta, alpha, deid=betaRemote.nuid)
+        ## Join with a new role
+        #self.join(beta, alpha, deid=betaRemote.nuid)
 
-        alpha.keep.rejectRemote(alphaRemote)
+        #alpha.keep.rejectRemote(alphaRemote)
 
-        # Action: Reject, don't clear
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
-            self.assertEqual(len(stack.remotes), 1)
-            self.assertEqual(len(stack.nameRemotes), 1)
-            for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
-                self.assertIs(remote.allowed, None)
-                self.assertIs(remote.alived, None)
-        self.assertTrue(alpha.mutable)
-        self.assertIs(beta.mutable, None)
-        self.assertFalse(self.sameAll(alphaRemote, keep))
-        self.assertFalse(self.sameRoleKeys(alphaRemote, keep))
-        self.assertEqual(alphaRemote.role, newRole)
+        ## Action: Reject, don't clear
+        #for stack in [alpha, beta]:
+            #self.assertEqual(len(stack.transactions), 1)
+            #self.assertEqual(len(stack.remotes), 1)
+            #self.assertEqual(len(stack.nameRemotes), 1)
+            #for remote in stack.remotes.values():
+                #self.assertIs(remote.joined, None)
+                #self.assertIs(remote.allowed, None)
+                #self.assertIs(remote.alived, None)
+        #self.assertTrue(alpha.mutable)
+        #self.assertIs(beta.mutable, None)
+        #self.assertFalse(self.sameAll(alphaRemote, keep))
+        #self.assertFalse(self.sameRoleKeys(alphaRemote, keep))
+        #self.assertEqual(alphaRemote.role, newRole)
+        #self.assertIn('joinent_transaction_failure', alpha.stats)
+        #self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
+        #self.assertIn('joiner_transaction_failure', beta.stats)
+        #self.assertEqual(beta.stats['joiner_transaction_failure'], 1)
 
-        # Check remote dump
-        remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
-        # Check role/keys dump
-        roleData = alpha.keep.loadRemoteRoleData(oldRole)
-        self.assertEqual(roleData['role'], oldRole)
-        self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
-        roleData = alpha.keep.loadRemoteRoleData(newRole)
-        self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        ## Check remote dump
+        #remoteData = alpha.keep.loadRemoteData(beta.local.name)
+        #self.assertIs(remoteData, None)
+        ## Check role/keys dump
+        #roleData = alpha.keep.loadRemoteRoleData(oldRole)
+        #self.assertEqual(roleData['role'], oldRole)
+        #self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
+        #self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
+        #self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        #roleData = alpha.keep.loadRemoteRoleData(newRole)
+        #self.assertEqual(roleData['role'], beta.local.role)
+        #self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
+        #self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
+        #self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1024,8 +1067,6 @@ class BasicTestCase(unittest.TestCase):
         self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Reject, clear remote data, don't touch role data
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.stats), 0)
         self.assertEqual(len(alpha.transactions), 0)
         self.assertEqual(len(alpha.remotes), 0)
         self.assertEqual(len(alpha.nameRemotes), 0)
@@ -1093,8 +1134,6 @@ class BasicTestCase(unittest.TestCase):
         self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Reject, clear remote data, don't touch role data
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.stats), 0)
         self.assertEqual(len(alpha.transactions), 0)
         self.assertEqual(len(alpha.remotes), 0)
         self.assertEqual(len(alpha.nameRemotes), 0)
@@ -1231,7 +1270,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -1314,7 +1352,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -1401,7 +1438,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -1485,7 +1521,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -1566,7 +1601,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -1650,7 +1684,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -1733,7 +1766,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -1874,7 +1906,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -1891,9 +1922,16 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(alphaRemote.acceptance, raeting.acceptances.pending)
         self.assertIs(betaRemote.acceptance, None)
 
-        # Check remote dump
+        # Check remote dump of pended data
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertIs(remoteData['main'], beta.main) # new main value
+        self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -1988,7 +2026,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -2007,7 +2044,13 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertIs(remoteData['kind'], beta.kind) # new main value
+        self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -2106,7 +2149,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -2125,7 +2167,13 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(tuple(remoteData['ha']), beta.local.ha) # new value
+        self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -2219,7 +2267,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -2238,7 +2285,12 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -2329,7 +2381,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -2349,7 +2400,11 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -2443,7 +2498,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -2462,7 +2516,11 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -2556,7 +2614,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -2571,7 +2628,12 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -2648,7 +2710,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Add, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -2661,7 +2722,11 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -2754,7 +2819,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -2839,7 +2903,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -2923,7 +2986,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -3011,7 +3073,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -3096,7 +3157,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -3177,7 +3237,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -3260,7 +3319,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, nack
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -3349,7 +3407,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, don't clear
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
@@ -3436,7 +3493,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject, don't clear
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -3451,7 +3507,11 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.rejected)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
@@ -3515,8 +3575,6 @@ class BasicTestCase(unittest.TestCase):
         self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Reject, Remove Clear
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.stats), 0)
         self.assertEqual(len(alpha.transactions), 0)
         self.assertEqual(len(alpha.remotes), 0)
         self.assertEqual(len(alpha.nameRemotes), 0)
@@ -3590,8 +3648,6 @@ class BasicTestCase(unittest.TestCase):
         self.join(beta, alpha, deid=betaRemote.nuid)
 
         # Action: Reject, clear remote data, don't touch role data
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.stats), 0)
         self.assertEqual(len(alpha.transactions), 0)
         self.assertEqual(len(alpha.remotes), 0)
         self.assertEqual(len(alpha.nameRemotes), 0)
@@ -3655,7 +3711,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -3733,7 +3788,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dumpt
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -3809,7 +3863,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -3897,7 +3950,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -3974,7 +4026,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4050,7 +4101,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4124,7 +4174,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4196,7 +4245,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Accept, No change
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4280,7 +4328,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4301,7 +4348,12 @@ class BasicTestCase(unittest.TestCase):
         remoteData = alpha.keep.loadRemoteData(oldName)
         self.assertIs(remoteData, None)
         remoteData = alpha.keep.loadRemoteData(newName)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['name'], beta.name) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -4400,7 +4452,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4419,7 +4470,12 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['main'], beta.main) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -4516,7 +4572,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4535,7 +4590,12 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['kind'], beta.kind) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -4636,7 +4696,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4655,7 +4714,12 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(tuple(remoteData['ha']), beta.local.ha) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -4754,7 +4818,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4773,7 +4836,12 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['fuid'], betaRemote.nuid) # new value
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -4868,7 +4936,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -4888,7 +4955,11 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -4985,7 +5056,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, Dump
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -5004,7 +5074,11 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -5096,7 +5170,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Pend, No change
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
-            self.assertEqual(len(stack.stats), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
@@ -5113,7 +5186,11 @@ class BasicTestCase(unittest.TestCase):
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
-        self.assertIs(remoteData, None)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['role'], beta.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
@@ -5209,7 +5286,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -5291,7 +5367,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -5375,7 +5450,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -5457,7 +5531,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -5540,7 +5613,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -5627,7 +5699,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
@@ -5718,7 +5789,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Reject
         #for stack in [alpha, beta]:
             #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.stats), 2)
             #self.assertEqual(len(stack.remotes), 1)
             #self.assertEqual(len(stack.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -6049,7 +6119,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -6125,7 +6194,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 2)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -6199,7 +6267,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -6271,7 +6338,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -6345,7 +6411,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -6414,7 +6479,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -6481,7 +6545,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -6516,36 +6579,67 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testJoinerVacuousPendingPendNewName.__doc__))
 
-        # Mode: Never
-        alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        alpha, alphaData = self.bootstrapStack(name='alpha',
+                                       ha=("", raeting.RAET_PORT),
+                                       main=True,
+                                       auto=raeting.autoModes.once,
+                                       role=None,
+                                       kind=None,
+                                       mutable=True, )
 
-        # Vacuous: Yes
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha,
-                                           main=True,
-                                           name=alpha.name,
-                                           verkey=alpha.local.signer.verhex,
-                                           pubkey=alpha.local.priver.pubhex)
+        self.assertIs(alpha.local.role, 'alpha')
+        self.assertEqual(alpha.ha, ('0.0.0.0', raeting.RAET_PORT))
+        self.assertEqual(alpha.local.ha, ('127.0.0.1', raeting.RAET_PORT))
 
-        alphaRemote = estating.RemoteEstate(stack=beta,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
+        beta, betaData = self.bootstrapStack(name='beta',
+                                             ha=("", raeting.RAET_TEST_PORT),
+                                             main=None,
+                                             auto=raeting.autoModes.once,
+                                             role=None,
+                                             kind=None,
+                                             mutable=True, )
+
+        self.assertIs(beta.local.role, 'beta')
+        self.assertEqual(beta.ha, ('0.0.0.0', raeting.RAET_TEST_PORT))
+        self.assertEqual(beta.local.ha, ('127.0.0.1', raeting.RAET_TEST_PORT))
+
+        # Do initial join vacuous join to setup rejoin with renew
+        # create remote to join to alpha
+        remote =  beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                        fuid=0, # vacuous join
+                                                        sid=0, # always 0 for join
+                                                        ha=alpha.local.ha))
+        self.join(beta, alpha, deid=remote.uid)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.acceptance, raeting.acceptances.accepted)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        alphaRemoteBeta = alpha.remotes.values()[0]
+        self.assertEqual(alphaRemoteBeta.name, 'beta')
+
+        betaRemoteAlpha = beta.remotes.values()[0]
+        self.assertEqual(betaRemoteAlpha.name, 'alpha')
+
+        # save the current state of beta stack remote for alpha
+        betaRemoteAlphaSave = self.copyData(betaRemoteAlpha)
+
+        # move alpha stack remote for beta to different uid (nuid) to force renew
+        oldUid = alphaRemoteBeta.uid
+        alpha.moveRemote(alphaRemoteBeta, alphaRemoteBeta.uid + 1)
+        self.assertNotEqual(alphaRemoteBeta.uid, oldUid)
+        self.assertIs(alpha.remotes[alphaRemoteBeta.uid], alphaRemoteBeta)
 
         # Status: Pending
-        beta.keep.pendRemote(betaRemote)
-
-        # Name: New
-        oldName = alpha.name
-        newName = '{0}_new'.format(oldName)
-        alpha.name = newName
+        beta.keep.pendRemote(betaRemoteAlpha)
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.acceptances.pending)
+        beta.keep.auto = raeting.autoModes.never
+        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        # Name: New # have to do this mid transaction below
         # Main: Either
         # Kind: Either
         # RHA:  Old
@@ -6556,70 +6650,320 @@ class BasicTestCase(unittest.TestCase):
         # Role: Either
         # Keys: Either
         # Sameness: Not sameall
-        keep = self.copyData(betaRemote, fuid=alphaRemote.nuid)
-
         # Mutable: Yes
-        beta.mutable = True
+        self.assertIs(beta.mutable, True)
+
+        beta.clearStats()
+        alpha.clearStats()
 
         # Test
         # Renew: Yes
-        self.join(beta, alpha, deid=betaRemote.nuid, renewal=True, duration=0.10)
-        # FIXME: The transaction is dropped here, right after pend from beta side.
-        #        After this all Redo Accepts from alpha become dropped by beta.
+        # Name change of Joinent on renew rejoin could occur several ways
+        # One is Joinent is dynamically changing its name mid transaction
+        # Another is Joinent name was changed between end of
+        # Join where Joinent refused with nack renew transaction
+        # and start of Joiner renew rejoin We implement the later
+        # to do this we manually step through the transactions
+        console.terse("\n Rejoin Failed with nack Renew Transaction **************\n")
+        beta.join(uid=betaRemoteAlpha.uid) #join
+        beta.serviceOneAllTx()
+        self.store.advanceStamp(0.05)
+        time.sleep(0.05)
+        alpha.serviceOneAllRx()
+        alpha.serviceOneAllTx() # Ack Renew
+        self.store.advanceStamp(0.05)
+        time.sleep(0.05)
 
-        ## Action: Pend, Dump
-        for stack in [alpha, beta]:
-            # self.assertEqual(len(stack.transactions), 1) #b=0
-            self.assertEqual(len(stack.stats), 0)
-            self.assertEqual(len(beta.remotes), 1)
-            self.assertEqual(len(beta.nameRemotes), 1)
+        # Close down alpha stack
+        alpha.server.close()
+        alpha.clearAllKeeps()
+
+        # now create new Joinent stack with new name but same role
+        gamma, gammaData = self.bootstrapStack(name='gamma',
+                                               ha=("", raeting.RAET_PORT),
+                                               main=True,
+                                               auto=raeting.autoModes.once,
+                                               role='alpha',
+                                               sigkey=alpha.local.signer.keyhex,
+                                               prikey=alpha.local.priver.keyhex,
+                                               kind=None,
+                                               mutable=True, )
+
+
+        self.assertEqual(gamma.name, 'gamma')
+        self.assertEqual(gamma.ha, ('0.0.0.0', raeting.RAET_PORT))
+        self.assertEqual(gamma.local.ha, ('127.0.0.1', raeting.RAET_PORT))
+        self.assertEqual(gamma.local.role, 'alpha')
+        self.assertEqual(gamma.local.signer.keyhex, alpha.local.signer.keyhex)
+        self.assertEqual(gamma.local.priver.keyhex, alpha.local.priver.keyhex)
+
+        # now allow socket to send packet resume transaction
+        console.terse("\n Renew Rejoin Transaction **************\n")
+        self.serviceStacks([beta, gamma])
+
+        # Action: Pend, Dump
+        self.assertIn('joiner_rx_renew', beta.stats)
+        self.assertEqual(beta.stats['joiner_rx_renew'], 1)
+        self.assertIn('join_renew_attempt', beta.stats)
+        self.assertEqual(beta.stats['join_renew_attempt'], 1)
+
+        self.assertIn('joinent_rx_pend', gamma.stats)
+        self.assertEqual(gamma.stats['joinent_rx_pend'], 1)
+
+        for stack in [gamma, beta]:
+            self.assertEqual(len(stack.transactions), 1)
+            self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-        self.assertIs(alpha.mutable, None)
-        self.assertTrue(beta.mutable)
-        self.assertFalse(self.sameAll(betaRemote, keep))
-        self.assertTrue(self.sameRoleKeys(betaRemote, keep))
-        self.assertEqual(betaRemote.name, newName)
-        self.assertIs(alphaRemote.acceptance, raeting.acceptances.accepted)
-        self.assertIs(betaRemote.acceptance, raeting.acceptances.pending)
 
-        # Check remote dump
-        remoteData = beta.keep.loadRemoteData(alpha.local.name)
-        self.assertIs(remoteData, None)
+        gammaRemoteBeta = gamma.remotes.values()[0]
+        self.assertIs(gammaRemoteBeta.acceptance, raeting.acceptances.accepted)
+
+        self.assertIs(beta.mutable, True)
+        betaRemoteGamma = beta.remotes.values()[0]
+        self.assertIs(betaRemoteAlpha, betaRemoteGamma) # same remote on beta side
+        self.assertFalse(self.sameAll(betaRemoteGamma, betaRemoteAlphaSave))
+        self.assertTrue(self.sameRoleKeys(betaRemoteGamma, betaRemoteAlphaSave))
+        self.assertEqual(betaRemoteGamma.name, gamma.name)
+        self.assertIs(betaRemoteGamma.acceptance, raeting.acceptances.pending)
+
+        # Check remote dump with pended data
+        remoteData = beta.keep.loadRemoteData(gamma.local.name)
+        self.assertIsNot(remoteData, None)
+        self.assertEqual(remoteData['name'], gamma.name) # new name value
+        self.assertEqual(remoteData['fuid'], gammaRemoteBeta.nuid) # new value
+        self.assertEqual(remoteData['role'], gamma.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], gamma.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], gamma.local.priver.pubhex)
+
         # Check role/keys dump
-        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['role'], alpha.local.role)
+        roleData = beta.keep.loadRemoteRoleData(gamma.local.role)
+        self.assertEqual(roleData['role'], gamma.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(roleData['verhex'], gamma.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], gamma.local.priver.pubhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
-        beta.keep.acceptRemote(betaRemote)
-        self.serviceStacks([alpha, beta], duration=3.0)
+        beta.keep.acceptRemote(betaRemoteAlpha)
+        self.serviceStacks([gamma, beta], duration=3.0)
 
-        for stack in [alpha, beta]:
+        for stack in [gamma, beta]:
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
-            self.assertEqual(len(stack.nameRemotes), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
                 self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
-        self.assertIs(alpha.mutable, None)
+
         self.assertTrue(beta.mutable)
-        self.assertIn('join_correspond_complete', alpha.stats)
-        self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
         self.assertEqual(beta.stats['join_initiate_complete'], 1)
+        self.assertEqual(betaRemoteGamma.name, gamma.name) # new name value
+
+        self.assertIn('join_correspond_complete', gamma.stats)
+        self.assertEqual(gamma.stats['join_correspond_complete'], 1)
+
+
+        # Check remote dump
+        remoteData = beta.keep.loadRemoteData(gamma.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertTrue(self.sameAll(betaRemoteGamma, remoteData))
+        self.assertIs(remoteData['main'], True) # new main value
+        self.assertIs(remoteData['fuid'], gammaRemoteBeta.uid) # value
+        # Check role/keys dump
+        roleData = beta.keep.loadRemoteRoleData(gamma.local.role)
+        self.assertEqual(roleData['role'], gamma.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
+        self.assertEqual(roleData['verhex'], gamma.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], gamma.local.priver.pubhex)
+
+        for stack in [gamma, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerVacuousPendingPendNewMain(self):
+        '''
+        Test mutable joiner pend pending vacuous renewal join with updated main (F2)
+        '''
+        console.terse("{0}\n".format(self.testJoinerVacuousPendingPendNewMain.__doc__))
+
+        alpha, alphaData = self.bootstrapStack(name='alpha',
+                                               ha=("", raeting.RAET_PORT),
+                                               main=True,
+                                               auto=raeting.autoModes.once,
+                                               role=None,
+                                               kind=None,
+                                               mutable=True, )
+
+        self.assertIs(alpha.local.role, 'alpha')
+        self.assertEqual(alpha.ha, ('0.0.0.0', raeting.RAET_PORT))
+        self.assertEqual(alpha.local.ha, ('127.0.0.1', raeting.RAET_PORT))
+
+        beta, betaData = self.bootstrapStack(name='beta',
+                                             ha=("", raeting.RAET_TEST_PORT),
+                                             main=None,
+                                             auto=raeting.autoModes.once,
+                                             role=None,
+                                             kind=None,
+                                             mutable=True, )
+
+        self.assertIs(beta.local.role, 'beta')
+        self.assertEqual(beta.ha, ('0.0.0.0', raeting.RAET_TEST_PORT))
+        self.assertEqual(beta.local.ha, ('127.0.0.1', raeting.RAET_TEST_PORT))
+
+        # Do initial join vacuous join to setup rejoin with renew
+        # create remote to join to alpha
+        remote =  beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                        fuid=0, # vacuous join
+                                                        sid=0, # always 0 for join
+                                                        ha=alpha.local.ha))
+        self.join(beta, alpha, deid=remote.uid)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.acceptance, raeting.acceptances.accepted)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        alphaRemoteBeta = alpha.remotes.values()[0]
+        self.assertIs(alphaRemoteBeta.main, False)
+
+        betaRemoteAlpha = beta.remotes.values()[0]
+        self.assertIs(betaRemoteAlpha.main, True)
+
+        # now set the alpha.main to False and rejoin as the initial condition
+        alpha.main = False
+        self.assertIs(alpha.main, False)
+        self.join(beta, alpha, deid=remote.uid)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.acceptance, raeting.acceptances.accepted)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        betaRemoteAlpha = beta.remotes.values()[0]
+        self.assertIs(betaRemoteAlpha.main, False)
+
+        # save the current state of beta stack remote for alpha
+        betaRemoteAlphaSave = self.copyData(betaRemoteAlpha)
+
+        # move alpha stack remote for beta to different uid (nuid) to force renew
+        oldUid = alphaRemoteBeta.uid
+        alpha.moveRemote(alphaRemoteBeta, alphaRemoteBeta.uid + 1)
+        self.assertNotEqual(alphaRemoteBeta.uid, oldUid)
+        self.assertIs(alpha.remotes[alphaRemoteBeta.uid], alphaRemoteBeta)
+
+        # Status: Pending
+        beta.keep.pendRemote(betaRemoteAlpha)
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.acceptances.pending)
+        beta.keep.auto = raeting.autoModes.never
+        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        # Name: Either
+        # Main: New  # old value was False now we change to True
+        oldMain = alpha.main
+        alpha.main = True
+        self.assertIs(alpha.main, True)
+        self.assertNotEqual(alpha.main, oldMain)
+        # Kind: Either
+        # RHA:  Old
+        # Nuid: Old
+        # Fuid: Body
+        # Leid: Old
+        # Reid: 0
+        # Role: Either
+        # Keys: Either
+        # Sameness: Not sameall
+        # Mutable: Yes
+        self.assertIs(beta.mutable, True)
+
+        beta.clearStats()
+        alpha.clearStats()
+
+        # Test
+        # Renew: Yes
+        self.join(beta, alpha, deid=betaRemoteAlpha.uid, duration=0.5)
+
+        # Action: Pend, Dump
+        self.assertIn('joiner_rx_renew', beta.stats)
+        self.assertEqual(beta.stats['joiner_rx_renew'], 1)
+        self.assertIn('join_renew_attempt', beta.stats)
+        self.assertEqual(beta.stats['join_renew_attempt'], 1)
+
+        self.assertIn('stale_nuid', alpha.stats)
+        self.assertEqual(alpha.stats['stale_nuid'], 1)
+        self.assertIn('joinent_rx_pend', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_rx_pend'], 1)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 1)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, None)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        self.assertIs(beta.mutable, True)
+        self.assertFalse(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
+        self.assertTrue(self.sameRoleKeys(betaRemoteAlpha, betaRemoteAlphaSave))
+        self.assertEqual(betaRemoteAlpha.main, alpha.main)
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.acceptances.accepted)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.acceptances.pending)
+
+        # Check remote dump with pended data
+        remoteData = beta.keep.loadRemoteData(alpha.local.name)
+        self.assertIsNot(remoteData, None)
+        self.assertIs(remoteData['main'], alpha.main) # new main value
+        self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
+        self.assertEqual(remoteData['role'], alpha.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
+
+        # Check role/keys dump
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+
+        # Accept the transaction
+        console.terse("\nAccept Transaction **************\n")
+        beta.keep.acceptRemote(betaRemoteAlpha)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertTrue(remote.joined)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
+        self.assertTrue(beta.mutable)
+        self.assertIn('join_initiate_complete', beta.stats)
+        self.assertEqual(beta.stats['join_initiate_complete'], 1)
+        self.assertIs(betaRemoteAlpha.main, alpha.main) # new main value
+
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertEqual(alpha.stats['join_correspond_complete'], 1)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
         remoteData['ha'] = tuple(remoteData['ha'])
-        self.assertTrue(self.sameAll(betaRemote, remoteData))
+        self.assertTrue(self.sameAll(betaRemoteAlpha, remoteData))
+        self.assertIs(remoteData['main'], True) # new main value
+        self.assertIs(remoteData['fuid'], alphaRemoteBeta.uid) # value
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
@@ -6631,164 +6975,78 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
-    def testJoinerVacuousPendingPendNewMain(self):
-        '''
-        Test mutable joiner pend pending vacuous renewal join with updated main (F2)
-        '''
-        console.terse("{0}\n".format(self.testJoinerVacuousPendingPendNewMain.__doc__))
-
-        # Mode: Never
-        alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
-
-        # Vacuous: Yes
-        # Main: New (set main to false in betaRemote)
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha,
-                                           main=False,
-                                           name=alpha.name,
-                                           verkey=alpha.local.signer.verhex,
-                                           pubkey=alpha.local.priver.pubhex)
-
-        alphaRemote = estating.RemoteEstate(stack=beta,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
-        # Status: Pending
-        beta.keep.pendRemote(betaRemote)
-
-        # Name: Either
-        # Main: New
-        # Kind: Either
-        # RHA:  Old
-        # Nuid: Old
-        # Fuid: Body
-        # Leid: Old
-        # Reid: 0
-        # Role: Either
-        # Keys: Either
-        # Sameness: Not sameall
-        keep = self.copyData(betaRemote, fuid=alphaRemote.nuid)
-
-        # Mutable: Yes
-        beta.mutable = True
-
-        ## Test
-        ## Renew: Yes
-        #self.join(beta, alpha, deid=betaRemote.nuid, renewal=True, duration=0.10)
-        ## FIXME: The transaction is dropped here, right after pend from beta side.
-        ##        After this all Redo Accepts from alpha become dropped by beta.
-
-        ## Action: Pend, Dump
-        #for stack in [alpha, beta]:
-            ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
-            #self.assertEqual(len(beta.remotes), 1)
-            #self.assertEqual(len(beta.nameRemotes), 1)
-            #for remote in stack.remotes.values():
-                #self.assertIs(remote.joined, None)
-                #self.assertIs(remote.allowed, None)
-                #self.assertIs(remote.alived, None)
-        #self.assertIs(alpha.mutable, None)
-        #self.assertTrue(beta.mutable)
-        #self.assertFalse(self.sameAll(betaRemote, keep))
-        #self.assertTrue(self.sameRoleKeys(betaRemote, keep))
-        #self.assertEqual(betaRemote.main, alpha.main)
-        #self.assertIs(alphaRemote.acceptance, raeting.acceptances.accepted)
-        #self.assertIs(betaRemote.acceptance, raeting.acceptances.pending)
-
-        ## Check remote dump
-        #remoteData = beta.keep.loadRemoteData(alpha.local.name)
-        #self.assertIs(remoteData, None)
-        ## Check role/keys dump
-        #roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        #self.assertEqual(roleData['role'], alpha.local.role)
-        #self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        #self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        #self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
-
-        ## Accept the transaction
-        #console.terse("\nAccept Transaction **************\n")
-        #beta.keep.acceptRemote(betaRemote)
-        #self.serviceStacks([alpha, beta], duration=3.0)
-
-        #for stack in [alpha, beta]:
-            #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.remotes), 1)
-            #self.assertEqual(len(stack.nameRemotes), 1)
-            #for remote in stack.remotes.values():
-                #self.assertTrue(remote.joined)
-                #self.assertIs(remote.allowed, None)
-                #self.assertIs(remote.alived, None)
-                #self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
-        #self.assertIs(alpha.mutable, None)
-        #self.assertTrue(beta.mutable)
-        #self.assertIn('join_correspond_complete', alpha.stats)
-        #self.assertEqual(alpha.stats['join_correspond_complete'], 1)
-        #self.assertIn('join_initiate_complete', beta.stats)
-        #self.assertEqual(beta.stats['join_initiate_complete'], 1)
-
-        ## Check remote dump
-        #remoteData = beta.keep.loadRemoteData(alpha.local.name)
-        #remoteData['ha'] = tuple(remoteData['ha'])
-        #self.assertTrue(self.sameAll(betaRemote, remoteData))
-        ## Check role/keys dump
-        #roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        #self.assertEqual(roleData['role'], alpha.local.role)
-        #self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        #self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        #self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
-
-        for stack in [alpha, beta]:
-            stack.server.close()
-            stack.clearAllKeeps()
-
     def testJoinerVacuousPendingPendNewKind(self):
         '''
         Test mutable joiner pend pending vacuous renewal join with updated kind (F3)
         '''
         console.terse("{0}\n".format(self.testJoinerVacuousPendingPendNewKind.__doc__))
+        alpha, alphaData = self.bootstrapStack(name='alpha',
+                                                       ha=("", raeting.RAET_PORT),
+                                                       main=True,
+                                                       auto=raeting.autoModes.once,
+                                                       role=None,
+                                                       kind=None,
+                                                       mutable=True, )
 
-        # Mode: Never
-        alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        self.assertIs(alpha.local.role, 'alpha')
+        self.assertEqual(alpha.ha, ('0.0.0.0', raeting.RAET_PORT))
+        self.assertEqual(alpha.local.ha, ('127.0.0.1', raeting.RAET_PORT))
 
-        # Vacuous: Yes
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha,
-                                           main=True,
-                                           name=alpha.name,
-                                           verkey=alpha.local.signer.verhex,
-                                           pubkey=alpha.local.priver.pubhex)
+        beta, betaData = self.bootstrapStack(name='beta',
+                                             ha=("", raeting.RAET_TEST_PORT),
+                                             main=None,
+                                             auto=raeting.autoModes.once,
+                                             role=None,
+                                             kind=None,
+                                             mutable=True, )
 
-        alphaRemote = estating.RemoteEstate(stack=beta,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
+        self.assertIs(beta.local.role, 'beta')
+        self.assertEqual(beta.ha, ('0.0.0.0', raeting.RAET_TEST_PORT))
+        self.assertEqual(beta.local.ha, ('127.0.0.1', raeting.RAET_TEST_PORT))
+
+        # Do initial join vacuous join to setup rejoin with renew
+        # create remote to join to alpha
+        remote =  beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                        fuid=0, # vacuous join
+                                                        sid=0, # always 0 for join
+                                                        ha=alpha.local.ha))
+        self.join(beta, alpha, deid=remote.uid)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.acceptance, raeting.acceptances.accepted)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        alphaRemoteBeta = alpha.remotes.values()[0]
+        self.assertIs(alphaRemoteBeta.kind, 0)
+
+        betaRemoteAlpha = beta.remotes.values()[0]
+        self.assertIs(betaRemoteAlpha.kind, 0)
+
+        # save the current state of beta stack remote for alpha
+        betaRemoteAlphaSave = self.copyData(betaRemoteAlpha)
+
+        # move alpha stack remote for beta to different uid (nuid) to force renew
+        oldUid = alphaRemoteBeta.uid
+        alpha.moveRemote(alphaRemoteBeta, alphaRemoteBeta.uid + 1)
+        self.assertNotEqual(alphaRemoteBeta.uid, oldUid)
+        self.assertIs(alpha.remotes[alphaRemoteBeta.uid], alphaRemoteBeta)
 
         # Status: Pending
-        beta.keep.pendRemote(betaRemote)
-
+        beta.keep.pendRemote(betaRemoteAlpha)
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.acceptances.pending)
+        beta.keep.auto = raeting.autoModes.never
+        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
         # Name: Either
         # Main: Either
-        # Kind: New
+        # Kind: New # old value was None (0) now we change to 3
         oldKind = alpha.kind
-        newKind = 33
-        self.assertIs(alpha.kind, oldKind)
-        alpha.kind = newKind
+        alpha.kind = 3
+        self.assertIs(alpha.kind, 3)
+        self.assertNotEqual(alpha.kind, oldKind)
         # RHA:  Old
         # Nuid: Old
         # Fuid: Body
@@ -6797,76 +7055,93 @@ class BasicTestCase(unittest.TestCase):
         # Role: Either
         # Keys: Either
         # Sameness: Not sameall
-        keep = self.copyData(betaRemote, fuid=alphaRemote.nuid)
-
         # Mutable: Yes
-        beta.mutable = True
+        self.assertIs(beta.mutable, True)
 
-        ## Test
-        ## Renew: Yes
-        #self.join(beta, alpha, deid=betaRemote.nuid, renewal=True, duration=0.10)
-        ## FIXME: The transaction is dropped here, right after pend from beta side.
-        ##        After this all Redo Accepts from alpha become dropped by beta.
+        beta.clearStats()
+        alpha.clearStats()
 
-        ## Action: Pend, Dump
-        #for stack in [alpha, beta]:
-            ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
-            #self.assertEqual(len(beta.remotes), 1)
-            #self.assertEqual(len(beta.nameRemotes), 1)
-            #for remote in stack.remotes.values():
-                #self.assertIs(remote.joined, None)
-                #self.assertIs(remote.allowed, None)
-                #self.assertIs(remote.alived, None)
-        #self.assertIs(alpha.mutable, None)
-        #self.assertTrue(beta.mutable)
-        #self.assertFalse(self.sameAll(betaRemote, keep))
-        #self.assertTrue(self.sameRoleKeys(betaRemote, keep))
-        #self.assertEqual(betaRemote.kind, newKind)
-        #self.assertIs(alphaRemote.acceptance, raeting.acceptances.accepted)
-        #self.assertIs(betaRemote.acceptance, raeting.acceptances.pending)
+        # Test
+        # Renew: Yes
+        self.join(beta, alpha, deid=betaRemoteAlpha.uid, duration=0.5)
 
-        ## Check remote dump
-        #remoteData = beta.keep.loadRemoteData(alpha.local.name)
-        #self.assertIs(remoteData, None)
-        ## Check role/keys dump
-        #roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        #self.assertEqual(roleData['role'], alpha.local.role)
-        #self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        #self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        #self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        # Action: Pend, Dump
+        self.assertIn('joiner_rx_renew', beta.stats)
+        self.assertEqual(beta.stats['joiner_rx_renew'], 1)
+        self.assertIn('join_renew_attempt', beta.stats)
+        self.assertEqual(beta.stats['join_renew_attempt'], 1)
 
-        ## Accept the transaction
-        #console.terse("\nAccept Transaction **************\n")
-        #beta.keep.acceptRemote(betaRemote)
-        #self.serviceStacks([alpha, beta], duration=3.0)
+        self.assertIn('stale_nuid', alpha.stats)
+        self.assertEqual(alpha.stats['stale_nuid'], 1)
+        self.assertIn('joinent_rx_pend', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_rx_pend'], 1)
 
-        #for stack in [alpha, beta]:
-            #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.remotes), 1)
-            #self.assertEqual(len(stack.nameRemotes), 1)
-            #for remote in stack.remotes.values():
-                #self.assertTrue(remote.joined)
-                #self.assertIs(remote.allowed, None)
-                #self.assertIs(remote.alived, None)
-                #self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
-        #self.assertIs(alpha.mutable, None)
-        #self.assertTrue(beta.mutable)
-        #self.assertIn('join_correspond_complete', alpha.stats)
-        #self.assertEqual(alpha.stats['join_correspond_complete'], 1)
-        #self.assertIn('join_initiate_complete', beta.stats)
-        #self.assertEqual(beta.stats['join_initiate_complete'], 1)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 1)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, None)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
 
-        ## Check remote dump
-        #remoteData = beta.keep.loadRemoteData(alpha.local.name)
-        #remoteData['ha'] = tuple(remoteData['ha'])
-        #self.assertTrue(self.sameAll(betaRemote, remoteData))
-        ## Check role/keys dump
-        #roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        #self.assertEqual(roleData['role'], alpha.local.role)
-        #self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        #self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        #self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertIs(beta.mutable, True)
+        self.assertFalse(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
+        self.assertTrue(self.sameRoleKeys(betaRemoteAlpha, betaRemoteAlphaSave))
+        self.assertEqual(betaRemoteAlpha.kind, alpha.kind)
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.acceptances.accepted)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.acceptances.pending)
+
+        # Check remote dump with pended data
+        remoteData = beta.keep.loadRemoteData(alpha.local.name)
+        self.assertIsNot(remoteData, None)
+        self.assertIs(remoteData['kind'], alpha.kind) # new kind value
+        self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
+        self.assertEqual(remoteData['role'], alpha.local.role)
+        self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
+
+        # Check role/keys dump
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
+        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+
+        # Accept the transaction
+        console.terse("\nAccept Transaction **************\n")
+        beta.keep.acceptRemote(betaRemoteAlpha)
+        self.serviceStacks([alpha, beta], duration=3.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertTrue(remote.joined)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
+        self.assertTrue(beta.mutable)
+        self.assertIn('join_initiate_complete', beta.stats)
+        self.assertEqual(beta.stats['join_initiate_complete'], 1)
+        self.assertIs(betaRemoteAlpha.kind, alpha.kind) # new kind value
+
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertEqual(alpha.stats['join_correspond_complete'], 1)
+
+        # Check remote dump
+        remoteData = beta.keep.loadRemoteData(alpha.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertTrue(self.sameAll(betaRemoteAlpha, remoteData))
+        self.assertIs(remoteData['kind'], 3) # new main value
+        self.assertIs(remoteData['fuid'], alphaRemoteBeta.uid) # value
+        # Check role/keys dump
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
+        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6930,7 +7205,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -7051,7 +7325,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -7169,7 +7442,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -7285,7 +7557,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -7397,7 +7668,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -7481,7 +7751,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -7566,7 +7835,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -7650,7 +7918,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Reject
         #for stack in [alpha, beta]:
             #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.stats), 1)
             #self.assertIs(stack.mutable, None)
             #for remote in stack.remotes.values():
                 #self.assertIs(remote.joined, None)
@@ -7741,7 +8008,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Reject
         #for stack in [alpha, beta]:
             #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.stats), 1)
             #self.assertIs(stack.mutable, None)
             #for remote in stack.remotes.values():
                 #self.assertIs(remote.joined, None)
@@ -7823,7 +8089,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -7907,7 +8172,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
@@ -7995,7 +8259,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: Reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
@@ -8087,7 +8350,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Reject
         #for stack in [alpha, beta]:
             #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.stats), 2)
             #self.assertEqual(len(stack.remotes), 1)
             #self.assertEqual(len(stack.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -8328,7 +8590,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -8402,7 +8663,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 2)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -8473,7 +8733,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -8553,7 +8812,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -8632,7 +8890,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -8702,7 +8959,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -8771,7 +9027,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -8838,7 +9093,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
-            self.assertEqual(len(stack.stats), 1)
             self.assertIs(stack.mutable, None)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
@@ -8926,7 +9180,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9045,7 +9298,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9167,7 +9419,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9297,7 +9548,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9425,7 +9675,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9544,7 +9793,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9665,7 +9913,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9784,7 +10031,6 @@ class BasicTestCase(unittest.TestCase):
         ## Action: Pend, Dump
         #for stack in [alpha, beta]:
             ## self.assertEqual(len(stack.transactions), 1) #b=0
-            #self.assertEqual(len(stack.stats), 0)
             #self.assertEqual(len(beta.remotes), 1)
             #self.assertEqual(len(beta.nameRemotes), 1)
             #for remote in stack.remotes.values():
@@ -9860,7 +10106,6 @@ class BasicTestCase(unittest.TestCase):
         # Action: nack reject
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.stats), 1)
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
@@ -10154,4 +10399,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testJoinentNonVacuousAcceptNewRha')
+    #runOne('testJoinentVacuousRejectedRejectNewRole')
