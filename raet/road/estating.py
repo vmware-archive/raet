@@ -125,12 +125,20 @@ class Estate(lotting.Lot):
         Safely remove transaction at index, If transaction identity same
         If transaction is None then remove without comparing identity
         '''
-        if index in self.transactions:
-            if transaction:
-                if transaction is self.transactions[index]:
-                    del  self.transactions[index]
-            else:
+        if index in self.transactions: # fast way
+            if not transaction or transaction is self.transactions[index]:
                 del self.transactions[index]
+                console.verbose( "Removed transaction from {0} at"
+                                 " '{1}'\n".format(self.name, index))
+                return
+
+        if transaction: # find transaction slow way
+            for i, trans in self.transactions.items():
+                if trans is transaction:
+                    del self.transactions[i]
+                    console.concise( "Removed transaction from '{0}' at '{1}',"
+                            " instead of at '{2}'\n".format(self.name, i, index))
+
 
     def removeStaleTransactions(self):
         '''
