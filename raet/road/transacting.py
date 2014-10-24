@@ -1740,8 +1740,9 @@ class Allower(Initiator):
             self.remove()
             return
 
-        self.transmit(packet)
         self.remove()
+        self.transmit(packet)
+
         console.concise("Allower {0}. Do Ack Final, Done with {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
@@ -1786,9 +1787,9 @@ class Allower(Initiator):
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
 
+        self.remove()
         self.stack.incStat(self.statKey())
         self.transmit(packet)
-        self.remove()
 
     def refuse(self):
         '''
@@ -1796,10 +1797,11 @@ class Allower(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
+        self.remove()
         console.concise("Allower {0}. Refused by {1} at {2}\n".format(
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
-        self.remove()
 
     def reject(self):
         '''
@@ -1822,6 +1824,7 @@ class Allower(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
+
         self.remote.joined = False
         self.remove()
         console.concise("Allower {0}. Rejected unjoin by {1} at {2}\n".format(
@@ -2247,8 +2250,9 @@ class Allowent(Correspondent):
                                        kind,
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
-        self.transmit(packet)
+
         self.remove()
+        self.transmit(packet)
         self.stack.incStat(self.statKey())
 
 class Aliver(Initiator):
