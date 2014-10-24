@@ -804,11 +804,12 @@ class BasicTestCase(unittest.TestCase):
         for index in remote.transactions:
             remote.removeTransaction(index)
 
+        # now accept remote role that was pended
         for remote in main.remotes.values():
             if remote.acceptance == raeting.acceptances.pending:
                 main.keep.acceptRemote(remote)
 
-        #now reload from keep data
+        #now remove andreload from keep data
         main.removeAllRemotes(clear=False)
         main.restoreRemotes()
         main.restoreLocal()
@@ -817,9 +818,12 @@ class BasicTestCase(unittest.TestCase):
         other.restoreRemotes()
         other.restoreLocal()
 
-        # because main remote was not completely joined and was created as
-        # part of vacuous join it was not dumped
-        self.assertEqual(len(main.remotes), 0)
+        # because main remote was pended it was dumped
+        self.assertEqual(len(main.remotes), 1)
+        remote = main.remotes.values()[0]
+        self.assertIs(remote.acceptance, raeting.acceptances.accepted)
+
+        # role data for remotes role (other)
         roleData = main.keep.loadRemoteRoleData(other.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
 
