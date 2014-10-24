@@ -1,6 +1,18 @@
 ------------------
 CHANGE LOG
 -------------------
+
+---------
+20141024
+----------
+v0.3.7
+
+Added lots of unit tests for join (Joiner and Joinent) transaction
+Fixed some bugs
+Added better support (but not complete ) for windows
+
+
+
 ---------
 20141009
 ----------
