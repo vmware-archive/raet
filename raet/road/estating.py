@@ -433,13 +433,14 @@ class RemoteEstate(Estate):
 
     def saveMessage(self, messenger):
         '''
-        Message is Messenger compatible transaction
-        Save copy of body data from stale initiated message on .messages deque
+        Save copy of body data from stale initiated messenger onto .messages deque
         for retransmitting later after new session is established
+        messenger is instance of Messenger compatible transaction
         '''
         self.messages.append(odict(messenger.tray.body))
-        emsg = ("Stack {0}: Saved stale message with remote {1} at {2}"
-                                                "\n".format(self.stack.name, index, self.name))
+        emsg = ("Stack {0}: Saved stale message with remote {1}"
+                                                "\n".format(self.stack.name,
+                                                            self.name))
         console.concise(emsg)
 
     def sendSavedMessages(self):
