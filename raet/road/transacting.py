@@ -452,7 +452,6 @@ class Joiner(Initiator):
             self.redoTimer.restart(duration=duration)
             if (self.txPacket and
                     self.txPacket.data['pk'] == raeting.pcktKinds.request):
-                #if not self.pended: # resend join
                 self.transmit(self.txPacket) #redo
                 console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
                      self.stack.name, self.remote.name, self.stack.store.stamp))
@@ -981,7 +980,6 @@ class Joinent(Correspondent):
 
             if (self.txPacket and
                     self.txPacket.data['pk'] == raeting.pcktKinds.response):
-                #if not self.pended: # resend accept packet
                 self.transmit(self.txPacket) #redo
                 console.concise("Joinent {0}. Redo Accept with {1} at {2}\n".format(
                     self.stack.name, self.remote.name, self.stack.store.stamp))
