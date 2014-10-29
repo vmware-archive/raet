@@ -6160,7 +6160,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIn('stale_nuid', alpha.stats)
         self.assertEqual(alpha.stats['stale_nuid'], 1)
         self.assertIn('joinent_rx_pend', alpha.stats)
-        self.assertEqual(alpha.stats['joinent_rx_pend'], 1)
+        self.assertEqual(alpha.stats['joinent_rx_pend'], 2)
 
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
@@ -7215,7 +7215,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(beta.stats['join_renew_attempt'], 1)
 
         self.assertIn('joinent_rx_pend', gamma.stats)
-        self.assertEqual(gamma.stats['joinent_rx_pend'], 1)
+        self.assertEqual(gamma.stats['joinent_rx_pend'], 2)
 
         for stack in [gamma, beta]:
             self.assertEqual(len(stack.transactions), 1)
@@ -7416,7 +7416,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIn('stale_nuid', alpha.stats)
         self.assertEqual(alpha.stats['stale_nuid'], 1)
         self.assertIn('joinent_rx_pend', alpha.stats)
-        self.assertEqual(alpha.stats['joinent_rx_pend'], 1)
+        self.assertEqual(alpha.stats['joinent_rx_pend'], 2)
 
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
@@ -7596,7 +7596,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIn('stale_nuid', alpha.stats)
         self.assertEqual(alpha.stats['stale_nuid'], 1)
         self.assertIn('joinent_rx_pend', alpha.stats)
-        self.assertEqual(alpha.stats['joinent_rx_pend'], 1)
+        self.assertEqual(alpha.stats['joinent_rx_pend'], 2)
 
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
@@ -7782,7 +7782,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIn('stale_nuid', alpha.stats)
         self.assertEqual(alpha.stats['stale_nuid'], 1)
         self.assertIn('joinent_rx_pend', alpha.stats)
-        self.assertEqual(alpha.stats['joinent_rx_pend'], 1)
+        self.assertEqual(alpha.stats['joinent_rx_pend'], 2)
 
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)
@@ -7954,7 +7954,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIn('stale_nuid', alpha.stats)
         self.assertEqual(alpha.stats['stale_nuid'], 1)
         self.assertIn('joinent_rx_pend', alpha.stats)
-        self.assertEqual(alpha.stats['joinent_rx_pend'], 1)
+        self.assertEqual(alpha.stats['joinent_rx_pend'], 2)
 
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 1)

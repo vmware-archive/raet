@@ -340,9 +340,15 @@ class Joiner(Initiator):
     '''
     RedoTimeoutMin = 1.0 # initial timeout
     RedoTimeoutMax = 4.0 # max timeout
+    PendRedoTimeout = 60.0 # Redo timeout when pended
 
-    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None,
-                 cascade=False, renewal=False, **kwa):
+    def __init__(self,
+                 redoTimeoutMin=None,
+                 redoTimeoutMax=None,
+                 pendRedoTimeout=None,
+                 cascade=False,
+                 renewal=False,
+                 **kwa):
         '''
         Setup Transaction instance
         '''
@@ -355,6 +361,7 @@ class Joiner(Initiator):
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
+        self.pendRedoTimeout = pendRedoTimeout or self.PendRedoTimeout
 
         self.sid = 0 #always 0 for join
         self.tid = self.remote.nextTid()
@@ -434,18 +441,22 @@ class Joiner(Initiator):
 
         # need keep sending join until accepted or timed out
         if self.redoTimer.expired:
-            duration = min(
+            if not self.pended:
+                duration = min(
                          max(self.redoTimeoutMin,
                               self.redoTimer.duration * 2.0),
                          self.redoTimeoutMax)
+            else:
+                duration = self.pendRedoTimeout
+
             self.redoTimer.restart(duration=duration)
             if (self.txPacket and
                     self.txPacket.data['pk'] == raeting.pcktKinds.request):
-                if not self.pended: # resend join
-                    self.transmit(self.txPacket) #redo
-                    console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
-                             self.stack.name, self.remote.name, self.stack.store.stamp))
-                    self.stack.incStat('joiner_tx_join_redo')
+                #if not self.pended: # resend join
+                self.transmit(self.txPacket) #redo
+                console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
+                     self.stack.name, self.remote.name, self.stack.store.stamp))
+                self.stack.incStat('joiner_tx_join_redo')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
                     status = self.stack.keep.statusRemote(self.remote, dump=True)
@@ -872,8 +883,13 @@ class Joinent(Correspondent):
     '''
     RedoTimeoutMin = 0.1 # initial timeout
     RedoTimeoutMax = 2.0 # max timeout
+    PendRedoTimeout = 60.0 # redo timeout when pended
 
-    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
+    def __init__(self,
+                 redoTimeoutMin=None,
+                 redoTimeoutMax=None,
+                 pendRedoTimeout=None,
+                 **kwa):
         '''
         Setup Transaction instance
         '''
@@ -883,6 +899,7 @@ class Joinent(Correspondent):
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
         self.redoTimer = aiding.StoreTimer(self.stack.store, duration=0.0)
+        self.pendRedoTimeout = pendRedoTimeout or self.PendRedoTimeout
         self.vacuous = None # gets set in join method
         self.pended = False # Farside initiator has pended remote acceptance
         self.prep()
@@ -952,19 +969,23 @@ class Joinent(Correspondent):
 
         # need to perform the check for accepted status and then send accept
         if self.redoTimer.expired:
-            duration = min(
-                         max(self.redoTimeoutMin,
-                              self.redoTimer.duration * 2.0),
-                         self.redoTimeoutMax)
+            if not self.pended:
+                duration = min(
+                             max(self.redoTimeoutMin,
+                                  self.redoTimer.duration * 2.0),
+                             self.redoTimeoutMax)
+            else:
+                duration = self.pendRedoTimeout
+
             self.redoTimer.restart(duration=duration)
 
             if (self.txPacket and
                     self.txPacket.data['pk'] == raeting.pcktKinds.response):
-                if not self.pended: # resend accept packet
-                    self.transmit(self.txPacket) #redo
-                    console.concise("Joinent {0}. Redo Accept with {1} at {2}\n".format(
-                        self.stack.name, self.remote.name, self.stack.store.stamp))
-                    self.stack.incStat('joinent_tx_accept_redo')
+                #if not self.pended: # resend accept packet
+                self.transmit(self.txPacket) #redo
+                console.concise("Joinent {0}. Redo Accept with {1} at {2}\n".format(
+                    self.stack.name, self.remote.name, self.stack.store.stamp))
+                self.stack.incStat('joinent_tx_accept_redo')
             else: #check to see if status has changed to accept
                 if self.remote:
                     status = self.stack.keep.statusRemote(self.remote, dump=True)
