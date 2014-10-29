@@ -513,6 +513,8 @@ class KeepStack(Stack):
     def __init__(self,
                  puid=None,
                  clean=False,
+                 cleanlocal=False,
+                 cleanremote=False,
                  keep=None,
                  dirpath='',
                  basedirpath='',
@@ -532,7 +534,7 @@ class KeepStack(Stack):
                                             basedirpath=basedirpath,
                                             stackname=name)
 
-        if clean: # clear persisted data so use provided or default data
+        if clean or cleanlocal: # clear persisted data so use provided or default data
             self.clearLocalKeep()
 
         local = self.restoreLocal() or local or lotting.Lot(stack=self,
@@ -546,7 +548,7 @@ class KeepStack(Stack):
                                         local=local,
                                         **kwa)
 
-        if clean:
+        if clean or cleanremote:
             self.clearRemoteKeeps()
         self.restoreRemotes() # load remotes from saved data
 

@@ -774,6 +774,7 @@ class Joiner(Initiator):
             self.remote.rsid = 0 # reset .rsid on vacuous join so allow will work
         self.remote.joined = True #accepted
         self.stack.dumpRemote(self.remote)
+        self.stack.dumpLocal() #persist puid
         self.ackAccept()
 
     def ackAccept(self):
@@ -1370,6 +1371,7 @@ class Joinent(Correspondent):
             self.remote.rsid = 0 # reset .rsid on vacuous join so allow will work
         self.remote.joined = True # accepted
         self.stack.dumpRemote(self.remote)
+        self.stack.dumpLocal() # persist puid
         self.remove(index=self.rxPacket.index)
 
     def reject(self):

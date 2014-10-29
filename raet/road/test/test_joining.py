@@ -11083,8 +11083,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(data['verhex'], alpha.local.signer.verhex)
         self.assertEqual(data['pubhex'], alpha.local.priver.pubhex)
         self.assertEqual(beta.keep.auto, raeting.autoModes.once)
-
-        self.assertEqual(beta.puid, 1)
+        self.assertEqual(beta.puid, 2)
 
         # create remote to join to alpha
         newBetaRemoteAlpha = beta.addRemote(estating.RemoteEstate(stack=beta,
@@ -11092,6 +11091,38 @@ class BasicTestCase(unittest.TestCase):
                                                     sid=0, # always 0 for join
                                                     ha=alpha.local.ha))
 
+        # will reject since nuid changed for newBetaRemoteAlphs
+        self.assertNotEqual(newBetaRemoteAlpha.nuid, betaRemoteAlpha.nuid)
+        self.assertIs(beta.mutable, False)
+        self.assertIs(alpha.mutable, False)
+        self.join(beta, alpha, deid=newBetaRemoteAlpha.uid)
+
+        self.assertEqual(len(alpha.transactions), 0)
+        self.assertEqual(len(alpha.remotes), 1)
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertIs(remote.allowed, None)
+        self.assertIs(remote.alived, None)
+        self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertEqual(len(beta.remotes), 0)
+        self.assertIn('joiner_rx_reject', beta.stats)
+        self.assertEqual(beta.stats['joiner_rx_reject'], 1)
+        self.assertIn('joiner_transaction_failure', beta.stats)
+        self.assertEqual(beta.stats['joiner_transaction_failure'], 1)
+        self.assertEqual(beta.puid, 3)
+
+        # redo after resetting beta.puid to 1
+        beta.puid = 1
+        self.assertEqual(beta.puid, 1)
+        newBetaRemoteAlpha = beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                            fuid=0, # vacuous join
+                                                            sid=0, # always 0 for join
+                                                            ha=alpha.local.ha))
+        self.assertEqual(beta.puid, 2)
+        self.assertIs(beta.mutable, False)
+        self.assertIs(alpha.mutable, False)
         self.join(beta, alpha, deid=newBetaRemoteAlpha.uid)
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
@@ -11102,8 +11133,6 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
                 self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
 
-        self.assertIs(beta.mutable, False)
-        self.assertIs(alpha.mutable, False)
         self.assertTrue(self.sameAll(newBetaRemoteAlpha, betaRemoteAlphaSave))
         self.assertTrue(self.sameRoleKeys(newBetaRemoteAlpha, betaRemoteAlphaSave))
         self.assertEqual(newBetaRemoteAlpha.nuid, alphaRemoteBeta.fuid)
@@ -11111,7 +11140,6 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertIn('join_initiate_complete', beta.stats)
         self.assertEqual(beta.stats['join_initiate_complete'], 1)
-        self.assertIs(betaRemoteAlpha.main, alpha.main) # new main value
 
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 2)
@@ -11120,7 +11148,6 @@ class BasicTestCase(unittest.TestCase):
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
         remoteData['ha'] = tuple(remoteData['ha'])
         self.assertTrue(self.sameAll(newBetaRemoteAlpha, remoteData))
-        self.assertIs(remoteData['main'], True) # new main value
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.uid) # value
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
@@ -11277,6 +11304,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testJoinerClearJoinentNotClear')
+    #runOne('testJoinerClearJoinentNotClear')

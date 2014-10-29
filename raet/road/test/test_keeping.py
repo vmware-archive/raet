@@ -81,7 +81,8 @@ class BasicTestCase(unittest.TestCase):
 
         return data
 
-    def createRoadStack(self, data, uid=None, main=None, auto=None, ha=None, mutable=None):
+    def createRoadStack(self, data, uid=None, main=None, auto=None, ha=None,
+                        mutable=None, clean=None):
         '''
         Creates stack and local estate from data with
         local estate.uid = uid
@@ -104,7 +105,8 @@ class BasicTestCase(unittest.TestCase):
                                    auto=auto if auto is not None else data['auto'],
                                    main=main,
                                    mutable=mutable,
-                                   basedirpath=data['basedirpath'],)
+                                   basedirpath=data['basedirpath'],
+                                   clean=clean, )
 
         return stack
 
@@ -888,12 +890,13 @@ class BasicTestCase(unittest.TestCase):
         # now change ha  and unset unmutable
         main.mutable = None
         other.server.close()
+        other.clearLocalKeep()
         data = savedOtherData  # local keep will be there so it uses that data
         other = self.createRoadStack(data=data,
+                                     ha=("0.0.0.0", 7532),
                                      main=None,)
 
-        other.ha = ("0.0.0.0", 7532)
-        other.local.ha = ("127.0.0.1", 7532)
+        self.assertEqual(other.ha, ("0.0.0.0", 7532))
         self.assertEqual(other.local.ha, ("127.0.0.1", 7532))
         self.assertEqual(len(main.remotes), 2)
         self.assertEqual(len(other.remotes), 1)
@@ -2126,4 +2129,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testRejoinFromMain')
+    #runOne('testPendingSavedKeep')
