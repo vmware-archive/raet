@@ -533,8 +533,8 @@ class Joiner(Initiator):
         Reset to vacuous Road data and try joining again if not main
         Otherwise act as if rejected
         '''
-        # renew not allowed on immutable road unless vacuous to begin with
-        if not self.stack.mutable and not self.vacuous:
+        # renew not allowed on immutable road
+        if not self.stack.mutable:
             self.stack.incStat('join_renew_unallowed')
             emsg = ("Joiner {0}. Renew from '{1}' not allowed on immutable"
                     " road\n".format(self.stack.name, self.remote.name))
@@ -546,12 +546,10 @@ class Joiner(Initiator):
                 self.stack.name, self.remote.name, self.stack.store.stamp))
         self.stack.incStat('join_renew_attempt')
         self.remove(index=self.txPacket.index)
-        renewal = not self.vacuous # if vacuous before then not renewal
         if self.remote:
             self.remote.fuid = 0 # forces vacuous join
             self.stack.dumpRemote(self.remote) # since change fuid
-
-        self.stack.join(uid=self.remote.uid, timeout=self.timeout, renewal=renewal)
+        self.stack.join(uid=self.remote.uid, timeout=self.timeout, renewal=True)
 
     def pend(self):
         '''

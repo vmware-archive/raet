@@ -6326,103 +6326,10 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
-    def testJoinerVacuousRejectedNorenewRejectSameAll(self):
-        '''
-        Test joiner reject rejected vacuous no renewal join with same all (C2)
-        '''
-        console.terse("{0}\n".format(self.testJoinerVacuousRejectedNorenewRejectSameAll.__doc__))
-
-        # Mode: Never, Once
-        alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
-
-        # Vacuous: Yes
-        betaRemote = estating.RemoteEstate(stack=beta,
-                                           fuid=0,
-                                           sid=0, # always 0 for join
-                                           ha=alpha.local.ha,
-                                           main=True,
-                                           name=alpha.name,
-                                           verkey=alpha.local.signer.verhex,
-                                           pubkey=alpha.local.priver.pubhex)
-
-        alphaRemote = estating.RemoteEstate(stack=beta,
-                                            fuid=betaRemote.nuid,
-                                            ha=beta.local.ha,
-                                            name=beta.name,
-                                            verkey=beta.local.signer.verhex,
-                                            pubkey=beta.local.priver.pubhex)
-        alpha.addRemote(alphaRemote)
-        beta.addRemote(betaRemote)
-
-        # Status: Rejected
-        beta.keep.rejectRemote(betaRemote)
-
-        # Ensure remote status is Rejected
-        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
-
-        # Name: Body
-        # Main: Body
-        # Kind: Body
-        # RHA:  Old
-        # Nuid: Old
-        # Fuid: Body
-        # Leid: Old
-        # Reid: 0
-        # Role: Body
-        # Keys: Body
-        # Sameness: SameAll
-        keep = self.copyData(betaRemote, fuid=alphaRemote.nuid)
-
-        # Mutable: Either (use Yes as more loyal)
-        beta.mutable = True
-
-        # Test
-        # Renew: No
-        self.join(beta, alpha, deid=betaRemote.nuid, renewal=False)
-
-        # Action: Reject, Remove Clear
-        for stack in [alpha, beta]:
-            self.assertTrue(len(stack.stats) > 0)
-            for remote in stack.remotes.values():
-                self.assertIs(remote.joined, None)
-                self.assertIs(remote.allowed, None)
-                self.assertIs(remote.alived, None)
-        self.assertIs(alpha.mutable, None)
-        self.assertTrue(beta.mutable)
-        self.assertEqual(len(alpha.remotes), 1)
-        self.assertEqual(len(alpha.nameRemotes), 1)
-        self.assertEqual(len(beta.remotes), 0)
-        self.assertEqual(len(beta.nameRemotes), 0)
-        self.assertIs(alphaRemote.acceptance, raeting.acceptances.accepted)
-        self.assertEqual(len(alpha.transactions), 1)
-        self.assertEqual(len(beta.transactions), 0)
-        self.assertTrue(self.sameAll(betaRemote, keep))
-        self.assertNotIn('joinent_transaction_failure', alpha.stats)
-        self.assertIn('joiner_transaction_failure', beta.stats)
-        self.assertEqual(beta.stats['joiner_transaction_failure'], 2)
-
-        # Check remote dump
-        remoteData = beta.keep.loadRemoteData(alpha.local.name)
-        self.assertIs(remoteData, None)
-        # Check role/keys dump
-        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
-
-        for stack in [alpha, beta]:
-            stack.server.close()
-            stack.clearAllKeeps()
 
     def testJoinerVacuousRejectedRejectSameRoleKeys(self):
         '''
-        Test joiner reject rejected vacuous renewal join with same role/keys (C3)
+        Test joiner reject rejected vacuous renewal join with same role/keys (C2)
         '''
         console.terse("{0}\n".format(self.testJoinerVacuousRejectedRejectSameRoleKeys.__doc__))
 
@@ -6515,6 +6422,101 @@ class BasicTestCase(unittest.TestCase):
         for stack in [alpha, beta]:
             stack.server.close()
             stack.clearAllKeeps()
+
+    def testJoinerVacuousRejectedNorenewRejectSameAll(self):
+        '''
+        Test joiner reject rejected vacuous no renewal join with same all (C3)
+        '''
+        console.terse("{0}\n".format(self.testJoinerVacuousRejectedNorenewRejectSameAll.__doc__))
+
+        # Mode: Never, Once
+        alpha, beta = self.bootstrapStacks()
+        beta.keep.auto = raeting.autoModes.never
+
+        # Vacuous: Yes
+        betaRemote = estating.RemoteEstate(stack=beta,
+                                           fuid=0,
+                                           sid=0, # always 0 for join
+                                           ha=alpha.local.ha,
+                                           main=True,
+                                           name=alpha.name,
+                                           verkey=alpha.local.signer.verhex,
+                                           pubkey=alpha.local.priver.pubhex)
+
+        alphaRemote = estating.RemoteEstate(stack=beta,
+                                            fuid=betaRemote.nuid,
+                                            ha=beta.local.ha,
+                                            name=beta.name,
+                                            verkey=beta.local.signer.verhex,
+                                            pubkey=beta.local.priver.pubhex)
+        alpha.addRemote(alphaRemote)
+        beta.addRemote(betaRemote)
+
+        # Status: Rejected
+        beta.keep.rejectRemote(betaRemote)
+
+        # Ensure remote status is Rejected
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
+        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+
+        # Name: Body
+        # Main: Body
+        # Kind: Body
+        # RHA:  Old
+        # Nuid: Old
+        # Fuid: Body
+        # Leid: Old
+        # Reid: 0
+        # Role: Body
+        # Keys: Body
+        # Sameness: SameAll
+        keep = self.copyData(betaRemote, fuid=alphaRemote.nuid)
+
+        # Mutable: Either (use Yes as more loyal)
+        beta.mutable = True
+
+        # Test
+        # Renew: No
+        self.join(beta, alpha, deid=betaRemote.nuid, renewal=False)
+
+        # Action: Reject, Remove Clear
+        for stack in [alpha, beta]:
+            self.assertTrue(len(stack.stats) > 0)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, None)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+        self.assertIs(alpha.mutable, None)
+        self.assertTrue(beta.mutable)
+        self.assertEqual(len(alpha.remotes), 1)
+        self.assertEqual(len(alpha.nameRemotes), 1)
+        self.assertEqual(len(beta.remotes), 0)
+        self.assertEqual(len(beta.nameRemotes), 0)
+        self.assertIs(alphaRemote.acceptance, raeting.acceptances.accepted)
+        self.assertEqual(len(alpha.transactions), 1)
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertTrue(self.sameAll(betaRemote, keep))
+        self.assertNotIn('joinent_transaction_failure', alpha.stats)
+        self.assertIn('joiner_transaction_failure', beta.stats)
+        self.assertEqual(beta.stats['joiner_transaction_failure'], 2)
+
+        # Check remote dump
+        remoteData = beta.keep.loadRemoteData(alpha.local.name)
+        self.assertIs(remoteData, None)
+        # Check role/keys dump
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
+        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
+        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
 
     def testJoinerVacuousAcceptNewName(self):
         '''
@@ -11000,6 +11002,137 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
+    def testJoinerClearJoinentNotClear(self):
+        '''
+        Test joiner join after Joiner loses its remotes but Joinent did not.
+        This is a coverage test to verify common use case
+        '''
+        console.terse("{0}\n".format(self.testJoinerClearJoinentNotClear.__doc__))
+
+        alpha, alphaData = self.bootstrapStack(name='alpha',
+                                               ha=("", raeting.RAET_PORT),
+                                               main=True,
+                                               auto=raeting.autoModes.once,
+                                               role=None,
+                                               kind=None,
+                                               mutable=False, )
+
+        self.assertIs(alpha.local.role, 'alpha')
+        self.assertEqual(alpha.ha, ('0.0.0.0', raeting.RAET_PORT))
+        self.assertEqual(alpha.local.ha, ('127.0.0.1', raeting.RAET_PORT))
+
+        beta, betaData = self.bootstrapStack(name='beta',
+                                             ha=("", raeting.RAET_TEST_PORT),
+                                             main=None,
+                                             auto=raeting.autoModes.once,
+                                             role=None,
+                                             kind=None,
+                                             mutable=False, )
+
+        self.assertIs(beta.local.role, 'beta')
+        self.assertEqual(beta.ha, ('0.0.0.0', raeting.RAET_TEST_PORT))
+        self.assertEqual(beta.local.ha, ('127.0.0.1', raeting.RAET_TEST_PORT))
+
+        # Do initial join vacuous join to setup losss
+        # create remote to join to alpha
+        remote =  beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                        fuid=0, # vacuous join
+                                                        sid=0, # always 0 for join
+                                                        ha=alpha.local.ha))
+        self.join(beta, alpha, deid=remote.uid)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertIs(remote.joined, True)
+                self.assertIs(remote.acceptance, raeting.acceptances.accepted)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+
+        alphaRemoteBeta = alpha.remotes.values()[0]
+        betaRemoteAlpha = beta.remotes.values()[0]
+
+        # save the current state of beta stack remote for alpha
+        betaRemoteAlphaSave = self.copyData(betaRemoteAlpha)
+
+        self.assertEqual(beta.puid, 2)
+        data = beta.keep.loadLocalData()
+
+        # now lose all beta remotes and reboot beta stack
+        for remote in beta.remotes.values():
+            beta.removeRemote(remote, clear=True)
+
+        # Close down beta stack
+        beta.server.close()
+
+        # reboot beta stack
+        beta = self.createRoadStack(data=betaData)
+        self.assertIs(beta.main, betaData['main'])
+        self.assertIs(beta.keep.auto, betaData['auto'])
+        self.assertIs(beta.kind, betaData['kind'])
+        self.assertIs(beta.mutable, betaData['mutable'])
+        self.assertEqual(beta.local.role, 'beta')
+        self.assertEqual(beta.ha, ('0.0.0.0', raeting.RAET_TEST_PORT))
+        self.assertEqual(beta.local.ha, ('127.0.0.1', raeting.RAET_TEST_PORT))
+        self.assertEqual(len(beta.remotes), 0)
+
+        self.assertEqual(beta.keep.dirpath, betaData['dirpath'])
+        data = beta.keep.loadRemoteRoleData(role= alpha.local.role)
+        self.assertEqual(data['role'], alpha.local.role)
+        self.assertEqual(data['acceptance'], raeting.acceptances.accepted)
+        self.assertEqual(data['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(data['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(beta.keep.auto, raeting.autoModes.once)
+
+        self.assertEqual(beta.puid, 1)
+
+        # create remote to join to alpha
+        newBetaRemoteAlpha = beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                    fuid=0, # vacuous join
+                                                    sid=0, # always 0 for join
+                                                    ha=alpha.local.ha))
+
+        self.join(beta, alpha, deid=newBetaRemoteAlpha.uid)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            for remote in stack.remotes.values():
+                self.assertTrue(remote.joined)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
+                self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
+
+        self.assertIs(beta.mutable, False)
+        self.assertIs(alpha.mutable, False)
+        self.assertTrue(self.sameAll(newBetaRemoteAlpha, betaRemoteAlphaSave))
+        self.assertTrue(self.sameRoleKeys(newBetaRemoteAlpha, betaRemoteAlphaSave))
+        self.assertEqual(newBetaRemoteAlpha.nuid, alphaRemoteBeta.fuid)
+        self.assertEqual(newBetaRemoteAlpha.fuid, alphaRemoteBeta.nuid)
+
+        self.assertIn('join_initiate_complete', beta.stats)
+        self.assertEqual(beta.stats['join_initiate_complete'], 1)
+        self.assertIs(betaRemoteAlpha.main, alpha.main) # new main value
+
+        self.assertIn('join_correspond_complete', alpha.stats)
+        self.assertEqual(alpha.stats['join_correspond_complete'], 2)
+
+        # Check remote dump
+        remoteData = beta.keep.loadRemoteData(alpha.local.name)
+        remoteData['ha'] = tuple(remoteData['ha'])
+        self.assertTrue(self.sameAll(newBetaRemoteAlpha, remoteData))
+        self.assertIs(remoteData['main'], True) # new main value
+        self.assertIs(remoteData['fuid'], alphaRemoteBeta.uid) # value
+        # Check role/keys dump
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
+        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
+        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
 def runOne(test):
     '''
     Unittest Runner
@@ -11121,6 +11254,7 @@ def runSome():
                 'testJoinentJoinRejectNameConflict',
                 'testJoinerAcceptRejectNameConflict',
                 'testJoinerAcceptRejectRenameFail',
+                'testJoinerClearJoinentNotClear',
             ]
 
     tests.extend(map(BasicTestCase, names))
@@ -11143,6 +11277,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testJoinerAcceptRejectRenameFail')
+    runOne('testJoinerClearJoinentNotClear')
