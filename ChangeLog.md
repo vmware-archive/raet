@@ -1,6 +1,15 @@
 ------------------
 CHANGE LOG
 -------------------
+---------
+20141029
+----------
+v0.3.8
+
+Added more unit tests
+Updated and fixed some tests
+Joiner and Joinent transactions now persist local data (puid) upon successful completion
+
 
 ---------
 20141024
