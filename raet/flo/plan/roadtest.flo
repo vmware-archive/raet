@@ -58,8 +58,8 @@ house minion1
             recur
                 do raet road stack joined per inode ".raet.road.stack."
 
-        go next if joined in .raet.road.stack.status
-        go abort if elapsed >= 5
+            go next if joined in .raet.road.stack.status
+            go abort if elapsed >= 5
 
         frame joined
             print Joined Minion1

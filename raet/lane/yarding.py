@@ -89,37 +89,46 @@ class Yard(lotting.Lot):
         if not ha:
             if not dirpath:
                 dirpath = YARD_UXD_DIR
+            ha, dirpath = self.computeHa(dirpath, self.lanename, self.name)
 
-            if not sys.platform == 'win32':
-                self.dirpath = os.path.abspath(os.path.expanduser(dirpath))
-                if not os.path.exists(dirpath):
-                    try:
-                        os.makedirs(dirpath)
-                    except OSError as ex:
-                        dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
-                        if not os.path.exists(dirpath):
-                            try:
-                                os.makedirs(dirpath)
-                            except OSError as ex:
-                                if ex.errno == errno.EEXIST:
-                                    pass # race condition
-                                else:
-                                    raise
-                else:
-                    if not os.access(dirpath, os.R_OK | os.W_OK):
-                        dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
-                        if not os.path.exists(dirpath):
-                            try:
-                                os.makedirs(dirpath)
-                            except OSError as ex:
-                                if ex.errno == errno.EEXIST:
-                                    pass # race condition
-                                else:
-                                    raise
-
-            ha = os.path.join(dirpath, "{0}.{1}.uxd".format(self.lanename, self.name))
-
+        self.dirpath = dirpath
         self.ha = ha
+
+    @staticmethod
+    def computeHa(dirpath, lanename, yardname):
+        '''
+        Compute and return a tuple of the host address and normalize dirpath for yard given the
+        dirpath, lanename, and yardname
+        '''
+        if not sys.platform == 'win32':
+            dirpath = os.path.abspath(os.path.expanduser(dirpath))
+            if not os.path.exists(dirpath):
+                try:
+                    os.makedirs(dirpath)
+                except OSError as ex:
+                    dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
+                    if not os.path.exists(dirpath):
+                        try:
+                            os.makedirs(dirpath)
+                        except OSError as ex:
+                            if ex.errno == errno.EEXIST:
+                                pass # race condition
+                            else:
+                                raise
+            else:
+                if not os.access(dirpath, os.R_OK | os.W_OK):
+                    dirpath = os.path.abspath(os.path.expanduser(ALT_YARD_UXD_DIR))
+                    if not os.path.exists(dirpath):
+                        try:
+                            os.makedirs(dirpath)
+                        except OSError as ex:
+                            if ex.errno == errno.EEXIST:
+                                pass # race condition
+                            else:
+                                raise
+
+        ha = os.path.join(dirpath, "{0}.{1}.uxd".format(lanename, yardname))
+        return (ha, dirpath)
 
     @staticmethod
     def namesFromHa(ha):
