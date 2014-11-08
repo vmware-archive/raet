@@ -397,6 +397,7 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
+                    console.concise("Rejection Reason: Once keys not match prior accepted.\n")
 
             elif status == raeting.acceptances.pending:
                 # already pending prior mode of never if keys not match then reject
@@ -404,10 +405,11 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
+                    console.concise("Rejection Reason: Once keys not match prior pended.\n")
                 else: # in once mode convert pending to accepted
                     status = raeting.acceptances.accepted
-
-            #else: # status == raeting.acceptances.rejected
+            else:
+                console.concise("Rejection Reason: Once keys already rejected.\n")
 
         elif self.auto == raeting.autoModes.never:
             if status is None: # first time so pend
@@ -419,6 +421,7 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
+                    console.concise("Rejection Reason: Never keys not match prior accepted.\n")
 
             elif status == raeting.acceptances.pending:
                 # already pending if keys not match then reject
@@ -426,8 +429,9 @@ class RoadKeep(keeping.Keep):
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
                     status = raeting.acceptances.rejected
-
-            #else: # status == raeting.acceptances.rejected
+                    console.concise("Rejection Reason: Never keys not match prior pended.\n")
+            else:
+                console.concise("Rejection Reason: Never keys already rejected.\n")
 
         else: # unrecognized autoMode
             raise raeting.KeepError("Unrecognized auto mode '{0}'".format(self.auto))
