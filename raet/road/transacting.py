@@ -290,7 +290,7 @@ class Stalent(Correspondent):
         self.stack.incStat('stale_initiator_attempt')
 
         if self.rxPacket.data['se'] not in self.stack.remotes:
-            emsg = "Stalent {0} Unknown initiator estate id '{1}'\n".format(
+            emsg = "Stalent {0}. Unknown initiator estate id '{1}'\n".format(
                     self.stack.name,
                     self.rxPacket.data['se'])
             console.terse(emsg)
