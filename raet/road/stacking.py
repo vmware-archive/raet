@@ -467,7 +467,7 @@ class RoadStack(stacking.KeepStack):
                 self.incStat('join_invalid_sid')
                 return
 
-            if cf: # packet source is joinent, destination is joiner
+            if cf: # packet source is joinent, destination (self) is joiner
                 if nuid == 0: # invalid join
                     emsg = ("Stack '{0}'. Invalid join correspondence from '{1}',"
                             " nuid zero . Dropping...\n".format(self.name, rha))
@@ -485,7 +485,7 @@ class RoadStack(stacking.KeepStack):
                 else: # non vacuous join match by nuid from .remotes
                     remote = self.remotes.get(nuid, None)
 
-            else: # (not cf) # source is joiner, destination is joinent
+            else: # (not cf) # source is joiner, destination (self) is joinent
                 if fuid == 0: # invalid join
                     emsg = ("Stack '{0}'. Invalid join initiatance from '{1}',"
                             "fuid zero. Dropping...\n".format(self.name, rha))

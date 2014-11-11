@@ -923,7 +923,7 @@ class Joinent(Correspondent):
         '''
         super(Joinent, self).add(remote=remote, index=index)
         # self.remote is now assigned
-        if self.vacuous: # vacuous
+        if self.vacuous: # vacuous looks like this is not needed
             self.stack.joinees[self.remote.ha] = self.remote
 
     def remove(self, remote=None, index=None):
