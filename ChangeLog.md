@@ -1,6 +1,12 @@
 ------------------
 CHANGE LOG
 -------------------
+
+updated log messages
+updated comments
+updated indenting
+added more presence unit tests
+
 ---------
 20141029
 ----------
