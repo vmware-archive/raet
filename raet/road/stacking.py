@@ -452,6 +452,7 @@ class RoadStack(stacking.KeepStack):
 
         fuid = packet.data['se']
         tk = packet.data['tk']
+        pk = packet.data['pk']
         cf = packet.data['cf']
         rsid = packet.data['si']
 
@@ -460,48 +461,57 @@ class RoadStack(stacking.KeepStack):
         if tk in [raeting.trnsKinds.join]: # join transaction
             rha = (packet.data['sh'],  packet.data['sp'])
             if rsid != 0: # join  must use sid == 0
-                emsg = "{0} Nonzero join sid '{1}' in packet from {2}\n".format(
-                                             self.name, rsid, rha)
+                emsg = ("Stack '{0}'. Nonzero join sid '{1}' in packet from {2}."
+                       " Dropping...\n".format(self.name, rsid, rha))
                 console.terse(emsg)
                 self.incStat('join_invalid_sid')
                 return
 
             if cf: # packet source is joinent, destination is joiner
                 if nuid == 0: # invalid join
-                    emsg = ("{0} Invalid join correspondence, nuid zero from "
-                                " '{1}'\n".format(self.name, rha))
+                    emsg = ("Stack '{0}'. Invalid join correspondence from '{1}',"
+                            " nuid zero . Dropping...\n".format(self.name, rha))
                     console.terse(emsg)
                     self.incStat('join_invalid_nuid')
                     return
                 if fuid == 0: # vacuous join match remote by rha from .joinees
                     remote = self.joinees.get(rha, None)
                     if remote and remote.nuid != nuid: # prior different
+                        emsg = ("Stack '{0}'. Invalid join correspondence from '{1}',"
+                            "nuid  {2} mismatch prior {3} . Dropping...\n".format(
+                                self.name, rha, nuid, remote.nuid))
                         self.incStat('join_mismatch_nuid') # drop inconsistent nuid
                         return
-
                 else: # non vacuous join match by nuid from .remotes
                     remote = self.remotes.get(nuid, None)
 
             else: # (not cf) # source is joiner, destination is joinent
                 if fuid == 0: # invalid join
-                    emsg = ("{0} Invalid join initiatance, fuid zero from "
-                            " '{1}'\n".format(self.name, rha))
+                    emsg = ("Stack '{0}'. Invalid join initiatance from '{1}',"
+                            "fuid zero. Dropping...\n".format(self.name, rha))
                     console.terse(emsg)
                     self.incStat('join_invalid_fuid')
                     return
                 if nuid == 0: # vacuous join match remote by rha from joinees
                     remote = self.joinees.get(rha, None)
                     if remote and remote.fuid != fuid: # check if prior is stale
+                        emsg = ("Stack '{0}'. Prior stale join initiatance from '{1}',"
+                            " fuid {2} mismatch prior {3}. Removing prior...\n".format(
+                                    self.name, rha, fuid, remote.fuid))
+                        console.terse(emsg)
                         del self.joinees[rha] # remove prior stale vacuous joinee
                         remote = None # reset
 
                     if not remote: # no current joinees for intiator at rha
                         # is it not first packet of join
-                        if packet.data['pk'] not in [raeting.pcktKinds.request]:
+                        if pk not in [raeting.pcktKinds.request]:
+                            emsg = ("Stack '{0}'. Invalid join initiatance from '{1}',"
+                                " Not a request and no remote. Dropping...\n".format(
+                                        self.name, rha))
                             self.incStat('join_stale')
                             return
 
-                        # create remote and assign to joinees
+                        # create vacuous remote and assign to joinees
                         remote = estating.RemoteEstate(stack=self,
                                                        fuid=fuid,
                                                        sid=rsid,
@@ -511,8 +521,8 @@ class RoadStack(stacking.KeepStack):
                     remote = self.remotes.get(nuid, None)
                     if not remote: # remote with nuid not exist
                         # reject renew , so tell it to retry with vacuous join
-                        emsg = "{0} Stale nuid '{1}' in packet from {2}\n".format(
-                                                         self.name, nuid, rha)
+                        emsg = ("Stack '{0}'. Stale nuid '{1}' in packet from {2}."
+                                " Renewing....\n".format( self.name, nuid, rha))
                         console.terse(emsg)
                         self.incStat('stale_nuid')
                         remote = estating.RemoteEstate(stack=self,
@@ -524,14 +534,16 @@ class RoadStack(stacking.KeepStack):
 
         else: # not join transaction
             if rsid == 0: # cannot use sid == 0 on nonjoin transaction
-                emsg = "{0} Invalid sid '{1}' in packet\n".format(self.name, rsid)
+                emsg = ("Stack '{0}'. Invalid Zero sid '{1}' for transaction {2} packet"
+                       " {3}. Dropping...\n".format(self.name, rsid, tk, pk ))
                 console.terse(emsg)
                 self.incStat('invalid_sid')
                 return
 
             if nuid == 0 or fuid == 0:
-                emsg = ("{0} zero nuid or fuid in nonjoin from remote"
-                        " '{1}'\n".format(self.name, rha))
+                emsg = ("Stack '{0}'. Invalid nonjoin from remote '{1}'."
+                        " Zero nuid {2} or fuid {3}. Dropping...\n".format(
+                            self.name, rha, nuid, fuid))
                 console.terse(emsg)
                 self.incStat('invalid_uid')
                 return
@@ -541,8 +553,9 @@ class RoadStack(stacking.KeepStack):
             if remote:
                 if not cf: # packet from remotely initiated transaction
                     if not remote.validRsid(rsid): # invalid rsid
-                        emsg = "{0} Stale sid '{1}' in packet from {2}\n".format(
-                                 self.name, rsid, remote.name)
+                        emsg = ("Stack '{0}'. Invalid nonjoin from '{1}'. Invalid sid "
+                                " {2} in packet. Dropping...\n".format(self.name,
+                                                            remote.name, rsid,))
                         console.terse(emsg)
                         self.incStat('stale_sid')
                         self.replyStale(packet, remote) # nack stale transaction
@@ -566,7 +579,8 @@ class RoadStack(stacking.KeepStack):
             return
 
         if not remote:
-            emsg = "{0} Unknown remote destination '{1}'\n".format(self.name, nuid)
+            emsg = ("Stack '{0}'. Unknown remote destination '{1}'. "
+                    "Dropping...\n".format(self.name, nuid))
             console.terse(emsg)
             self.incStat('unknown_destination_uid')
             return
@@ -616,7 +630,8 @@ class RoadStack(stacking.KeepStack):
         '''
         try:
             packet.parseInner()
-            console.verbose("{0} received packet body\n{1}\n".format(self.name, packet.body.data))
+            console.verbose("Stack '{0}'. Received packet body\n{1}\n".format(
+                    self.name, packet.body.data))
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.incStat('parsing_inner_error')
@@ -639,7 +654,8 @@ class RoadStack(stacking.KeepStack):
         uid = packet.data['de']
         remote = self.retrieveRemote(uid=uid)
         if not remote:
-            emsg = "Stale from unknown remote id '{0}'\n".format(uid)
+            emsg = "Stack '{0}'. Unknown remote id '{1}', fail to nack stale\n".format(
+                      self.name, uid)
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return

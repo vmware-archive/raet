@@ -214,12 +214,16 @@ class Staler(Initiator):
         a nack packet back. Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        emsg = "Staler {0}. Stale transaction from {1} nacking...\n".format(self.stack.name, ha )
+        emsg = ("Staler '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' "
+               "nacking...\n".format(self.stack.name,
+                raeting.TRNS_KIND_NAMES.get(self.rxPacket.data['tk']),
+                raeting.PCKT_KIND_NAMES.get(self.rxPacket.data['pk']),
+                ha ))
         console.terse(emsg)
         self.stack.incStat('stale_correspondent_attempt')
 
         if self.rxPacket.data['se'] not in self.stack.remotes:
-            emsg = "Staler {0}. Unknown correspondent estate id '{1}'\n".format(
+            emsg = "Staler '{0}'. Unknown correspondent estate id '{1}'\n".format(
                     self.stack.name, self.rxPacket.data['se'])
             console.terse(emsg)
             self.stack.incStat('unknown_correspondent_uid')
@@ -238,7 +242,7 @@ class Staler(Initiator):
             return
 
         self.stack.txes.append((packet.packed, ha))
-        console.terse("Staler {0}. Do Nack stale correspondent {1} at {2}\n".format(
+        console.terse("Staler '{0}'. Do Nack stale correspondent {1} at {2}\n".format(
                 self.stack.name, ha, self.stack.store.stamp))
         self.stack.incStat('stale_correspondent_nack')
 
@@ -284,13 +288,16 @@ class Stalent(Correspondent):
         Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
-        emsg = "Stalent {0}. Stale transaction from '{1}' nacking ...\n".format(
-                self.stack.name, ha )
+        emsg = ("Stalent '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' "
+                "nacking ...\n".format(self.stack.name,
+                raeting.TRNS_KIND_NAMES.get(self.rxPacket.data['tk']),
+                raeting.PCKT_KIND_NAMES.get(self.rxPacket.data['pk']),
+                                        ha ))
         console.terse(emsg)
         self.stack.incStat('stale_initiator_attempt')
 
         if self.rxPacket.data['se'] not in self.stack.remotes:
-            emsg = "Stalent {0}. Unknown initiator estate id '{1}'\n".format(
+            emsg = "Stalent '{0}'. Unknown initiator estate id '{1}'\n".format(
                     self.stack.name,
                     self.rxPacket.data['se'])
             console.terse(emsg)
@@ -310,19 +317,19 @@ class Stalent(Correspondent):
             return
 
         if kind == raeting.pcktKinds.renew:
-            console.terse("Stalent {0}. Do Renew of {1} at {2}\n".format(
+            console.terse("Stalent '{0}'. Do Renew of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.refuse:
-            console.terse("Stalent {0}. Do Refuse of {1} at {2}\n".format(
+            console.terse("Stalent '{0}'. Do Refuse of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Stalent {0}. Do Reject of {1} at {2}\n".format(
+            console.terse("Stalent '{0}'. Do Reject of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
-            console.terse("Stalent {0}. Do Nack of {1} at {2}\n".format(
+            console.terse("Stalent '{0}'. Do Nack of {1} at {2}\n".format(
                     self.stack.name, ha, self.stack.store.stamp))
         else:
-            console.terse("Stalent {0}. Invalid nack kind of {1} nacking anyway "
+            console.terse("Stalent '{0}'. Invalid nack kind of {1} nacking anyway "
                     " at {2}\n".format(self.stack.name,
                                        kind,
                                        self.stack.store.stamp))
