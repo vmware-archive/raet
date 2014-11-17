@@ -451,8 +451,8 @@ class RemoteEstate(Estate):
         while self.messages:
             body = self.messages.popleft()
             self.stack.message(body, uid=self.uid)
-            emsg = ("Stack {0}: Resent saved message with remote {1} at {2}"
-                                        "\n".format(self.stack.name, index, self.name))
+            emsg = ("Stack {0}: Resent saved message with remote {1}"
+                                        "\n".format(self.stack.name, self.name))
             console.concise(emsg)
 
     def allowInProcess(self):
