@@ -217,7 +217,7 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
 
-    def answerAliveNack(self, stack, deid=None, kind=raeting.pcktKinds.nack):
+    def answerAlive(self, stack, deid=None, kind=raeting.pcktKinds.nack, dataMod=None):
         '''
         Utility method to receive a packet in the given stack and send alive nack as a responce
         Call from test method.
@@ -235,6 +235,8 @@ class BasicTestCase(unittest.TestCase):
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
         data = odict(hk=stack.Hk, bk=stack.Bk, fk=stack.Fk, ck=stack.Ck)
+        if dataMod:
+            data.update(dataMod)
         remote = stack.retrieveRemote(deid)
         alivent = transacting.Alivent(stack=stack,
                                       remote=remote,
@@ -243,7 +245,26 @@ class BasicTestCase(unittest.TestCase):
                                       tid=packet.data['ti'],
                                       txData=data,
                                       rxPacket=packet)
-        alivent.nack(kind=kind)
+        if kind == raeting.pcktKinds.ack:
+            alivent.alive()
+        else:
+            alivent.nack(kind=kind)
+
+    def aliveBrokenInner(self, stack, uid=None, timeout=None, cascade=False):
+        '''
+        Initiate alive transaction
+        If duid is None then create remote at ha
+        '''
+        remote = stack.retrieveRemote(uid=uid)
+        self.assertIsNotNone(remote)
+        data = odict(hk=stack.Hk, bk=stack.Bk, fk=stack.Fk, ck=stack.Ck)
+        data['ck'] = -1
+        aliver = transacting.Aliver(stack=stack,
+                                    remote=remote,
+                                    timeout=timeout,
+                                    txData=data,
+                                    cascade=cascade)
+        aliver.alive()
 
     def testJoinNameRoleDiffer(self):
         '''
@@ -3298,7 +3319,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest joined allowed alivent *********\n")
         main.alive() # no cascade alive, joined and allowed so ack, refresh alive and unreap
         self.serviceStack(main, duration=0.1)
-        self.serviceStack(other, duration=0.1)
+        self.serviceStack(other,duration=0.1)
         self.assertEqual(len(other.transactions), 0) # transaction finished
         self.assertIn('alive_complete', other.stats) # the reason is 'unallowed'
         self.assertEqual(other.stats['alive_complete'], 1)
@@ -3328,7 +3349,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testAliverReceiveNack(self):
         '''
-        Test aliver receive nack: nack (A2), reject (A5)
+        Test aliver receive nack: nack, refuse (A2) and reject (A5)
         Other cases which are ack (A1), unjoined (A3) and unallowed (A4) are covered by other tests
         '''
         console.terse("{0}\n".format(self.testAliverReceiveNack.__doc__))
@@ -3370,7 +3391,25 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive nack *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
         self.serviceStack(main, duration=0.1)
-        self.answerAliveNack(other)
+        self.answerAlive(other, kind=raeting.pcktKinds.nack)
+
+        self.serviceStacks(stacks)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # alived status isn't changed
+            self.assertIs(remote.reaped, None)
+        self.assertIn('aliver_transaction_failure', main.stats) # transaction failed
+        self.assertEqual(main.stats['aliver_transaction_failure'], 1)
+
+        main.clearStats()
+        console.terse("\nTest aliver receive refuse *********\n")
+        main.alive() # no cascade alive, aliver will set alive to False and remove transaction
+        self.serviceStack(main, duration=0.1)
+        self.answerAlive(other, kind=raeting.pcktKinds.refuse)
 
         self.serviceStacks(stacks)
         for stack in stacks:
@@ -3388,7 +3427,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive reject *********\n")
         main.alive() # no cascade alive, aliver will set alive to False and remove transaction
         self.serviceStack(main, duration=0.1)
-        self.answerAliveNack(other, kind=raeting.pcktKinds.reject)
+        self.answerAlive(other, kind=raeting.pcktKinds.reject)
 
         self.serviceStacks(stacks)
         for stack in stacks:
@@ -3401,6 +3440,481 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(main.remotes.values()[0].alived, False) # alive is set to false
         self.assertIn('aliver_transaction_failure', main.stats) # transaction failed
         self.assertEqual(main.stats['aliver_transaction_failure'], 1)
+
+        main.clearStats()
+        console.terse("\nTest invalid (unexpected) nack kind *********\n")
+        main.alive() # no cascade alive, aliver will set alive to False and remove transaction
+        self.serviceStack(main, duration=0.1)
+        self.answerAlive(other, kind=raeting.pcktKinds.unknown) # unknown is invalid kind for nack. it will be set to nack
+        self.serviceStack(other) # send nack
+        self.serviceStack(main) # receive nack
+
+        self.assertEqual(len(main.transactions), 1) # transaction wasn't dropped, will attempt to redo
+        self.assertEqual(len(other.transactions), 0)
+
+        self.serviceStacks(stacks)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.reaped, None)
+        self.assertTrue(main.remotes.values()[0].alived) # alived after redo
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliverAlivePackError(self):
+        '''
+        Coverage test packet.pack() throws error in aliver.alive()
+        '''
+        console.terse("{0}\n".format(self.testAliverAlivePackError.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        self.alive(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        console.terse("\nTest aliver packet.pack error *********\n")
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        main.alive() # will fail with packing error
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        self.assertEqual(len(main.transactions), 0)
+        self.assertEqual(len(main.remotes), 1)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertTrue(remote.allowed)
+        self.assertTrue(remote.alived) # alived status isn't changed
+        self.assertIs(remote.reaped, None)
+        self.assertIn('packing_error', main.stats) # transaction failed
+        self.assertEqual(main.stats['packing_error'], 1)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliverErrorParseInner(self):
+        '''
+        Coverage test. Checks aliver behavior if packet.parseInner() fail
+        '''
+        console.terse("{0}\n".format(self.testAliverErrorParseInner.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=None,
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        self.alive(main, other)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        console.terse("\nTest aliver receive broken ack *********\n")
+        main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
+        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.answerAlive(other, kind=raeting.pcktKinds.ack, dataMod={'ck': -1}) # other receive and answer
+        self.serviceStack(other, duration=0.1) # other send the answer to main
+        self.serviceStack(main, duration=0.1) # main handle the answer
+
+        self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
+        self.assertEqual(len(main.remotes), 1)
+        self.assertIn('parsing_inner_error', main.stats) # transaction failed
+        self.assertEqual(main.stats['parsing_inner_error'], 1)
+
+        self.serviceStacks(stacks) # retry and finish transaction
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # alived status isn't changed
+            self.assertIs(remote.reaped, None)
+        self.assertIn('alive_complete', main.stats) # transaction failed
+        self.assertEqual(main.stats['alive_complete'], 1)
+
+        main.clearStats()
+        console.terse("\nTest aliver receive broken refuse *********\n")
+        main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
+        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.answerAlive(other, kind=raeting.pcktKinds.refuse, dataMod={'ck': -1}) # other receive and answer
+        self.serviceStack(other, duration=0.1) # other send the answer to main
+        self.serviceStack(main, duration=0.1) # main handle the answer
+
+        self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
+        self.assertEqual(len(main.remotes), 1)
+        self.assertIn('parsing_inner_error', main.stats) # transaction failed
+        self.assertEqual(main.stats['parsing_inner_error'], 1)
+
+        self.serviceStacks(stacks) # retry and finish transaction
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # alived status isn't changed
+            self.assertIs(remote.reaped, None)
+        self.assertIn('alive_complete', main.stats) # transaction failed
+        self.assertEqual(main.stats['alive_complete'], 1)
+
+        main.clearStats()
+        console.terse("\nTest aliver receive broken reject *********\n")
+        main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
+        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.answerAlive(other, kind=raeting.pcktKinds.reject, dataMod={'ck': -1}) # other receive and answer
+        self.serviceStack(other, duration=0.1) # other send the answer to main
+        self.serviceStack(main, duration=0.1) # main handle the answer
+
+        self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
+        self.assertEqual(len(main.remotes), 1)
+        self.assertIn('parsing_inner_error', main.stats) # transaction failed
+        self.assertEqual(main.stats['parsing_inner_error'], 1)
+
+        self.serviceStacks(stacks) # retry and finish transaction
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # alived status isn't changed
+            self.assertIs(remote.reaped, None)
+        self.assertIn('alive_complete', main.stats) # transaction failed
+        self.assertEqual(main.stats['alive_complete'], 1)
+
+        main.clearStats()
+        console.terse("\nTest aliver receive broken unjoined *********\n")
+        main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
+        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.answerAlive(other, kind=raeting.pcktKinds.unjoined, dataMod={'ck': -1}) # other receive and answer
+        self.serviceStack(other, duration=0.1) # other send the answer to main
+        self.serviceStack(main, duration=0.1) # main handle the answer
+
+        self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
+        self.assertEqual(len(main.remotes), 1)
+        self.assertIn('parsing_inner_error', main.stats) # transaction failed
+        self.assertEqual(main.stats['parsing_inner_error'], 1)
+
+        self.serviceStacks(stacks) # retry and finish transaction
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # alived status isn't changed
+            self.assertIs(remote.reaped, None)
+        self.assertIn('alive_complete', main.stats) # transaction failed
+        self.assertEqual(main.stats['alive_complete'], 1)
+
+        main.clearStats()
+        console.terse("\nTest aliver receive broken unallowed *********\n")
+        main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
+        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.answerAlive(other, kind=raeting.pcktKinds.unallowed, dataMod={'ck': -1}) # other receive and answer
+        self.serviceStack(other, duration=0.1) # other send the answer to main
+        self.serviceStack(main, duration=0.1) # main handle the answer
+
+        self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
+        self.assertEqual(len(main.remotes), 1)
+        self.assertIn('parsing_inner_error', main.stats) # transaction failed
+        self.assertEqual(main.stats['parsing_inner_error'], 1)
+
+        self.serviceStacks(stacks) # retry and finish transaction
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # alived status isn't changed
+            self.assertIs(remote.reaped, None)
+        self.assertIn('alive_complete', main.stats) # transaction failed
+        self.assertEqual(main.stats['alive_complete'], 1)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliventAliveErrorParseInner(self):
+        '''
+        Coverage test for Alivent.alive() error on parse packet inner.
+        '''
+        console.terse("{0}\n".format(self.testAliventAliveErrorParseInner.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        other.clearStats()
+        console.terse("\nTest alive with broken coat kind *********\n")
+        self.aliveBrokenInner(main) # alive with broken coat kind
+        self.serviceStack(main, duration=0.1)
+        self.serviceStack(other,duration=0.1)
+        self.assertEqual(len(other.transactions), 0) # transaction finished
+        self.assertIn('parsing_inner_error', other.stats) # Error ocured
+        self.assertEqual(other.stats['parsing_inner_error'], 1)
+        self.assertEqual(len(main.transactions), 1)
+        self.assertEqual(len(other.remotes), 1)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertTrue(remote.allowed)
+        self.assertIsNone(remote.alived)
+        self.assertIsNone(remote.reaped)
+
+        # redo the broken packet then drop it
+        self.serviceStacks(stacks, duration=10.0)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertFalse(remote.alived) # dead
+        self.assertIs(main.remotes.values()[0].reaped, None)
+        self.assertFalse(other.remotes.values()[0].reaped)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliventAliveErrorPacketPack(self):
+        '''
+        Coverage test for Alivent.alive() error on packing a packet.
+        '''
+        console.terse("{0}\n".format(self.testAliventAliveErrorPacketPack.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        other.clearStats()
+        console.terse("\nTest alive with broken coat kind *********\n")
+        main.alive() # alive
+        self.serviceStack(main, duration=0.1) # aliver send
+        default_size = raeting.UDP_MAX_PACKET_SIZE # backup
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will fail
+        self.serviceStack(other,duration=0.1) # alivent receive
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        self.assertEqual(len(other.transactions), 0) # transaction removed
+        self.assertIn('packing_error', other.stats) # Error ocured
+        self.assertEqual(other.stats['packing_error'], 1)
+        self.assertEqual(len(main.transactions), 1)
+        self.assertEqual(len(other.remotes), 1)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertTrue(remote.allowed)
+        self.assertIsNone(remote.alived)
+        self.assertIsNone(remote.reaped)
+
+        # redo with normal udp packet limit
+        self.serviceStacks(stacks)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # redo
+        self.assertIs(main.remotes.values()[0].reaped, None)
+        self.assertFalse(other.remotes.values()[0].reaped)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliventNackErrorPacketPack(self):
+        '''
+        Coverage test for Alivent.nack() error on packing a packet.
+        '''
+        console.terse("{0}\n".format(self.testAliventNackErrorPacketPack.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        # force unallow joinent
+        other.remotes.values()[0].allowed = None
+        self.assertIsNone(other.remotes.values()[0].allowed)
+
+        other.clearStats()
+        console.terse("\nTest alive with broken coat kind *********\n")
+        main.alive() # alive
+        self.serviceStack(main, duration=0.1) # aliver send
+        default_size = raeting.UDP_MAX_PACKET_SIZE # backup
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will fail
+        self.serviceStack(other,duration=0.1) # alivent receive
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        self.assertEqual(len(other.transactions), 0) # transaction removed
+        self.assertIn('packing_error', other.stats) # Error ocured
+        self.assertEqual(other.stats['packing_error'], 1)
+        self.assertEqual(len(main.transactions), 1)
+        self.assertEqual(len(other.remotes), 1)
+        remote = other.remotes.values()[0]
+        self.assertTrue(remote.joined)
+        self.assertIsNone(remote.allowed)
+        self.assertIsNone(remote.alived)
+        self.assertIsNone(remote.reaped)
+
+        # redo with normal udp packet limit
+        self.serviceStacks(stacks)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIsNone(remote.alived)
+        self.assertIs(main.remotes.values()[0].reaped, None)
+        self.assertFalse(other.remotes.values()[0].reaped)
 
         for stack in [main, other]:
             stack.server.close()
