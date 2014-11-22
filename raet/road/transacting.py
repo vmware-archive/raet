@@ -1060,7 +1060,7 @@ class Joinent(Correspondent):
         if mode is None or not isinstance(mode, int) or mode < 0 or mode > 255:
             emsg = "Missing or invalid remote stack operation mode in join packet\n"
             console.terse(emsg)
-            self.stack.incStat('invalid_accept')
+            self.stack.incStat('invalid_join')
             self.remove(index=self.rxPacket.index)
             return
         flags = unpackByte(fmt='11111111', byte=mode, boolean=True)
@@ -1070,7 +1070,7 @@ class Joinent(Correspondent):
         if kind is None:
             emsg = "Missing or invalid remote application kind in join packet\n"
             console.terse(emsg)
-            self.stack.incStat('invalid_accept')
+            self.stack.incStat('invalid_join')
             self.remove(index=self.rxPacket.index)
             return
 
@@ -1175,7 +1175,7 @@ class Joinent(Correspondent):
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
                 if self.remote.fuid != reid: # created in stack with fuid = reid
                     emsg = ("Joinent {0}. Mishandled join reid='{1}' !=  fuid='{2}' for "
-                           "remote {2}\n".format(self.stack.name, reid, remote.fuid, name))
+                           "remote {2}\n".format(self.stack.name, reid, self.remote.fuid, name))
                     console.terse(emsg)
                     self.nack(kind=raeting.pcktKinds.reject)
                     return
@@ -1472,10 +1472,7 @@ class Joinent(Correspondent):
 
         self.stack.incStat(self.statKey())
 
-        if ha:
-            self.stack.txes.append((packet.packed, ha))
-        else:
-            self.transmit(packet)
+        self.stack.txes.append((packet.packed, ha))
         self.remove(index=self.rxPacket.index)
 
 class Allower(Initiator):
