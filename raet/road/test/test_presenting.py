@@ -3467,7 +3467,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testAliverAlivePackError(self):
         '''
-        Coverage test packet.pack() throws error in aliver.alive()
+        Test packet.pack() throws error in aliver.alive() (coverage)
         '''
         console.terse("{0}\n".format(self.testAliverAlivePackError.__doc__))
 
@@ -3528,7 +3528,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testAliverErrorParseInner(self):
         '''
-        Coverage test. Checks aliver behavior if packet.parseInner() fail
+        Test aliver behavior if packet.parseInner() fail (coverage)
         '''
         console.terse("{0}\n".format(self.testAliverErrorParseInner.__doc__))
 
@@ -3697,7 +3697,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testAliventAliveErrorParseInner(self):
         '''
-        Coverage test for Alivent.alive() error on parse packet inner.
+        Test for Alivent.alive() error on parse packet inner. (coverage)
         '''
         console.terse("{0}\n".format(self.testAliventAliveErrorParseInner.__doc__))
 
@@ -3768,7 +3768,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testAliventAliveErrorPacketPack(self):
         '''
-        Coverage test for Alivent.alive() error on packing a packet.
+        Test for Alivent.alive() error on packing a packet. (coverage)
         '''
         console.terse("{0}\n".format(self.testAliventAliveErrorPacketPack.__doc__))
 
@@ -3806,7 +3806,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.reaped, None)
 
         other.clearStats()
-        console.terse("\nTest alive with broken coat kind *********\n")
+        console.terse("\nTest alivent alive with packet pack error *********\n")
         main.alive() # alive
         self.serviceStack(main, duration=0.1) # aliver send
         default_size = raeting.UDP_MAX_PACKET_SIZE # backup
@@ -3843,7 +3843,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testAliventNackErrorPacketPack(self):
         '''
-        Coverage test for Alivent.nack() error on packing a packet.
+        Test for Alivent.nack() error on packing a packet. (coverage)
         '''
         console.terse("{0}\n".format(self.testAliventNackErrorPacketPack.__doc__))
 
@@ -3885,7 +3885,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNone(other.remotes.values()[0].allowed)
 
         other.clearStats()
-        console.terse("\nTest alive with broken coat kind *********\n")
+        console.terse("\nTest alivent nack with packet pack error *********\n")
         main.alive() # alive
         self.serviceStack(main, duration=0.1) # aliver send
         default_size = raeting.UDP_MAX_PACKET_SIZE # backup
@@ -3915,6 +3915,181 @@ class BasicTestCase(unittest.TestCase):
             self.assertIsNone(remote.alived)
         self.assertIs(main.remotes.values()[0].reaped, None)
         self.assertFalse(other.remotes.values()[0].reaped)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliventReceiveRequest(self):
+        '''
+        Test for Alivent.receive() (coverage)
+        '''
+        console.terse("{0}\n".format(self.testAliventReceiveRequest.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        other.clearStats()
+        console.terse("\nTest alivent receive request *********\n")
+        main.alive() # alive from main to other
+        self.serviceStack(main, duration=0.1) # Send alive
+        # receive alive on other in custom way: use transaction receive instead of stack.correspond()
+        other.serviceReceives()
+        # handle rx
+        raw, sa = other.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(other.name, raw))
+        packet = packeting.RxPacket(stack=other, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        nuid = packet.data['de']
+        self.assertNotEqual(nuid, 0)
+        remote = other.remotes.get(nuid, None)
+        self.assertIsNotNone(remote)
+        rsid = packet.data['si']
+        self.assertNotEqual(rsid, 0)
+        remote.rsid = rsid
+        # create transaction
+        data = odict(hk=other.Hk, bk=other.Bk, fk=other.Fk, ck=other.Ck)
+        alivent = transacting.Alivent(stack=other,
+                                      remote=remote,
+                                      bcst=packet.data['bf'],
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # receive
+        alivent.receive(packet)
+        self.serviceStacks(stacks) # Process alive
+
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliventProcessTimeout(self):
+        '''
+        Test for Alivent.process() (coverage)
+        '''
+        console.terse("{0}\n".format(self.testAliventProcessTimeout.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        other.clearStats()
+        console.terse("\nTest alivent process alive transaction timeout *********\n")
+        main.alive() # alive from main to other
+        self.serviceStack(main, duration=0.1) # Send alive
+        # receive alive on other in custom way: use transaction receive instead of stack.correspond()
+        other.serviceReceives()
+        # handle rx
+        raw, sa = other.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(other.name, raw))
+        packet = packeting.RxPacket(stack=other, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        nuid = packet.data['de']
+        self.assertNotEqual(nuid, 0)
+        remote = other.remotes.get(nuid, None)
+        self.assertIsNotNone(remote)
+        rsid = packet.data['si']
+        self.assertNotEqual(rsid, 0)
+        remote.rsid = rsid
+        # create transaction
+        data = odict(hk=other.Hk, bk=other.Bk, fk=other.Fk, ck=other.Ck)
+        alivent = transacting.Alivent(stack=other,
+                                      remote=remote,
+                                      bcst=packet.data['bf'],
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # timeout
+        self.assertTrue(alivent.timeout > 0.0)
+        self.store.advanceStamp(alivent.timeout)
+        alivent.process()
+        self.serviceStacks(stacks) # Process alive
+
+        self.assertIn('alivent_transaction_failure', stack.stats)
+        self.assertEqual(stack.stats['alivent_transaction_failure'], 1)
+
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = other.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIsNone(remote.alived)
 
         for stack in [main, other]:
             stack.server.close()
@@ -3964,6 +4139,13 @@ def runSome():
                 'testAliventUnallowed',
                 'testAliventJoinedAllowed',
                 'testAliverReceiveNack',
+                'testAliverAlivePackError',
+                'testAliverErrorParseInner',
+                'testAliventAliveErrorParseInner',
+                'testAliventAliveErrorPacketPack',
+                'testAliventNackErrorPacketPack',
+                'testAliventReceiveRequest',
+                'testAliventProcessTimeout',
             ]
 
     tests.extend(map(BasicTestCase, names))

@@ -306,42 +306,6 @@ class BasicTestCase(unittest.TestCase):
                 remote.main == data['main'] and
                 remote.kind == data['kind'])
 
-    def joinBrokenInner(self, stack, uid=None, timeout=None, cascade=False, renewal=False):
-        '''
-        Initiate join transaction with broken inner part.
-        Use in tests to check parseInner faults
-        '''
-        remote = stack.retrieveRemote(uid=uid)
-        self.assertIsNotNone(remote)
-        timeout = timeout if timeout is not None else stack.JoinerTimeout
-        data = odict(hk=stack.Hk, bk=stack.Bk)
-        joiner = transacting.Joiner(stack=stack,
-                                    remote=remote,
-                                    timeout=timeout,
-                                    txData=data,
-                                    cascade=cascade,
-                                    renewal=renewal)
-        data['ck'] = -1
-        joiner.join()
-
-    def joinBrokenData(self, stack, uid=None, timeout=None, cascade=False, renewal=False):
-        '''
-        Initiate join transaction with broken data
-        Use in tests
-        '''
-        remote = stack.retrieveRemote(uid=uid)
-        self.assertIsNotNone(remote)
-        timeout = timeout if timeout is not None else stack.JoinerTimeout
-        data = odict(hk=stack.Hk, bk=stack.Bk)
-        joiner = transacting.Joiner(stack=stack,
-                                    remote=remote,
-                                    timeout=timeout,
-                                    txData=data,
-                                    cascade=cascade,
-                                    renewal=renewal)
-        data['name'] = None
-        joiner.join()
-
     def testJoinBasic(self):
         '''
         Test join
@@ -11040,7 +11004,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptErrorParseInner(self):
         '''
-        Coverage test joiner.accept got error on parsing packet inner
+        Test joiner.accept got error on parsing packet inner (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptErrorParseInner.__doc__))
 
@@ -11089,7 +11053,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptMissingName(self):
         '''
-        Coverage test joiner.accept packet has no name
+        Test joiner.accept packet has no name (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptMissingName.__doc__))
 
@@ -11098,7 +11062,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Test:
-        console.terse("\nTest joiner accept parseInner error *********\n")
+        console.terse("\nTest joiner accept missing name *********\n")
         beta.join()
         self.serviceStacks([beta], duration=0.1)
 
@@ -11138,7 +11102,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptMissingMode(self):
         '''
-        Coverage test joiner.accept packet has no mode
+        Test joiner.accept packet has no mode (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptMissingMode.__doc__))
 
@@ -11147,7 +11111,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Test:
-        console.terse("\nTest joiner accept parseInner error *********\n")
+        console.terse("\nTest joiner accept missing mode *********\n")
         beta.join()
         self.serviceStacks([beta], duration=0.1)
 
@@ -11204,7 +11168,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptMissingKind(self):
         '''
-        Coverage test joiner.accept packet has no kind
+        Test joiner.accept packet has no kind (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptMissingKind.__doc__))
 
@@ -11213,7 +11177,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Test:
-        console.terse("\nTest joiner accept parseInner error *********\n")
+        console.terse("\nTest joiner accept missing kind *********\n")
         beta.join()
         self.serviceStacks([beta], duration=0.1)
 
@@ -11270,7 +11234,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptMissingUid(self):
         '''
-        Coverage test joiner.accept packet has no uid
+        Test joiner.accept packet has no uid (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptMissingUid.__doc__))
 
@@ -11279,7 +11243,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Test:
-        console.terse("\nTest joiner accept parseInner error *********\n")
+        console.terse("\nTest joiner accept missing uid *********\n")
         beta.join()
         self.serviceStacks([beta], duration=0.1)
 
@@ -11336,7 +11300,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptMissingVerhex(self):
         '''
-        Coverage test joiner.accept packet has no verhex
+        Test joiner.accept packet has no verhex (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptMissingVerhex.__doc__))
 
@@ -11345,7 +11309,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Test:
-        console.terse("\nTest joiner accept parseInner error *********\n")
+        console.terse("\nTest joiner accept missing verhex *********\n")
         beta.join()
         self.serviceStacks([beta], duration=0.1)
 
@@ -11385,7 +11349,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptMissingPubhex(self):
         '''
-        Coverage test joiner.accept packet has no pubhex
+        Test joiner.accept packet has no pubhex (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptMissingPubhex.__doc__))
 
@@ -11394,7 +11358,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Test:
-        console.terse("\nTest joiner accept parseInner error *********\n")
+        console.terse("\nTest joiner accept missing pubhex *********\n")
         beta.join()
         self.serviceStacks([beta], duration=0.1)
 
@@ -11434,7 +11398,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAcceptMissingRole(self):
         '''
-        Coverage test joiner.accept packet has no role
+        Test joiner.accept packet has no role (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAcceptMissingRole.__doc__))
 
@@ -11443,7 +11407,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Test:
-        console.terse("\nTest joiner accept parseInner error *********\n")
+        console.terse("\nTest joiner accept missing role *********\n")
         beta.join()
         self.serviceStacks([beta], duration=0.1)
 
@@ -11483,9 +11447,9 @@ class BasicTestCase(unittest.TestCase):
 
     def testVacuousJoinerAcceptConflictNames(self):
         '''
-        Coverage test joiner.accept with name conflict
+        Test joiner.accept with name conflict (coverage)
         '''
-        console.terse("{0}\n".format(self.testJoinerAcceptMissingRole.__doc__))
+        console.terse("{0}\n".format(self.testVacuousJoinerAcceptConflictNames.__doc__))
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
@@ -11526,7 +11490,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testVacuousJoinerAcceptRenameFail(self):
         '''
-        Coverage test joiner.accept fail rename remote
+        Test joiner.accept fail rename remote (coverage)
         '''
         console.terse("{0}\n".format(self.testVacuousJoinerAcceptRenameFail.__doc__))
 
@@ -11536,7 +11500,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Test:
         beta.clearStats()
-        console.terse("\nTest joiner accept *********\n")
+        console.terse("\nTest joiner accept rename fail *********\n")
         beta.mutable = True
         # Rename alpha to beta so:
         # - this would produce name conflict on rename
@@ -11555,7 +11519,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerPendErrorParseInner(self):
         '''
-        Coverage test joiner.pend got error on parsing packet inner
+        Test joiner.pend got error on parsing packet inner (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerPendErrorParseInner.__doc__))
 
@@ -11610,7 +11574,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerNackErrorPack(self):
         '''
-        Coverage test joiner.nack packet.pack error
+        Test joiner.nack packet.pack error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerNackErrorPack.__doc__))
 
@@ -11645,7 +11609,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerNackIncorrectPacketKind(self):
         '''
-        Coverage test joiner.nack packet not expected packet type
+        Test joiner.nack packet not expected packet type (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerNackIncorrectPacketKind.__doc__))
 
@@ -11665,7 +11629,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAckPendErrorPack(self):
         '''
-        Coverage test joiner.ackPend packet.pack error
+        Test joiner.ackPend packet.pack error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAckPendErrorPack.__doc__))
 
@@ -11700,7 +11664,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAckAcceptErrorPack(self):
         '''
-        Coverage test joiner.ackAccept packet.pack error
+        Test joiner.ackAccept packet.pack error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAckAcceptErrorPack.__doc__))
 
@@ -11725,7 +11689,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerAckAcceptCascade(self):
         '''
-        Coverage test joiner.ackAccept cascade
+        Test joiner.ackAccept cascade (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerAckAcceptCascade.__doc__))
 
@@ -11748,7 +11712,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerRefuseErrorParseInner(self):
         '''
-        Coverage test joiner.refuse error parse inner
+        Test joiner.refuse error parse inner (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerRefuseErrorParseInner.__doc__))
 
@@ -11779,7 +11743,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerRejectErrorParseInner(self):
         '''
-        Coverage test joiner.reject error parse inner
+        Test joiner.reject error parse inner (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerRejectErrorParseInner.__doc__))
 
@@ -11808,7 +11772,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerClearJoinentNotClear(self):
         '''
-        Test joiner join after Joiner loses its remotes but Joinent did not.
+        Test joiner join after Joiner loses its remotes but Joinent did not. (coverage)
         This is a coverage test to verify common use case
         '''
         console.terse("{0}\n".format(self.testJoinerClearJoinentNotClear.__doc__))
@@ -11966,7 +11930,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerJoinInProcess(self):
         '''
-        Test joiner.join do nothing if there is a join in process.
+        Test joiner.join do nothing if there is a join in process. (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerJoinInProcess.__doc__))
 
@@ -12011,7 +11975,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerJoinInvalidKind(self):
         '''
-        Test joiner.join do nothing if stack kind is invalid (<0 or >255)
+        Test joiner.join do nothing if stack kind is invalid (<0 or >255) (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerJoinInvalidKind.__doc__))
 
@@ -12037,7 +12001,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerJoinPackError(self):
         '''
-        Test joiner.join handles pack error
+        Test joiner.join handles pack error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinerJoinPackError.__doc__))
 
@@ -12066,9 +12030,9 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinerProcessNoPacketTimeout(self):
         '''
-        Test joiner.process timeout when no tx packets
+        Test joiner.process timeout when no tx packets (coverage)
         '''
-        console.terse("{0}\n".format(self.testJoinerJoinPackError.__doc__))
+        console.terse("{0}\n".format(self.testJoinerProcessNoPacketTimeout.__doc__))
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
@@ -12091,7 +12055,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinErrorParseInner(self):
         '''
-        Test joinent.join handles parseInner error
+        Test joinent.join handles parseInner error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinErrorParseInner.__doc__))
 
@@ -12102,7 +12066,17 @@ class BasicTestCase(unittest.TestCase):
         # Test:
         beta.clearStats()
         console.terse("\nTest joinent join parseInner error *********\n")
-        self.joinBrokenInner(beta) # join beta to alpha
+        # join beta to alpha with broken packet inner
+        remote = beta.retrieveRemote()
+        self.assertIsNotNone(remote)
+        timeout = beta.JoinerTimeout
+        data = odict(hk=beta.Hk, bk=beta.Bk)
+        joiner = transacting.Joiner(stack=beta,
+                                    remote=remote,
+                                    timeout=timeout,
+                                    txData=data)
+        data['ck'] = -1
+        joiner.join()
         self.serviceStacks([beta], duration=0.1)
         self.serviceStacks([alpha], duration=0.1)
         self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
@@ -12126,7 +12100,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinMissingName(self):
         '''
-        Test joinent.join handles body data missing required name field
+        Test joinent.join handles body data missing required name field (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinMissingName.__doc__))
 
@@ -12158,7 +12132,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinMissingVerhex(self):
         '''
-        Test joinent.join handles body data missing required verhex field
+        Test joinent.join handles body data missing required verhex field (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinMissingVerhex.__doc__))
 
@@ -12168,7 +12142,7 @@ class BasicTestCase(unittest.TestCase):
         betaRemoteAlpha = beta.remotes.values()[0]
         # Test: no verhex
         alpha.clearStats()
-        console.terse("\nTest joinent join missing kind *********\n")
+        console.terse("\nTest joinent join missing verhex *********\n")
         orig_verhex = beta.local.signer.verhex
         beta.local.signer.verhex = None
         beta.join()
@@ -12189,7 +12163,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinMissingPubhex(self):
         '''
-        Test joinent.join handles body data missing required pubhex field
+        Test joinent.join handles body data missing required pubhex field (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinMissingPubhex.__doc__))
 
@@ -12199,7 +12173,7 @@ class BasicTestCase(unittest.TestCase):
         betaRemoteAlpha = beta.remotes.values()[0]
         # Test: no verhex
         alpha.clearStats()
-        console.terse("\nTest joinent join missing kind *********\n")
+        console.terse("\nTest joinent join missing pubhex *********\n")
         orig_pubhex = beta.local.priver.pubhex
         beta.local.priver.pubhex = None
         beta.join()
@@ -12220,7 +12194,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinMissingRole(self):
         '''
-        Test joinent.join handles body data missing required role field
+        Test joinent.join handles body data missing required role field (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinMissingRole.__doc__))
 
@@ -12230,7 +12204,7 @@ class BasicTestCase(unittest.TestCase):
         betaRemoteAlpha = beta.remotes.values()[0]
         # Test: no verhex
         alpha.clearStats()
-        console.terse("\nTest joinent join missing kind *********\n")
+        console.terse("\nTest joinent join missing role *********\n")
         orig_role = beta.local.role
         beta.local.role = None
         beta.join()
@@ -12251,7 +12225,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinMissingMode(self):
         '''
-        Test joinent.join handles body data missing required mode field
+        Test joinent.join handles body data missing required mode field (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinMissingMode.__doc__))
 
@@ -12261,7 +12235,7 @@ class BasicTestCase(unittest.TestCase):
         betaRemoteAlpha = beta.remotes.values()[0]
         # Test: no verhex
         alpha.clearStats()
-        console.terse("\nTest joinent join missing kind *********\n")
+        console.terse("\nTest joinent join missing mode *********\n")
         orig_role = beta.local.role
         beta.local.role = None
         # stack join
@@ -12307,7 +12281,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinMissingKind(self):
         '''
-        Test joinent.join handles body data missing required kind field
+        Test joinent.join handles body data missing required kind field (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinMissingKind.__doc__))
 
@@ -12360,7 +12334,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinDuplicateJoinent(self):
         '''
-        Test joinent.join handles duplications
+        Test joinent.join handles duplications (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinDuplicateJoinent.__doc__))
 
@@ -12399,7 +12373,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testVacuousJoinentJoinDuplicateNonVacuousJoiner(self):
         '''
-        Coverage test joinent.join handles duplications
+        Test joinent.join handles duplications (coverage)
         Vacuous joinent found existing non-vacuous joiner
         Nack itself
         '''
@@ -12449,7 +12423,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testNonVacuousJoinentJoinDuplicateVacuousJoiner(self):
         '''
-        Coverage test joinent.join handles duplications
+        Test joinent.join handles duplications (coverage)
         Non-vacuous joinent found existing vacuous joiner
         Nack joiner, continue itself
         '''
@@ -12496,7 +12470,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinDuplicateJoinerMatchNames(self):
         '''
-        Coverage test joinent.join handles duplications
+        Test joinent.join handles duplications (coverage)
         Non-vacuous joinent found existing non-vacuous joiner
         Joinent name < joiner name
         Nack joinent transaction
@@ -12553,7 +12527,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testVacuousEphemeralJoinentJoinIncorrectRemoteId(self):
         '''
-        Coverage test vacuous ephemeral joinent.join with remote id don't match
+        Test vacuous ephemeral joinent.join with remote id don't match (coverage)
         '''
         console.terse("{0}\n".format(self.testVacuousEphemeralJoinentJoinIncorrectRemoteId.__doc__))
 
@@ -12603,7 +12577,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testNonVacuousJoinentJoinNoDestinationIdMatch(self):
         '''
-        Coverage test non vacuous joinent.join with remote id absent in stack
+        Test non vacuous joinent.join with remote id absent in stack (coverage)
         '''
         console.terse("{0}\n".format(self.testNonVacuousJoinentJoinNoDestinationIdMatch.__doc__))
 
@@ -12613,7 +12587,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Test:
         alpha.clearStats()
-        console.terse("\nTest remote id don't match *********\n")
+        console.terse("\nTest absent remote id *********\n")
         # Initiate transaction
         beta.join() # non-vacuous join beta to alpha
         self.serviceStacks([beta], duration=0.1)
@@ -12645,7 +12619,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentJoinErrorAddRemote(self):
         '''
-        Coverage test joinent.join got error on add remote
+        Test joinent.join got error on add remote (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentJoinErrorAddRemote.__doc__))
 
@@ -12688,9 +12662,9 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentReceiveRefuse(self):
         '''
-        Coverage test joinent.join got error on add remote
+        Test joinent.join got error on add remote (coverage)
         '''
-        console.terse("{0}\n".format(self.testJoinentJoinErrorAddRemote.__doc__))
+        console.terse("{0}\n".format(self.testJoinentReceiveRefuse.__doc__))
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
@@ -12722,7 +12696,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentAckPendErrorPack(self):
         '''
-        Coverage test joinent.ackPend packet.pack error
+        Test joinent.ackPend packet.pack error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentAckPendErrorPack.__doc__))
 
@@ -12755,7 +12729,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentAckAcceptErrorPack(self):
         '''
-        Coverage test joinent.ackAccept packet.pack error
+        Test joinent.ackAccept packet.pack error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentAckAcceptErrorPack.__doc__))
 
@@ -12779,9 +12753,9 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentAckAcceptIncorrectKind(self):
         '''
-        Coverage test joinent.ackAccept incorrect kind
+        Test joinent.ackAccept incorrect kind (coverage)
         '''
-        console.terse("{0}\n".format(self.testJoinentJoinMissingKind.__doc__))
+        console.terse("{0}\n".format(self.testJoinentAckAcceptIncorrectKind.__doc__))
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
@@ -12801,7 +12775,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentPendErrorParseInner(self):
         '''
-        Test joinent.pend handles parseInner error
+        Test joinent.pend handles parseInner error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentPendErrorParseInner.__doc__))
 
@@ -12842,7 +12816,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentCompleteErrorParseInner(self):
         '''
-        Test joinent.complete handles parseInner error
+        Test joinent.complete handles parseInner error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentCompleteErrorParseInner.__doc__))
 
@@ -12883,7 +12857,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentRejectErrorParseInner(self):
         '''
-        Test joinent.reject handles parseInner error
+        Test joinent.reject handles parseInner error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentRejectErrorParseInner.__doc__))
 
@@ -12924,7 +12898,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentRefuseErrorParseInner(self):
         '''
-        Test joinent.refuse handles parseInner error
+        Test joinent.refuse handles parseInner error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentRefuseErrorParseInner.__doc__))
 
@@ -12965,7 +12939,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentNackErrorPack(self):
         '''
-        Test joinent.nack handles packet.pack error
+        Test joinent.nack handles packet.pack error (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentNackErrorPack.__doc__))
 
@@ -12997,7 +12971,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentNackRenew(self):
         '''
-        Coverage test joiner.nack with 'renew' kind
+        Test joiner.nack with 'renew' kind (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentNackRenew.__doc__))
 
@@ -13020,7 +12994,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testJoinentNackUnknown(self):
         '''
-        Coverage test joiner.nack with 'unknown' kind (cover 'else' case)
+        Test joiner.nack with 'unknown' kind (cover 'else' case) (coverage)
         '''
         console.terse("{0}\n".format(self.testJoinentNackUnknown.__doc__))
 
@@ -13157,12 +13131,60 @@ def runSome():
                 'testJoinerNonVacuousPendingPendNewFuid',
                 'testJoinerNonVacuousPendingPendNewRole',
                 'testJoinerNonVacuousPendingPendSameAll',
+                'testJoinerVacuousImmutableRefuseRenew',
                 'testJoinentNonMainRejectJoin',
                 'testJoinentJoinRenameRemoteFail',
                 'testJoinentJoinRejectNameConflict',
                 'testJoinerAcceptRejectNameConflict',
                 'testJoinerAcceptRejectRenameFail',
+                'testJoinerAcceptErrorParseInner',
+                'testJoinerAcceptMissingName',
+                'testJoinerAcceptMissingMode',
+                'testJoinerAcceptMissingKind',
+                'testJoinerAcceptMissingUid',
+                'testJoinerAcceptMissingVerhex',
+                'testJoinerAcceptMissingPubhex',
+                'testJoinerAcceptMissingRole',
+                'testVacuousJoinerAcceptConflictNames',
+                'testVacuousJoinerAcceptRenameFail',
+                'testJoinerPendErrorParseInner',
+                'testJoinerNackErrorPack',
+                'testJoinerNackIncorrectPacketKind',
+                'testJoinerAckPendErrorPack',
+                'testJoinerAckAcceptErrorPack',
+                'testJoinerAckAcceptCascade',
+                'testJoinerRefuseErrorParseInner',
+                'testJoinerRejectErrorParseInner',
                 'testJoinerClearJoinentNotClear',
+                'testJoinerJoinInProcess',
+                'testJoinerJoinInvalidKind',
+                'testJoinerJoinPackError',
+                'testJoinerProcessNoPacketTimeout',
+                'testJoinentJoinErrorParseInner',
+                'testJoinentJoinMissingName',
+                'testJoinentJoinMissingVerhex',
+                'testJoinentJoinMissingPubhex',
+                'testJoinentJoinMissingRole',
+                'testJoinentJoinMissingMode',
+                'testJoinentJoinMissingKind',
+                'testJoinentJoinDuplicateJoinent',
+                'testVacuousJoinentJoinDuplicateNonVacuousJoiner',
+                'testNonVacuousJoinentJoinDuplicateVacuousJoiner',
+                'testJoinentJoinDuplicateJoinerMatchNames',
+                'testVacuousEphemeralJoinentJoinIncorrectRemoteId',
+                'testNonVacuousJoinentJoinNoDestinationIdMatch',
+                'testJoinentJoinErrorAddRemote',
+                'testJoinentReceiveRefuse',
+                'testJoinentAckPendErrorPack',
+                'testJoinentAckAcceptErrorPack',
+                'testJoinentAckAcceptIncorrectKind',
+                'testJoinentPendErrorParseInner',
+                'testJoinentCompleteErrorParseInner',
+                'testJoinentRejectErrorParseInner',
+                'testJoinentRefuseErrorParseInner',
+                'testJoinentNackErrorPack',
+                'testJoinentNackRenew',
+                'testJoinentNackUnknown',
             ]
 
     tests.extend(map(BasicTestCase, names))
