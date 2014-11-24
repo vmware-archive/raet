@@ -18,13 +18,13 @@ import tempfile
 import shutil
 
 from ioflo.base.odicting import odict
-from ioflo.base.aiding import Timer, StoreTimer
+from ioflo.base.aiding import Timer, StoreTimer, packByte
 from ioflo.base import storing
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
 from raet import raeting, nacling
-from raet.road import estating, keeping, stacking, packeting
+from raet.road import estating, keeping, stacking, packeting, transacting
 
 if sys.platform == 'win32':
     TEMPDIR = 'c:/temp'
@@ -11002,9 +11002,777 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
+    def testJoinerAcceptErrorParseInner(self):
+        '''
+        Test joiner.accept got error on parsing packet inner (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptErrorParseInner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept parseInner error *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Hack: set incorrect coat kind
+        data['ck'] = -1
+        # skip actual joinent.join, it's not needed for test
+        joinent.ackAccept()
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('parsing_inner_error', beta.stats)
+        self.assertEqual(beta.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAcceptMissingName(self):
+        '''
+        Test joiner.accept packet has no name (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptMissingName.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept missing name *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Hack: set stack name to None
+        alpha.local.name = None
+        # Skip actual join, it's not needed for test
+        joinent.ackAccept()
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('invalid_accept', beta.stats)
+        self.assertEqual(beta.stats['invalid_accept'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAcceptMissingMode(self):
+        '''
+        Test joiner.accept packet has no mode (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptMissingMode.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept missing mode *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Skip actual join, it's not needed for test
+        # ack accept
+        if alpha.kind is None:
+            alpha.kind = 0
+        # Hack: set mode to none
+        body = odict([ ('name', alpha.local.name),
+                       ('mode', None),
+                       ('kind', alpha.kind),
+                       ('uid', remote.uid),
+                       ('verhex', alpha.local.signer.verhex),
+                       ('pubhex', alpha.local.priver.pubhex),
+                       ('role', alpha.local.role)])
+        packet = packeting.TxPacket(stack=alpha,
+                                    kind=raeting.pcktKinds.response,
+                                    embody=body,
+                                    data=joinent.txData)
+        packet.pack()
+        console.concise("Joinent {0}. Do Accept of {1} at {2}\n".format(
+            alpha.name, alpha.name, alpha.store.stamp))
+        joinent.transmit(packet)
+
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('invalid_accept', beta.stats)
+        self.assertEqual(beta.stats['invalid_accept'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAcceptMissingKind(self):
+        '''
+        Test joiner.accept packet has no kind (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptMissingKind.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept missing kind *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Hack: set stack name to None
+        flags = [0, 0, 0, 0, 0, 0, 0, alpha.main] # stack operation mode flags
+        operation = packByte(fmt='11111111', fields=flags)
+        # Skip actual join, it's not needed for test
+        # Hack: set mode to none
+        body = odict([ ('name', alpha.local.name),
+                       ('mode', operation),
+                       ('kind', None),
+                       ('uid', remote.uid),
+                       ('verhex', alpha.local.signer.verhex),
+                       ('pubhex', alpha.local.priver.pubhex),
+                       ('role', alpha.local.role)])
+        packet = packeting.TxPacket(stack=alpha,
+                                    kind=raeting.pcktKinds.response,
+                                    embody=body,
+                                    data=joinent.txData)
+        packet.pack()
+        console.concise("Joinent {0}. Do Accept of {1} at {2}\n".format(
+            alpha.name, alpha.name, alpha.store.stamp))
+        joinent.transmit(packet)
+
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('invalid_accept', beta.stats)
+        self.assertEqual(beta.stats['invalid_accept'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAcceptMissingUid(self):
+        '''
+        Test joiner.accept packet has no uid (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptMissingUid.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept missing uid *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Skip actual join, it's not needed for test
+        flags = [0, 0, 0, 0, 0, 0, 0, alpha.main] # stack operation mode flags
+        operation = packByte(fmt='11111111', fields=flags)
+        # Skip actual join, it's not needed for test
+        # Hack: set remote uid to None
+        body = odict([ ('name', alpha.local.name),
+                       ('mode', operation),
+                       ('kind', alpha.kind),
+                       ('uid', None),
+                       ('verhex', alpha.local.signer.verhex),
+                       ('pubhex', alpha.local.priver.pubhex),
+                       ('role', alpha.local.role)])
+        packet = packeting.TxPacket(stack=alpha,
+                                    kind=raeting.pcktKinds.response,
+                                    embody=body,
+                                    data=joinent.txData)
+        packet.pack()
+        console.concise("Joinent {0}. Do Accept of {1} at {2}\n".format(
+            alpha.name, alpha.name, alpha.store.stamp))
+        joinent.transmit(packet)
+
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('invalid_accept', beta.stats)
+        self.assertEqual(beta.stats['invalid_accept'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAcceptMissingVerhex(self):
+        '''
+        Test joiner.accept packet has no verhex (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptMissingVerhex.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept missing verhex *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Hack: set stack name to None
+        alpha.local.signer.verhex = None
+        # Skip actual join, it's not needed for test
+        joinent.ackAccept()
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('invalid_accept', beta.stats)
+        self.assertEqual(beta.stats['invalid_accept'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAcceptMissingPubhex(self):
+        '''
+        Test joiner.accept packet has no pubhex (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptMissingPubhex.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept missing pubhex *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Hack: set stack name to None
+        alpha.local.priver.pubhex = None
+        # Skip actual join, it's not needed for test
+        joinent.ackAccept()
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('invalid_accept', beta.stats)
+        self.assertEqual(beta.stats['invalid_accept'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAcceptMissingRole(self):
+        '''
+        Test joiner.accept packet has no role (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAcceptMissingRole.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner accept missing role *********\n")
+        beta.join()
+        self.serviceStacks([beta], duration=0.1)
+
+        # service alpha, reply
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Hack: set stack name to None
+        alpha.local.role = None
+        # Skip actual join, it's not needed for test
+        joinent.ackAccept()
+        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([beta], duration=0.1)
+
+        self.assertIn('invalid_accept', beta.stats)
+        self.assertEqual(beta.stats['invalid_accept'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testVacuousJoinerAcceptConflictNames(self):
+        '''
+        Test joiner.accept with name conflict (coverage)
+        '''
+        console.terse("{0}\n".format(self.testVacuousJoinerAcceptConflictNames.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        alphaRemoteBeta = alpha.remotes.values()[0]
+        betaRemoteAlpha = beta.remotes.values()[0]
+
+        gammaData = self.createRoadData(base=self.base,
+                                        name='gamma',
+                                        ha=("", raeting.RAET_TEST_PORT+1),
+                                        main=True,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(gammaData['dirpath'])
+        gamma = self.createRoadStack(data=gammaData)
+
+        console.terse("\nJoin Transaction **************\n")
+        betaRemoteGamma = beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                               fuid=0, # vacuous join
+                                                               sid=0, # always 0 for join
+                                                               ha=gamma.local.ha))
+        beta.join(uid=betaRemoteGamma.uid)
+        self.serviceStacks([beta, gamma])
+
+        # Test:
+        console.terse("\nTest joiner accept name conflict *********\n")
+        beta.mutable = True
+        alpha.local.name = 'gamma'
+        # Vacuous
+        betaRemoteAlpha.fuid = 0
+        self.join(beta, alpha)
+
+        self.assertIn('joiner_transaction_failure', beta.stats)
+        self.assertEqual(beta.stats['joiner_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testVacuousJoinerAcceptRenameFail(self):
+        '''
+        Test joiner.accept fail rename remote (coverage)
+        '''
+        console.terse("{0}\n".format(self.testVacuousJoinerAcceptRenameFail.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        beta.clearStats()
+        console.terse("\nTest joiner accept rename fail *********\n")
+        beta.mutable = True
+        # Rename alpha to beta so:
+        # - this would produce name conflict on rename
+        # - this wouldn't be covered by pre-checks before call renameRemote
+        alpha.local.name = 'beta'
+        # Vacuous
+        beta.remotes.values()[0].fuid = 0
+        self.join(beta, alpha)
+
+        self.assertIn('joiner_transaction_failure', beta.stats)
+        self.assertEqual(beta.stats['joiner_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerPendErrorParseInner(self):
+        '''
+        Test joiner.pend got error on parsing packet inner (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerPendErrorParseInner.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        alpha.keep.auto = raeting.autoModes.never
+        alpha.mutable = True
+        alphaRemoteBeta = alpha.remotes.values()[0]
+        alpha.keep.pendRemote(alphaRemoteBeta)
+
+        # Ensure remote status is Pending
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
+
+        # Test
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # send join
+        # service alpha
+        alpha.serviceReceives()
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        remote = alpha.remotes.get(packet.data['de'], None)
+        # reply join
+        timeout = alpha.JoinentTimeout
+        data = odict(hk=alpha.Hk, bk=alpha.Bk)
+        joinent = transacting.Joinent(stack=alpha,
+                                      remote=remote,
+                                      timeout=timeout,
+                                      sid=packet.data['si'],
+                                      tid=packet.data['ti'],
+                                      txData=data,
+                                      rxPacket=packet)
+        # Hack: break packet inner
+        data['ck'] = -1
+        # Skip actual join, it's not needed for test
+        joinent.ackPend()
+        self.serviceStacks([alpha], duration=0.1) # handle and respond
+        self.serviceStacks([beta], duration=0.1) # receive response
+
+        # Checks
+        self.assertIn('parsing_inner_error', beta.stats)
+        self.assertEqual(beta.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerNackErrorPack(self):
+        '''
+        Test joiner.nack packet.pack error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerNackErrorPack.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        beta.keep.auto = raeting.autoModes.never
+        beta.mutable = True
+        betaRemoteAlpha = beta.remotes.values()[0]
+        beta.keep.rejectRemote(betaRemoteAlpha) # force nack the next join request
+
+        # Ensure remote status is Pending
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
+
+        # Test
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.1) # handle and respond
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        self.serviceStacks([beta], duration=0.1) # receive response, pend
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        # Checks
+        self.assertIn('packing_error', beta.stats)
+        self.assertEqual(beta.stats['packing_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerNackIncorrectPacketKind(self):
+        '''
+        Test joiner.nack packet not expected packet type (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerNackIncorrectPacketKind.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        beta.clearStats()
+        beta.join()
+        beta.transactions[0].nack(kind=raeting.pcktKinds.unknown)
+
+        # Checks
+        self.assertIn('joiner_transaction_failure', beta.stats)
+        self.assertEqual(beta.stats['joiner_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAckPendErrorPack(self):
+        '''
+        Test joiner.ackPend packet.pack error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAckPendErrorPack.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        beta.keep.auto = raeting.autoModes.never
+        beta.mutable = True
+        betaRemoteAlpha = beta.remotes.values()[0]
+        beta.keep.pendRemote(betaRemoteAlpha)
+
+        # Ensure remote status is Pending
+        roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
+        self.assertEqual(roleData['role'], alpha.local.role)
+        self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
+
+        # Test
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.1) # handle and respond
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        self.serviceStacks([beta], duration=0.1) # receive response, pend
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        # Checks
+        self.assertIn('packing_error', beta.stats)
+        self.assertEqual(beta.stats['packing_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAckAcceptErrorPack(self):
+        '''
+        Test joiner.ackAccept packet.pack error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAckAcceptErrorPack.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.1) # handle and respond
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        self.serviceStacks([beta], duration=0.1) # receive response, pend
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        # Checks
+        self.assertIn('packing_error', beta.stats)
+        self.assertEqual(beta.stats['packing_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerAckAcceptCascade(self):
+        '''
+        Test joiner.ackAccept cascade (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerAckAcceptCascade.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test
+        beta.join(cascade=True)
+        self.serviceStacks([alpha, beta])
+
+        # Checks
+        for stack in [alpha, beta]:
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined, True)
+            self.assertTrue(remote.allowed, True)
+            self.assertTrue(remote.alived, True)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerRefuseErrorParseInner(self):
+        '''
+        Test joiner.refuse error parse inner (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerRefuseErrorParseInner.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.pendRemote(alpha.remotes.values()[0])
+
+        # Test
+        beta.join(cascade=True)
+        self.serviceStacks([beta], duration=0.1) # process, send join
+        self.serviceStacks([alpha], duration=0.1) # process join, add pend transaction
+        # Do malformed nack from alpha
+        alpha.transactions[0].txData['ck'] = -1
+        self.store.advanceStamp(stacking.RoadStack.JoinerTimeout) # set timeout expiresd
+        self.serviceStacks([alpha], duration=0.1) # handle timeout, send nack
+        self.store.advanceStamp(0.05)
+        time.sleep(0.05)
+        self.serviceStacks([beta], duration=0.1) # receive and handle
+
+        # Checks
+        self.assertIn('parsing_inner_error', beta.stats)
+        self.assertEqual(beta.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerRejectErrorParseInner(self):
+        '''
+        Test joiner.reject error parse inner (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerRejectErrorParseInner.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.pendRemote(alpha.remotes.values()[0])
+
+        # Test
+        beta.join(cascade=True)
+        self.serviceStacks([beta], duration=0.1) # process, send join
+        self.serviceStacks([alpha], duration=0.1) # process join, add pend transaction
+        # Do malformed nack from alpha
+        alpha.transactions[0].txData['ck'] = -1
+        alpha.transactions[0].nack(kind=raeting.pcktKinds.reject)
+        self.serviceStacks([alpha], duration=0.1) # process join, add pend transaction
+        self.serviceStacks([beta], duration=0.1) # receive and handle
+
+        # Checks
+        self.assertIn('parsing_inner_error', beta.stats)
+        self.assertEqual(beta.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
     def testJoinerClearJoinentNotClear(self):
         '''
-        Test joiner join after Joiner loses its remotes but Joinent did not.
+        Test joiner join after Joiner loses its remotes but Joinent did not. (coverage)
         This is a coverage test to verify common use case
         '''
         console.terse("{0}\n".format(self.testJoinerClearJoinentNotClear.__doc__))
@@ -11160,6 +11928,1093 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
+    def testJoinerJoinInProcess(self):
+        '''
+        Test joiner.join do nothing if there is a join in process. (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerJoinInProcess.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+
+        # Test 1: another joiner transaction in process
+        console.terse("\nTest joiner in process *********\n")
+        beta.join()
+        self.assertEqual(len(beta.transactions), 1) # 1 transaction is created
+        beta.join()
+        self.assertEqual(len(beta.transactions), 1) # nothing is created
+        self.serviceStacks([beta, alpha])
+
+        # Check join is done
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertTrue(beta.remotes.values()[0].joined)
+        self.assertTrue(alpha.remotes.values()[0].joined)
+
+        # Test 2: another joinent transaction in process
+        console.terse("\nTest joinent in process *********\n")
+        alpha.join()
+        self.serviceStacks([alpha]) # send
+        self.serviceStacks([beta], duration=0.1) # receive
+        self.assertEqual(len(beta.transactions), 1) # 1 transaction is created
+        self.assertEqual(len(beta.txes), 0) # Ensure there is no tx packets
+        beta.join()
+        self.assertEqual(len(beta.transactions), 1) # no new transaction is created
+        self.assertEqual(len(beta.txes), 0) # Ensure no packet added
+        self.serviceStacks([beta, alpha])
+
+        # Check join is done
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertTrue(beta.remotes.values()[0].joined)
+        self.assertTrue(alpha.remotes.values()[0].joined)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerJoinInvalidKind(self):
+        '''
+        Test joiner.join do nothing if stack kind is invalid (<0 or >255) (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerJoinInvalidKind.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+
+        # Test:
+        console.terse("\nTest joiner join invalid kind *********\n")
+        beta.kind = -1
+        beta.join()
+        self.assertEqual(len(beta.transactions), 0) # no transaction is created
+        self.assertEqual(len(beta.txes), 0) # Ensure no packet was sent
+        beta.kind = 256
+        beta.join()
+        self.assertEqual(len(beta.transactions), 0) # nothing is created
+        self.assertEqual(len(beta.txes), 0) # Ensure no packet was sent
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerJoinPackError(self):
+        '''
+        Test joiner.join handles pack error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerJoinPackError.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+
+        # Test:
+        self.assertEqual(len(beta.txes), 0)
+        beta.clearStats()
+        console.terse("\nTest joiner join pack error *********\n")
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        beta.join() # will fail with packing error
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        self.assertEqual(len(beta.transactions), 0) # transaction is removed
+        self.assertIn('packing_error', beta.stats) # transaction failed
+        self.assertEqual(beta.stats['packing_error'], 1)
+        self.assertEqual(len(beta.txes), 0) # Ensure no packet was sent
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerProcessNoPacketTimeout(self):
+        '''
+        Test joiner.process timeout when no tx packets (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinerProcessNoPacketTimeout.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        console.terse("\nTest joiner process timeout when no tx packet *********\n")
+        beta.join() # create join transaction
+        self.assertEqual(len(beta.transactions), 1) # ensure there is only one transaction
+        beta.transactions[0].txPacket = None # make txPacket None
+        self.store.advanceStamp(stacking.RoadStack.JoinerTimeout) # set timeout expiresd
+
+        self.assertEqual(len(beta.transactions), 1)
+        self.serviceStacks([beta]) # Process
+        self.assertEqual(len(beta.transactions), 0)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinErrorParseInner(self):
+        '''
+        Test joinent.join handles parseInner error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinErrorParseInner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        beta.clearStats()
+        console.terse("\nTest joinent join parseInner error *********\n")
+        # join beta to alpha with broken packet inner
+        remote = beta.retrieveRemote()
+        self.assertIsNotNone(remote)
+        timeout = beta.JoinerTimeout
+        data = odict(hk=beta.Hk, bk=beta.Bk)
+        joiner = transacting.Joiner(stack=beta,
+                                    remote=remote,
+                                    timeout=timeout,
+                                    txData=data)
+        data['ck'] = -1
+        joiner.join()
+        self.serviceStacks([beta], duration=0.1)
+        self.serviceStacks([alpha], duration=0.1)
+        self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
+        self.assertIn('parsing_inner_error', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['parsing_inner_error'], 1)
+        self.assertEqual(len(beta.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined) # didn't touched
+
+        # redo the broken packet then drop it
+        self.serviceStacks([alpha, beta], duration=10.0)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+        self.assertTrue(alpha.remotes.values()[0].joined)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinMissingName(self):
+        '''
+        Test joinent.join handles body data missing required name field (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinMissingName.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+
+        # Test: no name
+        alpha.clearStats()
+        console.terse("\nTest joinent join missing name *********\n")
+        orig_name = beta.local.name
+        beta.local.name = None
+        beta.join()
+        beta.local.name = orig_name
+        self.serviceStacks([beta], duration=0.1)
+        self.serviceStacks([alpha], duration=0.1)
+        self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
+        self.assertIn('invalid_join', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['invalid_join'], 1)
+        self.assertEqual(len(beta.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined) # didn't touched
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinMissingVerhex(self):
+        '''
+        Test joinent.join handles body data missing required verhex field (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinMissingVerhex.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+        # Test: no verhex
+        alpha.clearStats()
+        console.terse("\nTest joinent join missing verhex *********\n")
+        orig_verhex = beta.local.signer.verhex
+        beta.local.signer.verhex = None
+        beta.join()
+        beta.local.signer.verhex = orig_verhex
+        self.serviceStacks([beta], duration=0.1)
+        self.serviceStacks([alpha], duration=0.1)
+        self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
+        self.assertIn('invalid_join', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['invalid_join'], 1)
+        self.assertEqual(len(beta.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined) # didn't touched
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinMissingPubhex(self):
+        '''
+        Test joinent.join handles body data missing required pubhex field (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinMissingPubhex.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+        # Test: no verhex
+        alpha.clearStats()
+        console.terse("\nTest joinent join missing pubhex *********\n")
+        orig_pubhex = beta.local.priver.pubhex
+        beta.local.priver.pubhex = None
+        beta.join()
+        beta.local.priver.pubhex = orig_pubhex
+        self.serviceStacks([beta], duration=0.1)
+        self.serviceStacks([alpha], duration=0.1)
+        self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
+        self.assertIn('invalid_join', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['invalid_join'], 1)
+        self.assertEqual(len(beta.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined) # didn't touched
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinMissingRole(self):
+        '''
+        Test joinent.join handles body data missing required role field (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinMissingRole.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+        # Test: no verhex
+        alpha.clearStats()
+        console.terse("\nTest joinent join missing role *********\n")
+        orig_role = beta.local.role
+        beta.local.role = None
+        beta.join()
+        beta.local.role = orig_role
+        self.serviceStacks([beta], duration=0.1)
+        self.serviceStacks([alpha], duration=0.1)
+        self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
+        self.assertIn('invalid_join', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['invalid_join'], 1)
+        self.assertEqual(len(beta.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined) # didn't touched
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinMissingMode(self):
+        '''
+        Test joinent.join handles body data missing required mode field (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinMissingMode.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        betaRemoteAlpha = beta.remotes.values()[0]
+        # Test: no verhex
+        alpha.clearStats()
+        console.terse("\nTest joinent join missing mode *********\n")
+        orig_role = beta.local.role
+        beta.local.role = None
+        # stack join
+        remote = beta.retrieveRemote()
+        self.assertIsNotNone(remote)
+        joiner = transacting.Joiner(stack=beta,
+                                    remote=remote,
+                                    timeout=beta.JoinerTimeout,
+                                    txData=odict(hk=beta.Hk, bk=beta.Bk))
+        # joiner join
+        remote.joined = None
+        if beta.kind is None:
+            beta.kind = 0
+        # Hack: Set mode to None here
+        body = odict([('name', beta.local.name),
+                      ('mode', None),
+                      ('kind', beta.kind),
+                      ('verhex', beta.local.signer.verhex),
+                      ('pubhex', beta.local.priver.pubhex),
+                      ('role', beta.local.role)])
+        packet = packeting.TxPacket(stack=beta,
+                                    kind=raeting.pcktKinds.request,
+                                    embody=body,
+                                    data=joiner.txData)
+        packet.pack()
+        console.concise("Joiner {0}. Do Join with {1} at {2}\n".format(
+            beta.name, beta.name, beta.store.stamp))
+        joiner.transmit(packet)
+        joiner.add(index=joiner.txPacket.index)
+        self.serviceStacks([beta], duration=0.1)
+        self.serviceStacks([alpha], duration=0.1)
+        self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
+        self.assertIn('invalid_join', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['invalid_join'], 1)
+        self.assertEqual(len(beta.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined) # didn't touched
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinMissingKind(self):
+        '''
+        Test joinent.join handles body data missing required kind field (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinMissingKind.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alpha.clearStats()
+        console.terse("\nTest joinent join missing kind *********\n")
+        # stack join
+        remote = beta.retrieveRemote()
+        self.assertIsNotNone(remote)
+        joiner = transacting.Joiner(stack=beta,
+                                    remote=remote,
+                                    timeout=beta.JoinerTimeout,
+                                    txData=odict(hk=beta.Hk, bk=beta.Bk))
+        # joiner join
+        remote.joined = None
+        flags = [0, 0, 0, 0, 0, 0, 0, beta.main] # stack operation mode flags
+        operation = packByte(fmt='11111111', fields=flags)
+        # Hack: Set kind to None here
+        body = odict([('name', beta.local.name),
+                      ('mode', operation),
+                      ('kind', None),
+                      ('verhex', beta.local.signer.verhex),
+                      ('pubhex', beta.local.priver.pubhex),
+                      ('role', beta.local.role)])
+        packet = packeting.TxPacket(stack=beta,
+                                    kind=raeting.pcktKinds.request,
+                                    embody=body,
+                                    data=joiner.txData)
+        packet.pack()
+        console.concise("Joiner {0}. Do Join with {1} at {2}\n".format(
+            beta.name, beta.name, beta.store.stamp))
+        joiner.transmit(packet)
+        joiner.add(index=joiner.txPacket.index)
+        self.serviceStacks([beta], duration=0.1)
+        self.serviceStacks([alpha], duration=0.1)
+        self.assertEqual(len(alpha.transactions), 0) # transaction wasn't added
+        self.assertIn('invalid_join', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['invalid_join'], 1)
+        self.assertEqual(len(beta.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertTrue(remote.joined) # didn't touched
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinDuplicateJoinent(self):
+        '''
+        Test joinent.join handles duplications (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinDuplicateJoinent.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest joinent join duplicate joinent *********\n")
+        beta.join() # join beta to alpha
+        self.assertEqual(len(beta.transactions), 1)
+        beta.remotes.values()[0].transactions.values()[0].remove() # drop first transaction
+        beta.join() # join beta to alpha again
+
+        self.serviceStacks([beta], duration=0.1) # send 2 transactions
+        self.serviceStacks([alpha], duration=0.1) # receive and handle 2 transactions
+        self.assertEqual(len(alpha.transactions), 1) # the only first request is added to alpha
+        self.assertEqual(len(beta.transactions), 1) # the only 2nd transaction is on beta
+        self.assertIn('redundant_join_attempt', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['redundant_join_attempt'], 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertIsNone(remote.joined)
+
+        # redo the broken transactions then drop them
+        self.serviceStacks([alpha, beta], duration=10.0)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertIsNone(stack.remotes.values()[0].joined)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testVacuousJoinentJoinDuplicateNonVacuousJoiner(self):
+        '''
+        Test joinent.join handles duplications (coverage)
+        Vacuous joinent found existing non-vacuous joiner
+        Nack itself
+        '''
+        console.terse("{0}\n".format(self.testVacuousJoinentJoinDuplicateNonVacuousJoiner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest vacuous joinent join duplicate non vacuous joiner *********\n")
+        # Initiate 2 transactions
+        orig_fuid = alpha.remotes.values()[0].fuid
+        alpha.remotes.values()[0].fuid = 0
+        alpha.join() # vacuous join alpha to beta
+        alpha.remotes.values()[0].fuid = orig_fuid
+        self.assertEqual(len(alpha.transactions), 1)
+        # This step is incorrect from the logic viewpoint but good enough for coverage test.
+        alpha.transactions[0].vacuous = False # imitate non-vacuous
+        beta.remotes.values()[0].fuid = 0
+        beta.join() # vacuous join beta to alpha
+        self.assertEqual(len(alpha.transactions), 1)
+        self.assertEqual(len(beta.transactions), 1)
+
+        self.serviceStacks([beta], duration=0.1) # send beta join to alpha
+        self.serviceStacks([alpha], duration=0.1) # receive and handle beta join to alpha
+                                                # send alpha join to beta and the response
+        self.assertEqual(len(alpha.transactions), 1) # the only first request is added to alpha
+        self.assertEqual(len(beta.transactions), 1) # the only 2nd transaction is on beta
+        self.assertIn('redundant_join_attempt', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['redundant_join_attempt'], 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertIsNone(remote.joined)
+
+        # redo the broken transactions then drop them
+        self.serviceStacks([alpha, beta], duration=10.0)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertIsNone(stack.remotes.values()[0].joined) # join failed because stacks were hacked
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testNonVacuousJoinentJoinDuplicateVacuousJoiner(self):
+        '''
+        Test joinent.join handles duplications (coverage)
+        Non-vacuous joinent found existing vacuous joiner
+        Nack joiner, continue itself
+        '''
+        console.terse("{0}\n".format(self.testNonVacuousJoinentJoinDuplicateVacuousJoiner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        alpha.clearStats()
+        alpha.mutable = True
+        console.terse("\nTest non vacuous joinent join duplicate vacuous joiner *********\n")
+        # Initiate 2 transactions
+        alpha.remotes.values()[0].fuid = 0
+        alpha.join() # vacuous join alpha to beta
+        self.assertEqual(len(alpha.transactions), 1)
+
+        beta.join() # non-vacuous join beta to alpha
+        self.assertEqual(len(alpha.transactions), 1)
+        self.assertEqual(len(beta.transactions), 1)
+
+        self.serviceStacks([beta], duration=0.1) # send beta join to alpha
+        self.serviceStacks([alpha], duration=0.1) # receive and handle beta join to alpha
+                                                # send alpha join to beta and the response
+        self.assertEqual(len(alpha.transactions), 1) # joiner removed, joinent refused as changing immutable
+        self.assertEqual(len(beta.transactions), 1) # the only 2nd transaction is on beta
+        self.assertIn('joiner_transaction_failure', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['joiner_transaction_failure'], 1)
+        self.assertEqual(len(alpha.remotes), 1) # remote wasn't removed
+        remote = alpha.remotes.values()[0]
+        self.assertIsNone(remote.joined)
+
+        # redo the broken transactions then drop them
+        self.serviceStacks([alpha, beta], duration=10.0)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertTrue(stack.remotes.values()[0].joined)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinDuplicateJoinerMatchNames(self):
+        '''
+        Test joinent.join handles duplications (coverage)
+        Non-vacuous joinent found existing non-vacuous joiner
+        Joinent name < joiner name
+        Nack joinent transaction
+        Joinent name >= joiner name
+        Nack joiner transaction
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinDuplicateJoinerMatchNames.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest joinent join duplicate joiner local name less than remote *********\n")
+        # Initiate 2 transactions
+        alpha.join() # non-vacuous join alpha to beta
+        beta.join() # non-vacuous join beta to alpha
+        self.assertEqual(len(alpha.transactions), 1)
+        self.assertEqual(len(beta.transactions), 1)
+
+        # redo the broken transactions then drop them
+        self.serviceStacks([alpha, beta], duration=10.0)
+        self.assertIn('redundant_join_attempt', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['redundant_join_attempt'], 1)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertTrue(stack.remotes.values()[0].joined)
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest joinent join duplicate joiner remote name less than local *********\n")
+        alpha.name = 'gamma' # 'gamma' > 'beta'
+        beta.mutable = True
+        # Initiate 2 transactions
+        alpha.join() # non-vacuous join alpha to beta
+        beta.join() # non-vacuous join beta to alpha
+        self.assertEqual(len(alpha.transactions), 1)
+        self.assertEqual(len(beta.transactions), 1)
+
+        # redo the broken transactions then drop them
+        self.serviceStacks([alpha, beta], duration=10.0)
+        self.assertIn('joiner_transaction_failure', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['joiner_transaction_failure'], 1)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertTrue(stack.remotes.values()[0].joined)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testVacuousEphemeralJoinentJoinIncorrectRemoteId(self):
+        '''
+        Test vacuous ephemeral joinent.join with remote id don't match (coverage)
+        '''
+        console.terse("{0}\n".format(self.testVacuousEphemeralJoinentJoinIncorrectRemoteId.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test conditions:
+        # 1. Vacuous
+        beta.remotes.values()[0].fuid = 0
+        # 2. Ephemeral
+        alpha.removeRemote(alpha.remotes.values()[0])
+        # 3. remote.fuid != packet data eid
+        # Would be hacked in the test.
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest remote id don't match *********\n")
+        # Initiate transaction
+        beta.join() # vacuous join beta to alpha
+        self.serviceStacks([beta], duration=0.1)
+
+        # Service alpha receive and call join
+        alpha.serviceReceives()
+        # service rxes
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        fuid = packet.data['se'] + 1 # hack fuid
+        remote = estating.RemoteEstate(stack=alpha,
+                                       fuid=fuid,
+                                       sid=packet.data['si'],
+                                       ha=(packet.data['sh'], packet.data['sp']))
+        alpha.correspond(packet, remote)
+        alpha.process()
+
+        self.assertIn('joinent_transaction_failure', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testNonVacuousJoinentJoinNoDestinationIdMatch(self):
+        '''
+        Test non vacuous joinent.join with remote id absent in stack (coverage)
+        '''
+        console.terse("{0}\n".format(self.testNonVacuousJoinentJoinNoDestinationIdMatch.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest absent remote id *********\n")
+        # Initiate transaction
+        beta.join() # non-vacuous join beta to alpha
+        self.serviceStacks([beta], duration=0.1)
+
+        # Service alpha receive and call join
+        alpha.serviceReceives()
+        # service rxes
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        # hack: create new remote that doesn't the same as on in stack.remotes[de/leid]
+        remote = estating.RemoteEstate(stack=alpha,
+                                       fuid=packet.data['se'],
+                                       sid=packet.data['si'],
+                                       ha=(packet.data['sh'], packet.data['sp']))
+        alpha.correspond(packet, remote)
+        alpha.process()
+
+        self.assertIn('joinent_transaction_failure', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentJoinErrorAddRemote(self):
+        '''
+        Test joinent.join got error on add remote (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentJoinErrorAddRemote.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest remote id don't match *********\n")
+        # Initiate non vacuous transaction
+        beta.join() # vacuous join beta to alpha
+        self.serviceStacks([beta], duration=0.1)
+
+        # Service alpha receive and call join
+        alpha.serviceReceives()
+        # service rxes
+        raw, sa = alpha.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        # process rx
+        # Hack: change stack uid
+        # Joinent will not find remote by uid in the stack and will try to re-add.
+        # Add will fail by name unique check
+        remote = alpha.remotes.values()[0]
+        remote.uid += 1
+        self.assertNotIn(remote.uid, alpha.remotes)
+        alpha.correspond(packet, remote)
+        alpha.process()
+
+        self.assertIn('joinent_transaction_failure', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentReceiveRefuse(self):
+        '''
+        Test joinent.join got error on add remote (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentReceiveRefuse.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Pend transaction
+        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.pendRemote(alpha.remotes.values()[0])
+
+        alpha.clearStats()
+        # Test:
+        console.terse("\nTest joinent recieve refuse *********\n")
+        # Initiate non vacuous transaction
+        beta.join() # initiate transaction
+        beta.transactions[0].nack(kind=raeting.pcktKinds.refuse)
+
+        self.serviceStacks([beta], duration=0.1) # send 2 packets
+        # receive 2 packets on alpha
+        # 1. Create transaction, pend join
+        # 2. Handle refuse
+        self.serviceStacks([alpha], duration=0.1)
+
+        self.assertIn('joinent_rx_refuse', alpha.stats) # Error handled
+        self.assertEqual(alpha.stats['joinent_rx_refuse'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentAckPendErrorPack(self):
+        '''
+        Test joinent.ackPend packet.pack error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentAckPendErrorPack.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Pend beta on alpha
+        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.pendRemote(alpha.remotes.values()[0])
+
+        # Ensure remote status is Pending
+        roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
+        self.assertEqual(roleData['role'], beta.local.role)
+        self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
+
+        # Test
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # send join
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        self.serviceStacks([alpha], duration=0.1) # handle and respond
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        # Checks
+        self.assertIn('packing_error', alpha.stats)
+        self.assertEqual(alpha.stats['packing_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentAckAcceptErrorPack(self):
+        '''
+        Test joinent.ackAccept packet.pack error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentAckAcceptErrorPack.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # send join
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        self.serviceStacks([alpha], duration=0.1) # handle and respond
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        # Checks
+        self.assertIn('packing_error', alpha.stats)
+        self.assertEqual(alpha.stats['packing_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentAckAcceptIncorrectKind(self):
+        '''
+        Test joinent.ackAccept incorrect kind (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentAckAcceptIncorrectKind.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alpha.clearStats()
+        console.terse("\nTest joinent ackAccept missing kind *********\n")
+        # stack join
+        alpha.kind = -1
+        self.join(beta, alpha, duration=10.0)
+        self.assertIn('joinent_transaction_failure', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentPendErrorParseInner(self):
+        '''
+        Test joinent.pend handles parseInner error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentPendErrorParseInner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+        beta.keep.auto = raeting.autoModes.never
+        # Test:
+        beta.clearStats()
+        console.terse("\nTest joinent pend parseInner error *********\n")
+        beta.join() # Join
+        self.serviceStacks([beta], duration=0.1) # beta send join
+        self.serviceStacks([alpha], duration=0.1) # alpha read responce, send ack
+
+        # Pend from beta to alpha with broken data
+        beta.serviceReceives()
+        raw, sa = beta.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(beta.name, raw))
+        packet = packeting.RxPacket(stack=beta, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        self.assertEqual(len(beta.transactions), 1)
+        joiner = beta.transactions[0]
+        joiner.rxPacket = packet
+        # Break packet Inner
+        joiner.txData['ck'] = -1
+        joiner.ackPend() # Pend
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.1) # read join, handle
+
+        self.assertIn('parsing_inner_error', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentCompleteErrorParseInner(self):
+        '''
+        Test joinent.complete handles parseInner error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentCompleteErrorParseInner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        beta.clearStats()
+        console.terse("\nTest joinent complete parseInner error *********\n")
+        beta.join() # Join
+        self.serviceStacks([beta], duration=0.1) # beta send join
+        self.serviceStacks([alpha], duration=0.1) # alpha read responce, send ack
+
+        # Complete from beta to alpha with broken data
+        beta.serviceReceives()
+        raw, sa = beta.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(beta.name, raw))
+        packet = packeting.RxPacket(stack=beta, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        self.assertEqual(len(beta.transactions), 1)
+        joiner = beta.transactions[0]
+        joiner.rxPacket = packet
+        # Break packet Inner
+        joiner.txData['ck'] = -1
+        joiner.ackAccept() # Complete
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.1) # read join, handle
+
+        self.assertIn('parsing_inner_error', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentRejectErrorParseInner(self):
+        '''
+        Test joinent.reject handles parseInner error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentRejectErrorParseInner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        beta.clearStats()
+        console.terse("\nTest joinent reject parseInner error *********\n")
+        beta.join() # Join
+        self.serviceStacks([beta], duration=0.1) # beta send join
+        self.serviceStacks([alpha], duration=0.1) # alpha read responce, send ack
+
+        # Complete from beta to alpha with broken data
+        beta.serviceReceives()
+        raw, sa = beta.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(beta.name, raw))
+        packet = packeting.RxPacket(stack=beta, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        self.assertEqual(len(beta.transactions), 1)
+        joiner = beta.transactions[0]
+        joiner.rxPacket = packet
+        # Break packet Inner
+        joiner.txData['ck'] = -1
+        joiner.nack(kind=raeting.pcktKinds.reject) # Reject
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.1) # read join, handle
+
+        self.assertIn('parsing_inner_error', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentRefuseErrorParseInner(self):
+        '''
+        Test joinent.refuse handles parseInner error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentRefuseErrorParseInner.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test:
+        beta.clearStats()
+        console.terse("\nTest joinent refuse parseInner error *********\n")
+        beta.join() # Join
+        self.serviceStacks([beta], duration=0.1) # beta send join
+        self.serviceStacks([alpha], duration=0.1) # alpha read responce, send ack
+
+        # Complete from beta to alpha with broken data
+        beta.serviceReceives()
+        raw, sa = beta.rxes.popleft()
+        console.verbose("{0} received packet\n{1}\n".format(beta.name, raw))
+        packet = packeting.RxPacket(stack=beta, packed=raw)
+        packet.parseOuter()
+        sh, sp = sa
+        packet.data.update(sh=sh, sp=sp)
+        self.assertEqual(len(beta.transactions), 1)
+        joiner = beta.transactions[0]
+        joiner.rxPacket = packet
+        # Break packet Inner
+        joiner.txData['ck'] = -1
+        joiner.nack(kind=raeting.pcktKinds.refuse) # Refuse
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.1) # read join, handle
+
+        self.assertIn('parsing_inner_error', alpha.stats) # Error occured
+        self.assertEqual(alpha.stats['parsing_inner_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentNackErrorPack(self):
+        '''
+        Test joinent.nack handles packet.pack error (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentNackErrorPack.__doc__))
+
+        # Status: Accepted (auto accept keys)
+        # Mode: Never, Once, Always
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        # Test goal; Nack from joinent side
+        # Test conditions: vacuous join to non-main joinent
+        alpha.remotes.values()[0].fuid = 0 # vacuous
+
+        # Test:
+        alpha.clearStats()
+        console.terse("\nTest joinent nack packet pack error *********\n")
+        alpha.join() # Join
+        self.serviceStacks([alpha], duration=0.1) # alpha send join
+        # Update max packet size to make packet.pack fail
+        default_size = raeting.UDP_MAX_PACKET_SIZE
+        raeting.UDP_MAX_PACKET_SIZE = 10 # packet.pack() will throw PacketError
+        self.serviceStacks([beta], duration=0.1) # beta read responce, nack
+        raeting.UDP_MAX_PACKET_SIZE = default_size
+
+        self.assertIn('packing_error', beta.stats)
+        self.assertEqual(beta.stats['packing_error'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentNackRenew(self):
+        '''
+        Test joiner.nack with 'renew' kind (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentNackRenew.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alpha.clearStats()
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # request join
+        self.serviceStacks([alpha], duration=0.1) # handle, responce
+        self.assertEqual(len(alpha.transactions), 1)
+        alpha.transactions[0].nack(kind=raeting.pcktKinds.renew)
+
+        # Checks
+        self.assertIn('joinent_transaction_failure', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentNackUnknown(self):
+        '''
+        Test joiner.nack with 'unknown' kind (cover 'else' case) (coverage)
+        '''
+        console.terse("{0}\n".format(self.testJoinentNackUnknown.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+
+        alpha.clearStats()
+        beta.join()
+        self.serviceStacks([beta], duration=0.1) # request join
+        self.serviceStacks([alpha], duration=0.1) # handle, responce
+        self.assertEqual(len(alpha.transactions), 1)
+        alpha.transactions[0].nack(kind=raeting.pcktKinds.unknown)
+
+        # Checks
+        self.assertIn('joinent_transaction_failure', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
 def runOne(test):
     '''
     Unittest Runner
@@ -11276,12 +13131,60 @@ def runSome():
                 'testJoinerNonVacuousPendingPendNewFuid',
                 'testJoinerNonVacuousPendingPendNewRole',
                 'testJoinerNonVacuousPendingPendSameAll',
+                'testJoinerVacuousImmutableRefuseRenew',
                 'testJoinentNonMainRejectJoin',
                 'testJoinentJoinRenameRemoteFail',
                 'testJoinentJoinRejectNameConflict',
                 'testJoinerAcceptRejectNameConflict',
                 'testJoinerAcceptRejectRenameFail',
+                'testJoinerAcceptErrorParseInner',
+                'testJoinerAcceptMissingName',
+                'testJoinerAcceptMissingMode',
+                'testJoinerAcceptMissingKind',
+                'testJoinerAcceptMissingUid',
+                'testJoinerAcceptMissingVerhex',
+                'testJoinerAcceptMissingPubhex',
+                'testJoinerAcceptMissingRole',
+                'testVacuousJoinerAcceptConflictNames',
+                'testVacuousJoinerAcceptRenameFail',
+                'testJoinerPendErrorParseInner',
+                'testJoinerNackErrorPack',
+                'testJoinerNackIncorrectPacketKind',
+                'testJoinerAckPendErrorPack',
+                'testJoinerAckAcceptErrorPack',
+                'testJoinerAckAcceptCascade',
+                'testJoinerRefuseErrorParseInner',
+                'testJoinerRejectErrorParseInner',
                 'testJoinerClearJoinentNotClear',
+                'testJoinerJoinInProcess',
+                'testJoinerJoinInvalidKind',
+                'testJoinerJoinPackError',
+                'testJoinerProcessNoPacketTimeout',
+                'testJoinentJoinErrorParseInner',
+                'testJoinentJoinMissingName',
+                'testJoinentJoinMissingVerhex',
+                'testJoinentJoinMissingPubhex',
+                'testJoinentJoinMissingRole',
+                'testJoinentJoinMissingMode',
+                'testJoinentJoinMissingKind',
+                'testJoinentJoinDuplicateJoinent',
+                'testVacuousJoinentJoinDuplicateNonVacuousJoiner',
+                'testNonVacuousJoinentJoinDuplicateVacuousJoiner',
+                'testJoinentJoinDuplicateJoinerMatchNames',
+                'testVacuousEphemeralJoinentJoinIncorrectRemoteId',
+                'testNonVacuousJoinentJoinNoDestinationIdMatch',
+                'testJoinentJoinErrorAddRemote',
+                'testJoinentReceiveRefuse',
+                'testJoinentAckPendErrorPack',
+                'testJoinentAckAcceptErrorPack',
+                'testJoinentAckAcceptIncorrectKind',
+                'testJoinentPendErrorParseInner',
+                'testJoinentCompleteErrorParseInner',
+                'testJoinentRejectErrorParseInner',
+                'testJoinentRefuseErrorParseInner',
+                'testJoinentNackErrorPack',
+                'testJoinentNackRenew',
+                'testJoinentNackUnknown',
             ]
 
     tests.extend(map(BasicTestCase, names))
