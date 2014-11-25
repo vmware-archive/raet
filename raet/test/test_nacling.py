@@ -268,7 +268,7 @@ class PartTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testCookie.__doc__))
 
         #part 1
-        fmt = '<32sLL32s'
+        fmt = '!32sLL32s'
         msg = struct.pack(fmt, self.pubberPam.keyraw, 1, 2, self.pubberBob.keyraw)
         console.terse("Packed len={0}\n".format(len(msg)))
         self.assertEqual(len(msg), 72)
@@ -278,7 +278,7 @@ class PartTestCase(unittest.TestCase):
         self.assertEqual(len(nonce), 24)
 
         #part 2
-        fmt = '<32sLL24s'
+        fmt = '!32sLL24s'
         cookie = self.priverBob.nonce()
         msg = struct.pack(fmt, self.pubberPam.keyraw, 1, 2, cookie)
         console.terse("Packed len={0}\n".format(len(msg)))
@@ -301,7 +301,7 @@ class PartTestCase(unittest.TestCase):
         self.assertEqual(len(vnonce), 24)
 
         fqdn = "10.0.2.30".ljust(128, ' ')
-        fmt = '<32s48s24s128s'
+        fmt = '!32s48s24s128s'
         stuff = struct.pack(fmt, self.priverBob.keyraw, vcipher, vnonce, fqdn)
         console.terse("Stuff len={0} FQDN len={1} '{2}'\n\n".format(
                 len(stuff), len(fqdn), fqdn))

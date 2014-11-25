@@ -2,6 +2,8 @@
 CHANGE LOG
 -------------------
 
+more coverage unit tests
+fixed some bugs
 updated log messages
 updated comments
 updated indenting
