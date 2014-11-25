@@ -2,6 +2,16 @@
 CHANGE LOG
 -------------------
 
+---------
+20141125
+----------
+v0.4.0
+
+Changed the allow transaction to bigendian structs not little endian
+This will break interoperability with older versions of raet.
+Msgpack is already bigendian and future binary packet header for raet
+should be big endian.
+
 more coverage unit tests
 fixed some bugs
 updated log messages
