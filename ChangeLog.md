@@ -5,7 +5,7 @@ CHANGE LOG
 -----------
 20141201
 ----------
-v0.4.1
+v0.4.2
 
 fixed windows compat for autoaccept yard
 
