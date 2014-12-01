@@ -2,8 +2,17 @@
 CHANGE LOG
 -------------------
 
----------
+-----------
 20141201
+----------
+v0.4.1
+
+fixed windows compat for autoaccept yard
+
+
+
+---------
+20141125
 ----------
 v0.4.0
 
@@ -12,7 +21,7 @@ This will break interoperability with older versions of raet.
 Msgpack is already bigendian and future binary packet header for raet
 should be big endian.
 
-fixed windows compat for autoaccept yard
+
 more coverage unit tests
 fixed some bugs
 updated log messages
