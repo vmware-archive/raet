@@ -134,6 +134,12 @@ class LaneStack(stacking.Stack):
                 self.incStat('unaccepted_source_yard')
                 return
 
+            # sa is None on Windows, Mailslots don't convey their source addresses
+            # So we need to construct a compatible source address from the local's dirpath
+            # and lanename. Use the yarding.Yard.computeHa utility function for this.
+            if sa is None:
+                sa, haDirpath = yarding.Yard.computeHa(self.local.dirpath, self.local.lanename, sn)
+
             try:
                 self.addRemote(yarding.RemoteYard(stack=self, ha=sa)) # sn and sa are assume compat
             except raeting.StackError as ex:
