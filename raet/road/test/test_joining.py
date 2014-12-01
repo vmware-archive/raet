@@ -27,7 +27,7 @@ from raet import raeting, nacling
 from raet.road import estating, keeping, stacking, packeting, transacting
 
 if sys.platform == 'win32':
-    TEMPDIR = 'c:/temp'
+    TEMPDIR = 'c:\\temp'
     if not os.path.exists(TEMPDIR):
         os.mkdir(TEMPDIR)
 else:
