@@ -16,6 +16,7 @@ import sys
 import time
 import tempfile
 import shutil
+from collections import deque
 
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer, packByte
@@ -157,6 +158,35 @@ class BasicTestCase(unittest.TestCase):
         '''
         stack.serviceReceives()
         stack.rxes.clear()
+
+    def dupReceives(self, stack):
+        '''
+        Duplicate each queued up udp packet in receive buffer
+        '''
+        stack.serviceReceives()
+        rxes = stack.rxes
+        stack.rxes = deque()
+        for rx in rxes:
+            stack.rxes.append(rx) # one
+            stack.rxes.append(rx) # and one more
+
+    def serviceStacksDropRx(self, stacks, drop=[], duration=1.0):
+        '''
+        Utility method to service queues for list of stacks. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            for stack in stacks:
+                stack.serviceReceives()
+                if stack in drop:
+                    stack.rxes.clear()
+                stack.serviceRxes()
+                stack.process()
+                stack.serviceAllTx()
+            if all([not stack.transactions for stack in stacks]):
+                break
+            self.store.advanceStamp(0.05)
+            time.sleep(0.05)
 
     def serviceStacks(self, stacks, duration=1.0):
         '''
@@ -13012,6 +13042,431 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
 
         for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstJoinRequestDropped(self):
+        '''
+        Test network dropped first join request (redo timeout)
+        '''
+        console.terse("{0}\n".format(self.testFirstJoinRequestDropped.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joinent didn't received first packet, redo timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # send alive
+        self.flushReceives(alpha)
+        self.serviceStacks(stacks, duration=2.0) # timeout, redo, alive
+
+        self.assertIn('joiner_tx_join_redo', beta.stats)
+        self.assertEqual(beta.stats['joiner_tx_join_redo'], 1) # 1 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAllJoinRequestsDropped(self):
+        '''
+        Test network dropped all join requests (transaction timeout)
+        '''
+        console.terse("{0}\n".format(self.testAllJoinRequestsDropped.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joinent didn't received any request, transaction timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacksDropRx(stacks, drop=[alpha], duration=10.0) # redo timeout, transaction timeout, drop
+
+        self.assertIn('joiner_tx_join_redo', beta.stats)
+        self.assertEqual(beta.stats['joiner_tx_join_redo'], 2) # 2 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIsNone(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstJoinAcceptDropped(self):
+        '''
+        Test network dropped first join ack response (redo timeout)
+        '''
+        console.terse("{0}\n".format(self.testFirstJoinAcceptDropped.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joiner didn't received first accept, redo timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # beta: send join
+        self.serviceStacks([alpha], duration=0.1) # alpha: process join, send ack
+        self.flushReceives(beta)
+        self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack
+
+        self.assertIn('joinent_tx_accept_redo', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_tx_accept_redo'], 1) # 1 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAllJoinAcceptDropped(self):
+        '''
+        Test network dropped all join accepts (transaction timeout)
+        '''
+        console.terse("{0}\n".format(self.testAllJoinAcceptDropped.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joiner didn't received any accept, transaction timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacksDropRx(stacks, drop=[beta], duration=10.0) # both ends timed out, drop transactions
+
+        self.assertIn('joiner_tx_join_redo', beta.stats)
+        self.assertEqual(beta.stats['joiner_tx_join_redo'], 2) # 2 redo
+        self.assertIn('duplicate_join_attempt', alpha.stats)
+        self.assertEqual(alpha.stats['duplicate_join_attempt'], 2) # 2 redo join received
+        self.assertIn('joinent_tx_accept_redo', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_tx_accept_redo'], 5) # 5 redo accept
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIsNone(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstJoinAckAcceptDropped(self):
+        '''
+        Test network dropped first join ack accept response (redo timeout, stale refuse)
+        '''
+        console.terse("{0}\n".format(self.testFirstJoinAckAcceptDropped.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joinent didn't received ack accept, redo timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # beta: send join
+        self.serviceStacks([alpha], duration=0.1) # alpha: process join, send ack
+        self.serviceStacks([beta], duration=0.1) # beta: send ack accept, remove
+        self.flushReceives(alpha)
+        self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
+
+        self.assertIn('stale_correspondent_nack', beta.stats)
+        self.assertEqual(beta.stats['stale_correspondent_nack'], 1) # 1 stale refuse
+        self.assertIn('joinent_tx_accept_redo', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_tx_accept_redo'], 1) # 1 redo
+        self.assertIn('joinent_rx_nack', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_rx_nack'], 1) # 1 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+        self.assertTrue(beta.remotes.values()[0].joined)
+        self.assertIsNone(alpha.remotes.values()[0].joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAllJoinAckAcceptDropped(self):
+        '''
+        Test network dropped all join ack accepts (transaction timeout)
+        '''
+        console.terse("{0}\n".format(self.testAllJoinAckAcceptDropped.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joinent didn't received any ack accept, transaction timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # beta: send join
+        self.serviceStacks([alpha], duration=0.1) # alpha: process join, send ack
+        self.serviceStacks([beta], duration=0.1) # beta: send ack accept, remove
+        self.serviceStacksDropRx(stacks, drop=[alpha], duration=10.0)
+        # alpha: redo timeout, transaction timeout, drop
+        # beta: nack refuse since transaction is already removed
+
+        self.assertIn('stale_correspondent_nack', beta.stats)
+        self.assertEqual(beta.stats['stale_correspondent_nack'], 5) # 5 redo received
+        self.assertIn('joinent_tx_accept_redo', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_tx_accept_redo'], 5) # 5 redo accept
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+        self.assertTrue(beta.remotes.values()[0].joined)
+        self.assertIsNone(alpha.remotes.values()[0].joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstJoinRequestDelayed(self):
+        '''
+        Test network delayed request so ack has been received after redo was sent.
+        '''
+        console.terse("{0}\n".format(self.testFirstJoinRequestDelayed.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joinent received both request and redo *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=1.5) # send join and redo
+        self.serviceStacks(stacks) # service delayed messages
+
+        self.assertIn('joiner_tx_join_redo', beta.stats)
+        self.assertEqual(beta.stats['joiner_tx_join_redo'], 1) # 1 redo
+        self.assertIn('duplicate_join_attempt', alpha.stats)
+        self.assertEqual(alpha.stats['duplicate_join_attempt'], 1) # 1 duplicate on alpha
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAllJoinRequestsDelayed(self):
+        '''
+        Test network delayed all join requests (joiner receive response after transaction dropped)
+        '''
+        console.terse("{0}\n".format(self.testAllJoinRequestsDelayed.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joiner received ack after transaction timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=10.0) # redo timeout, packet timeout, drop
+        self.serviceStacks(stacks) # alpha: 1 ack, 2 drop; beta: stale nack; alpha: refuse
+        for stack in stacks:
+            self.assertEqual(len(stack.txes), 0) # ensure both stacks done
+
+        self.assertIn('joiner_tx_join_redo', beta.stats)
+        self.assertEqual(beta.stats['joiner_tx_join_redo'], 2) # 2 redo
+        self.assertIn('stale_correspondent_attempt', beta.stats)
+        self.assertEqual(beta.stats['stale_correspondent_attempt'], 1) # 1 stale attempt
+        self.assertIn('stale_correspondent_nack', beta.stats)
+        self.assertEqual(beta.stats['stale_correspondent_nack'], 1) # 1 stale nack answer
+
+
+        self.assertIn('duplicate_join_attempt', alpha.stats)
+        self.assertEqual(alpha.stats['duplicate_join_attempt'], 2) # 2 redo
+        self.assertIn('joinent_rx_nack', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_rx_nack'], 1) # 1 stale nack on other
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIsNone(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstJoinAcceptDelayed(self):
+        '''
+        Test network delayed response so it has been received after redo.
+        '''
+        console.terse("{0}\n".format(self.testFirstJoinAcceptDelayed.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joiner received both accept and redo *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=0.2) # send ack and redo
+        self.serviceStacks(stacks) # service delayed messages
+
+        self.assertIn('stale_correspondent_nack', beta.stats)
+        self.assertEqual(beta.stats['stale_correspondent_nack'], 1) # 1 stale refuse
+        self.assertIn('joinent_tx_accept_redo', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_tx_accept_redo'], 1) # 1 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAllJoinAcceptsDelayed(self):
+        '''
+        Test network delayed all join accepts (joinent receive ack accept after transaction dropped)
+        '''
+        console.terse("{0}\n".format(self.testAllJoinAcceptsDelayed.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joinent received ack accept after transaction timeout *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.serviceStacks([alpha], duration=10.0) # alpha: redo, remove
+        self.serviceStacks(stacks)
+        for stack in stacks:
+            self.assertEqual(len(stack.txes), 0) # ensure both stacks done
+
+        self.assertIn('stale_correspondent_nack', beta.stats)
+        self.assertEqual(beta.stats['stale_correspondent_nack'], 5) # 5 stale nack answer
+        self.assertIn('joinent_tx_accept_redo', alpha.stats)
+        self.assertEqual(alpha.stats['joinent_tx_accept_redo'], 5) # 5 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+        self.assertIsNone(alpha.remotes.values()[0].joined)
+        self.assertTrue(beta.remotes.values()[0].joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinRequestDuplicated(self):
+        '''
+        Test network duplicated join request (joiner ack both, joinent drop second)
+        '''
+        console.terse("{0}\n".format(self.testJoinRequestDuplicated.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joiner received the same request twice *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # send join
+        self.dupReceives(alpha)
+        self.serviceStacks(stacks) # beta: 1 req; alpha: 1 ack, 1 drop; beta: ack
+
+        self.assertIn('duplicate_join_attempt', alpha.stats)
+        self.assertEqual(alpha.stats['duplicate_join_attempt'], 1) # 1 dup
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinAcceptDuplicated(self):
+        '''
+        Test network duplicated join ack response (stale nack the second one)
+        '''
+        console.terse("{0}\n".format(self.testJoinAcceptDuplicated.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joiner received response twice *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # Send join
+        self.serviceStacks([alpha], duration=0.1) # Send ack
+        self.dupReceives(beta) # duplicate response
+        self.serviceStacks([beta, alpha]) # beta: 1st accept, 2nd stale nack
+
+        self.assertIn('stale_correspondent_attempt', beta.stats)
+        self.assertEqual(beta.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)
+        self.assertIn('stale_packet', alpha.stats)
+        self.assertEqual(alpha.stats['stale_packet'], 1) # 1 stale nack on alpha (dup)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinAckAcceptDuplicated(self):
+        '''
+        Test network duplicated join ack accept (stale drop the second one)
+        '''
+        console.terse("{0}\n".format(self.testJoinAckAcceptDuplicated.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nTest joinent received ack accept twice *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta], duration=0.1) # Send join
+        self.serviceStacks([alpha], duration=0.1) # Send ack
+        self.serviceStacks([beta], duration=0.1) # Send ack accept
+        self.dupReceives(alpha) # duplicate response
+        self.serviceStacks(stacks) # alpha: 1st accept, 2nd stale drop
+
+        self.assertIn('stale_packet', alpha.stats)
+        self.assertEqual(alpha.stats['stale_packet'], 1) # 1 stale drop on alpha (dup)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
             stack.server.close()
             stack.clearAllKeeps()
 
