@@ -13640,6 +13640,19 @@ def runSome():
                 'testJoinentNackErrorPack',
                 'testJoinentNackRenew',
                 'testJoinentNackUnknown',
+                'testFirstJoinRequestDropped',
+                'testAllJoinRequestsDropped',
+                'testFirstJoinAcceptDropped',
+                'testAllJoinAcceptDropped',
+                'testFirstJoinAckAcceptDropped',
+                'testAllJoinAckAcceptDropped',
+                'testFirstJoinRequestDelayed',
+                'testAllJoinRequestsDelayed',
+                'testFirstJoinAcceptDelayed',
+                'testAllJoinAcceptsDelayed',
+                'testJoinRequestDuplicated',
+                'testJoinAcceptDuplicated',
+                'testJoinAckAcceptDuplicated',
             ]
 
     tests.extend(map(BasicTestCase, names))
