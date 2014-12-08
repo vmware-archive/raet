@@ -15,6 +15,7 @@ import os
 import time
 import tempfile
 import shutil
+from collections import deque
 
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer
@@ -163,6 +164,17 @@ class BasicTestCase(unittest.TestCase):
         stack.serviceReceives()
         stack.rxes.clear()
 
+    def dupReceives(self, stack):
+        '''
+        Duplicate each queued up udp packet in receive buffer
+        '''
+        stack.serviceReceives()
+        rxes = stack.rxes
+        stack.rxes = deque()
+        for rx in rxes:
+            stack.rxes.append(rx) # one
+            stack.rxes.append(rx) # and one more
+
     def service(self, main, other, duration=1.0):
         '''
         Utility method to service queues. Call from test method.
@@ -196,6 +208,23 @@ class BasicTestCase(unittest.TestCase):
         while not self.timer.expired:
             for stack in stacks:
                 stack.serviceAll()
+            if all([not stack.transactions for stack in stacks]):
+                break
+            self.store.advanceStamp(0.1)
+            time.sleep(0.1)
+
+    def serviceStacksDropRx(self, stacks, duration=1.0):
+        '''
+        Utility method to service queues for list of stacks. Call from test method.
+        '''
+        self.timer.restart(duration=duration)
+        while not self.timer.expired:
+            for stack in stacks:
+                stack.serviceReceives()
+                stack.rxes.clear()
+                stack.serviceRxes()
+                stack.process()
+                stack.serviceAllTx()
             if all([not stack.transactions for stack in stacks]):
                 break
             self.store.advanceStamp(0.1)
@@ -4090,6 +4119,404 @@ class BasicTestCase(unittest.TestCase):
             self.assertTrue(remote.joined)
             self.assertTrue(remote.allowed)
             self.assertIsNone(remote.alived)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstAliveRequestDropped(self):
+        '''
+        Test network dropped first alive request (redo timeout)
+        '''
+        console.terse("{0}\n".format(self.testFirstAliveRequestDropped.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        console.terse("\nTest aliver didn't received response, redo *********\n")
+        main.alive() # alive from main to other
+        self.serviceStack(main, duration=0.1) # Send alive
+        self.flushReceives(other)
+        self.serviceStacks(stacks) # timeout, redo, alive
+
+        self.assertIn('redo_alive', main.stats)
+        self.assertEqual(main.stats['redo_alive'], 1) # 1 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # Alive complete
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAllAliveRequestsDropped(self):
+        '''
+        Test network dropped all alive requests (transaction timeout)
+        '''
+        console.terse("{0}\n".format(self.testAllAliveRequestsDropped.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        console.terse("\nTest aliver received no response, transaction timeout *********\n")
+        main.alive() # alive from main to other
+        self.serviceStacksDropRx(stacks, duration=3.0)  # redo timeout, packet timeout, drop
+
+        self.assertIn('redo_alive', main.stats)
+        self.assertEqual(main.stats['redo_alive'], 3) # 3 redo
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertFalse(remote.alived)
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstAliveRequestDelayed(self):
+        '''
+        Test network delayed response so it has been received after redo.
+        '''
+        console.terse("{0}\n".format(self.testFirstAliveRequestDelayed.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        other.clearStats()
+        console.terse("\nTest alivent received both request and redo *********\n")
+        main.alive() # alive from main to other
+        self.serviceStack(main, duration=0.5) # Send alive and redo
+        self.serviceStacks(stacks) # service delayed messages
+
+        self.assertIn('redo_alive', main.stats)
+        self.assertEqual(main.stats['redo_alive'], 1) # 1 redo
+        self.assertIn('stale_correspondent_attempt', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt
+        self.assertIn('stale_correspondent_nack', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_nack'], 1) # 1 stale nack answer
+        self.assertIn('alive_complete', main.stats)
+        self.assertEqual(main.stats['alive_complete'], 1) # 1 complete on main
+        self.assertIn('stale_packet', other.stats)
+        self.assertEqual(other.stats['stale_packet'], 1) # 1 stale nack on other
+        self.assertIn('alive_complete', other.stats)
+        self.assertEqual(other.stats['alive_complete'], 2) # 2 complete on other
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # Alive complete
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAllAliveRequestsDelayed(self):
+        '''
+        Test network delayed all alive requests (aliver receive response after transaction dropped)
+        '''
+        console.terse("{0}\n".format(self.testAllAliveRequestsDelayed.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        other.clearStats()
+        console.terse("\nTest alivent received alive and redo after aliver transaction timeout *********\n")
+        main.alive() # alive from main to other
+        self.serviceStack(main, duration=3.0)  # redo timeout, packet timeout, drop
+        self.serviceStacks(stacks) # ack 4 alives on other
+        self.serviceStacks(stacks) # stale nack 4 alives on main
+        for stack in stacks:
+            self.assertEqual(len(stack.txes), 0) # ensure both stacks done
+
+        self.assertIn('redo_alive', main.stats)
+        self.assertEqual(main.stats['redo_alive'], 3) # 3 redo
+        self.assertIn('stale_correspondent_attempt', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_attempt'], 4) # 4 stale attempt
+        self.assertIn('stale_correspondent_nack', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_nack'], 4) # 4 stale nack answer
+        self.assertIn('stale_packet', other.stats)
+        self.assertEqual(other.stats['stale_packet'], 4) # 4 stale nack on other
+        self.assertIn('alive_complete', other.stats)
+        self.assertEqual(other.stats['alive_complete'], 4) # 2 complete on other
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+        self.assertFalse(main.remotes.values()[0].alived) # main didn't received correct alive ack
+        self.assertTrue(other.remotes.values()[0].alived) # other received correct alive request
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testFirstAliveRequestDuplicated(self):
+        '''
+        Test network duplicated first alive request (aliver ack both, alivent stale nack second)
+        '''
+        console.terse("{0}\n".format(self.testFirstAliveRequestDuplicated.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        console.terse("\nTest alivent received duplicated request *********\n")
+        main.alive() # alive from main to other
+        self.serviceStack(main, duration=0.1) # Send alive
+        self.dupReceives(other)
+        self.serviceStacks(stacks) # 1 req, 2 ack, 1st accept, 2nd nack
+
+        self.assertIn('stale_correspondent_attempt', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)
+        self.assertIn('stale_correspondent_nack', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_nack'], 1) # 1 stale nack answer (dup)
+        self.assertIn('alive_complete', main.stats)
+        self.assertEqual(main.stats['alive_complete'], 1) # 1 complete on main
+        self.assertIn('stale_packet', other.stats)
+        self.assertEqual(other.stats['stale_packet'], 1) # 1 stale nack on other (dup)
+        self.assertIn('alive_complete', other.stats)
+        self.assertEqual(other.stats['alive_complete'], 2) # 2 complete on other
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # Alive complete
+
+        for stack in [main, other]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testAliveAckDuplicated(self):
+        '''
+        Test network duplicated alive ack response (stale nack the second one)
+        '''
+        console.terse("{0}\n".format(self.testAliveAckDuplicated.__doc__))
+
+        mainData = self.createRoadData(name='main',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(mainData['dirpath'])
+        main = self.createRoadStack(data=mainData,
+                                    main=True,
+                                    auto=mainData['auto'],
+                                    ha=None)
+
+        otherData = self.createRoadData(name='other',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(otherData['dirpath'])
+        other = self.createRoadStack(data=otherData,
+                                     main=True, # only main can reap and unreap
+                                     auto=otherData['auto'],
+                                     ha=("", raeting.RAET_TEST_PORT))
+
+        stacks = [main, other]
+
+        console.terse("\nBootstrap channel *********\n")
+        # remote on joiner side have to be joined and allowed
+        self.join(other, main) # bootstrap channel
+        self.allow(other, main)
+        for stack in [main, other]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertIs(remote.alived, None)
+            self.assertIs(remote.reaped, None)
+
+        main.clearStats()
+        other.clearStats()
+        console.terse("\nTest aliver received response twice *********\n")
+        main.alive() # alive from main to other
+        self.serviceStack(main, duration=0.1) # Send alive
+        self.serviceStack(other, duration=0.1) # Send ack
+        self.dupReceives(main) # duplicate response
+        self.serviceStacks(stacks) # 1st accept, 2nd stale nack
+
+        self.assertIn('stale_correspondent_attempt', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)
+        self.assertIn('stale_correspondent_nack', main.stats)
+        self.assertEqual(main.stats['stale_correspondent_nack'], 1) # 1 stale nack answer (dup)
+        self.assertIn('alive_complete', main.stats)
+        self.assertEqual(main.stats['alive_complete'], 1) # 1 complete on main
+        self.assertIn('stale_packet', other.stats)
+        self.assertEqual(other.stats['stale_packet'], 1) # 1 stale nack on other (dup)
+        self.assertIn('alive_complete', other.stats)
+        self.assertEqual(other.stats['alive_complete'], 1) # 1 complete on other
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.alived) # Alive complete
 
         for stack in [main, other]:
             stack.server.close()
