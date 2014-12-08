@@ -4169,6 +4169,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStack(main, duration=0.1) # Send alive
         self.flushReceives(other)
         self.serviceStacks(stacks) # timeout, redo, alive
+        self.serviceStacks(stacks) # fix race condition
 
         self.assertIn('redo_alive', main.stats)
         self.assertEqual(main.stats['redo_alive'], 1) # 1 redo
@@ -4287,6 +4288,7 @@ class BasicTestCase(unittest.TestCase):
         main.alive() # alive from main to other
         self.serviceStack(main, duration=0.5) # Send alive and redo
         self.serviceStacks(stacks) # service delayed messages
+        self.serviceStacks(stacks) # fix race condition
 
         self.assertIn('redo_alive', main.stats)
         self.assertEqual(main.stats['redo_alive'], 1) # 1 redo
@@ -4429,6 +4431,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStack(main, duration=0.1) # Send alive
         self.dupReceives(other)
         self.serviceStacks(stacks) # 1 req, 2 ack, 1st accept, 2nd nack
+        self.serviceStacks(stacks) # fix race condition
 
         self.assertIn('stale_correspondent_attempt', main.stats)
         self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)
@@ -4499,6 +4502,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStack(other, duration=0.1) # Send ack
         self.dupReceives(main) # duplicate response
         self.serviceStacks(stacks) # 1st accept, 2nd stale nack
+        self.serviceStacks(stacks) # fix race condition
 
         self.assertIn('stale_correspondent_attempt', main.stats)
         self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)
@@ -4573,6 +4577,13 @@ def runSome():
                 'testAliventNackErrorPacketPack',
                 'testAliventReceiveRequest',
                 'testAliventProcessTimeout',
+                'testFirstAliveRequestDropped',
+                'testAllAliveRequestsDropped',
+                'testFirstAliveRequestDelayed',
+                'testAllAliveRequestsDelayed',
+                'testFirstAliveRequestDuplicated',
+                'testAliveAckDuplicated',
+
             ]
 
     tests.extend(map(BasicTestCase, names))
@@ -4593,8 +4604,8 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testJoinFromMainKindChange')
+    #runOne('testAliveAckDuplicated')
