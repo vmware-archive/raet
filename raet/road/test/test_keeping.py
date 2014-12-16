@@ -890,6 +890,7 @@ class BasicTestCase(unittest.TestCase):
         # now change ha  and unset unmutable
         main.mutable = None
         other.server.close()
+        time.sleep(0.5)
         other.clearLocalKeep()
         data = savedOtherData  # local keep will be there so it uses that data
         other = self.createRoadStack(data=data,
