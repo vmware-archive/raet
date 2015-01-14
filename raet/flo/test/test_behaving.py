@@ -72,7 +72,7 @@ class BasicTestCase(testing.FrameIofloTestCase):
         self.assertEqual(act.actor.inode.name, 'raet.road.stack')
         self.assertIsInstance(act.actor.stack.value, stacking.RoadStack)
 
-        self.frame.enter()  # run reacts in frame
+        self.frame.enter()  # run in frame
         self.assertIs(len(act.actor.txmsgs.value), 0)
         act.actor.stack.value.server.close()
 
