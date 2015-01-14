@@ -384,7 +384,7 @@ class BasicTestCase(unittest.TestCase):
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertTrue(remote.allowed)
-                self.assertIs(remote.alived, None)
+                self.assertIs(remote.alived, True)
 
         for stack in [alpha, beta]:
             stack.server.close()

@@ -1745,6 +1745,7 @@ class Allower(Initiator):
             return
 
         self.remote.allowed = True
+        self.remote.alived = True  # fast alive as soon as allowed
         self.ackFinal()
 
     def ackFinal(self):
@@ -2196,6 +2197,7 @@ class Allowent(Correspondent):
         Perform allowment
         '''
         self.remote.allowed = True
+        self.remote.alived = True  # Fast alived as soon as allowed
         self.remote.nextSid() # start new session always on successful allow
         self.remote.replaceStaleInitiators()
         self.stack.dumpRemote(self.remote)

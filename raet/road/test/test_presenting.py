@@ -711,9 +711,12 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
 
         console.terse("\nAlive Other to Main *********\n")
         for stack in [main, other]:
+            remote = stack.remotes.values()[0]
+            remote.alived = None
             self.assertIs(stack.remotes.values()[0].alived, None)
         self.alive(other, main, duid=other.remotes.values()[0].uid)
         for stack in [main, other]:
@@ -812,7 +815,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertIs(remote.alived, None)
+            self.assertIs(remote.alived, True)
 
         other1Data = self.createRoadData(name='other1',
                                          base=self.base,
@@ -843,13 +846,14 @@ class BasicTestCase(unittest.TestCase):
                         other1.remotes.values()[0]]:
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertIs(remote.alived, None)
+            self.assertIs(remote.alived, True)
 
         console.terse("\nAlive Other to Main *********\n")
         for remote in [main.remotes.values()[0],
                        other.remotes.values()[0]]:
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
+            remote.alived = None  # force not alived
             self.assertIs(remote.alived, None)
 
         self.alive(other, main)
@@ -1048,12 +1052,15 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
+
 
         console.terse("\nAllow Main to Other *********\n")
         # force unjoined already unallowed unalived
         for stack in [main, other]:
             stack.remotes.values()[0].joined = None
             stack.remotes.values()[0].allowed = None
+            stack.remotes.values()[0].alived = None
 
         for stack in [main, other]:
             remote = stack.remotes.values()[0]
@@ -1075,12 +1082,14 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)
 
         console.terse("\nAlive Other to Main *********\n")
-        # force unjoined unallowed already unalived
+        # force unjoined unallowed unalived
         for stack in [main, other]:
             stack.remotes.values()[0].joined = None
             stack.remotes.values()[0].allowed = None
+            stack.remotes.values()[0].alived = None
 
         # alive checks for joined and if not then joins
         for stack in [main, other]:
@@ -1105,9 +1114,15 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertIs(remote.alived, None)
+            self.assertIs(remote.alived, True)
 
         # Alive should complete now
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            remote.alived = None
+            self.assertIs(remote.alived, None)
+
         self.alive(other, main)
         for stack in [main, other]:
             self.assertEqual(len(stack.transactions), 0)
@@ -1148,9 +1163,15 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertIs(remote.alived, None)
+            self.assertIs(remote.alived, True)
 
         # Alive should complete now
+        for stack in [main, other]:
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            remote.alived = None
+            self.assertIs(remote.alived, None)
+
         self.alive(main, other)
         for stack in [main, other]:
             self.assertEqual(len(stack.transactions), 0)
@@ -4491,12 +4512,18 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertTrue(remote.joined)
             self.assertTrue(remote.allowed)
-            self.assertIs(remote.alived, None)
+            self.assertIs(remote.alived, True)
             self.assertIs(remote.reaped, None)
 
         main.clearStats()
         other.clearStats()
         console.terse("\nTest aliver received response twice *********\n")
+        for stack in stacks:
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            remote.alived = None
+            self.assertIs(remote.alived,  None) #  Reset alived
+
         main.alive() # alive from main to other
         self.serviceStack(main, duration=0.1) # Send alive
         self.serviceStack(other, duration=0.1) # Send ack
