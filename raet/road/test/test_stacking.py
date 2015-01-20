@@ -663,15 +663,17 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.main.transactions), 0)
         remote = self.main.remotes.values()[0]
         self.assertTrue(remote.allowed)
+        self.assertTrue(remote.alived)
         self.assertEqual(len(self.other.transactions), 0)
         remote = self.other.remotes.values()[0]
         self.assertTrue(remote.allowed)
+        self.assertTrue(remote.alived)
 
         console.terse("\nAlive Other to Main *********\n")
         otherRemote = self.main.remotes.values()[0]
         mainRemote = self.other.remotes.values()[0]
-        self.assertIs(otherRemote.alived, None)
-        self.assertIs(mainRemote.alived, None)
+        otherRemote.alived = None
+        mainRemote.alived = None
 
         self.alive(self.other, self.main)
         self.assertEqual(len(self.main.transactions), 0)

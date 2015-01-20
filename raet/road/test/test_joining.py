@@ -384,7 +384,7 @@ class BasicTestCase(unittest.TestCase):
             for remote in stack.remotes.values():
                 self.assertTrue(remote.joined)
                 self.assertTrue(remote.allowed)
-                self.assertIs(remote.alived, None)
+                self.assertIs(remote.alived, True)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -13184,6 +13184,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStacks([alpha], duration=0.1) # alpha: process join, send ack
         self.serviceStacks([beta], duration=0.1) # beta: send ack accept, remove
         self.flushReceives(alpha)
+        self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
 
         self.assertIn('stale_correspondent_nack', beta.stats)
