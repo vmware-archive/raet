@@ -1,6 +1,19 @@
 ------------------
 CHANGE LOG
 -------------------
+-----------
+20150120
+----------
+v0.4.3
+
+Minor bug fixes
+More units tests
+
+Changed semantics for initial alived state. As soon as estate completes
+initial bootstrap to allowed state it is also alived instead of waiting for
+manage alive transactions to complete. This enables messaging to commence
+immediately upon allowed.
+
 
 -----------
 20141201
