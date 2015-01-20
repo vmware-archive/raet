@@ -13185,6 +13185,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStacks([beta], duration=0.1) # beta: send ack accept, remove
         self.flushReceives(alpha)
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
+        self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
 
         self.assertIn('stale_correspondent_nack', beta.stats)
         self.assertEqual(beta.stats['stale_correspondent_nack'], 1) # 1 stale refuse
