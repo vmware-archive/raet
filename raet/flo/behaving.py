@@ -103,7 +103,7 @@ class RaetRoadStack(deeding.Deed):
                                                  sigkey=None,
                                                  prikey=None)),)
 
-    def postinitio(self):
+    def _prepare(self):
         '''
         Setup stack instance
         '''
@@ -164,7 +164,7 @@ class RaetRoadStackSetup(deeding.Deed):
                                                  sigkey=None,
                                                  prikey=None)),)
 
-    def postinitio(self):
+    def _prepare(self):
         '''
         Assign class defaults
         '''
@@ -175,7 +175,7 @@ class RaetRoadStackSetup(deeding.Deed):
         '''
         enter action
         should only run once to setup road stack.
-        moved from postinitio so can do clean up before stack is initialized
+        moved from _prepare so can do clean up before stack is initialized
 
         do salt raet road stack setup at enter
         '''
@@ -548,7 +548,7 @@ class RaetLaneStack(deeding.Deed):
                                               lane="maple",
                                               sockdirpath="/tmp/raet/test/lane/")),)
 
-    def postinitio(self):
+    def _prepare(self):
         '''
         Setup stack instance
         '''
