@@ -660,7 +660,11 @@ class BasicTestCase(unittest.TestCase):
         fallback to ~user/.raet
         '''
         console.terse("{0}\n".format(self.testAltDirpath.__doc__))
-        base = '/var/cache/'
+        if sys.platform == 'win32':
+            base = os.path.join(os.environ['WINDIR'], 'system32')
+        else:
+            base = '/var/cache/'
+
         auto = raeting.autoModes.once
         data = self.createRoadData(name='main',
                                    base=base,
@@ -672,7 +676,7 @@ class BasicTestCase(unittest.TestCase):
         #default ha is ("", raeting.RAET_PORT)
 
         #console.terse("{0} keep dirpath = {1}\n".format(stack.name, stack.keep.dirpath))
-        self.assertTrue(os.path.join('.raet','keep','main') in stack.keep.dirpath)
+        self.assertIn(os.path.join('.raet','keep','main'), stack.keep.dirpath)
         self.assertEqual(stack.ha, ("0.0.0.0", raeting.RAET_PORT))
 
         # test can write
