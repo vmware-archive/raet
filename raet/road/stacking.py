@@ -495,12 +495,15 @@ class RoadStack(stacking.KeepStack):
                 if nuid == 0: # vacuous join match remote by rha from joinees
                     remote = self.joinees.get(rha, None)
                     if remote and remote.fuid != fuid: # check if prior is stale
+                        #if remote.fuid != 0:  # non vacuous stale
                         emsg = ("Stack '{0}'. Prior stale join initiatance from '{1}',"
                             " fuid {2} mismatch prior {3}. Removing prior...\n".format(
                                     self.name, rha, fuid, remote.fuid))
                         console.terse(emsg)
                         del self.joinees[rha] # remove prior stale vacuous joinee
                         remote = None # reset
+                        #else:  # remote.fuid == 0 vacuous stale
+                            #remote.fuid = fuid
 
                     if not remote: # no current joinees for intiator at rha
                         # is it not first packet of join

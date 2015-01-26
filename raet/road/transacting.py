@@ -242,8 +242,8 @@ class Staler(Initiator):
             return
 
         self.stack.txes.append((packet.packed, ha))
-        console.terse("Staler '{0}'. Do Nack stale correspondent {1} at {2}\n".format(
-                self.stack.name, ha, self.stack.store.stamp))
+        console.terse("Staler '{0}'. Do Nack of stale correspondent {1} in {2} at {3}\n".format(
+                self.stack.name, ha, self.tid, self.stack.store.stamp))
         self.stack.incStat('stale_correspondent_nack')
 
 
@@ -317,21 +317,23 @@ class Stalent(Correspondent):
             return
 
         if kind == raeting.pcktKinds.renew:
-            console.terse("Stalent '{0}'. Do Renew of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Stalent '{0}'. Do Renew of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.refuse:
-            console.terse("Stalent '{0}'. Do Refuse of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Stalent '{0}'. Do Refuse of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Stalent '{0}'. Do Reject of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Stalent '{0}'. Do Reject of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
-            console.terse("Stalent '{0}'. Do Nack of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Stalent '{0}'. Do Nack of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         else:
-            console.terse("Stalent '{0}'. Invalid nack kind of {1} nacking anyway "
-                    " at {2}\n".format(self.stack.name,
+            console.terse("Stalent '{0}'. Invalid nack kind {1}. Do Nack of {2} anyway "
+                    " to {3) at {4}\n".format(self.stack.name,
                                        kind,
+                                       ha,
+                                       self.tid,
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
 
@@ -441,8 +443,8 @@ class Joiner(Initiator):
             else:
                 self.remove(index=self.index) # in case never sent txPacket
 
-            console.concise("Joiner {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Joiner {0}. Timed out with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
 
             return
 
@@ -460,8 +462,8 @@ class Joiner(Initiator):
             if (self.txPacket and
                     self.txPacket.data['pk'] == raeting.pcktKinds.request):
                 self.transmit(self.txPacket) #redo
-                console.concise("Joiner {0}. Redo Join with {1} at {2}\n".format(
-                     self.stack.name, self.remote.name, self.stack.store.stamp))
+                console.concise("Joiner {0}. Redo Join with {1} in {2} at {3}\n".format(
+                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                 self.stack.incStat('joiner_tx_join_redo')
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
@@ -539,8 +541,11 @@ class Joiner(Initiator):
             self.stack.incStat("packing_error")
             self.remove()
             return
-        console.concise("Joiner {0}. Do Join with {1} at {2}\n".format(
-                        self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Joiner {0}. Do Join with {1} in {2} at {3}\n".format(
+                        self.stack.name,
+                        self.remote.name,
+                        self.tid,
+                        self.stack.store.stamp))
         self.transmit(packet)
         self.add(index=self.txPacket.index)
 
@@ -559,8 +564,8 @@ class Joiner(Initiator):
             self.refuse()
             return
 
-        console.terse("Joiner {0}. Renew from {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.terse("Joiner {0}. Renew from {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat('join_renew_attempt')
         self.remove(index=self.txPacket.index)
         if self.remote:
@@ -775,8 +780,8 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        console.concise("Joiner {0}. Do Ack Pend of {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Joiner {0}. Do Ack Pend of {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
 
         self.transmit(packet)
 
@@ -811,8 +816,8 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        console.concise("Joiner {0}. Do Ack Accept, Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Joiner {0}. Do Ack Accept, Done with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("join_initiate_complete")
 
         self.transmit(packet)
@@ -828,8 +833,8 @@ class Joiner(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        console.terse("Joiner {0}. Refused by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.terse("Joiner {0}. Refused by {1} in {2} at {3}\n".format(
+                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.remove(index=self.txPacket.index)
 
@@ -839,8 +844,8 @@ class Joiner(Initiator):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        console.terse("Joiner {0}. Rejected by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.terse("Joiner {0}. Rejected by {1} in {2} at {3}\n".format(
+                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.remove(index=self.txPacket.index)
         self.stack.removeRemote(self.remote, clear=True)
@@ -863,18 +868,20 @@ class Joiner(Initiator):
             return
 
         if kind == raeting.pcktKinds.refuse:
-            console.terse("Joiner {0}. Do Nack Refuse of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Joiner {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif  kind == raeting.pcktKinds.reject:
-            console.terse("Joiner {0}. Do Nack Reject of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Joiner {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
-            console.terse("Joiner {0}. Do Nack of {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Joiner {0}. Do Nack of {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
-            console.terse("Joiner {0}. Invalid nack kind of {1} nacking anyway "
-                    " at {2}\n".format(self.stack.name,
+            console.terse("Joiner {0}. Invalid nack kind {1}. Do Nack of {2} anyway "
+                    "in {3} at {4}\n".format(self.stack.name,
                                        kind,
+                                       self.remote.name,
+                                       self.tid,
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
         self.stack.incStat(self.statKey())
@@ -969,8 +976,8 @@ class Joinent(Correspondent):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             self.nack() # stale
-            console.concise("Joinent {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Joinent {0}. Timed out with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
         # need to perform the check for accepted status and then send accept
@@ -988,8 +995,8 @@ class Joinent(Correspondent):
             if (self.txPacket and
                     self.txPacket.data['pk'] == raeting.pcktKinds.response):
                 self.transmit(self.txPacket) #redo
-                console.concise("Joinent {0}. Redo Accept with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+                console.concise("Joinent {0}. Redo Accept with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                 self.stack.incStat('joinent_tx_accept_redo')
             else: #check to see if status has changed to accept
                 if self.remote:
@@ -1326,8 +1333,8 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        console.concise("Joinent {0}. Do Ack Pending accept of {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Joinent {0}. Do Ack Pending accept of {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.transmit(packet)
 
     def ackAccept(self):
@@ -1367,8 +1374,8 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        console.concise("Joinent {0}. Do Accept of {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Joinent {0}. Do Accept of {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.transmit(packet)
 
     def pend(self):
@@ -1386,8 +1393,8 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        console.terse("Joinent {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.terse("Joinent {0}. Done with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("join_correspond_complete")
 
         if self.remote.sid == 0: # session id  must be non-zero after join
@@ -1407,8 +1414,8 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        console.terse("Joinent {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.terse("Joinent {0}. Rejected by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.remove(index=self.rxPacket.index)
         self.stack.removeRemote(self.remote, clear=True)
@@ -1419,8 +1426,8 @@ class Joinent(Correspondent):
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-        console.terse("Joinent {0}. Refused by {1} at {2}\n".format(
-                 self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.terse("Joinent {0}. Refused by {1} in {2} at {3}\n".format(
+                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.remove(index=self.rxPacket.index)
 
@@ -1452,21 +1459,23 @@ class Joinent(Correspondent):
             return
 
         if kind == raeting.pcktKinds.renew:
-            console.terse("Joinent {0}. Do Nack Renew of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Joinent {0}. Do Nack Renew of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.refuse:
-            console.terse("Joinent {0}. Do Nack Refuse of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Joinent {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Joinent {0}. Do Nack Reject of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Joinent {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
-            console.terse("Joinent {0}. Do Nack of {1} at {2}\n".format(
-                    self.stack.name, ha, self.stack.store.stamp))
+            console.terse("Joinent {0}. Do Nack of {1} in {2} at {3}\n".format(
+                    self.stack.name, ha, self.tid, self.stack.store.stamp))
         else:
-            console.terse("Joinent {0}. Invalid nack kind of {1} nacking anyway "
-                    " at {2}\n".format(self.stack.name,
+            console.terse("Joinent {0}. Invalid nack kind {1}. Do Nack of {2} anyway "
+                    " in {3} at {4}\n".format(self.stack.name,
                                        kind,
+                                       ha,
+                                       self.tid,
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
 
@@ -1537,8 +1546,8 @@ class Allower(Initiator):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             self.remove()
-            console.concise("Allower {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Allower {0}. Timed out with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
         # need keep sending join until accepted or timed out
@@ -1551,20 +1560,20 @@ class Allower(Initiator):
             if self.txPacket:
                 if self.txPacket.data['pk'] == raeting.pcktKinds.hello:
                     self.transmit(self.txPacket) # redo
-                    console.concise("Allower {0}. Redo Hello with {1} at {2}\n".format(
-                            self.stack.name, self.remote.name, self.stack.store.stamp))
+                    console.concise("Allower {0}. Redo Hello with {1} in {2} at {3}\n".format(
+                            self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_hello')
 
                 if self.txPacket.data['pk'] == raeting.pcktKinds.initiate:
                     self.transmit(self.txPacket) # redo
-                    console.concise("Allower {0}. Redo Initiate with {1} at {2}\n".format(
-                             self.stack.name, self.remote.name, self.stack.store.stamp))
+                    console.concise("Allower {0}. Redo Initiate with {1} in {2} at {3}\n".format(
+                             self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_initiate')
 
                 if self.txPacket.data['pk'] == raeting.pcktKinds.ack:
                     self.transmit(self.txPacket) # redo
-                    console.concise("Allower {0}. Redo Ack Final with {1} at {2}\n".format(
-                             self.stack.name, self.remote.name, self.stack.store.stamp))
+                    console.concise("Allower {0}. Redo Ack Final with {1} in {2} at {3}\n".format(
+                             self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_final')
 
     def prep(self):
@@ -1630,8 +1639,8 @@ class Allower(Initiator):
             self.remove()
             return
         self.transmit(packet)
-        console.concise("Allower {0}. Do Hello with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allower {0}. Do Hello with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
 
     def cookie(self):
         '''
@@ -1732,8 +1741,8 @@ class Allower(Initiator):
             return
 
         self.transmit(packet)
-        console.concise("Allower {0}. Do Initiate with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allower {0}. Do Initiate with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
 
     def allow(self):
         '''
@@ -1770,8 +1779,8 @@ class Allower(Initiator):
         self.remove()
         self.transmit(packet)
 
-        console.concise("Allower {0}. Do Ack Final, Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allower {0}. Do Ack Final, Done with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("allow_initiate_complete")
 
         self.remote.nextSid() # start new session always on successful allow
@@ -1799,18 +1808,20 @@ class Allower(Initiator):
             return
 
         if kind == raeting.pcktKinds.refuse:
-            console.terse("Allower {0}. Do Nack Refuse of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Allower {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.terse("Allower {0}. Do Nack Reject of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Allower {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
-            console.terse("Allower {0}. Do Nack of {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Allower {0}. Do Nack of {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
-            console.terse("Allower {0}. Invalid nack kind of {1} nacking anyway "
-                    " at {2}\n".format(self.stack.name,
+            console.terse("Allower {0}. Invalid nack kind {1}. Do Nack of {2} anyway "
+                    " in {3} at {4}\n".format(self.stack.name,
                                        kind,
+                                       self.remote.name,
+                                       self.tid,
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
 
@@ -1826,8 +1837,8 @@ class Allower(Initiator):
             return
 
         self.remove()
-        console.concise("Allower {0}. Refused by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allower {0}. Refused by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def reject(self):
@@ -1840,8 +1851,8 @@ class Allower(Initiator):
 
         self.remote.allowed = False
         self.remove()
-        console.concise("Allower {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allower {0}. Rejected by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def unjoin(self):
@@ -1854,8 +1865,8 @@ class Allower(Initiator):
 
         self.remote.joined = False
         self.remove()
-        console.concise("Allower {0}. Rejected unjoin by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allower {0}. Rejected unjoin by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
@@ -1917,8 +1928,8 @@ class Allowent(Correspondent):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             self.nack(kind=raeting.pcktKinds.refuse)
-            console.concise("Allowent {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Allowent {0}. Timed out with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
         # need to perform the check for accepted status and then send accept
@@ -1932,14 +1943,14 @@ class Allowent(Correspondent):
             if self.txPacket:
                 if self.txPacket.data['pk'] == raeting.pcktKinds.cookie:
                     self.transmit(self.txPacket) #redo
-                    console.concise("Allowent {0}. Redo Cookie with {1} at {2}\n".format(
-                             self.stack.name, self.remote.name, self.stack.store.stamp))
+                    console.concise("Allowent {0}. Redo Cookie with {1} in {2} at {3}\n".format(
+                             self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_cookie')
 
                 if self.txPacket.data['pk'] == raeting.pcktKinds.ack:
                     self.transmit(self.txPacket) #redo
-                    console.concise("Allowent {0}. Redo Ack with {1} at {2}\n".format(
-                             self.stack.name, self.remote.name, self.stack.store.stamp))
+                    console.concise("Allowent {0}. Redo Ack with {1} in {2} at {3}\n".format(
+                             self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_allow')
 
     def prep(self):
@@ -2080,8 +2091,8 @@ class Allowent(Correspondent):
             self.remove()
             return
         self.transmit(packet)
-        console.concise("Allowent {0}. Do Cookie with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allowent {0}. Do Cookie with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
 
     def initiate(self):
         '''
@@ -2187,8 +2198,8 @@ class Allowent(Correspondent):
             return
 
         self.transmit(packet)
-        console.concise("Allowent {0}. Do Ack Initiate with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allowent {0}. Do Ack Initiate with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
 
         self.allow()
 
@@ -2212,8 +2223,8 @@ class Allowent(Correspondent):
             return
 
         self.remove()
-        console.concise("Allowent {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allowent {0}. Done with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("allow_correspond_complete")
         self.remote.sendSavedMessages() # could include messages saved on rejoin
 
@@ -2225,8 +2236,8 @@ class Allowent(Correspondent):
             return
 
         self.remove()
-        console.concise("Allowent {0}. Refused by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allowent {0}. Refused by {1} in {2} at {3}n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def reject(self):
@@ -2239,8 +2250,8 @@ class Allowent(Correspondent):
 
         self.remote.allowed = False
         self.remove()
-        console.concise("Allowent {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Allowent {0}. Rejected by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def nack(self, kind=raeting.pcktKinds.nack):
@@ -2261,21 +2272,23 @@ class Allowent(Correspondent):
             return
 
         if kind==raeting.pcktKinds.refuse:
-            console.terse("Allowent {0}. Do Nack Refuse of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Allowent {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind==raeting.pcktKinds.reject:
-            console.concise("Allowent {0}. Do Nack Reject {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Allowent {0}. Do Nack Reject {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind==raeting.pcktKinds.unjoined:
-            console.concise("Allowent {0}. Do Nack Unjoined {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Allowent {0}. Do Nack Unjoined {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
-            console.terse("Allowent {0}. Do Nack of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Allowent {0}. Do Nack of {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
-            console.terse("Allowent {0}. Invalid nack kind of {1} nacking anyway "
-                    " at {2}\n".format(self.stack.name,
+            console.terse("Allowent {0}. Invalid nack kind {1}. Do Nack of {2} anyway "
+                    " in {3} at {4}\n".format(self.stack.name,
                                        kind,
+                                       self.remote.name,
+                                       self.tid,
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
 
@@ -2348,8 +2361,8 @@ class Aliver(Initiator):
         Perform time based processing of transaction
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            console.concise("Aliver {0}. Timed out with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Aliver {0}. Timed out with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             self.remove()
             self.remote.refresh(alived=False) # mark as dead
             return
@@ -2364,8 +2377,8 @@ class Aliver(Initiator):
             if self.txPacket:
                 if self.txPacket.data['pk'] == raeting.pcktKinds.request:
                     self.transmit(self.txPacket) # redo
-                    console.concise("Aliver {0}. Redo with {1} at {2}\n".format(
-                        self.stack.name, self.remote.name, self.stack.store.stamp))
+                    console.concise("Aliver {0}. Redo with {1} in {2} at {3}\n".format(
+                        self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_alive')
 
     def prep(self):
@@ -2421,8 +2434,8 @@ class Aliver(Initiator):
             self.remove()
             return
         self.transmit(packet)
-        console.concise("Aliver {0}. Do Alive with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Aliver {0}. Do Alive with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
 
     def complete(self):
         '''
@@ -2432,8 +2445,8 @@ class Aliver(Initiator):
             return
         self.remote.refresh(alived=True) # restart timer mark as alive
         self.remove()
-        console.concise("Aliver {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Aliver {0}. Done with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
 
     def refuse(self):
@@ -2445,8 +2458,8 @@ class Aliver(Initiator):
             return
         self.remote.refresh(alived=None) # restart timer do not change status
         self.remove()
-        console.concise("Aliver {0}. Refused by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Aliver {0}. Refused by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def reject(self):
@@ -2458,8 +2471,8 @@ class Aliver(Initiator):
             return
         self.remote.refresh(alived=False) # restart timer set status to False
         self.remove()
-        console.concise("Aliver {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Aliver {0}. Rejected by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def unjoin(self):
@@ -2472,8 +2485,8 @@ class Aliver(Initiator):
         self.remote.refresh(alived=None) # restart timer do not change status
         self.remote.joined = False
         self.remove()
-        console.concise("Aliver {0}. Refused unjoin by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Aliver {0}. Refused unjoin by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.stack.join(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
@@ -2487,8 +2500,8 @@ class Aliver(Initiator):
         self.remote.refresh(alived=None) # restart timer do not change status
         self.remote.allowed = False
         self.remove()
-        console.concise("Aliver {0}. Refused unallow by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Aliver {0}. Refused unallow by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
         self.stack.allow(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
@@ -2525,8 +2538,8 @@ class Alivent(Correspondent):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             self.nack() #manage restarts alive later
-            console.concise("Alivent {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Alivent {0}. Timed out with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
     def prep(self):
@@ -2590,12 +2603,12 @@ class Alivent(Correspondent):
             return
 
         self.transmit(packet)
-        console.concise("Alivent {0}. Do ack alive with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Alivent {0}. Do ack alive with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.remote.refresh(alived=True)
         self.remove()
-        console.concise("Alivent {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Alivent {0}. Done with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
 
     def nack(self, kind=raeting.pcktKinds.nack):
@@ -2616,24 +2629,26 @@ class Alivent(Correspondent):
             return
 
         if kind == raeting.pcktKinds.refuse:
-                console.terse("Alivent {0}. Do Refuse of {1} at {2}\n".format(
-                        self.stack.name, self.remote.name, self.stack.store.stamp))
+                console.terse("Alivent {0}. Do Refuse of {1} in {2} at {3}\n".format(
+                        self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.unjoined:
-                console.terse("Alivent {0}. Do Unjoined of {1} at {2}\n".format(
-                        self.stack.name, self.remote.name, self.stack.store.stamp))
+                console.terse("Alivent {0}. Do Unjoined of {1} in {2} at {3}\n".format(
+                        self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.unallowed:
-                console.terse("Alivent {0}. Do Unallowed of {1} at {2}\n".format(
-                        self.stack.name, self.remote.name, self.stack.store.stamp))
+                console.terse("Alivent {0}. Do Unallowed of {1} in {2} at {3}\n".format(
+                        self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.reject:
-            console.concise("Alivent {0}. Do Reject {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Alivent {0}. Do Reject {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         elif kind == raeting.pcktKinds.nack:
-            console.terse("Alivent {0}. Do Nack of {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.terse("Alivent {0}. Do Nack of {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
-            console.terse("Alivent {0}. Invalid nack kind of {1} nacking anyway "
-                    " at {2}\n".format(self.stack.name,
+            console.terse("Alivent {0}. Invalid nack kind {1}. Do Nack of {2} anyway "
+                    " in {3} at {4}\n".format(self.stack.name,
                                        kind,
+                                       self.remote.name,
+                                       self.tid,
                                        self.stack.store.stamp))
             kind == raeting.pcktKinds.nack
 
@@ -2695,8 +2710,8 @@ class Messenger(Initiator):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             self.remove()
-            console.concise("Messenger {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Messenger {0}. Timed out with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
         # need keep sending message until completed or timed out
@@ -2709,8 +2724,12 @@ class Messenger(Initiator):
             if self.txPacket:
                 if self.txPacket.data['pk'] == raeting.pcktKinds.message:
                     self.transmit(self.txPacket) # redo
-                    console.concise("Messenger {0}. Redo Segment {1} with {2} at {3}\n".format(
-                            self.stack.name, self.tray.last, self.remote.name, self.stack.store.stamp))
+                    console.concise("Messenger {0}. Redo Segment {1} with {2} in {3} at {4}\n".format(
+                            self.stack.name,
+                            self.tray.last,
+                            self.remote.name,
+                            self.tid,
+                            self.stack.store.stamp))
                     self.stack.incStat('redo_segment')
 
     def prep(self):
@@ -2762,8 +2781,12 @@ class Messenger(Initiator):
         if self.index not in self.remote.transactions:
             self.add()
         elif self.remote.transactions[self.index] != self:
-            emsg = "Messenger {0}. Remote {1} Index collision at {2}\n".format(
-                                self.stack.name, self.remote.name,  self.index)
+            emsg = "Messenger {0}. Remote {1} Index collision of {2} in {3} at {4}\n".format(
+                                self.stack.name,
+                                self.remote.name,
+                                self.index,
+                                self.tid,
+                                self.stack.store.stamp)
             console.terse(emsg)
             self.incStat('message_index_collision')
             self.remove()
@@ -2775,8 +2798,8 @@ class Messenger(Initiator):
             self.transmit(packet) #if self.tray.current %  2 else None
             self.tray.last = self.tray.current
             self.stack.incStat("message_segment_tx")
-            console.concise("Messenger {0}. Do Message Segment {1} with {2} at {3}\n".format(
-                    self.stack.name, self.tray.last, self.remote.name, self.stack.store.stamp))
+            console.concise("Messenger {0}. Do Message Segment {1} with {2} in {3} at {4}\n".format(
+                    self.stack.name, self.tray.last, self.remote.name, self.tid, self.stack.store.stamp))
             self.tray.current += 1
 
     def another(self):
@@ -2832,8 +2855,8 @@ class Messenger(Initiator):
         Complete transaction and remove
         '''
         self.remove()
-        console.concise("Messenger {0}. Done with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Messenger {0}. Done with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("message_initiate_complete")
 
     def reject(self):
@@ -2847,8 +2870,8 @@ class Messenger(Initiator):
         self.remote.refresh(alived=True)
 
         self.remove()
-        console.concise("Messenger {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Messenger {0}. Rejected by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def nack(self):
@@ -2870,8 +2893,8 @@ class Messenger(Initiator):
 
         self.transmit(packet)
         self.remove()
-        console.concise("Messenger {0}. Do Reject {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Messenger {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
 class Messengent(Correspondent):
@@ -2925,8 +2948,8 @@ class Messengent(Correspondent):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             self.nack()
-            console.concise("Messengent {0}. Timed out with {1} at {2}\n".format(
-                    self.stack.name, self.remote.name, self.stack.store.stamp))
+            console.concise("Messengent {0}. Timed out with {1} in {2} at {3}\n".format(
+                    self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
         if self.redoTimer.expired:
@@ -2980,8 +3003,12 @@ class Messengent(Correspondent):
         if self.index not in self.remote.transactions:
             self.add()
         elif self.remote.transactions[self.index] != self:
-            emsg = "Messengent {0}. Remote {1} Index collision at {2}\n".format(
-                                self.stack.name, self.remote.name, self.index)
+            emsg = "Messengent {0}. Remote {1} Index collision of {2} in {3} at {4}\n".format(
+                                self.stack.name,
+                                self.remote.name,
+                                self.index,
+                                self.tid,
+                                self.stack.store.stamp)
             console.terse(emsg)
             self.incStat('message_index_collision')
             self.nack()
@@ -3025,8 +3052,12 @@ class Messengent(Correspondent):
             return
         self.transmit(packet)
         self.stack.incStat("message_segment_ack")
-        console.concise("Messengent {0}. Do Ack Segment {1} with {2} at {3}\n".format(
-                self.stack.name, self.tray.last, self.remote.name, self.stack.store.stamp))
+        console.concise("Messengent {0}. Do Ack Segment {1} with {2} in {3} at {4}\n".format(
+                self.stack.name,
+                self.tray.last,
+                self.remote.name,
+                self.tid,
+                self.stack.store.stamp))
 
     def resend(self, misseds):
         '''
@@ -3053,8 +3084,12 @@ class Messengent(Correspondent):
                 return
             self.transmit(packet)
             self.stack.incStat("message_resend")
-            console.concise("Messengent {0}. Do Resend Segments {1} with {2} at {3}\n".format(
-                    self.stack.name, misseds, self.remote.name, self.stack.store.stamp))
+            console.concise("Messengent {0}. Do Resend Segments {1} with {2} in {3} at {4}\n".format(
+                    self.stack.name,
+                    misseds,
+                    self.remote.name,
+                    self.tid,
+                    self.stack.store.stamp))
             misseds = remainders
 
     def complete(self):
@@ -3062,8 +3097,8 @@ class Messengent(Correspondent):
         Complete transaction and remove
         '''
         self.remove()
-        console.concise("Messengent {0}. Complete with {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Messengent {0}. Complete with {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("messagent_correspond_complete")
 
     def reject(self):
@@ -3077,8 +3112,8 @@ class Messengent(Correspondent):
         self.remote.refresh(alived=True)
 
         self.remove()
-        console.concise("Messengent {0}. Rejected by {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Messengent {0}. Rejected by {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
     def nack(self):
@@ -3100,7 +3135,7 @@ class Messengent(Correspondent):
 
         self.transmit(packet)
         self.remove()
-        console.concise("Messagent {0}. Do Reject {1} at {2}\n".format(
-                self.stack.name, self.remote.name, self.stack.store.stamp))
+        console.concise("Messagent {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
+                self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 

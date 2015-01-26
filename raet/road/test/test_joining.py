@@ -390,6 +390,74 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
+
+    def testJoinJointVacuuousMainWithMain(self):
+        '''
+        Test join vacuous,initiated by main both sides
+        '''
+        console.terse("{0}\n".format(self.testJoinJointVacuuousMainWithMain.__doc__))
+
+        alphaData = self.createRoadData(base=self.base,
+                                        name='alpha',
+                                        ha=("", raeting.RAET_PORT),
+                                        main=True,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData)
+
+        betaData = self.createRoadData(base=self.base,
+                                       name='beta',
+                                       ha=("", raeting.RAET_TEST_PORT),
+                                       main=True,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData)
+
+        console.terse("\nJoin Joint Alpha and Beta *********\n")
+        self.assertIs(alpha.main, True)
+        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(alpha.remotes), 0)
+        self.assertIs(beta.main, True)
+        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertEqual(len(beta.remotes), 0)
+
+        #console.terse("\nJoint Join Transaction **************\n")
+        #remote = alpha.addRemote(estating.RemoteEstate(stack=alpha,
+                                                    #fuid=0, # vacuous join
+                                                    #sid=0, # always 0 for join
+                                                    #ha=beta.local.ha))
+        #alpha.join(uid=remote.uid, cascade=False, renewal=False)
+        #remote = beta.addRemote(estating.RemoteEstate(stack=beta,
+                                                       #fuid=0, # vacuous join
+                                                       #sid=0, # always 0 for join
+                                                       #ha=alpha.local.ha))
+        #beta.join(uid=remote.uid, cascade=False, renewal=False)
+
+        #self.serviceStacks([alpha, beta], duration=2.0)
+        #for stack in [alpha, beta]:
+            #self.assertEqual(len(stack.transactions), 0)
+            #self.assertEqual(len(stack.remotes), 1)
+            #self.assertEqual(len(stack.nameRemotes), 1)
+            #for remote in stack.remotes.values():
+                #self.assertTrue(remote.joined)
+                #self.assertIs(remote.allowed, None)
+                #self.assertIs(remote.alived, None)
+
+        #console.terse("\nAllow Beta to Alpha *********\n")
+        #self.allow(beta, alpha)
+        #for stack in [alpha, beta]:
+            #self.assertEqual(len(stack.transactions), 0)
+            #self.assertEqual(len(stack.remotes), 1)
+            #self.assertEqual(len(stack.nameRemotes), 1)
+            #for remote in stack.remotes.values():
+                #self.assertTrue(remote.joined)
+                #self.assertTrue(remote.allowed)
+                #self.assertIs(remote.alived, True)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
     def testJoinentVacuousImmutableRejectNewMain(self):
         '''
         Test immutable joinent reject vacuous join with an updated main (A1)
@@ -13486,6 +13554,7 @@ def runSome():
     tests =  []
     names = [
                 'testJoinBasic',
+                'testJoinJointVacuuousMainWithMain',
                 'testJoinentVacuousImmutableRejectNewMain',
                 'testJoinentVacuousImmutableRejectNewKind',
                 'testJoinentVacuousImmutableRejectNewRha',
@@ -13676,6 +13745,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
-    #runOne('testJoinerClearJoinentNotClear')
+    runOne('testJoinJointVacuuousMainWithMain')
