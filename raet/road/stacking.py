@@ -442,8 +442,7 @@ class RoadStack(stacking.KeepStack):
         reply with new correspondent transaction
         '''
         console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
-        # (rf, le, re, si, ti, bf,)
-        console.concise("{0} received packet index: (rf={1[0]}, le={1[1]}, re={1[2]},"
+        console.concise("{0} received packet index: (cf={1[0]}, le={1[1]}, re={1[2]},"
                 " si={1[3]}, ti={1[4]}, bf={1[5]})\n".format(self.name, packet.index))
         console.concise("{0} received trans kind = '{1}' packet kind = '{2}'"
                         "\n".format(self.name,

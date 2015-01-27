@@ -531,7 +531,7 @@ class TxPacket(Packet):
     @property
     def index(self):
         '''
-        Property is transaction tuple (rf, le, re, si, ti, bf,)
+        Property is transaction tuple (cf, le, re, si, ti, bf,)
         '''
         data = self.data
         cf = data['cf']
@@ -608,7 +608,7 @@ class RxPacket(Packet):
     @property
     def index(self):
         '''
-        Property is transaction tuple (rf, le, re, si, ti, bf,)
+        Property is transaction tuple (cf, le, re, si, ti, bf,)
         '''
         data = self.data
         cf = data['cf']
