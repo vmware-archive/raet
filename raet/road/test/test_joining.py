@@ -421,38 +421,38 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(beta.keep.auto, raeting.autoModes.once)
         self.assertEqual(len(beta.remotes), 0)
 
-        #console.terse("\nJoint Join Transaction **************\n")
-        #remote = alpha.addRemote(estating.RemoteEstate(stack=alpha,
-                                                    #fuid=0, # vacuous join
-                                                    #sid=0, # always 0 for join
-                                                    #ha=beta.local.ha))
-        #alpha.join(uid=remote.uid, cascade=False, renewal=False)
+        console.terse("\nJoint Join Transaction **************\n")
+        remote = alpha.addRemote(estating.RemoteEstate(stack=alpha,
+                                                    fuid=0, # vacuous join
+                                                    sid=0, # always 0 for join
+                                                    ha=beta.local.ha))
+        alpha.join(uid=remote.uid, cascade=False, renewal=False)
         #remote = beta.addRemote(estating.RemoteEstate(stack=beta,
                                                        #fuid=0, # vacuous join
                                                        #sid=0, # always 0 for join
                                                        #ha=alpha.local.ha))
         #beta.join(uid=remote.uid, cascade=False, renewal=False)
 
-        #self.serviceStacks([alpha, beta], duration=2.0)
-        #for stack in [alpha, beta]:
-            #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.remotes), 1)
-            #self.assertEqual(len(stack.nameRemotes), 1)
-            #for remote in stack.remotes.values():
-                #self.assertTrue(remote.joined)
-                #self.assertIs(remote.allowed, None)
-                #self.assertIs(remote.alived, None)
+        self.serviceStacks([alpha, beta], duration=2.0)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertTrue(remote.joined)
+                self.assertIs(remote.allowed, None)
+                self.assertIs(remote.alived, None)
 
-        #console.terse("\nAllow Beta to Alpha *********\n")
-        #self.allow(beta, alpha)
-        #for stack in [alpha, beta]:
-            #self.assertEqual(len(stack.transactions), 0)
-            #self.assertEqual(len(stack.remotes), 1)
-            #self.assertEqual(len(stack.nameRemotes), 1)
-            #for remote in stack.remotes.values():
-                #self.assertTrue(remote.joined)
-                #self.assertTrue(remote.allowed)
-                #self.assertIs(remote.alived, True)
+        console.terse("\nAllow Beta to Alpha *********\n")
+        self.allow(beta, alpha)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            for remote in stack.remotes.values():
+                self.assertTrue(remote.joined)
+                self.assertTrue(remote.allowed)
+                self.assertIs(remote.alived, True)
 
         for stack in [alpha, beta]:
             stack.server.close()

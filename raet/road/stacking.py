@@ -153,7 +153,7 @@ class RoadStack(stacking.KeepStack):
                                         **kwa)
         self.kind = kind # application kind associated with the local estate
         self.mutable = mutable # road data mutability
-        self.joinees = odict() # remotes associated with vacuous joins, keyed by ha
+        self.joinees = odict() # remotes for vacuous joins, keyed by ha
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
         self.reapeds =  odict() # reaped remotes keyed by name
@@ -442,7 +442,13 @@ class RoadStack(stacking.KeepStack):
         reply with new correspondent transaction
         '''
         console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
-        console.verbose("{0} packet packet index = '{1}'\n".format(self.name, packet.index))
+        # (rf, le, re, si, ti, bf,)
+        console.concise("{0} received packet index: (rf={1[0]}, le={1[1]}, re={1[2]},"
+                " si={1[3]}, ti={1[4]}, bf={1[5]})\n".format(self.name, packet.index))
+        console.concise("{0} received trans kind = '{1}' packet kind = '{2}'"
+                        "\n".format(self.name,
+                                    raeting.TRNS_KIND_NAMES[packet.data['tk']],
+                                    raeting.PCKT_KIND_NAMES[packet.data['pk']]))
 
         bf = packet.data['bf']
         if bf:
@@ -495,17 +501,15 @@ class RoadStack(stacking.KeepStack):
                 if nuid == 0: # vacuous join match remote by rha from joinees
                     remote = self.joinees.get(rha, None)
                     if remote and remote.fuid != fuid: # check if prior is stale
-                        #if remote.fuid != 0:  # non vacuous stale
+                        #if remote.fuid != 0:  # stale
                         emsg = ("Stack '{0}'. Prior stale join initiatance from '{1}',"
                             " fuid {2} mismatch prior {3}. Removing prior...\n".format(
                                     self.name, rha, fuid, remote.fuid))
                         console.terse(emsg)
                         del self.joinees[rha] # remove prior stale vacuous joinee
                         remote = None # reset
-                        #else:  # remote.fuid == 0 vacuous stale
-                            #remote.fuid = fuid
 
-                    if not remote: # no current joinees for intiator at rha
+                    if not remote: # no current joinees for remote initiator at rha
                         # is it not first packet of join
                         if pk not in [raeting.pcktKinds.request]:
                             emsg = ("Stack '{0}'. Invalid join initiatance from '{1}',"
@@ -514,12 +518,12 @@ class RoadStack(stacking.KeepStack):
                             self.incStat('join_stale')
                             return
 
-                        # create vacuous remote and assign to joinees
+                        # create vacuous remote will be assigned to joinees in joinent
                         remote = estating.RemoteEstate(stack=self,
                                                        fuid=fuid,
                                                        sid=rsid,
                                                        ha=rha)
-                        # in joinent if vacuous self.joinees[rha] = remote
+
                 else: # nonvacuous join match by nuid from .remotes
                     remote = self.remotes.get(nuid, None)
                     if not remote: # remote with nuid not exist

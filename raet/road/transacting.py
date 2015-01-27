@@ -439,7 +439,7 @@ class Joiner(Initiator):
         '''
         if self.timeout > 0.0 and self.timer.expired:
             if self.txPacket and self.txPacket.data['pk'] == raeting.pcktKinds.request:
-                self.remove(index=self.txPacket.index)#index changes after accept
+                self.remove(index=self.txPacket.index)
             else:
                 self.remove(index=self.index) # in case never sent txPacket
 
@@ -604,7 +604,7 @@ class Joiner(Initiator):
             emsg = "Missing or invalid remote stack operation mode in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.remove(index=self.rxPacket.index)
+            self.remove(index=self.txPacket.index)
             return
         flags = unpackByte(fmt='11111111', byte=mode, boolean=True)
         main = flags[7]
@@ -614,7 +614,7 @@ class Joiner(Initiator):
             emsg = "Missing or invalid remote application kind in accept packet\n"
             console.terse(emsg)
             self.stack.incStat('invalid_accept')
-            self.remove(index=self.rxPacket.index)
+            self.remove(index=self.txPacket.index)
             return
 
         fuid = body.get('uid')
@@ -930,7 +930,7 @@ class Joinent(Correspondent):
         '''
         super(Joinent, self).add(remote=remote, index=index)
         # self.remote is now assigned
-        if self.vacuous: # vacuous looks like this is not needed
+        if self.vacuous: # vacuous happens when both sides vacuous
             self.stack.joinees[self.remote.ha] = self.remote
 
     def remove(self, remote=None, index=None):
@@ -1146,7 +1146,7 @@ class Joinent(Correspondent):
                     join.nack(kind=raeting.pcktKinds.refuse)
 
                 else: # both vacuous or non-vacuous, so use name to resolve
-                    if self.stack.local.name < name: # abort correspondent
+                    if self.stack.local.name < name: # abort local correspondent and remote initiator
                         emsg = ("Joinent {0}. Already initiated join with {1}. "
                                 "Aborting because lesser local name...\n".format(
                                     self.stack.name, self.remote.name))
@@ -1155,7 +1155,7 @@ class Joinent(Correspondent):
                         self.nack(kind=raeting.pcktKinds.refuse)
                         return
 
-                    else: # abort initiator, could let other side nack do this
+                    else: # nack to abort local initiator and remote correspondent
                         emsg = ("Joinent {0}. Removing initiator join with {1}. "
                                 "Proceeding because lesser local name...\n".format(
                                     self.stack.name, self.remote.name))
@@ -1180,7 +1180,12 @@ class Joinent(Correspondent):
                 self.remote.role = role
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
-                if self.remote.fuid != reid: # created in stack with fuid = reid
+                if self.remote.fuid != reid:
+                    #if self.remote.fuid == 0:
+                        ## usually when joinent stack creates vacuous remote it makes remote.fuid = reid
+                        ## but in special case where boths sides create vacuous it doesn't
+                        #self.remote.fuid = reid
+                    #else:
                     emsg = ("Joinent {0}. Mishandled join reid='{1}' !=  fuid='{2}' for "
                            "remote {2}\n".format(self.stack.name, reid, self.remote.fuid, name))
                     console.terse(emsg)
@@ -2599,7 +2604,7 @@ class Alivent(Correspondent):
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
-            self.remove(index=self.rxPacket.index)
+            self.remove()
             return
 
         self.transmit(packet)
