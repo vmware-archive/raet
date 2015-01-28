@@ -890,15 +890,15 @@ class BasicTestCase(unittest.TestCase):
         # now change ha  and unset unmutable
         main.mutable = None
         other.server.close()
-        time.sleep(0.5)
+        time.sleep(1.0)
         other.clearLocalKeep()
         data = savedOtherData  # local keep will be there so it uses that data
         other = self.createRoadStack(data=data,
-                                     ha=("0.0.0.0", 7532),
+                                     ha=("0.0.0.0", 7533),
                                      main=None,)
 
-        self.assertEqual(other.ha, ("0.0.0.0", 7532))
-        self.assertEqual(other.local.ha, ("127.0.0.1", 7532))
+        self.assertEqual(other.ha, ("0.0.0.0", 7533))
+        self.assertEqual(other.local.ha, ("127.0.0.1", 7533))
         self.assertEqual(len(main.remotes), 2)
         self.assertEqual(len(other.remotes), 1)
         self.join(other, main, duration=5.0)
@@ -924,8 +924,8 @@ class BasicTestCase(unittest.TestCase):
         data = savedOtherData
         other = self.createRoadStack(data=data,
                                      main=None,
-                                     ha=("", 7532))
-        self.assertEqual(other.local.ha, ("127.0.0.1", 7532))
+                                     ha=("", 7533))
+        self.assertEqual(other.local.ha, ("127.0.0.1", 7533))
         other.local.name = "whowho"
 
         self.join(other, main, duration=5.0)
@@ -935,7 +935,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.joined)
         self.assertEqual(remote.acceptance, raeting.acceptances.accepted)
         self.assertEqual(remote.name, 'whowho')
-        self.assertEqual(remote.ha, ('127.0.0.1', 7532))
+        self.assertEqual(remote.ha, ('127.0.0.1', 7533))
 
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]

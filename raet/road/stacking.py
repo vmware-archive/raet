@@ -441,10 +441,10 @@ class RoadStack(stacking.KeepStack):
         Process packet via associated transaction or
         reply with new correspondent transaction
         '''
-        console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
-        console.concise("{0} received packet index: (rf={1[0]}, le={1[1]}, re={1[2]},"
+        console.profuse("{0} received packet data\n{1}\n".format(self.name, packet.data))
+        console.verbose("{0} received packet index: (rf={1[0]}, le={1[1]}, re={1[2]},"
                 " si={1[3]}, ti={1[4]}, bf={1[5]})\n".format(self.name, packet.index))
-        console.concise("{0} received trans kind = '{1}' packet kind = '{2}'"
+        console.verbose("{0} received trans kind = '{1}' packet kind = '{2}'"
                         "\n".format(self.name,
                                     raeting.TRNS_KIND_NAMES[packet.data['tk']],
                                     raeting.PCKT_KIND_NAMES[packet.data['pk']]))

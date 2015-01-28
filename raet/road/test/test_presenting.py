@@ -842,7 +842,7 @@ class BasicTestCase(unittest.TestCase):
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
                                      auto=other1Data['auto'],
-                                     ha=("", 7532))
+                                     ha=("", 7533))
 
         self.join(other1, main)
         for stack in [main, other1]:
@@ -1006,6 +1006,7 @@ class BasicTestCase(unittest.TestCase):
         for stack in [main, other, other1]:
             stack.server.close()
             stack.clearAllKeeps()
+        time.sleep(0.1)
 
 
     def testAliveUnjoinedUnallowedBoth(self):
@@ -1521,7 +1522,7 @@ class BasicTestCase(unittest.TestCase):
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
                                      auto=other1Data['auto'],
-                                     ha=("", 7532))
+                                     ha=("", 7533))
 
         for  stack in [other, other1]:
             self.join(stack, main)
@@ -1559,6 +1560,7 @@ class BasicTestCase(unittest.TestCase):
         for stack in [main, other, other1]:
             stack.server.close()
             stack.clearAllKeeps()
+        time.sleep(0.1)
 
     def testManageBothSides(self):
         '''
@@ -1591,7 +1593,7 @@ class BasicTestCase(unittest.TestCase):
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
                                      auto=other1Data['auto'],
-                                     ha=("", 7532))
+                                     ha=("", 7533))
 
         for stack in [other, other1]:
             self.join(stack, main)
@@ -1638,6 +1640,7 @@ class BasicTestCase(unittest.TestCase):
         for stack in [main, other, other1]:
             stack.server.close()
             stack.clearAllKeeps()
+        time.sleep(0.1)
 
     def testManageMainRebootCascade(self):
         '''
@@ -1673,7 +1676,7 @@ class BasicTestCase(unittest.TestCase):
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
                                      auto=other1Data['auto'],
-                                     ha=("", 7532))
+                                     ha=("", 7533))
 
         for stack in [other, other1]:
             self.join(stack, main)
@@ -1757,6 +1760,7 @@ class BasicTestCase(unittest.TestCase):
         for stack in [main, other, other1]:
             stack.server.close()
             stack.clearAllKeeps()
+        time.sleep(0.1)
 
     def testManageRebootCascadeBothSides(self):
         '''
@@ -1792,7 +1796,7 @@ class BasicTestCase(unittest.TestCase):
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
                                      auto=other1Data['auto'],
-                                     ha=("", 7532))
+                                     ha=("", 7533))
 
         for stack in (other, other1):
             self.join(stack, main)
@@ -1998,6 +2002,7 @@ class BasicTestCase(unittest.TestCase):
         for stack in [main, other, other1]:
             stack.server.close()
             stack.clearAllKeeps()
+        time.sleep(0.1)
 
 
     def testManageRebootCascadeBothSidesAlt(self):
@@ -2035,7 +2040,7 @@ class BasicTestCase(unittest.TestCase):
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
                                      auto=other1Data['auto'],
-                                     ha=("", 7532))
+                                     ha=("", 7533))
 
 
         for stack in (other, other1):
@@ -2242,6 +2247,7 @@ class BasicTestCase(unittest.TestCase):
         for stack in [main, other, other1]:
             stack.server.close()
             stack.clearAllKeeps()
+        time.sleep(0.1)
 
     def testManageUnjoinedAllTimersExpired(self):
         '''
