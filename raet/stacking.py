@@ -404,7 +404,8 @@ class Stack(object):
         except socket.error as ex:
             if (ex.errno in [errno.EAGAIN, errno.EWOULDBLOCK,
                              errno.ENETUNREACH, errno.ETIME,
-                             errno.EHOSTUNREACH, errno.EHOSTDOWN]):
+                             errno.EHOSTUNREACH, errno.EHOSTDOWN,
+                             errno.ECONNRESET]):
                 # problem sending such as busy with last message. save it for later
                 laters.append((tx, ta))
                 blocks.append(ta)
