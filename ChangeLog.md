@@ -3,6 +3,16 @@ CHANGE LOG
 -------------------
 
 -----------
+20150128
+----------
+v0.4.5
+
+Support for simultaneous vacuous joins between same two estates
+Correctly terminates one of the joins and allows other to complete
+Bugfixes
+More tests
+
+-----------
 20150120
 ----------
 v0.4.4
