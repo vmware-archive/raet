@@ -5,6 +5,15 @@ CHANGE LOG
 -----------
 20150128
 ----------
+v0.4.6
+
+Silently handles errno.ECONNRESET on transmit in Stack._handleOneTx for windows
+
+
+
+-----------
+20150128
+----------
 v0.4.5
 
 Support for simultaneous vacuous joins between same two estates
