@@ -17,7 +17,7 @@ except ImportError:
 try:
     import msgpack
 except ImportError:
-    mspack = None
+    msgpack = None
 
 import shutil
 
