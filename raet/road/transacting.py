@@ -404,7 +404,7 @@ class Joiner(Initiator):
         super(Joiner, self).remove(remote=remote, index=index)
         # self.remote is now assigned
         if self.vacuous: # vacuous
-            if self.remote.ha in self.stack.joinees:
+            if self.remote.ha in self.stack.joinees and not self.remote.transactions:
                 del self.stack.joinees[self.remote.ha]
 
     def receive(self, packet):
@@ -940,7 +940,7 @@ class Joinent(Correspondent):
         super(Joinent, self).remove(remote=remote, index=index)
         # self.remote is now assigned
         if self.vacuous: # vacuous
-            if self.remote.ha in self.stack.joinees:
+            if self.remote.ha in self.stack.joinees and not self.remote.transactions:
                 del self.stack.joinees[self.remote.ha]
 
     def receive(self, packet):
@@ -1181,16 +1181,14 @@ class Joinent(Correspondent):
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
                 if self.remote.fuid != reid:
-                    #if self.remote.fuid == 0:
-                        ## usually when joinent stack creates vacuous remote it makes remote.fuid = reid
-                        ## but in special case where boths sides create vacuous it doesn't
-                        #self.remote.fuid = reid
-                    #else:
-                    emsg = ("Joinent {0}. Mishandled join reid='{1}' !=  fuid='{2}' for "
-                           "remote {2}\n".format(self.stack.name, reid, self.remote.fuid, name))
-                    console.terse(emsg)
-                    self.nack(kind=raeting.pcktKinds.reject)
-                    return
+                    if self.remote.fuid == 0:  # vacuous join created remote in stack
+                        self.remote.fuid = reid
+                    else:
+                        emsg = ("Joinent {0}. Mishandled join reid='{1}' !=  fuid='{2}' for "
+                               "remote {2}\n".format(self.stack.name, reid, self.remote.fuid, name))
+                        console.terse(emsg)
+                        self.nack(kind=raeting.pcktKinds.reject)
+                        return
 
         else: # non vacuous join
             if self.remote is not self.stack.remotes[leid]: # something is wrong
