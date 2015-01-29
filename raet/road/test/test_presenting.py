@@ -146,16 +146,14 @@ class BasicTestCase(unittest.TestCase):
         initiator.alive(uid=duid, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
-    def message(self, main, other, mains, others, duration=2.0):
+    def message(self, msgs, initiator, correspondent, duration=2.0):
         '''
         Utility to send messages both ways
         '''
-        for msg in mains:
-            main.transmit(msg)
-        for msg in others:
-            other.transmit(msg)
+        for msg in msgs:
+            initiator.transmit(msg)
 
-        self.service(main, other, duration=duration)
+        self.service(initiator, correspondent, duration=duration)
 
     def flushReceives(self, stack):
         '''

@@ -146,16 +146,14 @@ class BasicTestCase(unittest.TestCase):
         initiator.alive(uid=duid, cascade=cascade)
         self.service(correspondent, initiator, duration=duration)
 
-    def message(self, main, other, mains, others, duration=2.0):
+    def message(self, msgs, initiator, correspondent, duration=2.0):
         '''
         Utility to send messages both ways
         '''
-        for msg in mains:
-            main.transmit(msg)
-        for msg in others:
-            other.transmit(msg)
+        for msg in msgs:
+            initiator.transmit(msg)
 
-        self.service(main, other, duration=duration)
+        self.service(initiator, correspondent, duration=duration)
 
     def flushReceives(self, stack):
         '''
@@ -234,43 +232,29 @@ class BasicTestCase(unittest.TestCase):
         '''
         Test message with packets dropped
         '''
-        console.terse("{0}\n".format(self.testJoinFromMain.__doc__))
+        console.terse("{0}\n".format(self.testMessageWithDrops.__doc__))
 
-        mainData = self.createRoadData(name='main',
+        alphaData = self.createRoadData(name='alpha',
                                        base=self.base,
                                        auto=raeting.autoModes.once)
-        keeping.clearAllKeep(mainData['dirpath'])
-        main = self.createRoadStack(data=mainData,
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData,
                                      main=True,
-                                     auto=mainData['auto'],
+                                     auto=alphaData['auto'],
                                      ha=None)
 
-        otherData = self.createRoadData(name='other',
+        betaData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.never)
-        keeping.clearAllKeep(otherData['dirpath'])
-        other = self.createRoadStack(data=otherData,
-                                     main=None,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData,
+                                     main=True,
+                                     auto=betaData['auto'],
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        self.assertIs(other.keep.auto, raeting.autoModes.never)
-        self.assertIs(other.main, None)
-
-        console.terse("\nJoin Main to Other *********\n")
-        self.join(main, other) # vacuous join fails because other not main
-        for stack in [main, other]:
-            self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.remotes), 0)
-            self.assertEqual(len(stack.nameRemotes), 0)
-
-        # now fix it so other can accept vacuous joins
-        other.main = True
-        other.keep.auto = raeting.autoModes.once
-        self.assertIs(other.main, True)
-        self.assertIs(other.keep.auto, raeting.autoModes.once)
-
-        self.join(main, other)
-        for stack in [main, other]:
+        console.terse("\nJoin *********\n")
+        self.join(alpha, beta) # vacuous join fails because other not main
+        for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
@@ -279,9 +263,9 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.allowed, None)
             self.assertIs(remote.alived, None)
 
-        console.terse("\nAllow Main to Other *********\n")
-        self.allow(main, other)
-        for stack in [main, other]:
+        console.terse("\nAllow *********\n")
+        self.allow(alpha, beta)
+        for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
             self.assertEqual(len(stack.nameRemotes), 1)
@@ -290,36 +274,27 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.allowed, True)
             self.assertIs(remote.alived, True)  # fast alive
 
-        main.remotes.values()[0].alived = None   # reset alived
-        other.remotes.values()[0].alived = None  # reset alived
+        msgs = []
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        alphaMsg = odict(identifier="Green", bloat=bloat)
+        msgs.append(alphaMsg)
 
-        console.terse("\nAlive Main to other *********\n")
-        self.alive(main, other)
-        for stack in [main, other]:
+        self.message(msgs, alpha, beta, duration=5.0)
+
+        for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.remotes), 1)
-            self.assertEqual(len(stack.nameRemotes), 1)
-            remote = stack.remotes.values()[0]
-            self.assertIs(remote.joined, True)
-            self.assertIs(remote.allowed, True)
-            self.assertIs(remote.alived, True)
 
-        main.remotes.values()[0].alived = None   # reset alived
-        other.remotes.values()[0].alived = None  # reset alived
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 1)
+        betaMsg, source = beta.rxMsgs.popleft()
+        self.assertDictEqual(betaMsg, alphaMsg)
 
-        console.terse("\nAlive Other to Main *********\n")
-        self.alive(other, main)
-        for stack in [main, other]:
-            self.assertEqual(len(stack.transactions), 0)
-            self.assertEqual(len(stack.remotes), 1)
-            self.assertEqual(len(stack.nameRemotes), 1)
-            remote = stack.remotes.values()[0]
-            self.assertIs(remote.joined, True)
-            self.assertIs(remote.allowed, True)
-            self.assertIs(remote.alived, True)
-
-
-        for stack in [main, other]:
+        for stack in [alpha, beta]:
             stack.server.close()
             stack.clearAllKeeps()
 
