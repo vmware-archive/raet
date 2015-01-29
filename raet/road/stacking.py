@@ -84,7 +84,7 @@ class RoadStack(stacking.KeepStack):
     Ck = raeting.coatKinds.nacl # stack default
     Bf = False # stack default for bcstflag
     Wf = False # stack default for waitflag
-    BurstCount = 0  # stack default for max segments in each burst, 0 = no limit
+    BurstSize = 0  # stack default for max segments in each burst, 0 = no limit
     Period = 1.0 # stack default for keep alive
     Offset = 0.5 # stack default for keep alive
     Interim = 3600 # stack default for reap timeout
@@ -851,7 +851,7 @@ class RoadStack(stacking.KeepStack):
                                           txData=data,
                                           bcst=self.Bf,
                                           wait=self.Wf,
-                                          burst=self.BurstCount)
+                                          burst=self.BurstSize)
         messenger.message(body)
 
     def replyMessage(self, packet, remote):

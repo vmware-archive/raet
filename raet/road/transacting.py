@@ -17,6 +17,7 @@ except ImportError:
 
 # Import ioflo libs
 from ioflo.base.odicting import odict
+from ioflo.base.osetting import oset
 from ioflo.base import aiding
 from ioflo.base.aiding import packByte, unpackByte
 
@@ -2681,7 +2682,8 @@ class Messenger(Initiator):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
-        self.burst = max(0, int(burst)) # BurstCount
+        self.burst = max(0, int(burst)) # BurstSize
+        self.misseds = oset()  # ordered set of currently missed segments
 
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
@@ -2721,7 +2723,7 @@ class Messenger(Initiator):
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
-        # need keep sending message until completed or timed out
+        # keep sending message or request ack until completed or timed out
         if self.redoTimer.expired:
             duration = min(
                          max(self.redoTimeoutMin,
@@ -2731,21 +2733,23 @@ class Messenger(Initiator):
             if self.txPacket:
                 if self.txPacket.data['pk'] in [raeting.pcktKinds.message]:
                     self.transmit(self.txPacket) # redo
-                    console.concise("Messenger {0}. Redo Segment {1} with {2} in {3} at {4}\n".format(
-                            self.stack.name,
-                            self.tray.last,
-                            self.remote.name,
-                            self.tid,
-                            self.stack.store.stamp))
+                    console.concise("Messenger {0}. Redo Segment {1} with "
+                                    "{2} in {3} at {4}\n".format(
+                                    self.stack.name,
+                                    self.tray.last,
+                                    self.remote.name,
+                                    self.tid,
+                                    self.stack.store.stamp))
                     self.stack.incStat('redo_segment')
                     self.request()
                 else:
-                    console.concise("Messenger {0}. Redo Request Ack {1} with {2} in {3} at {4}\n".format(
-                            self.stack.name,
-                            self.tray.last,
-                            self.remote.name,
-                            self.tid,
-                            self.stack.store.stamp))
+                    console.concise("Messenger {0}. Redo Request Ack {1} "
+                                    "with {2} in {3} at {4}\n".format(
+                                    self.stack.name,
+                                    self.tray.last,
+                                    self.remote.name,
+                                    self.tid,
+                                    self.stack.store.stamp))
                     self.stack.incStat('redo_request')
                     self.request()
 
@@ -2820,7 +2824,7 @@ class Messenger(Initiator):
             console.concise("Messenger {0}. Do Message Segment {1} with {2} in {3} at {4}\n".format(
                     self.stack.name, self.tray.last, self.remote.name, self.tid, self.stack.store.stamp))
             self.tray.current += 1
-        if burst > 1:
+        if not self.wait:  # only send request if not in wait mode
             self.request()
 
     def another(self):
@@ -2832,7 +2836,10 @@ class Messenger(Initiator):
         self.remote.refresh(alived=True)
         self.stack.incStat("message_more_ack_rx")
 
-        self.message()  # continue message
+        if self.misseds:
+            self.sendMisseds()
+        else:
+            self.message()  # continue message
 
     def request(self):
         '''
@@ -2858,7 +2865,8 @@ class Messenger(Initiator):
 
     def resend(self):
         '''
-        Process resend packet and send misseds list of missing packets
+        Process resend packet and update .misseds list of missing packets
+        Then send misseds
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -2869,7 +2877,7 @@ class Messenger(Initiator):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        misseds = body.get('misseds')
+        misseds = body.get('misseds')  # indexes of missed segments
         if misseds:
             if not self.tray.packets:
                 emsg = "Invalid resend request '{0}'\n".format(misseds)
@@ -2885,11 +2893,29 @@ class Messenger(Initiator):
                     console.terse("Invalid misseds segment number {0}\n".format(m))
                     self.stack.incStat("invalid_misseds")
                     return
+                self.misseds.add(m)  # add segment, set only adds if unique
+            self.sendMisseds()
 
+    def sendMisseds(self):
+        '''
+        Send a burst of missed packets
+        '''
+        if self.misseds:
+            burst = (1 if self.wait else
+                (len(self.tray.packets) - self.tray.current) if not self.burst else
+                min(self.burst, (len(self.tray.packets) - self.tray.current)))
+
+            # make list of first burst number of packets
+            misseds = [missed for missed in self.missed][:min(burst, len(self.missed))]
+            for packet in misseds:
                 self.transmit(packet)
                 self.stack.incStat("message_segment_tx")
                 console.concise("Messenger {0}. Resend Message Segment {1} with {2} at {3}\n".format(
-                        self.stack.name, m, self.remote.name, self.stack.store.stamp))
+                    self.stack.name, m, self.remote.name, self.stack.store.stamp))
+                self.misseds.discard(packet)  # remove from self.misseds
+
+            if not self.wait:  # only send request if not in wait mode
+                self.request()
 
     def complete(self):
         '''
@@ -2902,11 +2928,11 @@ class Messenger(Initiator):
         self.remote.refresh(alived=True)
         self.stack.incStat('message_complete_rx')
 
-        if self.tray.current < len(self.tray.packets):
-            console.terse("Messenger {0}. Message complete received but not"
-                          " yet complete\n".format(self.stack.name))
-            self.message()  # shouldn't happen but just in case continue
-            return
+        #if self.tray.current < len(self.tray.packets):
+            #console.terse("Messenger {0}. Message complete received but not"
+                          #" yet complete\n".format(self.stack.name))
+            #self.message()  # shouldn't happen but just in case continue
+            #return
 
         self.remove()
         console.concise("Messenger {0}. Done with {1} in {2} at {3}\n".format(

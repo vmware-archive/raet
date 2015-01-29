@@ -452,11 +452,11 @@ class BasicTestCase(unittest.TestCase):
         others.append(odict(house="Other", queue="big stuff", bloat=bloat))
         mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
-        stacking.RoadStack.BurstCount = 16
-        self.assertEqual(stacking.RoadStack.BurstCount, 16)
+        stacking.RoadStack.BurstSize = 16
+        self.assertEqual(stacking.RoadStack.BurstSize, 16)
         self.bidirectional(bk=raeting.bodyKinds.json, mains=mains, others=others, duration=20.0)
-        stacking.RoadStack.BurstCount = 0
-        self.assertEqual(stacking.RoadStack.BurstCount, 0)
+        stacking.RoadStack.BurstSize = 0
+        self.assertEqual(stacking.RoadStack.BurstSize, 0)
 
     def testSegmentedMsgpackBurst(self):
         '''
@@ -481,11 +481,11 @@ class BasicTestCase(unittest.TestCase):
         others.append(odict(house="Other", queue="big stuff", bloat=bloat))
         mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
-        stacking.RoadStack.BurstCount = 16
-        self.assertEqual(stacking.RoadStack.BurstCount, 16)
+        stacking.RoadStack.BurstSize = 16
+        self.assertEqual(stacking.RoadStack.BurstSize, 16)
         self.bidirectional(bk=raeting.bodyKinds.msgpack, mains=mains, others=others, duration=20.0)
-        stacking.RoadStack.BurstCount = 0
-        self.assertEqual(stacking.RoadStack.BurstCount, 0)
+        stacking.RoadStack.BurstSize = 0
+        self.assertEqual(stacking.RoadStack.BurstSize, 0)
 
     def testJoinForever(self):
         '''
