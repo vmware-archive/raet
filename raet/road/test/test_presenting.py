@@ -373,7 +373,6 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
-
     def testJoinFromMain(self):
         '''
         Test join,initiated by main
