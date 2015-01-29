@@ -2738,7 +2738,7 @@ class Messenger(Initiator):
                             self.tid,
                             self.stack.store.stamp))
                     self.stack.incStat('redo_segment')
-                    self.stack.request()
+                    self.request()
                 else:
                     console.concise("Messenger {0}. Redo Request Ack {1} with {2} in {3} at {4}\n".format(
                             self.stack.name,
@@ -2747,6 +2747,7 @@ class Messenger(Initiator):
                             self.tid,
                             self.stack.store.stamp))
                     self.stack.incStat('redo_request')
+                    self.request()
 
     def prep(self):
         '''
@@ -2820,7 +2821,7 @@ class Messenger(Initiator):
                     self.stack.name, self.tray.last, self.remote.name, self.tid, self.stack.store.stamp))
             self.tray.current += 1
         if burst > 1:
-            self.requestAck()
+            self.request()
 
     def another(self):
         '''
@@ -2833,7 +2834,7 @@ class Messenger(Initiator):
 
         self.message()  # continue message
 
-    def requestAck(self):
+    def request(self):
         '''
         Signify end of burst by sending request for ack packet
         '''
