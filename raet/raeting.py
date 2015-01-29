@@ -182,7 +182,7 @@ PCKT_KINDS = odict([('message', 0), ('ack', 1), ('nack', 2), ('resend', 3),
                     ('hello', 6), ('cookie', 7), ('initiate', 8),
                     ('unjoined', 9), ('unallowed', 10),
                     ('renew', 11), ('refuse', 12), ('reject', 13),
-                    ('pend', 14), ('unknown', 255)])
+                    ('pend', 14), ('more', 15), ('unknown', 255)])
 PCKT_KIND_NAMES = odict((v, k) for k, v in PCKT_KINDS.iteritems())  # inverse map
 PcktKind = namedtuple('PcktKind', PCKT_KINDS.keys())
 pcktKinds = PcktKind(**PCKT_KINDS)

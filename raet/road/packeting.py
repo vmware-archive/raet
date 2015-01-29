@@ -812,7 +812,7 @@ class RxTray(Tray):
         console.verbose("segment count={0} number={1} tid={2}\n".format(
             sc, sn, packet.data['ti']))
 
-        if sc == 1:
+        if sc == 1:  # this is only segment to complete now
             self.data.update(packet.data)
             packet.parseInner()
             self.body = packet.body.data

@@ -408,7 +408,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         Test segmented message transactions
         '''
-        console.terse("{0}\n".format(self.testSegmentedJson.__doc__))
+        console.terse("{0}\n".format(self.testSegmentedMsgpack.__doc__))
 
         stuff = []
         for i in range(300):
@@ -428,6 +428,64 @@ class BasicTestCase(unittest.TestCase):
         mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
         self.bidirectional(bk=raeting.bodyKinds.msgpack, mains=mains, others=others, duration=20.0)
+
+    def testSegmentedJsonBurst(self):
+        '''
+        Test segmented message transactions with burst count limiting
+        '''
+        console.terse("{0}\n".format(self.testSegmentedJsonBurst.__doc__))
+
+        stuff = []
+        for i in range(300):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+
+        others = []
+        mains = []
+        others.append(odict(house="Snake eyes", queue="near stuff", stuff=stuff))
+        mains.append(odict(house="Craps", queue="far stuff", stuff=stuff))
+
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        others.append(odict(house="Other", queue="big stuff", bloat=bloat))
+        mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
+
+        stacking.RoadStack.BurstCount = 16
+        self.assertEqual(stacking.RoadStack.BurstCount, 16)
+        self.bidirectional(bk=raeting.bodyKinds.json, mains=mains, others=others, duration=20.0)
+        stacking.RoadStack.BurstCount = 0
+        self.assertEqual(stacking.RoadStack.BurstCount, 0)
+
+    def testSegmentedMsgpackBurst(self):
+        '''
+        Test segmented message transactions with burst count limiting
+        '''
+        console.terse("{0}\n".format(self.testSegmentedMsgpackBurst.__doc__))
+
+        stuff = []
+        for i in range(300):
+            stuff.append(str(i).rjust(10, " "))
+        stuff = "".join(stuff)
+
+        others = []
+        mains = []
+        others.append(odict(house="Snake eyes", queue="near stuff", stuff=stuff))
+        mains.append(odict(house="Craps", queue="far stuff", stuff=stuff))
+
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        others.append(odict(house="Other", queue="big stuff", bloat=bloat))
+        mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
+
+        stacking.RoadStack.BurstCount = 16
+        self.assertEqual(stacking.RoadStack.BurstCount, 16)
+        self.bidirectional(bk=raeting.bodyKinds.msgpack, mains=mains, others=others, duration=20.0)
+        stacking.RoadStack.BurstCount = 0
+        self.assertEqual(stacking.RoadStack.BurstCount, 0)
 
     def testJoinForever(self):
         '''
@@ -708,6 +766,8 @@ def runSome():
              'testMsgBothwaysMsgpack',
              'testSegmentedJson',
              'testSegmentedMsgpack',
+             'testSegmentedJsonBurst',
+             'testSegmentedMsgpackBurst',
              'testBasicAlive',
              'testStaleNack',
              'testJoinForever',
@@ -734,4 +794,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testJoinForever')
+    #runOne('testSegmentedJsonBurst')

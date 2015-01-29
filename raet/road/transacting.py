@@ -2669,7 +2669,7 @@ class Messenger(Initiator):
     RedoTimeoutMin = 1.0 # initial timeout
     RedoTimeoutMax = 3.0 # max timeout
 
-    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
+    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, burst=0, **kwa):
         '''
         Setup instance
         '''
@@ -2680,6 +2680,8 @@ class Messenger(Initiator):
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
+
+        self.burst = max(0, int(burst)) # BurstCount
 
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
@@ -2700,12 +2702,14 @@ class Messenger(Initiator):
         super(Messenger, self).receive(packet)
 
         if packet.data['tk'] == raeting.trnsKinds.message:
-            if packet.data['pk'] == raeting.pcktKinds.ack:
-                self.another()
+            if packet.data['pk'] == raeting.pcktKinds.more: # send more
+                self.another()  # continue message
+            elif packet.data['pk'] == raeting.pcktKinds.resend: # resend missed segments
+                self.resend()
+            elif packet.data['pk'] == raeting.pcktKinds.ack:  # complete
+                self.complete()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
                 self.reject()
-            elif packet.data['pk'] == raeting.pcktKinds.resend: # missed resend
-                self.resend()
 
     def process(self):
         '''
@@ -2725,7 +2729,7 @@ class Messenger(Initiator):
                          self.redoTimeoutMax)
             self.redoTimer.restart(duration=duration)
             if self.txPacket:
-                if self.txPacket.data['pk'] == raeting.pcktKinds.message:
+                if self.txPacket.data['pk'] in [raeting.pcktKinds.message]:
                     self.transmit(self.txPacket) # redo
                     console.concise("Messenger {0}. Redo Segment {1} with {2} in {3} at {4}\n".format(
                             self.stack.name,
@@ -2734,6 +2738,15 @@ class Messenger(Initiator):
                             self.tid,
                             self.stack.store.stamp))
                     self.stack.incStat('redo_segment')
+                    self.stack.request()
+                else:
+                    console.concise("Messenger {0}. Redo Request Ack {1} with {2} in {3} at {4}\n".format(
+                            self.stack.name,
+                            self.tray.last,
+                            self.remote.name,
+                            self.tid,
+                            self.stack.store.stamp))
+                    self.stack.incStat('redo_request')
 
     def prep(self):
         '''
@@ -2754,7 +2767,7 @@ class Messenger(Initiator):
 
     def message(self, body=None):
         '''
-        Send message or part of message. So repeatedly called untill complete
+        Send message or part of message. So repeatedly called until complete
         '''
 
         if not self.remote.allowed:
@@ -2795,29 +2808,52 @@ class Messenger(Initiator):
             self.remove()
             return
 
-        burst = 1 if self.wait else len(self.tray.packets) - self.tray.current
+        burst = (1 if self.wait else
+                    (len(self.tray.packets) - self.tray.current) if not self.burst else
+                     min(self.burst, (len(self.tray.packets) - self.tray.current)))
 
         for packet in self.tray.packets[self.tray.current:self.tray.current + burst]:
-            self.transmit(packet) #if self.tray.current %  2 else None
+            self.transmit(packet)  # if self.tray.current % 2 else None # to simulate lost packets
             self.tray.last = self.tray.current
             self.stack.incStat("message_segment_tx")
             console.concise("Messenger {0}. Do Message Segment {1} with {2} in {3} at {4}\n".format(
                     self.stack.name, self.tray.last, self.remote.name, self.tid, self.stack.store.stamp))
             self.tray.current += 1
+        if burst > 1:
+            self.requestAck()
 
     def another(self):
         '''
-        Process ack packet send next one
+        Process more ack packet and continue sending
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
-
         self.remote.refresh(alived=True)
+        self.stack.incStat("message_more_ack_rx")
 
-        if self.tray.current >= len(self.tray.packets):
-            self.complete()
-        else:
-            self.message()
+        self.message()  # continue message
+
+    def requestAck(self):
+        '''
+        Signify end of burst by sending request for ack packet
+        '''
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.request,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove()
+            return
+
+        self.transmit(packet)
+        console.concise("Messenger {0}. Do Request Ack of {1} in {2} at {3}\n".format(
+            self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
+        self.stack.incStat('message_request_ack_tx')
 
     def resend(self):
         '''
@@ -2827,6 +2863,7 @@ class Messenger(Initiator):
             return
 
         self.remote.refresh(alived=True)
+        self.stack.incStat('message_resend_rx')
 
         data = self.rxPacket.data
         body = self.rxPacket.body.data
@@ -2855,8 +2892,21 @@ class Messenger(Initiator):
 
     def complete(self):
         '''
-        Complete transaction and remove
+        Process Ack
+        Complete transaction and remove if all packet sent otherwise send more
         '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
+        self.remote.refresh(alived=True)
+        self.stack.incStat('message_complete_rx')
+
+        if self.tray.current < len(self.tray.packets):
+            console.terse("Messenger {0}. Message complete received but not"
+                          " yet complete\n".format(self.stack.name))
+            self.message()  # shouldn't happen but just in case continue
+            return
+
         self.remove()
         console.concise("Messenger {0}. Done with {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -2871,6 +2921,7 @@ class Messenger(Initiator):
             return
 
         self.remote.refresh(alived=True)
+        self.stack.incStat('message_reject_rx')
 
         self.remove()
         console.concise("Messenger {0}. Rejected by {1} in {2} at {3}\n".format(
@@ -2895,6 +2946,7 @@ class Messenger(Initiator):
             return
 
         self.transmit(packet)
+        self.stack.incStat('message_nack_tx')
         self.remove()
         console.concise("Messenger {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -2941,6 +2993,8 @@ class Messengent(Correspondent):
         if packet.data['tk'] == raeting.trnsKinds.message:
             if packet.data['pk'] == raeting.pcktKinds.message:
                 self.message()
+            elif packet.data['pk'] == raeting.pcktKinds.request:
+                self.respond()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
                 self.reject()
 
@@ -2962,9 +3016,14 @@ class Messengent(Correspondent):
                          self.redoTimeoutMax)
             self.redoTimer.restart(duration=duration)
 
-            misseds = self.tray.missing()
-            if misseds:
-                self.resend(misseds)
+            if self.tray.complete:
+                self.complete()
+            else:
+                misseds = self.tray.missing(begin=self.tray.prev, end=self.tray.last)
+                if misseds:  # resent missed segments
+                    self.resend(misseds)
+                else:  # always ask for more here
+                    self.more()
 
     def prep(self):
         '''
@@ -2979,7 +3038,7 @@ class Messengent(Correspondent):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
+                            wf=self.rxPacket.data['wf'],  # was self.wait
                             si=self.sid,
                             ti=self.tid,)
 
@@ -3018,28 +3077,66 @@ class Messengent(Correspondent):
             return
 
         self.remote.refresh(alived=True)
-
         self.stack.incStat("message_segment_rx")
 
+        self.wait = self.rxPacket.data['wf']  # sender is waiting for ack
+
         if self.tray.complete:
-            self.ackMessage()
-            console.verbose("{0} received message body\n{1}\n".format(
-                    self.stack.name, body))
-            # application layer authorizaiton needs to know who sent the message
-            self.stack.rxMsgs.append((body, self.remote.name))
             self.complete()
-
-        elif self.wait:
-            self.ackMessage()
-
         else:
             misseds = self.tray.missing(begin=self.tray.prev, end=self.tray.last)
-            if misseds:
+            if misseds:  # resent missed segments
                 self.resend(misseds)
+            elif self.wait:   # only ask for more if sender waiting for ack
+                self.more()
 
-    def ackMessage(self):
+    def respond(self):
         '''
-        Send ack to message
+        Process request packet
+        Determine appropriate ack response to request for ack
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        self.remote.refresh(alived=True)
+        self.stack.incStat("message_request_rx")
+
+        if self.tray.complete:
+            self.complete()
+        else:
+            misseds = self.tray.missing(begin=self.tray.prev, end=self.tray.last)
+            if misseds:  # resent missed segments
+                self.resend(misseds)
+            else:  # always ask for more here since got request for ack
+                self.more()
+
+    def more(self):
+        '''
+        Send more ack to message
+        '''
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.more,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove()
+            return
+        self.transmit(packet)
+        self.stack.incStat("message_more_ack")
+        console.concise("Messengent {0}. Do Ack More on Segment {1} with {2} in {3} at {4}\n".format(
+            self.stack.name,
+            self.tray.last,
+            self.remote.name,
+            self.tid,
+            self.stack.store.stamp))
+
+    def ack(self):
+        '''
+        Send ack to complete message
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
@@ -3054,8 +3151,8 @@ class Messengent(Correspondent):
             self.remove()
             return
         self.transmit(packet)
-        self.stack.incStat("message_segment_ack")
-        console.concise("Messengent {0}. Do Ack Segment {1} with {2} in {3} at {4}\n".format(
+        self.stack.incStat("message_complete_ack")
+        console.concise("Messengent {0}. Do Ack Complete Message on Segment {1} with {2} in {3} at {4}\n".format(
                 self.stack.name,
                 self.tray.last,
                 self.remote.name,
@@ -3099,6 +3196,11 @@ class Messengent(Correspondent):
         '''
         Complete transaction and remove
         '''
+        self.ack()
+        console.verbose("{0} received message body\n{1}\n".format(
+            self.stack.name, self.tray.body))
+        # application layer authorizaiton needs to know who sent the message
+        self.stack.rxMsgs.append((self.tray.body, self.remote.name))
         self.remove()
         console.concise("Messengent {0}. Complete with {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -3113,6 +3215,7 @@ class Messengent(Correspondent):
             return
 
         self.remote.refresh(alived=True)
+        self.stack.incStat("message_reject_nack")
 
         self.remove()
         console.concise("Messengent {0}. Rejected by {1} in {2} at {3}\n".format(
