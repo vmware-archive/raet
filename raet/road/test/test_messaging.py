@@ -281,7 +281,7 @@ class BasicTestCase(unittest.TestCase):
                                      auto=alphaData['auto'],
                                      ha=None)
 
-        betaData = self.createRoadData(name='other',
+        betaData = self.createRoadData(name='beta',
                                         base=self.base,
                                         auto=raeting.autoModes.once)
         keeping.clearAllKeep(betaData['dirpath'])

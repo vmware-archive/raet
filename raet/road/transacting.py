@@ -2838,7 +2838,7 @@ class Messenger(Initiator):
 
         if self.misseds:
             self.sendMisseds()
-        else:
+        elif self.tray.current < len(self.tray.packets):
             self.message()  # continue message
 
     def request(self):
@@ -2893,7 +2893,7 @@ class Messenger(Initiator):
                     console.terse("Invalid misseds segment number {0}\n".format(m))
                     self.stack.incStat("invalid_misseds")
                     return
-                self.misseds.add(m)  # add segment, set only adds if unique
+                self.misseds.add(packet)  # add segment, set only adds if unique
             self.sendMisseds()
 
     def sendMisseds(self):
@@ -2902,16 +2902,20 @@ class Messenger(Initiator):
         '''
         if self.misseds:
             burst = (1 if self.wait else
-                (len(self.tray.packets) - self.tray.current) if not self.burst else
-                min(self.burst, (len(self.tray.packets) - self.tray.current)))
-
+                     len(self.misseds) if not self.burst else
+                      min(self.burst, (len(self.misseds))))
             # make list of first burst number of packets
             misseds = [missed for missed in self.misseds][:min(burst, len(self.misseds))]
             for packet in misseds:
                 self.transmit(packet)
                 self.stack.incStat("message_segment_tx")
-                console.concise("Messenger {0}. Resend Message Segment {1} with {2} at {3}\n".format(
-                    self.stack.name, m, self.remote.name, self.stack.store.stamp))
+                console.concise("Messenger {0}. Do Resend Message Segment "
+                                "{1} with {2} in {3} at {4}\n".format(
+                    self.stack.name,
+                    packet.data['sn'],
+                    self.remote.name,
+                    self.tid,
+                    self.stack.store.stamp))
                 self.misseds.discard(packet)  # remove from self.misseds
 
             if not self.wait:  # only send request if not in wait mode
@@ -3046,7 +3050,7 @@ class Messengent(Correspondent):
             if self.tray.complete:
                 self.complete()
             else:
-                misseds = self.tray.missing(begin=self.tray.prev, end=self.tray.last)
+                misseds = self.tray.missing(begin=0, end=self.tray.last)
                 if misseds:  # resent missed segments
                     self.resend(misseds)
                 else:  # always ask for more here
@@ -3111,7 +3115,7 @@ class Messengent(Correspondent):
         if self.tray.complete:
             self.complete()
         else:
-            misseds = self.tray.missing(begin=self.tray.prev, end=self.tray.last)
+            misseds = self.tray.missing(begin=0, end=self.tray.last)
             if misseds:  # resent missed segments
                 self.resend(misseds)
             elif self.wait:   # only ask for more if sender waiting for ack
@@ -3130,7 +3134,7 @@ class Messengent(Correspondent):
         if self.tray.complete:
             self.complete()
         else:
-            misseds = self.tray.missing(begin=self.tray.prev, end=self.tray.last)
+            misseds = self.tray.missing(begin=0, end=self.tray.last)
             if misseds:  # resent missed segments
                 self.resend(misseds)
             else:  # always ask for more here since got request for ack
