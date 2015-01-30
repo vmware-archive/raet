@@ -76,8 +76,8 @@ class TxHead(Head):
         data['fl'] = self.packet.foot.size
         data['fg'] = "{0:02x}".format(self.packFlags())
 
-        # kit always includes raet id, packet length, and header kind fields
-        kit = odict([('ri', 'RAET'), ('pl', 0), ('hl', 0)])
+        # kit always includes raet id, packet length, header kind and flag fields
+        kit = odict([('ri', 'RAET'), ('pl', 0), ('hl', 0), ('fg', '00')])
         for k, v in raeting.PACKET_DEFAULTS.items():  # include if not equal to default
             if ((k in raeting.PACKET_HEAD_FIELDS) and
                 (k not in raeting.PACKET_FLAGS) and
