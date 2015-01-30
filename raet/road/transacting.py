@@ -2820,7 +2820,7 @@ class Messenger(Initiator):
 
         if self.misseds:
             self.sendMisseds()
-        elif self.tray.current < (len(self.tray.packets) - 1):
+        elif self.tray.current < len(self.tray.packets):
             self.message()  # continue message
 
     def resend(self):

@@ -267,6 +267,267 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
 
+    def testMessageBurstZero(self):
+        '''
+        Test message with burst limit of 0, that is, no limit
+        '''
+        console.terse("{0}\n".format(self.testMessageBurstZero.__doc__))
+
+        alphaData = self.createRoadData(name='alpha',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData,
+                                     main=True,
+                                     auto=alphaData['auto'],
+                                     ha=None)
+
+        betaData = self.createRoadData(name='beta',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData,
+                                    main=True,
+                                    auto=betaData['auto'],
+                                    ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nJoin *********\n")
+        self.join(alpha, beta) # vacuous join fails because other not main
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow *********\n")
+        self.allow(alpha, beta)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # fast alive
+
+        stacking.RoadStack.BurstSize = 0
+
+        console.terse("\nMessage Alpha to Beta *********\n")
+        msgs = []
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        sentMsg = odict(who="Green", data=bloat)
+        msgs.append(sentMsg)
+
+        self.message(msgs, alpha, beta, duration=5.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 1)
+        receivedMsg, source = beta.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        console.terse("\nMessage Beta to Alpha *********\n")
+        self.message(msgs, beta, alpha, duration=5.0)
+
+        for stack in [beta, alpha]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(beta.txMsgs), 0)
+        self.assertEqual(len(beta.txes), 0)
+        self.assertEqual(len(alpha.rxes), 0)
+        self.assertEqual(len(alpha.rxMsgs), 1)
+        receivedMsg, source = alpha.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        stacking.RoadStack.BurstSize = 0
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testMessageBurstOne(self):
+        '''
+        Test message with burst limit of 1
+        '''
+        console.terse("{0}\n".format(self.testMessageBurstOne.__doc__))
+
+        alphaData = self.createRoadData(name='alpha',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData,
+                                     main=True,
+                                     auto=alphaData['auto'],
+                                     ha=None)
+
+        betaData = self.createRoadData(name='beta',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData,
+                                    main=True,
+                                    auto=betaData['auto'],
+                                    ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nJoin *********\n")
+        self.join(alpha, beta) # vacuous join fails because other not main
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow *********\n")
+        self.allow(alpha, beta)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # fast alive
+
+        stacking.RoadStack.BurstSize = 1
+
+        console.terse("\nMessage Alpha to Beta *********\n")
+        msgs = []
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        sentMsg = odict(who="Green", data=bloat)
+        msgs.append(sentMsg)
+
+        self.message(msgs, alpha, beta, duration=10.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 1)
+        receivedMsg, source = beta.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        console.terse("\nMessage Beta to Alpha *********\n")
+        self.message(msgs, beta, alpha, duration=10.0)
+
+        for stack in [beta, alpha]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(beta.txMsgs), 0)
+        self.assertEqual(len(beta.txes), 0)
+        self.assertEqual(len(alpha.rxes), 0)
+        self.assertEqual(len(alpha.rxMsgs), 1)
+        receivedMsg, source = alpha.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        stacking.RoadStack.BurstSize = 0
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testMessageBurstEleven(self):
+        '''
+        Test message with burst limit of 11
+        '''
+        console.terse("{0}\n".format(self.testMessageBurstEleven.__doc__))
+
+        alphaData = self.createRoadData(name='alpha',
+                                        base=self.base,
+                                        auto=raeting.autoModes.once)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData,
+                                     main=True,
+                                     auto=alphaData['auto'],
+                                     ha=None)
+
+        betaData = self.createRoadData(name='beta',
+                                       base=self.base,
+                                       auto=raeting.autoModes.once)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData,
+                                    main=True,
+                                    auto=betaData['auto'],
+                                    ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nJoin *********\n")
+        self.join(alpha, beta) # vacuous join fails because other not main
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow *********\n")
+        self.allow(alpha, beta)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # fast alive
+
+        stacking.RoadStack.BurstSize = 1
+
+        console.terse("\nMessage Alpha to Beta *********\n")
+        msgs = []
+        bloat = []
+        for i in range(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        sentMsg = odict(who="Green", data=bloat)
+        msgs.append(sentMsg)
+
+        self.message(msgs, alpha, beta, duration=5.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 1)
+        receivedMsg, source = beta.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        console.terse("\nMessage Beta to Alpha *********\n")
+        self.message(msgs, beta, alpha, duration=5.0)
+
+        for stack in [beta, alpha]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(beta.txMsgs), 0)
+        self.assertEqual(len(beta.txes), 0)
+        self.assertEqual(len(alpha.rxes), 0)
+        self.assertEqual(len(alpha.rxMsgs), 1)
+        receivedMsg, source = alpha.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        stacking.RoadStack.BurstSize = 0
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
     def testMessageWithDrops(self):
         '''
         Test message with packets dropped
@@ -389,11 +650,9 @@ class BasicTestCase(unittest.TestCase):
         receivedMsg, source = alpha.rxMsgs.popleft()
         self.assertDictEqual(sentMsg, receivedMsg)
 
-
         for stack in [alpha, beta]:
             stack.server.close()
             stack.clearAllKeeps()
-
 
     def testMessageWithBurstDrops(self):
         '''
@@ -540,6 +799,9 @@ def runSome():
     '''
     tests =  []
     names = [
+                'testMessageBurstZero',
+                'testMessageBurstOne',
+                'testMessageBurstEleven',
                 'testMessageWithDrops',
                 'testMessageWithBurstDrops',
             ]
@@ -566,4 +828,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testMessageWithBurstDrops')
+    #runOne('testMessageBurstOne')
