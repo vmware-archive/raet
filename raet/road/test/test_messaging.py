@@ -314,6 +314,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.alived, True)  # fast alive
 
         stacking.RoadStack.BurstSize = 0
+        self.assertEqual(stacking.RoadStack.BurstSize, 0)
 
         console.terse("\nMessage Alpha to Beta *********\n")
         msgs = []
@@ -401,6 +402,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.alived, True)  # fast alive
 
         stacking.RoadStack.BurstSize = 1
+        self.assertEqual(stacking.RoadStack.BurstSize, 1)
 
         console.terse("\nMessage Alpha to Beta *********\n")
         msgs = []
@@ -487,7 +489,8 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.allowed, True)
             self.assertIs(remote.alived, True)  # fast alive
 
-        stacking.RoadStack.BurstSize = 1
+        stacking.RoadStack.BurstSize = 11
+        self.assertEqual(stacking.RoadStack.BurstSize, 11)
 
         console.terse("\nMessage Alpha to Beta *********\n")
         msgs = []
@@ -680,6 +683,7 @@ class BasicTestCase(unittest.TestCase):
                                     ha=("", raeting.RAET_TEST_PORT))
 
         stacking.RoadStack.BurstSize = 4
+        self.assertEqual(stacking.RoadStack.BurstSize, 4)
 
         console.terse("\nJoin *********\n")
         self.join(alpha, beta) # vacuous join fails because other not main
