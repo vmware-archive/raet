@@ -867,33 +867,6 @@ class RxTray(Tray):
                 misseds.appendleft(i)  # this reverses order
         return list(misseds)   # convert into a list
 
-
-    #def missing(self, begin=None, end=None):
-        #'''
-        #return list of missing packet numbers between begin and end
-        #'''
-        #if begin is None:
-            #begin = 0
-        #if end is None:
-            #end = len(self.segments)
-        #if begin >= end:
-            #return []
-        #misseds = []
-        #for i, segment in enumerate(self.segments[begin:end]):
-            #if segment is None:
-                #misseds.append(i)
-        #return misseds
-
-    def highest(self):
-        '''
-        Return index of highest segment received so far
-        '''
-        highest = 0
-        for i, segment in enumerate(self.segments):
-            if segment:
-                highest = i
-        return highest
-
     def desegmentize(self):
         '''
         Process message packet assumes already parsed outer so verified signature
