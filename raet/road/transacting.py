@@ -2906,7 +2906,7 @@ class Messenger(Initiator):
                 min(self.burst, (len(self.tray.packets) - self.tray.current)))
 
             # make list of first burst number of packets
-            misseds = [missed for missed in self.missed][:min(burst, len(self.missed))]
+            misseds = [missed for missed in self.misseds][:min(burst, len(self.misseds))]
             for packet in misseds:
                 self.transmit(packet)
                 self.stack.incStat("message_segment_tx")
