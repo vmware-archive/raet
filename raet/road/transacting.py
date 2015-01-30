@@ -2675,7 +2675,6 @@ class Messenger(Initiator):
 
         self.burst = max(0, int(burst)) # BurstSize
         self.misseds = oset()  # ordered set of currently missed segments
-        self.wait = False  # wf wait flag
 
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
@@ -2715,7 +2714,7 @@ class Messenger(Initiator):
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
 
-        # keep sending message or request ack until completed or timed out
+        # keep sending message  until completed or timed out
         if self.redoTimer.expired:
             duration = min(
                          max(self.redoTimeoutMin,
@@ -2733,17 +2732,6 @@ class Messenger(Initiator):
                                     self.tid,
                                     self.stack.store.stamp))
                     self.stack.incStat('redo_segment')
-                    self.request()
-                else:
-                    console.concise("Messenger {0}. Redo Request Ack {1} "
-                                    "with {2} in {3} at {4}\n".format(
-                                    self.stack.name,
-                                    self.tray.last,
-                                    self.remote.name,
-                                    self.tid,
-                                    self.stack.store.stamp))
-                    self.stack.incStat('redo_request')
-                    self.request()
 
     def prep(self):
         '''
@@ -2808,8 +2796,10 @@ class Messenger(Initiator):
                     if self.burst else (len(self.tray.packets) - self.tray.current))
 
         packets = self.tray.packets[self.tray.current:self.tray.current + burst]
-        #if packets:
-            #packets[-1].data.update(wf=True)  # set wait flag on last packet in burst
+        if packets:
+            last = packets[-1]
+            last.data.update(wf=True)  # set wait flag on last packet in burst
+            last.repack()
 
         for packet in packets:
             self.transmit(packet)
@@ -2819,9 +2809,6 @@ class Messenger(Initiator):
             console.concise("Messenger {0}. Do Message Segment {1} with {2} in {3} at {4}\n".format(
                     self.stack.name, self.tray.last, self.remote.name, self.tid, self.stack.store.stamp))
 
-        if not self.wait:  # only send request if not in wait mode
-            self.request()
-
     def another(self):
         '''
         Process ack packet and continue sending
@@ -2829,34 +2816,12 @@ class Messenger(Initiator):
         if not self.stack.parseInner(self.rxPacket):
             return
         self.remote.refresh(alived=True)
-        self.stack.incStat("message_more_ack_rx")
+        self.stack.incStat("message_ack_rx")
 
         if self.misseds:
             self.sendMisseds()
-        elif self.tray.current < len(self.tray.packets):
+        elif self.tray.current < (len(self.tray.packets) - 1):
             self.message()  # continue message
-
-    def request(self):
-        '''
-        Signify end of burst by sending request for ack packet
-        '''
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.request,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove()
-            return
-
-        self.transmit(packet)
-        console.concise("Messenger {0}. Do Request Ack of {1} in {2} at {3}\n".format(
-            self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        self.stack.incStat('message_request_ack_tx')
 
     def resend(self):
         '''
@@ -2896,11 +2861,18 @@ class Messenger(Initiator):
         Send a burst of missed packets
         '''
         if self.misseds:
-            burst = (1 if self.wait else
-                     len(self.misseds) if not self.burst else
-                      min(self.burst, (len(self.misseds))))
+            burst = (min(self.burst, (len(self.misseds))) if
+                     self.burst else len(self.misseds))
             # make list of first burst number of packets
-            misseds = [missed for missed in self.misseds][:min(burst, len(self.misseds))]
+            misseds = [missed for missed in self.misseds][:burst]
+            for packet in misseds[:-1]:
+                if packet.data['wf']:  # turn off wait flag if set
+                    packet.data.update(wf=False)
+                    packet.repack()
+            for packet in misseds[-1:]:  # last packet
+                if not packet.data['wf']:  # turn off wait flag if set
+                    packet.data.update(wf=True)
+                    packet.repack()
             for packet in misseds:
                 self.transmit(packet)
                 self.stack.incStat("message_segment_tx")
@@ -2913,12 +2885,9 @@ class Messenger(Initiator):
                     self.stack.store.stamp))
                 self.misseds.discard(packet)  # remove from self.misseds
 
-            if not self.wait:  # only send request if not in wait mode
-                self.request()
-
     def complete(self):
         '''
-        Process Ack
+        Process Done Ack
         Complete transaction and remove
         '''
         if not self.stack.parseInner(self.rxPacket):
@@ -3015,8 +2984,6 @@ class Messengent(Correspondent):
         if packet.data['tk'] == raeting.trnsKinds.message:
             if packet.data['pk'] == raeting.pcktKinds.message:
                 self.message()
-            elif packet.data['pk'] == raeting.pcktKinds.request:
-                self.respond()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
                 self.reject()
 
@@ -3105,30 +3072,11 @@ class Messengent(Correspondent):
 
         if self.tray.complete:
             self.complete()
-        else:
+        elif self.wait:  # ask for more if sender waiting for ack
             misseds = self.tray.missing(begin=0, end=self.tray.last)
             if misseds:  # resent missed segments
                 self.resend(misseds)
-            elif self.wait:   # only ask for more if sender waiting for ack
-                self.ack()
-
-    def respond(self):
-        '''
-        Process request packet
-        Determine appropriate ack response to request for ack
-        '''
-        if not self.stack.parseInner(self.rxPacket):
-            return
-        self.remote.refresh(alived=True)
-        self.stack.incStat("message_request_rx")
-
-        if self.tray.complete:
-            self.complete()
-        else:
-            misseds = self.tray.missing(begin=0, end=self.tray.last)
-            if misseds:  # resent missed segments
-                self.resend(misseds)
-            else:  # always ask for more here since got request for ack
+            else:
                 self.ack()
 
     def ack(self):
@@ -3205,7 +3153,7 @@ class Messengent(Correspondent):
                 self.remove()
                 return
             self.transmit(packet)
-            self.stack.incStat("message_resend")
+            self.stack.incStat("message_resend_tx")
             console.concise("Messengent {0}. Do Resend Segments {1} with {2} in {3} at {4}\n".format(
                     self.stack.name,
                     misseds,

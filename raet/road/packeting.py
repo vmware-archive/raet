@@ -582,7 +582,12 @@ class TxPacket(Packet):
         '''
         Repack the head and resign. Useful if need to change head flag
         '''
+        self.foot.pack()  # need to pack to reblank it
         self.head.pack()
+        self.packed = ''.join([self.head.packed,
+                               self.coat.packed,
+                               self.foot.packed])
+
         self.sign()  # sign updates self.packed
         if self.size > raeting.UDP_MAX_PACKET_SIZE:
             emsg = "Packet length of {0}, exceeds max of {1}".format(
