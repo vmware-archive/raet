@@ -83,7 +83,6 @@ class RoadStack(stacking.KeepStack):
     Fk = raeting.footKinds.nacl # stack default
     Ck = raeting.coatKinds.nacl # stack default
     Bf = False # stack default for bcstflag
-    Wf = False # stack default for waitflag
     BurstSize = 0  # stack default for max segments in each burst, 0 = no limit
     Period = 1.0 # stack default for keep alive
     Offset = 0.5 # stack default for keep alive
@@ -850,7 +849,6 @@ class RoadStack(stacking.KeepStack):
                                           timeout=timeout,
                                           txData=data,
                                           bcst=self.Bf,
-                                          wait=self.Wf,
                                           burst=self.BurstSize)
         messenger.message(body)
 

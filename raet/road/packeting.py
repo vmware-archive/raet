@@ -781,9 +781,9 @@ class TxTray(Tray):
             packet.coat.packed = packet.body.packed = segment
             packet.foot.pack()
             packet.head.pack()
-            packet.packed = ''.join([  packet.head.packed,
-                                        packet.coat.packed,
-                                        packet.foot.packed])
+            packet.packed = ''.join([packet.head.packed,
+                                     packet.coat.packed,
+                                     packet.foot.packed])
             packet.sign()
             self.packets.append(packet)
 

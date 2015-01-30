@@ -36,7 +36,7 @@ class Transaction(object):
     Timeout =  5.0 # default timeout
 
     def __init__(self, stack=None, remote=None, kind=None, timeout=None,
-                 rmt=False, bcst=False, wait=False, sid=None, tid=None,
+                 rmt=False, bcst=False, sid=None, tid=None,
                  txData=None, txPacket=None, rxPacket=None):
         '''
         Setup Transaction instance
@@ -53,7 +53,6 @@ class Transaction(object):
 
         self.rmt = rmt # remote initiator
         self.bcst = bcst # bf flag
-        self.wait = wait # wf flag
 
         self.sid = sid
         self.tid = tid
@@ -200,7 +199,6 @@ class Staler(Initiator):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
@@ -274,7 +272,6 @@ class Stalent(Correspondent):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
@@ -489,7 +486,6 @@ class Joiner(Initiator):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
@@ -1023,7 +1019,6 @@ class Joinent(Correspondent):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
@@ -1592,7 +1587,6 @@ class Allower(Initiator):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,
                           )
@@ -1970,7 +1964,6 @@ class Allowent(Correspondent):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid, )
 
@@ -2398,7 +2391,6 @@ class Aliver(Initiator):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,)
 
@@ -2559,7 +2551,6 @@ class Alivent(Correspondent):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,)
 
@@ -2684,6 +2675,7 @@ class Messenger(Initiator):
 
         self.burst = max(0, int(burst)) # BurstSize
         self.misseds = oset()  # ordered set of currently missed segments
+        self.wait = False  # wf wait flag
 
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
@@ -2704,11 +2696,11 @@ class Messenger(Initiator):
         super(Messenger, self).receive(packet)
 
         if packet.data['tk'] == raeting.trnsKinds.message:
-            if packet.data['pk'] == raeting.pcktKinds.more: # send more
+            if packet.data['pk'] == raeting.pcktKinds.ack: # more
                 self.another()  # continue message
-            elif packet.data['pk'] == raeting.pcktKinds.resend: # resend missed segments
-                self.resend()
-            elif packet.data['pk'] == raeting.pcktKinds.ack:  # complete
+            elif packet.data['pk'] == raeting.pcktKinds.resend:  # resend
+                self.resend()  # resend missed segments
+            elif packet.data['pk'] == raeting.pcktKinds.done:  # completed
                 self.complete()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
                 self.reject()
@@ -2766,7 +2758,6 @@ class Messenger(Initiator):
                             tk=self.kind,
                             cf=self.rmt,
                             bf=self.bcst,
-                            wf=self.wait,
                             si=self.sid,
                             ti=self.tid,)
 
@@ -2813,23 +2804,27 @@ class Messenger(Initiator):
             self.remove()
             return
 
-        burst = (1 if self.wait else
-                    (len(self.tray.packets) - self.tray.current) if not self.burst else
-                     min(self.burst, (len(self.tray.packets) - self.tray.current)))
+        burst = (min(self.burst, (len(self.tray.packets) - self.tray.current))
+                    if self.burst else (len(self.tray.packets) - self.tray.current))
 
-        for packet in self.tray.packets[self.tray.current:self.tray.current + burst]:
-            self.transmit(packet)  # if self.tray.current % 2 else None # to simulate lost packets
+        packets = self.tray.packets[self.tray.current:self.tray.current + burst]
+        #if packets:
+            #packets[-1].data.update(wf=True)  # set wait flag on last packet in burst
+
+        for packet in packets:
+            self.transmit(packet)
             self.tray.last = self.tray.current
+            self.tray.current += 1
             self.stack.incStat("message_segment_tx")
             console.concise("Messenger {0}. Do Message Segment {1} with {2} in {3} at {4}\n".format(
                     self.stack.name, self.tray.last, self.remote.name, self.tid, self.stack.store.stamp))
-            self.tray.current += 1
+
         if not self.wait:  # only send request if not in wait mode
             self.request()
 
     def another(self):
         '''
-        Process more ack packet and continue sending
+        Process ack packet and continue sending
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -2924,19 +2919,13 @@ class Messenger(Initiator):
     def complete(self):
         '''
         Process Ack
-        Complete transaction and remove if all packet sent otherwise send more
+        Complete transaction and remove
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
 
         self.remote.refresh(alived=True)
         self.stack.incStat('message_complete_rx')
-
-        #if self.tray.current < len(self.tray.packets):
-            #console.terse("Messenger {0}. Message complete received but not"
-                          #" yet complete\n".format(self.stack.name))
-            #self.message()  # shouldn't happen but just in case continue
-            #return
 
         self.remove()
         console.concise("Messenger {0}. Done with {1} in {2} at {3}\n".format(
@@ -3004,6 +2993,8 @@ class Messengent(Correspondent):
         self.redoTimer = aiding.StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
+        self.wait = False  # wf wait flag
+
         self.prep() # prepare .txData
         self.tray = packeting.RxTray(stack=self.stack)
 
@@ -3054,7 +3045,7 @@ class Messengent(Correspondent):
                 if misseds:  # resent missed segments
                     self.resend(misseds)
                 else:  # always ask for more here
-                    self.more()
+                    self.ack()
 
     def prep(self):
         '''
@@ -3119,7 +3110,7 @@ class Messengent(Correspondent):
             if misseds:  # resent missed segments
                 self.resend(misseds)
             elif self.wait:   # only ask for more if sender waiting for ack
-                self.more()
+                self.ack()
 
     def respond(self):
         '''
@@ -3138,15 +3129,15 @@ class Messengent(Correspondent):
             if misseds:  # resent missed segments
                 self.resend(misseds)
             else:  # always ask for more here since got request for ack
-                self.more()
+                self.ack()
 
-    def more(self):
+    def ack(self):
         '''
-        Send more ack to message
+        Send ack to message
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.more,
+                                    kind=raeting.pcktKinds.ack,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -3165,13 +3156,13 @@ class Messengent(Correspondent):
             self.tid,
             self.stack.store.stamp))
 
-    def ack(self):
+    def done(self):
         '''
-        Send ack to complete message
+        Send done ack to complete message
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.ack,
+                                    kind=raeting.pcktKinds.done,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -3227,7 +3218,7 @@ class Messengent(Correspondent):
         '''
         Complete transaction and remove
         '''
-        self.ack()
+        self.done()
         console.verbose("{0} received message body\n{1}\n".format(
             self.stack.name, self.tray.body))
         # application layer authorizaiton needs to know who sent the message
