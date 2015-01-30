@@ -2658,8 +2658,8 @@ class Messenger(Initiator):
     Generic messages
     '''
     Timeout = 0.0
-    RedoTimeoutMin = 0.25 # initial timeout
-    RedoTimeoutMax = 1.0 # max timeout
+    RedoTimeoutMin = 0.2 # initial timeout
+    RedoTimeoutMax = 0.5 # max timeout
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, burst=0, **kwa):
         '''
@@ -2963,8 +2963,8 @@ class Messengent(Correspondent):
     Generic Messages
     '''
     Timeout = 0.0
-    RedoTimeoutMin = 0.25 # initial timeout
-    RedoTimeoutMax = 1.0 # max timeout
+    RedoTimeoutMin = 0.2 # initial timeout
+    RedoTimeoutMax = 0.5 # max timeout
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
         '''
@@ -2979,7 +2979,8 @@ class Messengent(Correspondent):
                                            duration=self.redoTimeoutMin)
 
         self.wait = False  # wf wait flag
-
+        self.lowest = None
+        self.highest = None
         self.prep() # prepare .txData
         self.tray = packeting.RxTray(stack=self.stack)
 
@@ -3024,8 +3025,10 @@ class Messengent(Correspondent):
             if self.tray.complete:
                 self.complete()
             else:
-                misseds = self.tray.missing(begin=0, end=self.tray.highest())
+                misseds = self.tray.missing(begin=self.lowest, end=self.highest)
                 if misseds:  # resent missed segments
+                    self.lowest = misseds[0]
+                    self.highest = misseds[-1]
                     self.resend(misseds)
                 else:  # always ask for more here
                     self.ack()
@@ -3089,8 +3092,12 @@ class Messengent(Correspondent):
         if self.tray.complete:
             self.complete()
         elif self.wait:  # ask for more if sender waiting for ack
-            misseds = self.tray.missing(begin=0, end=self.tray.highest())
+            if self.highest:
+                self.highest = max(self.highest, self.rxPacket.data['sn'])
+            misseds = self.tray.missing(begin=self.lowest, end=self.highest)
             if misseds:  # resent missed segments
+                self.lowest = misseds[0]
+                self.highest = misseds[-1]
                 self.resend(misseds)
             else:
                 self.ack()

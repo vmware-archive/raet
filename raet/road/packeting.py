@@ -6,7 +6,7 @@ packeting module provides classes for Raet packets
 '''
 
 # Import python libs
-from collections import Mapping
+from collections import Mapping, deque
 try:
     import simplejson as json
 except ImportError:
@@ -849,7 +849,8 @@ class RxTray(Tray):
 
     def missing(self, begin=None, end=None):
         '''
-        return list of missing packet numbers between begin and end
+        return deque of missing packet numbers between begin and end where
+        after at least one is found one starting from the end
         '''
         if begin is None:
             begin = 0
@@ -857,11 +858,31 @@ class RxTray(Tray):
             end = len(self.segments)
         if begin >= end:
             return []
-        misseds = []
-        for i, segment in enumerate(self.segments[begin:end]):
-            if segment is None:
-                misseds.append(i)
-        return misseds
+        misseds = deque()
+        found = False  # first missed after found
+        for i in range(end - 1, begin - 1, -1):  # iterate backwards
+            if self.segments[i]:
+                found =  True
+            if found and self.segments[i] is None:
+                misseds.appendleft(i)  # this reverses order
+        return list(misseds)   # convert into a list
+
+
+    #def missing(self, begin=None, end=None):
+        #'''
+        #return list of missing packet numbers between begin and end
+        #'''
+        #if begin is None:
+            #begin = 0
+        #if end is None:
+            #end = len(self.segments)
+        #if begin >= end:
+            #return []
+        #misseds = []
+        #for i, segment in enumerate(self.segments[begin:end]):
+            #if segment is None:
+                #misseds.append(i)
+        #return misseds
 
     def highest(self):
         '''
