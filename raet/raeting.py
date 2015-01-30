@@ -64,8 +64,8 @@ header data =
     sc: Segment Count  (SgmtCnt) Default 1
     sf: Segment Flag  (SgmtFlag) Default 0
         This packet is part of a segmented message
-    af: All Flag (AllFlag) Default 0
-        Resend all segments not just one
+    af: Again Flag (AgnFlag) Default 0
+        This segment is being sent again
 
     bk: Body kind   (BodyKind) Default 0
     ck: Coat kind   (CoatKind) Default 0
@@ -256,7 +256,7 @@ PACKET_HEAD_FIELDS = ['ri', 'vn', 'pk', 'pl', 'hk', 'hl',
                'dt', 'oi', 'wf', 'sn', 'sc', 'ml', 'sf', 'af',
                'bk', 'bl', 'ck', 'cl', 'fk', 'fl', 'fg']
 
-PACKET_FLAGS = ['vf', 'df', 'nf' 'af', 'sf', 'wf', 'bf', 'cf']
+PACKET_FLAGS = ['vf', 'df', 'nf', 'af', 'sf', 'wf', 'bf', 'cf']
 PACKET_FLAG_FIELDS = ['vf', 'df', 'nf', 'af', 'sf', 'wf', 'bf', 'cf']
 
 PACKET_FIELD_FORMATS = odict([

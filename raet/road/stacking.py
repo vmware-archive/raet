@@ -614,7 +614,10 @@ class RoadStack(stacking.KeepStack):
 
         if (packet.data['tk'] == raeting.trnsKinds.message and
                 packet.data['pk'] == raeting.pcktKinds.message):
-            self.replyMessage(packet, remote)
+            if packet.data['af']:  # packet is a stale resend
+                self.replyStale(packet, remote)
+            else:
+                self.replyMessage(packet, remote)
             return
 
         self.incStat('stale_packet')

@@ -2658,8 +2658,8 @@ class Messenger(Initiator):
     Generic messages
     '''
     Timeout = 0.0
-    RedoTimeoutMin = 1.0 # initial timeout
-    RedoTimeoutMax = 3.0 # max timeout
+    RedoTimeoutMin = 0.25 # initial timeout
+    RedoTimeoutMax = 1.0 # max timeout
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, burst=0, **kwa):
         '''
@@ -2723,11 +2723,14 @@ class Messenger(Initiator):
             self.redoTimer.restart(duration=duration)
             if self.txPacket:
                 if self.txPacket.data['pk'] in [raeting.pcktKinds.message]:
+                    if not self.txPacket.data['af']:  # turn on AgnFlag if not set
+                        self.txPacket.data.update(af=True)
+                        self.txPacket.repack()
                     self.transmit(self.txPacket) # redo
                     console.concise("Messenger {0}. Redo Segment {1} with "
                                     "{2} in {3} at {4}\n".format(
                                     self.stack.name,
-                                    self.tray.last,
+                                    self.txPacket.data['sn'],
                                     self.remote.name,
                                     self.tid,
                                     self.stack.store.stamp))
@@ -2866,13 +2869,26 @@ class Messenger(Initiator):
             # make list of first burst number of packets
             misseds = [missed for missed in self.misseds][:burst]
             for packet in misseds[:-1]:
+                repack = False
+                if not packet.data['af']:  # turn on again flag if not set
+                    packet.data.update(af=True)
+                    repack = True
                 if packet.data['wf']:  # turn off wait flag if set
                     packet.data.update(wf=False)
+                    repack = True
+                if repack:
                     packet.repack()
             for packet in misseds[-1:]:  # last packet
-                if not packet.data['wf']:  # turn off wait flag if set
+                repack = False
+                if not packet.data['af']:  # turn on again flag is not set
+                    packet.data.update(af=True)
+                    repack = True
+                if not packet.data['wf']:  # turn on wait flag if not set
                     packet.data.update(wf=True)
+                    repack = True
+                if repack:
                     packet.repack()
+
             for packet in misseds:
                 self.transmit(packet)
                 self.stack.incStat("message_segment_tx")
@@ -2947,8 +2963,8 @@ class Messengent(Correspondent):
     Generic Messages
     '''
     Timeout = 0.0
-    RedoTimeoutMin = 1.0 # initial timeout
-    RedoTimeoutMax = 3.0 # max timeout
+    RedoTimeoutMin = 0.25 # initial timeout
+    RedoTimeoutMax = 1.0 # max timeout
 
     def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
         '''
@@ -3008,7 +3024,7 @@ class Messengent(Correspondent):
             if self.tray.complete:
                 self.complete()
             else:
-                misseds = self.tray.missing(begin=0, end=self.tray.last)
+                misseds = self.tray.missing(begin=0, end=self.tray.highest())
                 if misseds:  # resent missed segments
                     self.resend(misseds)
                 else:  # always ask for more here
@@ -3073,7 +3089,7 @@ class Messengent(Correspondent):
         if self.tray.complete:
             self.complete()
         elif self.wait:  # ask for more if sender waiting for ack
-            misseds = self.tray.missing(begin=0, end=self.tray.last)
+            misseds = self.tray.missing(begin=0, end=self.tray.highest())
             if misseds:  # resent missed segments
                 self.resend(misseds)
             else:
@@ -3099,35 +3115,10 @@ class Messengent(Correspondent):
         self.stack.incStat("message_more_ack")
         console.concise("Messengent {0}. Do Ack More on Segment {1} with {2} in {3} at {4}\n".format(
             self.stack.name,
-            self.tray.last,
+            self.rxPacket.data['sn'],
             self.remote.name,
             self.tid,
             self.stack.store.stamp))
-
-    def done(self):
-        '''
-        Send done ack to complete message
-        '''
-        body = odict()
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.done,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(str(ex) + '\n')
-            self.stack.incStat("packing_error")
-            self.remove()
-            return
-        self.transmit(packet)
-        self.stack.incStat("message_complete_ack")
-        console.concise("Messengent {0}. Do Ack Complete Message on Segment {1} with {2} in {3} at {4}\n".format(
-                self.stack.name,
-                self.tray.last,
-                self.remote.name,
-                self.tid,
-                self.stack.store.stamp))
 
     def resend(self, misseds):
         '''
@@ -3175,6 +3166,31 @@ class Messengent(Correspondent):
         console.concise("Messengent {0}. Complete with {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("messagent_correspond_complete")
+
+    def done(self):
+        '''
+        Send done ack to complete message
+        '''
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.done,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            self.remove()
+            return
+        self.transmit(packet)
+        self.stack.incStat("message_complete_ack")
+        console.concise("Messengent {0}. Do Ack Done Message on Segment {1} with {2} in {3} at {4}\n".format(
+            self.stack.name,
+            self.rxPacket.data['sn'],
+            self.remote.name,
+            self.tid,
+            self.stack.store.stamp))
 
     def reject(self):
         '''

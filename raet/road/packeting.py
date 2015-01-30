@@ -863,6 +863,16 @@ class RxTray(Tray):
                 misseds.append(i)
         return misseds
 
+    def highest(self):
+        '''
+        Return index of highest segment received so far
+        '''
+        highest = 0
+        for i, segment in enumerate(self.segments):
+            if segment:
+                highest = i
+        return highest
+
     def desegmentize(self):
         '''
         Process message packet assumes already parsed outer so verified signature

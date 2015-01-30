@@ -198,28 +198,40 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
 
-    def serviceStacksWithDrops(self, stacks, drops=None, duration=1.0):
+    def serviceStacksWithDrops(self, stacks, dropage=None, duration=1.0):
         '''
         Utility method to service queues for list of stacks. Call from test method.
         Drops tx msgs in .txes deque based on drops filter which is list
         of truthy falsey values. For each element of drops if truthy then drop
         the tx at the corresponding index for each service of the txes deque.
         '''
-        if drops is None:
-            drops = []
+        if dropage is None:
+            dropage = [[], []]
+        for k in range(len(stacks) - len(dropage)):
+            dropage.append([])  # ensure a drops list per stack even if empty
+        indices =  []
+        for stack in stacks:
+            indices.append(0)
+
         self.timer.restart(duration=duration)
         while not self.timer.expired:
-            for stack in stacks:
+            for i, stack in enumerate(stacks):
                 stack.serviceTxMsgs()
-                drops = [drop for drop in just(len(stack.txes), drops)]  # make drops length oftxCnt None fill
-                i = 0
+                drops = dropage[i]
+                j = indices[i]
                 while stack.txes:
-                    if drops[i]:
+                    try:
+                        drop = drops[j]
+                    except IndexError:
+                        drop = False
+
+                    if drop:
                         stack.txes.popleft()  # pop and drop
-                        console.concise("Stack {0}: Dropping {1}\n".format(stack.name, i))
+                        console.concise("Stack {0}: Dropping {1}\n".format(stack.name, j))
                     else:
                         stack.serviceTxOnce() # service
-                    i += 1
+                    j += 1
+                indices[i] = j
 
             time.sleep(0.05)
             for stack in stacks:
@@ -227,7 +239,6 @@ class BasicTestCase(unittest.TestCase):
 
             if all([not stack.transactions for stack in stacks]):
                 break
-            drops = []
             self.store.advanceStamp(0.1)
             time.sleep(0.05)
 
@@ -586,30 +597,30 @@ class BasicTestCase(unittest.TestCase):
         sentMsg = odict(who="Green", data=bloat)
         msgs.append(sentMsg)
 
-        self.message(msgs, alpha, beta, duration=5.0)
+        #self.message(msgs, alpha, beta, duration=5.0)
 
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.transactions), 0)
+        #for stack in [alpha, beta]:
+            #self.assertEqual(len(stack.transactions), 0)
 
-        self.assertEqual(len(alpha.txMsgs), 0)
-        self.assertEqual(len(alpha.txes), 0)
-        self.assertEqual(len(beta.rxes), 0)
-        self.assertEqual(len(beta.rxMsgs), 1)
-        receivedMsg, source = beta.rxMsgs.popleft()
-        self.assertDictEqual(sentMsg, receivedMsg)
+        #self.assertEqual(len(alpha.txMsgs), 0)
+        #self.assertEqual(len(alpha.txes), 0)
+        #self.assertEqual(len(beta.rxes), 0)
+        #self.assertEqual(len(beta.rxMsgs), 1)
+        #receivedMsg, source = beta.rxMsgs.popleft()
+        #self.assertDictEqual(sentMsg, receivedMsg)
 
-        console.terse("\nMessage Beta to Alpha *********\n")
-        self.message(msgs, beta, alpha, duration=5.0)
+        #console.terse("\nMessage Beta to Alpha *********\n")
+        #self.message(msgs, beta, alpha, duration=5.0)
 
-        for stack in [beta, alpha]:
-            self.assertEqual(len(stack.transactions), 0)
+        #for stack in [beta, alpha]:
+            #self.assertEqual(len(stack.transactions), 0)
 
-        self.assertEqual(len(beta.txMsgs), 0)
-        self.assertEqual(len(beta.txes), 0)
-        self.assertEqual(len(alpha.rxes), 0)
-        self.assertEqual(len(alpha.rxMsgs), 1)
-        receivedMsg, source = alpha.rxMsgs.popleft()
-        self.assertDictEqual(sentMsg, receivedMsg)
+        #self.assertEqual(len(beta.txMsgs), 0)
+        #self.assertEqual(len(beta.txes), 0)
+        #self.assertEqual(len(alpha.rxes), 0)
+        #self.assertEqual(len(alpha.rxMsgs), 1)
+        #receivedMsg, source = alpha.rxMsgs.popleft()
+        #self.assertDictEqual(sentMsg, receivedMsg)
 
         console.terse("\nMessage with drops Alpha to Beta *********\n")
         self.assertEqual(len(alpha.txMsgs), 0)
@@ -619,8 +630,8 @@ class BasicTestCase(unittest.TestCase):
         alpha.transmit(sentMsg)
 
         drops = [0, 1, 1, 0, 0, 0, 0, 0, 1]
-        #drops = []
-        self.serviceStacksWithDrops([alpha, beta], drops=drops, duration=5.0)
+        dropage = [list(drops), list(drops)]
+        self.serviceStacksWithDrops([alpha, beta], dropage=dropage, duration=10.0)
 
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
@@ -639,9 +650,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.rxMsgs), 0)
         beta.transmit(sentMsg)
 
-        drops = [0, 1, 0, 0, 1, 0, 0, 0, 1]
-        #drops = []
-        self.serviceStacksWithDrops([alpha, beta], drops=drops, duration=5.0)
+        drops = [0, 1, 0, 1, 1, 0, 0, 0, 1]
+        dropage = [list(drops), list(drops)]
+        self.serviceStacksWithDrops([alpha, beta], dropage=dropage, duration=10.0)
 
         for stack in [beta, alpha]:
             self.assertEqual(len(stack.transactions), 0)
@@ -716,30 +727,30 @@ class BasicTestCase(unittest.TestCase):
         sentMsg = odict(who="Green", data=bloat)
         msgs.append(sentMsg)
 
-        self.message(msgs, alpha, beta, duration=5.0)
+        #self.message(msgs, alpha, beta, duration=5.0)
 
-        for stack in [alpha, beta]:
-            self.assertEqual(len(stack.transactions), 0)
+        #for stack in [alpha, beta]:
+            #self.assertEqual(len(stack.transactions), 0)
 
-        self.assertEqual(len(alpha.txMsgs), 0)
-        self.assertEqual(len(alpha.txes), 0)
-        self.assertEqual(len(beta.rxes), 0)
-        self.assertEqual(len(beta.rxMsgs), 1)
-        receivedMsg, source = beta.rxMsgs.popleft()
-        self.assertDictEqual(sentMsg, receivedMsg)
+        #self.assertEqual(len(alpha.txMsgs), 0)
+        #self.assertEqual(len(alpha.txes), 0)
+        #self.assertEqual(len(beta.rxes), 0)
+        #self.assertEqual(len(beta.rxMsgs), 1)
+        #receivedMsg, source = beta.rxMsgs.popleft()
+        #self.assertDictEqual(sentMsg, receivedMsg)
 
-        console.terse("\nMessage Beta to Alpha *********\n")
-        self.message(msgs, beta, alpha, duration=5.0)
+        #console.terse("\nMessage Beta to Alpha *********\n")
+        #self.message(msgs, beta, alpha, duration=5.0)
 
-        for stack in [beta, alpha]:
-            self.assertEqual(len(stack.transactions), 0)
+        #for stack in [beta, alpha]:
+            #self.assertEqual(len(stack.transactions), 0)
 
-        self.assertEqual(len(beta.txMsgs), 0)
-        self.assertEqual(len(beta.txes), 0)
-        self.assertEqual(len(alpha.rxes), 0)
-        self.assertEqual(len(alpha.rxMsgs), 1)
-        receivedMsg, source = alpha.rxMsgs.popleft()
-        self.assertDictEqual(sentMsg, receivedMsg)
+        #self.assertEqual(len(beta.txMsgs), 0)
+        #self.assertEqual(len(beta.txes), 0)
+        #self.assertEqual(len(alpha.rxes), 0)
+        #self.assertEqual(len(alpha.rxMsgs), 1)
+        #receivedMsg, source = alpha.rxMsgs.popleft()
+        #self.assertDictEqual(sentMsg, receivedMsg)
 
         console.terse("\nMessage with drops Alpha to Beta *********\n")
         self.assertEqual(len(alpha.txMsgs), 0)
@@ -748,9 +759,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(beta.rxMsgs), 0)
         alpha.transmit(sentMsg)
 
-        drops = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1]
-        #drops = []
-        self.serviceStacksWithDrops([alpha, beta], drops=drops, duration=5.0)
+        drops = [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1]
+        dropage = [list(drops), list(drops)]
+        self.serviceStacksWithDrops([alpha, beta], dropage=dropage, duration=10.0)
 
         for stack in [alpha, beta]:
             self.assertEqual(len(stack.transactions), 0)
@@ -769,9 +780,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.rxMsgs), 0)
         beta.transmit(sentMsg)
 
-        drops = [0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
-        #drops = []
-        self.serviceStacksWithDrops([alpha, beta], drops=drops, duration=5.0)
+        drops = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
+        dropage = [list(drops), list(drops)]
+        self.serviceStacksWithDrops([alpha, beta], dropage=dropage, duration=10.0)
 
         for stack in [beta, alpha]:
             self.assertEqual(len(stack.transactions), 0)
@@ -832,4 +843,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testMessageBurstOne')
+    #runOne('testMessageWithBurstDrops')
