@@ -578,6 +578,16 @@ class TxPacket(Packet):
                                self.coat.packed,
                                self.foot.packed])
 
+    def repack(self):
+        '''
+        Repack the head and resign. Useful if need to change head flag
+        '''
+        self.head.pack()
+        self.sign()  # sign updates self.packed
+        if self.size > raeting.UDP_MAX_PACKET_SIZE:
+            emsg = "Packet length of {0}, exceeds max of {1}".format(
+                self.size, raeting.UDP_MAX_PACKET_SIZE)
+            raise raeting.PacketError(emsg)
 
     def pack(self):
         '''
@@ -588,7 +598,6 @@ class TxPacket(Packet):
             emsg = "Packet length of {0}, exceeds max of {1}".format(
                     self.size, raeting.UDP_MAX_PACKET_SIZE)
             raise raeting.PacketError(emsg)
-
         self.sign()
 
 class RxPacket(Packet):
