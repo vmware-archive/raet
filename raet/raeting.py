@@ -127,10 +127,10 @@ MAX_SEGMENT_COUNT = (2 ** 16) - 1 # 65535
 MAX_MESSAGE_SIZE = min(67107840, UDP_MAX_PACKET_SIZE * MAX_SEGMENT_COUNT)
 MAX_HEAD_SIZE = 255
 
-JSON_END = '\r\n\r\n'
-HEAD_END = '\n\n'
+JSON_END = b'\r\n\r\n'
+HEAD_END = b'\n\n'
 
-VERSIONS = odict([('0.1', 0)])
+VERSIONS = odict([(b'0.1', 0)])
 VERSION_NAMES = odict((v, k) for k, v in VERSIONS.iteritems())
 VERSION = VERSIONS.values()[0]
 
@@ -217,7 +217,7 @@ PACKET_DEFAULTS = odict([
                             ('sp', RAET_PORT),
                             ('dh', DEFAULT_DST_HOST),
                             ('dp', RAET_PORT),
-                            ('ri', 'RAET'),
+                            ('ri', b'RAET'),
                             ('vn', 0),
                             ('pk', 0),
                             ('pl', 0),
@@ -245,7 +245,7 @@ PACKET_DEFAULTS = odict([
                             ('ck', 0),
                             ('fk', 0),
                             ('fl', 0),
-                            ('fg', '00'),
+                            ('fg', b'00'),
                       ])
 
 PACKET_FIELDS = ['sh', 'sp', 'dh', 'dp',
@@ -296,12 +296,12 @@ PACKET_FIELD_FORMATS = odict([
 
 # head fields that may be included in page header if not default value
 PAGE_DEFAULTS = odict([
-                        ('ri', 'RAET'),
+                        ('ri', b'RAET'),
                         ('vn', 0),
                         ('pk', 0),
                         ('sn', ''),
                         ('dn', ''),
-                        ('si', '000000000000000000'),
+                        ('si', b'000000000000000000'),
                         ('bi', 0),
                         ('pn', 0),
                         ('pc', 1),
@@ -347,6 +347,7 @@ class StackError(RaetError):
     '''
     pass
 
+
 class EstateError(RaetError):
     '''
        Exceptions in RAET estate processing
@@ -356,6 +357,7 @@ class EstateError(RaetError):
             raise raeting.EstateError(emsg)
     '''
     pass
+
 
 class TransactionError(RaetError):
     '''
@@ -367,6 +369,7 @@ class TransactionError(RaetError):
     '''
     pass
 
+
 class PacketError(RaetError):
     '''
        Exceptions in RAET packet processing
@@ -376,6 +379,7 @@ class PacketError(RaetError):
             raise raeting.PacketError(emsg)
     '''
     pass
+
 
 class PacketSizeError(PacketError):
     '''
@@ -398,6 +402,7 @@ class KeepError(RaetError):
     '''
     pass
 
+
 class YardError(RaetError):
     '''
        Exceptions in RAET yard processing
@@ -407,6 +412,7 @@ class YardError(RaetError):
             raise raeting.YardError(emsg)
     '''
     pass
+
 
 class PageError(RaetError):
     '''
