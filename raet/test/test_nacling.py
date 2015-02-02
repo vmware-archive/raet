@@ -17,6 +17,9 @@ from ioflo.base.consoling import getConsole
 console = getConsole()
 
 from ioflo.base.odicting import odict
+
+# Import raet libs
+from raet.abiding import *  # import globals
 from raet import nacling
 
 def setUpModule():

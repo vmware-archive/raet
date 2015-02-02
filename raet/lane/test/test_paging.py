@@ -21,6 +21,8 @@ from ioflo.base import storing
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
+# Import raet libs
+from raet.abiding import *  # import globals
 from raet import raeting, nacling
 from raet.lane import paging, yarding, stacking
 

@@ -24,6 +24,8 @@ from ioflo.base import storing
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
+# Import raet libs
+from raet.abiding import *  # import globals
 from raet import raeting
 from raet.lane import yarding, stacking
 
@@ -46,10 +48,10 @@ class BasicTestCase(unittest.TestCase):
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
         if sys.platform == 'win32':
-            self.tempDirpath = tempfile.mktemp(prefix="raet",  suffix="base", 
+            self.tempDirpath = tempfile.mktemp(prefix="raet",  suffix="base",
                                                dir=TEMPDIR)
         else:
-            self.tempDirpath = tempfile.mkdtemp(prefix="raet",  suffix="base", 
+            self.tempDirpath = tempfile.mkdtemp(prefix="raet",  suffix="base",
                                                 dir=TEMPDIR)
 
         self.baseDirpath = os.path.join(self.tempDirpath, 'lane', 'keep')

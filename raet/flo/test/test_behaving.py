@@ -16,6 +16,8 @@ from ioflo.test import testing
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
+# Import raet libs
+from raet.abiding import *  # import globals
 from raet.flo import behaving
 from raet.road import stacking
 

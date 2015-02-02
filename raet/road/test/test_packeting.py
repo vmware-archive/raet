@@ -31,6 +31,8 @@ if sys.platform == 'win32':
 else:
     TEMPDIR = '/tmp'
 
+# Import raet libs
+from raet.abiding import *  # import globals
 from raet import raeting, nacling
 from raet.road import keeping, packeting, estating, stacking, transacting
 
