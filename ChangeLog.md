@@ -3,6 +3,18 @@ CHANGE LOG
 -------------------
 
 -----------
+20150201
+----------
+v0.4.7
+
+Added support for burst size limits in the Message transaction to deal with
+limits on UDP receive buffers on some hosts. Significant changes to how the
+Messenger and Messagent transactions work.
+
+Added more units tests for messaging.
+
+
+-----------
 20150128
 ----------
 v0.4.6
