@@ -38,7 +38,7 @@ class Part(object):
         Setup Part instance
         '''
         self.page = page  # Page this Part belongs too
-        self.packed = ''
+        self.packed = b''
 
     def __len__(self):
         '''
@@ -154,13 +154,16 @@ class TxBody(Body):
 
         if pk == raeting.packKinds.json:
             if self.data:
-                self.packed = json.dumps(self.data, separators=(',', ':'))
+                self.packed = ns2b(json.dumps(self.data,
+                                         separators=(',', ':'),
+                                         encoding='utf-8'))
         elif pk == raeting.packKinds.pack:
             if self.data:
                 if not msgpack:
                     emsg = "Msgpack not installed."
                     raise raeting.PacketError(emsg)
-                self.packed = msgpack.dumps(self.data)
+                self.packed = msgpack.dumps(self.data,
+                                            encoding='utf-8')
         else:
             emsg = "Unrecognized message pack kind '{0}'\n".format(pk)
             console.terse(emsg)
@@ -189,13 +192,17 @@ class RxBody(Body):
 
         if pk == raeting.packKinds.json:
             if self.packed:
-                self.data = json.loads(self.packed, object_pairs_hook=odict)
+                self.data = json.loads(self.packed,
+                                       object_pairs_hook=odict,
+                                       encoding='utf-8')
         elif pk == raeting.packKinds.pack:
             if self.packed:
                 if not msgpack:
                     emsg = "Msgpack not installed."
                     raise raeting.PacketError(emsg)
-                self.data = msgpack.loads(self.packed, object_pairs_hook=odict)
+                self.data = msgpack.loads(self.packed,
+                                          object_pairs_hook=odict,
+                                          encoding='utf-8')
 
         if not isinstance(self.data, Mapping):
             emsg = "Message body not a mapping\n"
@@ -213,7 +220,7 @@ class Page(object):
         self.data = odict(raeting.PAGE_DEFAULTS)
         if data:
             self.data.update(data)
-        self.packed = ''  # packed string
+        self.packed = b''  # packed string
 
     @property
     def size(self):
@@ -319,7 +326,7 @@ class Book(object):
         if data:
             self.data.update(data)
         self.body = body #body data of message
-        self.packed = '' # complete unsectionalize packed message body no headers
+        self.packed = b'' # complete unsectionalize packed message body no headers
 
     @property
     def size(self):
@@ -449,7 +456,7 @@ class RxBook(Book):
         '''
         Generate message from pages
         '''
-        self.packed = "".join(self.sections)
+        self.packed = b''.join(self.sections)
         page = RxPage(stack = self.stack, data=self.data)
         page.body.packed = self.packed
         page.body.parse()
