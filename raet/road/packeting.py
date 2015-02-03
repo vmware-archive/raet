@@ -176,7 +176,7 @@ class RxHead(Head):
         if packed.startswith(b'ri RAET\n') and raeting.HEAD_END in packed: # raet head
             hk = raeting.headKinds.raet
             front, sep, back = packed.partition(raeting.HEAD_END)
-            self.packed = "{0}{1}".format(front, sep)
+            self.packed = front + sep
             kit = odict()
             lines = front.split('\n')
             for line in lines:
@@ -246,7 +246,7 @@ class RxHead(Head):
         '''
         Unpacks all the flag fields from a single two char hex string
         '''
-        values = unpackByte(fmt='11111111', byte=int(flags, 16), boolean=True)
+        values = unpackByte(fmt=b'11111111', byte=int(flags, 16), boolean=True)
         for i, field in enumerate(raeting.PACKET_FLAG_FIELDS):
             if field in self.packet.data:
                 self.packet.data[field] = values[i]
@@ -273,17 +273,19 @@ class TxBody(Body):
         '''
         Composes .packed, which is the packed form of this part
         '''
-        self.packed = ''
+        self.packed = b''
         bk = self.packet.data['bk']
         if bk == raeting.bodyKinds.json:
             if self.data:
-                self.packed = ns2b(json.dumps(self.data, separators=(',', ':')))
+                self.packed = ns2b(json.dumps(self.data,
+                                              separators=(',', ':'),
+                                              encoding='utf-8'))
         elif bk == raeting.bodyKinds.msgpack:
             if self.data:
                 if not msgpack:
                     emsg = "Msgpack not installed."
                     raise raeting.PacketError(emsg)
-                self.packed = msgpack.dumps(self.data)
+                self.packed = msgpack.dumps(self.data, encoding='utf-8')
         elif bk == raeting.bodyKinds.raw:
             self.packed = self.data # data is already formatted string
 
