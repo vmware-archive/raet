@@ -276,11 +276,14 @@ class Stack(object):
         Handle one received message from server
         assumes that there is a server
         '''
-        rx, ra = self.server.receive()  # if no data the duple is ('',None)
+        try:
+            rx, ra = self.server.receive()  # if no data the duple is ('',None)
+        except socket.error as ex:
+            if ex.errno == errno.ECONNRESET:
+                return False
         if not rx:  # no received data
             return False
-        # duple = ( packet, source address)
-        self.rxes.append((rx, ra))
+        self.rxes.append((rx, ra))     # duple = ( packet, source address)
         return True
 
     def serviceReceives(self):
