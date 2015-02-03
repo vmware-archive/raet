@@ -72,14 +72,14 @@ class TxHead(Head):
         '''
         Composes .packed, which is the packed form of this part
         '''
-        self.packed = ''
+        self.packed = b''
         data = self.page.data  # for speed
         lines = []
         for k, v in data.items():
             lines.append("{key} {val:{fmt}}".format(
                     key=k, val=v, fmt=raeting.PAGE_FIELD_FORMATS[k]))
 
-        self.packed = '{0}{1}'.format("\n".join(lines), raeting.HEAD_END)
+        self.packed = ns2b("\n".join(lines)) + raeting.HEAD_END
 
 
 class RxHead(Head):
@@ -91,7 +91,7 @@ class RxHead(Head):
         Unpacks head. Parses head and updates .page.data
         Raises PageError if failure occurs
         '''
-        self.packed = ''
+        self.packed = b''
         data = self.page.data  # for speed
         packed = self.page.packed  # for speed
 
@@ -100,19 +100,19 @@ class RxHead(Head):
             console.terse(emsg)
             raise raeting.PageError(emsg)
 
-        if (not packed.startswith('ri RAET\n') or raeting.HEAD_END not in packed):
-            emsg = "Unrecognized packed body head\n"
+        if (not packed.startswith(ns2b('ri RAET\n')) or raeting.HEAD_END not in packed):
+            emsg = "Unrecognized page head\n"
             console.terse(emsg)
             raise raeting.PageError(emsg)
 
         front, sep, back = packed.partition(raeting.HEAD_END)
-        self.packed = "{0}{1}".format(front, sep)
+        self.packed = front + sep
         self.page.body.packed = back
 
         kit = odict()
-        lines = front.split('\n')
+        lines = front.split(b'\n')
         for line in lines:
-            key, val = line.split(' ')
+            key, val = line.split(b' ')
             if key not in raeting.PAGE_FIELDS:
                 emsg = "Unknown head field '{0}'".format(key)
                 raise raeting.PageError(emsg)
@@ -149,7 +149,7 @@ class TxBody(Body):
         '''
         Composes .packed, which is the packed form of this part
         '''
-        self.packed = ''
+        self.packed = b''
         pk = self.page.data['pk']
 
         if pk == raeting.packKinds.json:

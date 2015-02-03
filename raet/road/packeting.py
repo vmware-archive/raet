@@ -73,7 +73,7 @@ class TxHead(Head):
         '''
         Composes .packed, which is the packed form of this part
         '''
-        self.packed = ''
+        self.packed = b''
         data = self.packet.data  # for speed
         data['fl'] = self.packet.foot.size
         data['fg'] = "{0:02x}".format(self.packFlags())
@@ -87,14 +87,13 @@ class TxHead(Head):
                 kit[k] = data[k]
 
         if data['hk'] == raeting.headKinds.raet:
-            packed = ''
+            packed = b''
             lines = []
             for k, v in kit.items():
-                lines.append("{key} {val:{fmt}}".format(
-                        key=k, val=v, fmt=raeting.PACKET_FIELD_FORMATS[k]))
-
-            packed = "\n".join(lines)
-            packed = '{0}{1}'.format(packed, raeting.HEAD_END)
+                lines.append(ns2b("{key} {val:{fmt}}".format(
+                        key=k, val=v, fmt=raeting.PACKET_FIELD_FORMATS[k])))
+            packed = ns2b("\n".join(lines)) + raeting.HEAD_END
+            #packed = ns2b('{0}{1}'.format(packed, raeting.HEAD_END))
             hl = len(packed)
             if hl > raeting.MAX_HEAD_SIZE:
                 emsg = "Head length of {0}, exceeds max of {1}".format(hl, MAX_HEAD_SIZE)
@@ -110,27 +109,27 @@ class TxHead(Head):
             # Tray checks for packet length greater than UDP_MAX_PACKET_SIZE
             # and segments appropriately so pl may be truncated below in this case
             # substitute true lengths
-            packed = packed.replace('\npl {val:{fmt}}\n'.format(
+            packed = packed.replace(ns2b('\npl {val:{fmt}}\n'.format(
                                         val=kit['pl'],
-                                        fmt=raeting.PACKET_FIELD_FORMATS['pl']),
-                                    '\npl {0}\n'.format("{val:{fmt}}".format(
+                                        fmt=raeting.PACKET_FIELD_FORMATS['pl'])),
+                                    ns2b('\npl {0}\n'.format("{val:{fmt}}".format(
                                         val=pl,
-                                        fmt=raeting.PACKET_FIELD_FORMATS['pl'])[-4:]),
+                                        fmt=raeting.PACKET_FIELD_FORMATS['pl'])[-4:])),
                                     1)
-            packed = packed.replace('\nhl {val:{fmt}}\n'.format(
+            packed = packed.replace(ns2b('\nhl {val:{fmt}}\n'.format(
                                         val=kit['hl'],
-                                        fmt=raeting.PACKET_FIELD_FORMATS['hl']),
-                                    '\nhl {0}\n'.format("{val:{fmt}}".format(
+                                        fmt=raeting.PACKET_FIELD_FORMATS['hl'])),
+                                    ns2b('\nhl {0}\n'.format("{val:{fmt}}".format(
                                             val=hl,
-                                            fmt=raeting.PACKET_FIELD_FORMATS['hl'])[-2:]),
+                                            fmt=raeting.PACKET_FIELD_FORMATS['hl'])[-2:])),
                                     1)
             self.packed = packed
 
         elif data['hk'] == raeting.headKinds.json:
             kit['pl'] = '0000000'  # need hex string so fixed length and jsonable
             kit['hl'] = '00'  # need hex string so fixed length and jsonable
-            packed = json.dumps(kit, separators=(',', ':'), encoding='ascii',)
-            packed = '{0}{1}'.format(packed, raeting.JSON_END)
+            packed = ns2b(json.dumps(kit, separators=(',', ':'), encoding='ascii',)) + raeting.JSON_END
+            #packed = '{0}{1}'.format(packed, raeting.JSON_END)
             hl = len(packed)
             if hl > raeting.MAX_HEAD_SIZE:
                 emsg = "Head length of {0}, exceeds max of {1}".format(hl, MAX_HEAD_SIZE)
@@ -144,8 +143,12 @@ class TxHead(Head):
             pl = hl + self.packet.coat.size + data['fl']
             data['pl'] = pl
             #substitute true length converted to 2 byte hex string
-            packed = packed.replace('"pl":"0000000"', '"pl":"{0}"'.format("{0:07x}".format(pl)[-7:]), 1)
-            self.packed = packed.replace('"hl":"00"', '"hl":"{0}"'.format("{0:02x}".format(hl)[-2:]), 1)
+            packed = packed.replace(ns2b('"pl":"0000000"'),
+                                    ns2b('"pl":"{0}"'.format("{0:07x}".format(pl)[-7:])),
+                                    1)  # JSON needs double quotes on strings
+            self.packed = packed.replace(ns2b('"hl":"00"'),
+                                         ns2b('"hl":"{0}"'.format("{0:02x}".format(hl)[-2:])),
+                                         1)  # JSON needs double quotes on strings
 
     def packFlags(self):
         '''
@@ -154,7 +157,7 @@ class TxHead(Head):
         values = []
         for field in raeting.PACKET_FLAG_FIELDS:
             values.append(1 if self.packet.data.get(field, 0) else 0)
-        return packByte(fmt='11111111', fields=values)
+        return packByte(fmt=b'11111111', fields=values)
 
 class RxHead(Head):
     '''
@@ -166,11 +169,11 @@ class RxHead(Head):
         .packet.data
         Raises PacketError if failure occurs
         '''
-        self.packed = ''
+        self.packed = b''
         data = self.packet.data  # for speed
         packed = self.packet.packed  # for speed
 
-        if packed.startswith('ri RAET\n') and raeting.HEAD_END in packed: # raet head
+        if packed.startswith(b'ri RAET\n') and raeting.HEAD_END in packed: # raet head
             hk = raeting.headKinds.raet
             front, sep, back = packed.partition(raeting.HEAD_END)
             self.packed = "{0}{1}".format(front, sep)
@@ -208,10 +211,10 @@ class RxHead(Head):
                 raise raeting.PacketError(emsg)
 
 
-        elif packed.startswith('{"ri":"RAET",') and raeting.JSON_END in packed: # json head
+        elif packed.startswith(ns2b('{"ri":"RAET",')) and raeting.JSON_END in packed: # json head
             hk = raeting.headKinds.json
             front, sep, back = packed.partition(raeting.JSON_END)
-            self.packed = "{0}{1}".format(front, sep)
+            self.packed = front + sep
             kit = json.loads(front,
                              encoding='ascii',
                              object_pairs_hook=odict)
@@ -274,7 +277,7 @@ class TxBody(Body):
         bk = self.packet.data['bk']
         if bk == raeting.bodyKinds.json:
             if self.data:
-                self.packed = json.dumps(self.data, separators=(',', ':'))
+                self.packed = ns2b(json.dumps(self.data, separators=(',', ':')))
         elif bk == raeting.bodyKinds.msgpack:
             if self.data:
                 if not msgpack:

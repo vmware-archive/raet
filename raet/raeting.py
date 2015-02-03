@@ -130,7 +130,7 @@ MAX_HEAD_SIZE = 255
 JSON_END = b'\r\n\r\n'
 HEAD_END = b'\n\n'
 
-VERSIONS = odict([(b'0.1', 0)])
+VERSIONS = odict([('0.1', 0)])
 VERSION_NAMES = odict((v, k) for k, v in VERSIONS.iteritems())
 VERSION = VERSIONS.values()[0]
 
@@ -217,7 +217,7 @@ PACKET_DEFAULTS = odict([
                             ('sp', RAET_PORT),
                             ('dh', DEFAULT_DST_HOST),
                             ('dp', RAET_PORT),
-                            ('ri', b'RAET'),
+                            ('ri', 'RAET'),
                             ('vn', 0),
                             ('pk', 0),
                             ('pl', 0),
@@ -245,7 +245,7 @@ PACKET_DEFAULTS = odict([
                             ('ck', 0),
                             ('fk', 0),
                             ('fl', 0),
-                            ('fg', b'00'),
+                            ('fg', '00'),
                       ])
 
 PACKET_FIELDS = ['sh', 'sp', 'dh', 'dp',
@@ -296,12 +296,12 @@ PACKET_FIELD_FORMATS = odict([
 
 # head fields that may be included in page header if not default value
 PAGE_DEFAULTS = odict([
-                        ('ri', b'RAET'),
+                        ('ri', 'RAET'),
                         ('vn', 0),
                         ('pk', 0),
                         ('sn', ''),
                         ('dn', ''),
-                        ('si', b'000000000000000000'),
+                        ('si', '000000000000000000'),
                         ('bi', 0),
                         ('pn', 0),
                         ('pc', 1),
