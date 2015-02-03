@@ -522,7 +522,7 @@ class Joiner(Initiator):
                 return
 
         flags = [0, 0, 0, 0, 0, 0, 0, self.stack.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         body = odict([('name', self.stack.local.name),
                       ('mode', operation),
                       ('kind', self.stack.kind),
@@ -605,7 +605,7 @@ class Joiner(Initiator):
             self.stack.incStat('invalid_accept')
             self.remove(index=self.txPacket.index)
             return
-        flags = unpackByte(fmt='11111111', byte=mode, boolean=True)
+        flags = unpackByte(fmt=b'11111111', byte=mode, boolean=True)
         main = flags[7]
 
         kind = body.get('kind')
@@ -1068,7 +1068,7 @@ class Joinent(Correspondent):
             self.stack.incStat('invalid_join')
             self.remove(index=self.rxPacket.index)
             return
-        flags = unpackByte(fmt='11111111', byte=mode, boolean=True)
+        flags = unpackByte(fmt=b'11111111', byte=mode, boolean=True)
         main = flags[7]
 
         kind = body.get('kind')
@@ -1623,7 +1623,7 @@ class Allower(Initiator):
         self.remote.rekey() # refresh short term keys and reset .allowed to None
         self.add()
 
-        plain = binascii.hexlify("".rjust(32, '\x00'))
+        plain = binascii.hexlify(b''.rjust(32, '\x00'))
         cipher, nonce = self.remote.privee.encrypt(plain, self.remote.pubber.key)
         body = raeting.HELLO_PACKER.pack(plain, self.remote.privee.pubraw, cipher, nonce)
 
@@ -1652,7 +1652,7 @@ class Allower(Initiator):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        if not isinstance(body, basestring):
+        if not isinstance(body, bytes):
             emsg = "Invalid format of cookie packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
@@ -1713,7 +1713,7 @@ class Allower(Initiator):
         fqdn = self.remote.fqdn
         if isinstance(fqdn, unicode):
             fqdn = fqdn.encode('ascii', 'ignore')
-        fqdn = fqdn.ljust(128, ' ')[:128]
+        fqdn = fqdn.ljust(128, b' ')[:128]
 
         stuff = raeting.INITIATESTUFF_PACKER.pack(self.stack.local.priver.pubraw,
                                                   vcipher,
@@ -2034,7 +2034,7 @@ class Allowent(Correspondent):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        if not isinstance(body, basestring):
+        if not isinstance(body, bytes):
             emsg = "Invalid format of hello packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
@@ -2102,7 +2102,7 @@ class Allowent(Correspondent):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        if not isinstance(body, basestring):
+        if not isinstance(body, bytes):
             emsg = "Invalid format of initiate packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')

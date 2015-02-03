@@ -330,7 +330,7 @@ class RxBody(Body):
                     raise raeting.PacketError(emsg)
                 self.data = kit
         elif bk == raeting.bodyKinds.raw:
-            self.data = self.packed # return as string
+            self.data = self.packed # return as bytes
         elif bk == raeting.bodyKinds.nada:
             pass
 
