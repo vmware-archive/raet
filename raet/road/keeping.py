@@ -316,8 +316,8 @@ class RoadKeep(keeping.Keep):
         data = odict([
                             ('role', remote.role),
                             ('acceptance', remote.acceptance),
-                            ('verhex', remote.verfer.keyhex),
-                            ('pubhex', remote.pubber.keyhex),
+                            ('verhex', remote.verfer.keyhex.decode('ISO-8859-1')),
+                            ('pubhex', remote.pubber.keyhex.decode('ISO-8859-1')),
                         ])
         if self.verifyRemoteData(data, remoteFields=self.RemoteRoleFields):
             self.dumpRemoteRoleData(data, remote.role)
@@ -357,8 +357,8 @@ class RoadKeep(keeping.Keep):
         and has value from raeting.acceptances
         '''
         status = self.statusRole(role=remote.role,
-                                 verhex=remote.verfer.keyhex,
-                                 pubhex=remote.pubber.keyhex,
+                                 verhex=remote.verfer.keyhex.decode('ISO-8859-1'),
+                                 pubhex=remote.pubber.keyhex.decode('ISO-8859-1'),
                                  dump=dump, )
 
         remote.acceptance = status

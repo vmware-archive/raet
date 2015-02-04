@@ -313,8 +313,8 @@ class BasicTestCase(unittest.TestCase):
     def copyData(self, remote, fuid=None):
         keep = {}
         keep['role'] = remote.role
-        keep['verhex'] = remote.verfer.keyhex
-        keep['pubhex'] = remote.pubber.keyhex
+        keep['verhex'] = remote.verfer.keyhex.decode('ISO-8859-1')
+        keep['pubhex'] = remote.pubber.keyhex.decode('ISO-8859-1')
         keep['name'] = remote.name
         keep['ha'] = remote.ha
         keep['fuid'] = fuid if fuid is not None else remote.fuid
@@ -327,8 +327,8 @@ class BasicTestCase(unittest.TestCase):
         Returns True if role and keys match, False otherwise
         '''
         return (remote.role ==  data['role'] and
-                remote.verfer.keyhex == data['verhex'] and
-                remote.pubber.keyhex == data['pubhex'])
+                remote.verfer.keyhex == ns2b(data['verhex']) and
+                remote.pubber.keyhex == ns2b(data['pubhex']))
 
     def sameAll(self, remote, data):
         return (self.sameRoleKeys(remote, data) and
@@ -11375,7 +11375,7 @@ class BasicTestCase(unittest.TestCase):
                                       rxPacket=packet)
         # Hack: set stack name to None
         flags = [0, 0, 0, 0, 0, 0, 0, alpha.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         # Skip actual join, it's not needed for test
         # Hack: set mode to none
         body = odict([ ('name', alpha.local.name),
@@ -11441,7 +11441,7 @@ class BasicTestCase(unittest.TestCase):
                                       rxPacket=packet)
         # Skip actual join, it's not needed for test
         flags = [0, 0, 0, 0, 0, 0, 0, alpha.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         # Skip actual join, it's not needed for test
         # Hack: set remote uid to None
         body = odict([ ('name', alpha.local.name),
@@ -12473,7 +12473,7 @@ class BasicTestCase(unittest.TestCase):
         # joiner join
         remote.joined = None
         flags = [0, 0, 0, 0, 0, 0, 0, beta.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         # Hack: Set kind to None here
         body = odict([('name', beta.local.name),
                       ('mode', operation),

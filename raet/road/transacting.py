@@ -526,8 +526,10 @@ class Joiner(Initiator):
         body = odict([('name', self.stack.local.name),
                       ('mode', operation),
                       ('kind', self.stack.kind),
-                      ('verhex', self.stack.local.signer.verhex),
-                      ('pubhex', self.stack.local.priver.pubhex),
+                      ('verhex', self.stack.local.signer.verhex.decode('ISO-8859-1')
+                               if self.stack.local.signer.verhex else None ),
+                      ('pubhex', self.stack.local.priver.pubhex.decode('ISO-8859-1')
+                               if    self.stack.local.priver.pubhex else None),
                       ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.request,
@@ -624,7 +626,7 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        verhex = body.get('verhex')
+        verhex = body.get('verhex', '')
         if not verhex:
             emsg = "Missing remote verifier key in accept packet\n"
             console.terse(emsg)
@@ -632,7 +634,7 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        pubhex = body.get('pubhex')
+        pubhex = body.get('pubhex', '')
         if not pubhex:
             emsg = "Missing remote crypt key in accept packet\n"
             console.terse(emsg)
@@ -679,8 +681,8 @@ class Joiner(Initiator):
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
         sameRoleKeys = (role == self.remote.role and
-                        verhex == self.remote.verfer.keyhex and
-                        pubhex == self.remote.pubber.keyhex)
+                        ns2b(verhex) == self.remote.verfer.keyhex and
+                        ns2b(pubhex) == self.remote.pubber.keyhex)
 
         sameAll = (sameRoleKeys and
                    name == self.remote.name and
@@ -742,9 +744,9 @@ class Joiner(Initiator):
                 self.remote.kind = kind
             if self.remote.role != role:
                 self.remote.role = role # rerole
-            if verhex != self.remote.verfer.keyhex:
+            if ns2b(verhex) != self.remote.verfer.keyhex:
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
-            if pubhex != self.remote.pubber.keyhex:
+            if ns2b(pubhex) != self.remote.pubber.keyhex:
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
             # don't dump until complete
 
@@ -1079,7 +1081,7 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        verhex = body.get('verhex')
+        verhex = body.get('verhex', '')
         if not verhex:
             emsg = "Missing remote verifier key in join packet\n"
             console.terse(emsg)
@@ -1087,7 +1089,7 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        pubhex = body.get('pubhex')
+        pubhex = body.get('pubhex', '')
         if not pubhex:
             emsg = "Missing remote crypt key in join packet\n"
             console.terse(emsg)
@@ -1198,8 +1200,8 @@ class Joinent(Correspondent):
 
 
         sameRoleKeys = (role == self.remote.role and
-                        verhex == self.remote.verfer.keyhex and
-                        pubhex == self.remote.pubber.keyhex)
+                        ns2b(verhex) == self.remote.verfer.keyhex and
+                        ns2b(pubhex) == self.remote.pubber.keyhex)
 
         sameAll = (sameRoleKeys and
                    name == self.remote.name and
@@ -1289,9 +1291,9 @@ class Joinent(Correspondent):
                 self.remote.kind = kind
             if role != self.remote.role: # rerole
                 self.remote.role = role
-            if verhex != self.remote.verfer.keyhex:
+            if ns2b(verhex) != self.remote.verfer.keyhex:
                 self.remote.verfer = nacling.Verifier(verhex) # verify key manager
-            if pubhex != self.remote.pubber.keyhex:
+            if ns2b(pubhex) != self.remote.pubber.keyhex:
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
 
         # add transaction
@@ -1355,13 +1357,15 @@ class Joinent(Correspondent):
                 return
 
         flags = [0, 0, 0, 0, 0, 0, 0, self.stack.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         body = odict([ ('name', self.stack.local.name),
                        ('mode', operation),
                        ('kind', self.stack.kind),
                        ('uid', self.remote.uid),
-                       ('verhex', self.stack.local.signer.verhex),
-                       ('pubhex', self.stack.local.priver.pubhex),
+                       ('verhex', self.stack.local.signer.verhex.decode('ISO-8859-1')
+                                  if self.stack.local.signer.verhex else None ),
+                       ('pubhex', self.stack.local.priver.pubhex.decode('ISO-8859-1')
+                                  if self.stack.local.priver.pubhex else None),
                        ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.response,
@@ -1623,7 +1627,7 @@ class Allower(Initiator):
         self.remote.rekey() # refresh short term keys and reset .allowed to None
         self.add()
 
-        plain = binascii.hexlify(b''.rjust(32, '\x00'))
+        plain = binascii.hexlify(b''.rjust(32, b'\x00'))
         cipher, nonce = self.remote.privee.encrypt(plain, self.remote.pubber.key)
         body = raeting.HELLO_PACKER.pack(plain, self.remote.privee.pubraw, cipher, nonce)
 
@@ -1763,7 +1767,7 @@ class Allower(Initiator):
         This is so both sides wait on acks so transaction is not restarted until
         boths sides see completion.
         '''
-        body = ""
+        body = b''
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.ack,
                                     embody=body,
@@ -1794,7 +1798,7 @@ class Allower(Initiator):
         '''
         Send nack to accept response
         '''
-        body = ""
+        body = b''
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=kind,
                                     embody=body,
@@ -2154,11 +2158,11 @@ class Allowent(Correspondent):
             self.nack(kind=raeting.pcktKinds.reject)
             return
 
-        fqdn = fqdn.rstrip(' ')
+        fqdn = fqdn.rstrip(b' ')
         lfqdn = self.stack.local.fqdn
         if isinstance(lfqdn, unicode):
             lfqdn = lfqdn.encode('ascii', 'ignore')
-        lfqdn = lfqdn.ljust(128, ' ')[:128].rstrip(' ')
+        lfqdn = lfqdn.ljust(128, b' ')[:128].rstrip(b' ')
         if fqdn != lfqdn:
             emsg = "Mismatch of fqdn in initiate stuff\n"
             console.terse(emsg)
@@ -2183,7 +2187,7 @@ class Allowent(Correspondent):
         Send ack to initiate request
         '''
 
-        body = ""
+        body = b''
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=raeting.pcktKinds.ack,
                                     embody=body,
@@ -2257,7 +2261,7 @@ class Allowent(Correspondent):
         '''
         Send nack to terminate allow transaction
         '''
-        body = ""
+        body = b''
         packet = packeting.TxPacket(stack=self.stack,
                                     kind=kind,
                                     embody=body,
