@@ -95,7 +95,7 @@ def runOne(test):
 
 def runSome():
     """ Unittest runner """
-    tests =  []
+    tests = []
     names = ['testRaetRoadStack', ]
     tests.extend(map(BasicTestCase, names))
     suite = unittest.TestSuite(tests)
