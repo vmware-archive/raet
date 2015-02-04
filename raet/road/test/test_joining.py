@@ -38,7 +38,8 @@ else:
 
 
 def setUpModule():
-    console.reinit(verbosity=console.Wordage.concise)
+    # console.reinit(verbosity=console.Wordage.concise)
+    console.reinit(verbosity=console.Wordage.profuse)
 
 def tearDownModule():
     pass
@@ -13601,6 +13602,240 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertIn('stale_packet', alpha.stats)
         self.assertEqual(alpha.stats['stale_packet'], 1) # 1 stale drop on alpha (dup)
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerRestartNothingTransmitted(self):
+        '''
+        Test joiner dies before the message is transmitted (die)
+        '''
+        console.terse("{0}\n".format(self.testJoinerRestartNothingTransmitted.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nSend join request *********\n")
+        beta.join() # join from beta to alpha
+
+        console.terse("\nRestart beta *********\n")
+        # shutdown beta
+        beta.server.close()
+        beta.clearAllKeeps()
+
+        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=raeting.autoModes.once)
+        stacks = [alpha, beta]
+
+        self.serviceStacks(stacks)
+
+        self.assertEqual(len(alpha.transactions), 0)
+        self.assertEqual(len(alpha.remotes), 1)
+        self.assertEqual(alpha.remotes.values()[0].joined, None)
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertEqual(len(beta.remotes), 0)
+
+        console.terse("\nJoin beta again *********\n")
+        alpha.keep.auto = raeting.autoModes.always
+        alpha.mutable = True
+        self.join(beta, alpha)
+
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerRestartRequestTransmitted(self):
+        '''
+        Test joiner dies after a message transmitted (die)
+        '''
+        console.terse("{0}\n".format(self.testJoinerRestartRequestTransmitted.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nSend join request *********\n")
+        beta.join() # join from beta to alpha
+        self.serviceStacks([beta]) # transmit
+
+        console.terse("\nRestart beta *********\n")
+        # shutdown beta
+        beta.server.close()
+        beta.clearAllKeeps()
+
+        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=raeting.autoModes.once)
+        stacks = [alpha, beta]
+
+        self.serviceStacks(stacks)
+
+        # transaction still alive on alpha
+        self.assertEqual(len(alpha.transactions), 1)
+        self.assertEqual(len(alpha.remotes), 1)
+        self.assertEqual(alpha.remotes.values()[0].joined, None)
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertEqual(len(beta.remotes), 0)
+
+        console.terse("\nJoin beta again *********\n")
+        alpha.keep.auto = raeting.autoModes.always
+        alpha.mutable = True
+        self.join(beta, alpha)
+
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinerRestartAckAcceptTransmitted(self):
+        '''
+        Test joiner dies after join done (die)
+        '''
+        console.terse("{0}\n".format(self.testJoinerRestartRequestTransmitted.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nSend join request *********\n")
+        beta.join()  # join from beta to alpha
+        self.serviceStacks([beta])  # transmit request
+        self.serviceStacks([alpha])  # ack
+        self.serviceStacks([beta])  # ack accept
+
+        console.terse("\nRestart beta *********\n")
+        # shutdown beta
+        beta.server.close()
+        beta.clearAllKeeps()
+
+        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=raeting.autoModes.once)
+        stacks = [alpha, beta]
+
+        self.serviceStacks(stacks)
+
+        self.assertEqual(len(alpha.transactions), 0)
+        self.assertEqual(len(alpha.remotes), 1)
+        self.assertTrue(alpha.remotes.values()[0].joined)
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertEqual(len(beta.remotes), 0)
+
+        console.terse("\nJoin beta again *********\n")
+        alpha.keep.auto = raeting.autoModes.always
+        alpha.mutable = True
+        self.join(beta, alpha)
+
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentRestartBeforeAck(self):
+        '''
+        Test joinent dies before send ack (die)
+        '''
+        console.terse("{0}\n".format(self.testJoinentRestartBeforeAck.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nSend join request *********\n")
+        beta.join()  # join from beta to alpha
+        self.serviceStacks([beta])  # transmit request
+        alpha.serviceAllRx()  # receive and handle, not send
+
+        console.terse("\nRestart alpha *********\n")
+        # shutdown alpha
+        alpha.server.close()
+        alpha.clearAllKeeps()
+
+        alpha, alphaData = self.bootstrapStack(name='alpha', ha=('', raeting.RAET_PORT),
+                                               auto=raeting.autoModes.always, mutable=True, main=True)
+        stacks = [alpha, beta]
+        beta.keep.auto = raeting.autoModes.always
+        beta.mutable = True
+
+        self.serviceStacks(stacks)
+
+        for stack in stacks:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertTrue(remote.joined)
+
+        for stack in stacks:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testJoinentRestartAckSent(self):
+        '''
+        Test joinent dies after ack sent (die)
+        '''
+        console.terse("{0}\n".format(self.testJoinentRestartAckSent.__doc__))
+
+        alpha, beta = self.bootstrapJoinedRemotes()
+        stacks = [alpha, beta]
+        for stack in stacks:
+            stack.remotes.values()[0].joined = None # force unjoin both
+            stack.clearStats()
+
+        console.terse("\nSend join request *********\n")
+        beta.join()  # join from beta to alpha
+        self.serviceStacks([beta])  # transmit request
+        self.serviceStacks([alpha])  # receive and handle, send ack
+
+        console.terse("\nRestart alpha *********\n")
+        # shutdown alpha
+        alpha.server.close()
+        alpha.clearAllKeeps()
+
+        alpha, alphaData = self.bootstrapStack(name='alpha', ha=('', raeting.RAET_PORT),
+                                               auto=raeting.autoModes.always, mutable=True, main=True)
+        stacks = [alpha, beta]
+        beta.keep.auto = raeting.autoModes.always
+        beta.mutable = True
+
+        self.serviceStacks(stacks)
+
+        self.assertEqual(len(alpha.transactions), 0)
+        self.assertEqual(len(alpha.remotes), 0)
+        self.assertEqual(len(beta.transactions), 0)
+        self.assertEqual(len(beta.remotes), 1)
+        self.assertTrue(beta.remotes.values()[0].joined)
+
+        console.terse("\nJoin beta again *********\n")
+        alpha.keep.auto = raeting.autoModes.always
+        alpha.mutable = True
+        self.join(beta, alpha)
+
         for stack in stacks:
             self.assertEqual(len(stack.transactions), 0)
             self.assertEqual(len(stack.remotes), 1)
