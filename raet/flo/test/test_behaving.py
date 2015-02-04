@@ -17,7 +17,9 @@ from ioflo.base.consoling import getConsole
 console = getConsole()
 
 # Import raet libs
+# pylint: disable=wildcard-import,unused-wildcard-import,redefined-builtin
 from raet.abiding import *  # import globals
+# pylint: enable=wildcard-import,unused-wildcard-import,redefined-builtin
 from raet.flo import behaving
 from raet.road import stacking
 
