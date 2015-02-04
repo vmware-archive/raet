@@ -9,7 +9,6 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-import os
 from collections import deque
 
 from ioflo.test import testing
@@ -20,7 +19,6 @@ console = getConsole()
 # pylint: disable=wildcard-import,unused-wildcard-import,redefined-builtin
 from raet.abiding import *  # import globals
 # pylint: enable=wildcard-import,unused-wildcard-import,redefined-builtin
-from raet.flo import behaving
 from raet.road import stacking
 
 
@@ -97,7 +95,7 @@ def runSome():
     """ Unittest runner """
     tests = []
     names = ['testRaetRoadStack', ]
-    tests.extend(map(BasicTestCase, names))
+    tests.extend(map(BasicTestCase, names))  # pylint: disable=bad-builtin
     suite = unittest.TestSuite(tests)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
