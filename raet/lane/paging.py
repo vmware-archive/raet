@@ -76,10 +76,10 @@ class TxHead(Head):
         data = self.page.data  # for speed
         lines = []
         for k, v in data.items():
-            lines.append("{key} {val:{fmt}}".format(
-                    key=k, val=v, fmt=raeting.PAGE_FIELD_FORMATS[k]))
+            lines.append(ns2b("{key} {val:{fmt}}".format(
+                            key=k, val=v, fmt=raeting.PAGE_FIELD_FORMATS[k])))
 
-        self.packed = ns2b("\n".join(lines)) + raeting.HEAD_END
+        self.packed = b'\n'.join(lines) + raeting.HEAD_END
 
 
 class RxHead(Head):
@@ -110,9 +110,9 @@ class RxHead(Head):
         self.page.body.packed = back
 
         kit = odict()
-        lines = front.split(b'\n')
+        lines = front.decode(encoding='ISO-8859-1').split('\n')
         for line in lines:
-            key, val = line.split(b' ')
+            key, val = line.split(' ')
             if key not in raeting.PAGE_FIELDS:
                 emsg = "Unknown head field '{0}'".format(key)
                 raise raeting.PageError(emsg)
