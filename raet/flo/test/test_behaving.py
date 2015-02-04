@@ -21,11 +21,14 @@ from raet.abiding import *  # import globals
 from raet.flo import behaving
 from raet.road import stacking
 
+
 def setUpModule():
     console.reinit(verbosity=console.Wordage.concise)
 
+
 def tearDownModule():
     pass
+
 
 class BasicTestCase(testing.FrameIofloTestCase):
     """
@@ -56,7 +59,7 @@ class BasicTestCase(testing.FrameIofloTestCase):
         self.resolve()  # resolve House, Framer, Frame, Acts, Actors
         self.assertDictEqual(act.actor.Ioinits,
                              {
-                                'txmsgs': {'ipath': 'txmsgs','ival': deque([])},
+                                'txmsgs': {'ipath': 'txmsgs', 'ival': deque([])},
                                 'local': {'ipath': 'local', 'ival': {'uid': None,
                                         'auto': 1, 'basedirpath': '/tmp/raet/keep',
                                         'host': '0.0.0.0', 'sigkey': None,
@@ -87,6 +90,7 @@ def runOne(test):
     suite = unittest.TestSuite([test])
     unittest.TextTestRunner(verbosity=2).run(suite)
 
+
 def runSome():
     """ Unittest runner """
     tests =  []
@@ -94,6 +98,7 @@ def runSome():
     tests.extend(map(BasicTestCase, names))
     suite = unittest.TestSuite(tests)
     unittest.TextTestRunner(verbosity=2).run(suite)
+
 
 def runAll():
     """ Unittest runner """
