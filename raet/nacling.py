@@ -14,18 +14,23 @@ from ioflo.base.consoling import getConsole
 console = getConsole()
 
 # Import raet libs
+# pylint: disable=wildcard-import,unused-wildcard-import,redefined-builtin
 from .abiding import *  # import globals
+# pylint: enable=wildcard-import,unused-wildcard-import,redefined-builtin
 from . import encoding
+
 
 class CryptoError(Exception):
     """
     Base exception for all nacl related errors
     """
 
+
 class BadSignatureError(CryptoError):
     """
     Raised when the signature was forged or otherwise corrupt.
     """
+
 
 class EncryptedMessage(six.binary_type):
     """
@@ -54,6 +59,7 @@ class EncryptedMessage(six.binary_type):
         """
         return self._ciphertext
 
+
 class StringFixer(object):
     '''
     Python 3 support
@@ -63,6 +69,7 @@ class StringFixer(object):
             return self.__unicode__()
         else:
             return self.__bytes__()
+
 
 class PublicKey(encoding.Encodable, StringFixer, object):
     """
@@ -86,6 +93,7 @@ class PublicKey(encoding.Encodable, StringFixer, object):
 
     def __bytes__(self):
         return self._public_key
+
 
 class PrivateKey(encoding.Encodable, StringFixer, object):
     """
@@ -129,6 +137,7 @@ class PrivateKey(encoding.Encodable, StringFixer, object):
         :rtype: :class:`~PrivateKey`
         """
         return cls(libnacl.randombytes(PrivateKey.SIZE), encoder=encoding.RawEncoder)
+
 
 class Box(encoding.Encodable, StringFixer, object):
     """
@@ -237,6 +246,7 @@ class Box(encoding.Encodable, StringFixer, object):
         )
 
         return plaintext
+
 
 class SignedMessage(six.binary_type):
     """
@@ -389,7 +399,7 @@ class Signer(object):
     '''
     def __init__(self, key=None):
         if key:
-            if not isinstance(key, SigningKey): #not key so seed to regenerate
+            if not isinstance(key, SigningKey):  # not key so seed to regenerate
                 if len(key) == 32:
                     key = SigningKey(seed=key, encoder=encoding.RawEncoder)
                 else:
@@ -397,8 +407,8 @@ class Signer(object):
         else:
             key = SigningKey.generate()
         self.key = key
-        self.keyhex = self.key.encode(encoding.HexEncoder) #seed
-        self.keyraw = self.key.encode(encoding.RawEncoder) #seed
+        self.keyhex = self.key.encode(encoding.HexEncoder)  # seed
+        self.keyraw = self.key.encode(encoding.RawEncoder)  # seed
         self.verhex = self.key.verify_key.encode(encoding.HexEncoder)
         self.verraw = self.key.verify_key.encode(encoding.RawEncoder)
 
@@ -413,6 +423,7 @@ class Signer(object):
         Return only the signature string resulting from signing the message
         '''
         return self.key.sign(msg).signature
+
 
 class Verifier(object):
     '''
@@ -445,6 +456,7 @@ class Verifier(object):
             return False
         return True
 
+
 class Publican(object):
     '''
     Container to manage remote nacl public key
@@ -465,6 +477,7 @@ class Publican(object):
         else:
             self.keyhex = ''
             self.keyraw = ''
+
 
 class Privateer(object):
     '''
