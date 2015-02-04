@@ -214,7 +214,7 @@ class RxHead(Head):
             hk = raeting.headKinds.json
             front, sep, back = packed.partition(raeting.JSON_END)
             self.packed = front + sep
-            kit = json.loads(front,
+            kit = json.loads(front.decode(encoding='ascii'),
                              encoding='ascii',
                              object_pairs_hook=odict)
             data.update(kit)
@@ -309,7 +309,7 @@ class RxBody(Body):
 
         if bk == raeting.bodyKinds.json:
             if self.packed:
-                kit = json.loads(self.packed,
+                kit = json.loads(self.packed.decode(encoding='utf-8'),
                                  object_pairs_hook=odict,
                                  encoding='utf-8')
                 if not isinstance(kit, Mapping):

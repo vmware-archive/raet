@@ -192,7 +192,7 @@ class RxBody(Body):
 
         if pk == raeting.packKinds.json:
             if self.packed:
-                self.data = json.loads(self.packed,
+                self.data = json.loads(self.packed.decode(encoding='utf-8'),
                                        object_pairs_hook=odict,
                                        encoding='utf-8')
         elif pk == raeting.packKinds.pack:
