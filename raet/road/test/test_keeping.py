@@ -662,10 +662,18 @@ class BasicTestCase(unittest.TestCase):
         fallback to ~user/.raet
         '''
         console.terse("{0}\n".format(self.testAltDirpath.__doc__))
+        # Since Administrator/root has access to any regular directory even if it has read-only attribute set
+        #   (write flag unset), we have to use tricks to test it.
+        # Here is assummed the following:
+        #   - drive '1:' never exists in Windows
+        #   - '/sys/' isn't writable ever for root, at least doesn't allow to create custom directories inside
         if sys.platform == 'win32':
-            base = os.path.join(os.environ['WINDIR'], 'system32')
+            base = '1:\\'
         else:
-            base = '/var/cache/'
+            base = '/sys'
+
+        # Ensure the directory isn't writable
+        self.assertRaises(Exception, tempfile.mkdtemp, dir=base)
 
         auto = raeting.autoModes.once
         data = self.createRoadData(name='main',
