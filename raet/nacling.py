@@ -10,10 +10,6 @@ import binascii
 import six
 import libnacl
 
-# Import Cryptographic libs
-import warnings
-
-
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
@@ -559,9 +555,9 @@ def uuid(size=16):
     '''
     size = max(int(size), 16)
     if sys.platform == 'win32':
-        front = ns2b("{0:0x}".format(int(time.clock() * 1000000))) # microseconds
+        front = ns2b("{0:0x}".format(int(time.clock() * 1000000)))  # microseconds
     else:
-        front = ns2b("{0:0x}".format(int(time.time() * 1000000))) # microseconds
+        front = ns2b("{0:0x}".format(int(time.time() * 1000000)))  # microseconds
     extra = size - len(front)
     back = binascii.hexlify(libnacl.randombytes(extra // 2 + extra % 2))
     return ((front + back)[:size]).decode(encoding='ISO-8859-1')

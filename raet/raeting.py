@@ -88,7 +88,6 @@ Body Decoding
 
 '''
 
-# pylint: skip-file
 # pylint: disable=C0103
 
 # Import python libs
@@ -110,21 +109,21 @@ from .abiding import *  # import globals
 # Used to comput session id wrap around where valid sid is >= modulo N given by
 # (((new - old) % 0x100000000) < (0x100000000 // 2))
 # N//2 = 0x80000000
-SID_WRAP_MODULO = 0x100000000 # session id wraps modulo N = 2^32 = 0x100000000
-SID_WRAP_DELTA = 0x80000000 # session id >= delta at N//2 = 0x80000000
-SID_ROLLOVER= 0xffffffff # session id rolls over at modulo (N-1) -= 2^32 -1 = 0xffffffff
+SID_WRAP_MODULO = 0x100000000  # session id wraps modulo N = 2^32 = 0x100000000
+SID_WRAP_DELTA = 0x80000000    # session id >= delta at N//2 = 0x80000000
+SID_ROLLOVER = 0xffffffff      # session id rolls over at modulo (N-1) -= 2^32 -1 = 0xffffffff
 
 RAET_PORT = 7530
 RAET_TEST_PORT = 7531
 DEFAULT_SRC_HOST = ''
 DEFAULT_DST_HOST = '127.0.0.1'
 
-UDP_MAX_DATAGRAM_SIZE = (2 ** 16) - 1 # 65535
+UDP_MAX_DATAGRAM_SIZE = (2 ** 16) - 1  # 65535
 UDP_MAX_SAFE_PAYLOAD = 548  # IPV4 MTU 576 - udp headers 28
 # IPV6 MTU is 1280 but headers are bigger
-UDP_MAX_PACKET_SIZE = min(1024, UDP_MAX_DATAGRAM_SIZE) # assumes IPV6 capable equipment
-UXD_MAX_PACKET_SIZE = (2 ** 16) - 1 # 65535
-MAX_SEGMENT_COUNT = (2 ** 16) - 1 # 65535
+UDP_MAX_PACKET_SIZE = min(1024, UDP_MAX_DATAGRAM_SIZE)  # assumes IPV6 capable equipment
+UXD_MAX_PACKET_SIZE = (2 ** 16) - 1  # 65535
+MAX_SEGMENT_COUNT = (2 ** 16) - 1  # 65535
 MAX_MESSAGE_SIZE = min(67107840, UDP_MAX_PACKET_SIZE * MAX_SEGMENT_COUNT)
 MAX_HEAD_SIZE = 255
 
@@ -135,11 +134,12 @@ VERSIONS = odict([('0.1', 0)])
 VERSION_NAMES = odict((v, k) for k, v in VERSIONS.iteritems())
 VERSION = VERSIONS.values()[0]
 
-HELLO_PACKER = struct.Struct('!64s32s80s24s') #curvecp allow trans bodies
+HELLO_PACKER = struct.Struct('!64s32s80s24s')  # curvecp allow trans bodies
 COOKIESTUFF_PACKER = struct.Struct('!32sLL24s')
 COOKIE_PACKER = struct.Struct('!80s24s')
 INITIATESTUFF_PACKER = struct.Struct('!32s48s24s128s')
 INITIATE_PACKER = struct.Struct('!32s24s248s24s')
+
 
 @enum.unique
 class HeadKind(enum.IntEnum):
@@ -275,6 +275,7 @@ class PackKind(enum.IntEnum):
     json = 0
     pack = 1
 
+
 # head fields that may be included in packet header if not default value
 PACKET_DEFAULTS = odict([
                             ('sh', DEFAULT_SRC_HOST),
@@ -384,6 +385,7 @@ PAGE_FIELD_FORMATS = odict([
                            ])
 
 PAGE_FIELDS = ['ri', 'vn', 'pk', 'sn', 'dn', 'si', 'bi', 'pn', 'pc']
+
 
 class RaetError(Exception):
     '''

@@ -36,7 +36,7 @@ def run(start=None):
 
     console.terse("\nRunning all RAET tests in '{0}', starting at '{1}'\n".format(top, start))
     loader = unittest.TestLoader()
-    suite = loader.discover(start, 'test_*.py', top )
+    suite = loader.discover(start, 'test_*.py', top)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 if __name__ == "__main__":
