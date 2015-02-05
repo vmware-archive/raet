@@ -2134,6 +2134,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    runOne('testBasicMsgpack')
+    #runOne('testBasicMsgpack')
