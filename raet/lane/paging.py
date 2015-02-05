@@ -76,10 +76,10 @@ class TxHead(Head):
         data = self.page.data  # for speed
         lines = []
         for k, v in data.items():
-            lines.append(ns2b("{key} {val:{fmt}}".format(
-                            key=k, val=v, fmt=raeting.PAGE_FIELD_FORMATS[k])))
+            lines.append("{key} {val:{fmt}}".format(
+                            key=k, val=v, fmt=raeting.PAGE_FIELD_FORMATS[k]))
 
-        self.packed = b'\n'.join(lines) + raeting.HEAD_END
+        self.packed = ns2b('\n'.join(lines)) + raeting.HEAD_END
 
 
 class RxHead(Head):

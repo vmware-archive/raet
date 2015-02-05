@@ -90,9 +90,9 @@ class TxHead(Head):
             packed = b''
             lines = []
             for k, v in kit.items():
-                lines.append(ns2b("{key} {val:{fmt}}".format(
-                        key=k, val=v, fmt=raeting.PACKET_FIELD_FORMATS[k])))
-            packed = b'\n'.join(lines) + raeting.HEAD_END
+                lines.append("{key} {val:{fmt}}".format(
+                        key=k, val=v, fmt=raeting.PACKET_FIELD_FORMATS[k]))
+            packed = ns2b('\n'.join(lines)) + raeting.HEAD_END
             hl = len(packed)
             if hl > raeting.MAX_HEAD_SIZE:
                 emsg = "Head length of {0}, exceeds max of {1}".format(hl, MAX_HEAD_SIZE)
