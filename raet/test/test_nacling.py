@@ -60,7 +60,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(verferPam.keyraw), 32)
         self.assertEqual(verferPam.keyhex, signerBob.verhex)
 
-        msg = "Hello This is Bob, how are you Pam?"
+        msg = b"Hello This is Bob, how are you Pam?"
         signature = signerBob.signature(msg)
         console.terse("Signed by Bob: Msg len={0} '{1}' Sig Len={2}\n".format(
                  len(msg), msg, len(signature)))
@@ -163,7 +163,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(pubberPam.keyhex, priverPam.pubhex)
 
         console.terse("Encrypted by Bob local private and Pam remote public key pair\n")
-        enmsg = "Hello its me Bob, Did you get my last message Pam?"
+        enmsg = b"Hello its me Bob, Did you get my last message Pam?"
         console.terse("Msg len={0} '{1}'\n".format(len(enmsg), enmsg))
         self.assertEqual(len(enmsg), 50)
 
@@ -257,7 +257,7 @@ class PartTestCase(unittest.TestCase):
         Blank message
         '''
         console.terse("{0}\n".format(self.testBlank.__doc__))
-        enmsg = "".rjust(64, '\x00')
+        enmsg = b"".rjust(64, b'\x00')
         console.terse("Msg len={0} '{1}'\n".format(len(enmsg), enmsg))
         cipher, nonce = self.priverBob.encrypt(enmsg, self.pubberPam.keyhex)
         console.terse("Cipher len={0} Nonce len={1}\n".format(len(cipher), len(nonce)))
@@ -303,7 +303,7 @@ class PartTestCase(unittest.TestCase):
         self.assertEqual(len(vcipher), 48)
         self.assertEqual(len(vnonce), 24)
 
-        fqdn = "10.0.2.30".ljust(128, ' ')
+        fqdn = b"10.0.2.30".ljust(128, b' ')
         fmt = '!32s48s24s128s'
         stuff = struct.pack(fmt, self.priverBob.keyraw, vcipher, vnonce, fqdn)
         console.terse("Stuff len={0} FQDN len={1} '{2}'\n\n".format(
