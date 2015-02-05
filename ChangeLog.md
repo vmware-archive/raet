@@ -5,6 +5,13 @@ CHANGE LOG
 -----------
 20150204
 ----------
+v0.5.2
+
+Updated setup.py dependencies
+
+-----------
+20150204
+----------
 v0.5.1
 
 Windows impossible file check
