@@ -3,7 +3,15 @@ CHANGE LOG
 -------------------
 
 -----------
-20150201
+20150204
+----------
+v0.5.1
+
+Windows impossible file check
+More coverage tests
+
+-----------
+20150204
 ----------
 v0.5.0
 
