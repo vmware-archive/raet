@@ -110,7 +110,7 @@ class RxHead(Head):
         self.page.body.packed = back
 
         kit = odict()
-        lines = front.decode(encoding='ISO-8859-1').split('\n')
+        lines = str(front.decode(encoding='ISO-8859-1')).split('\n')
         for line in lines:
             key, val = line.split(' ')
             if key not in raeting.PAGE_FIELDS:
