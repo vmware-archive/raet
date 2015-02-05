@@ -38,8 +38,7 @@ else:
 
 
 def setUpModule():
-    # console.reinit(verbosity=console.Wordage.concise)
-    console.reinit(verbosity=console.Wordage.profuse)
+    console.reinit(verbosity=console.Wordage.concise)
 
 def tearDownModule():
     pass
@@ -14027,6 +14026,11 @@ def runSome():
                 'testJoinRequestDuplicated',
                 'testJoinAcceptDuplicated',
                 'testJoinAckAcceptDuplicated',
+                'testJoinerRestartNothingTransmitted',
+                'testJoinerRestartRequestTransmitted',
+                'testJoinerRestartAckAcceptTransmitted',
+                'testJoinentRestartBeforeAck',
+                'testJoinentRestartAckSent',
             ]
 
     tests.extend(map(BasicTestCase, names))
