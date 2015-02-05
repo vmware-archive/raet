@@ -74,11 +74,11 @@ class BasicTestCase(unittest.TestCase):
         data['basedirpath'] = os.path.join(base, 'road', 'keep')
         data['dirpath'] = os.path.join(data['basedirpath'], name)
         signer = nacling.Signer()
-        data['sighex'] = signer.keyhex
-        data['verhex'] = signer.verhex
+        data['sighex'] = str(signer.keyhex.decode('ISO-8859-1'))
+        data['verhex'] = str(signer.verhex.decode('ISO-8859-1'))
         privateer = nacling.Privateer()
-        data['prihex'] = privateer.keyhex
-        data['pubhex'] = privateer.pubhex
+        data['prihex'] = str(privateer.keyhex.decode('ISO-8859-1'))
+        data['pubhex'] = str(privateer.pubhex.decode('ISO-8859-1'))
 
 
         return data
@@ -240,8 +240,8 @@ class BasicTestCase(unittest.TestCase):
             ('puid', stack.puid),
             ('aha', list(stack.ha)),
             ('role', stack.local.role),
-            ('sighex', stack.local.signer.keyhex),
-            ('prihex', stack.local.priver.keyhex),
+            ('sighex', str(stack.local.signer.keyhex.decode('ISO-8859-1'))),
+            ('prihex', str(stack.local.priver.keyhex.decode('ISO-8859-1'))),
         ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -357,8 +357,8 @@ class BasicTestCase(unittest.TestCase):
                 ('joined', remote.joined),
                 ('role', remote.role),
                 ('acceptance', remote.acceptance),
-                ('verhex', remote.verfer.keyhex),
-                ('pubhex', remote.pubber.keyhex),
+                ('verhex', str(remote.verfer.keyhex.decode('ISO-8859-1'))),
+                ('pubhex', str(remote.pubber.keyhex.decode('ISO-8859-1'))),
             ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -381,8 +381,8 @@ class BasicTestCase(unittest.TestCase):
             ('puid', stack.puid),
             ('aha', list(stack.ha)),
             ('role', stack.local.role),
-            ('sighex', stack.local.signer.keyhex),
-            ('prihex', stack.local.priver.keyhex),
+            ('sighex', str(stack.local.signer.keyhex.decode('ISO-8859-1'))),
+            ('prihex', str(stack.local.priver.keyhex.decode('ISO-8859-1'))),
         ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -404,8 +404,8 @@ class BasicTestCase(unittest.TestCase):
                 ('joined', remote.joined),
                 ('role', remote.role),
                 ('acceptance', remote.acceptance),
-                ('verhex', remote.verfer.keyhex),
-                ('pubhex', remote.pubber.keyhex),
+                ('verhex', str(remote.verfer.keyhex.decode('ISO-8859-1'))),
+                ('pubhex', str(remote.pubber.keyhex.decode('ISO-8859-1'))),
             ])
             validRemoteKeepData[remote.name]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
@@ -486,8 +486,8 @@ class BasicTestCase(unittest.TestCase):
             ('puid', stack.puid),
             ('aha', list(stack.ha)),
             ('role', stack.local.role),
-            ('sighex', stack.local.signer.keyhex),
-            ('prihex', stack.local.priver.keyhex),
+            ('sighex', str(stack.local.signer.keyhex.decode('ISO-8859-1'))),
+            ('prihex', str(stack.local.priver.keyhex.decode('ISO-8859-1'))),
         ])
         self.assertDictEqual(localKeepData, validLocalKeepData)
 
@@ -600,8 +600,8 @@ class BasicTestCase(unittest.TestCase):
                 ('joined', remote.joined),
                 ('role', remote.role),
                 ('acceptance', remote.acceptance),
-                ('verhex', remote.verfer.keyhex),
-                ('pubhex', remote.pubber.keyhex),
+                ('verhex', str(remote.verfer.keyhex.decode('ISO-8859-1'))),
+                ('pubhex', str(remote.pubber.keyhex.decode('ISO-8859-1'))),
             ])
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
 
@@ -624,8 +624,8 @@ class BasicTestCase(unittest.TestCase):
             ('puid', stack.puid),
             ('aha', list(stack.ha)),
             ('role', stack.local.role),
-            ('sighex', stack.local.signer.keyhex),
-            ('prihex', stack.local.priver.keyhex),
+            ('sighex', str(stack.local.signer.keyhex.decode('ISO-8859-1'))),
+            ('prihex', str(stack.local.priver.keyhex.decode('ISO-8859-1'))),
         ])
         console.terse("Local keep data = '{0}'\n".format(localKeepData))
         self.assertDictEqual(localKeepData, validLocalKeepData)
@@ -647,8 +647,8 @@ class BasicTestCase(unittest.TestCase):
                 ('joined', remote.joined),
                 ('role', remote.role),
                 ('acceptance', remote.acceptance),
-                ('verhex', remote.verfer.keyhex),
-                ('pubhex', remote.pubber.keyhex),
+                ('verhex', str(remote.verfer.keyhex.decode('ISO-8859-1'))),
+                ('pubhex', str(remote.pubber.keyhex.decode('ISO-8859-1'))),
             ])
             validRemoteKeepData[remote.name]['sid'] += 1 #increments on stack load
         self.assertDictEqual(remoteKeepData, validRemoteKeepData)
@@ -2136,4 +2136,4 @@ if __name__ == '__main__' and __package__ is None:
 
     runSome()#only run some
 
-    #runOne('testPendingSavedKeep')
+    #runOne('testBasicMsgpack')

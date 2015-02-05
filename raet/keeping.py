@@ -111,21 +111,26 @@ class Keep(object):
             raise raeting.KeepError("Invalid filepath '{0}' "
                                     "contains space".format(filepath))
 
-        with aiding.ocfn(filepath, "w+") as f:
-            root, ext = os.path.splitext(filepath)
-            if ext == '.json':
-                json.dump(data, f, indent=2)
-            elif ext == '.msgpack':
-                if not msgpack:
-                    raise raeting.KeepError("Invalid filepath ext '{0}' "
-                                "needs msgpack installed".format(filepath))
-                msgpack.dump(data, f)
-            else:
+        root, ext = os.path.splitext(filepath)
+        if ext == '.json':
+            with aiding.ocfn(filepath, "w+") as f:
+                json.dump(data, f, indent=2, encoding='utf-8')
+                f.flush()
+                os.fsync(f.fileno())
+        elif ext == '.msgpack':
+            if not msgpack:
                 raise raeting.KeepError("Invalid filepath ext '{0}' "
-                            "not '.json' or '.msgpack'".format(filepath))
+                            "needs msgpack installed".format(filepath))
+            with aiding.ocfn(filepath, "w+b", binary=True) as f:
+                msgpack.dump(data, f, encoding='utf-8')
+                f.flush()
+                os.fsync(f.fileno())
+        else:
+            raise raeting.KeepError("Invalid filepath ext '{0}' "
+                        "not '.json' or '.msgpack'".format(filepath))
 
-            f.flush()
-            os.fsync(f.fileno())
+        #f.flush()
+        #os.fsync(f.fileno())
 
     @staticmethod
     def load(filepath):
@@ -133,23 +138,25 @@ class Keep(object):
         Return data read from filepath as converted json
         Otherwise return None
         '''
-        with aiding.ocfn(filepath) as f:
-            try:
-                root, ext = os.path.splitext(filepath)
-                if ext == '.json':
-                    it = json.load(f, object_pairs_hook=odict)
-                elif ext == '.msgpack':
-                    if not msgpack:
-                        raise raeting.KeepError("Invalid filepath ext '{0}' "
-                                    "needs msgpack installed".format(filepath))
-                    it = msgpack.load(f, object_pairs_hook=odict)
-                else:
-                    it = None
-            except EOFError:
-                return None
-            except ValueError:
-                return None
-            return it
+
+        try:
+            root, ext = os.path.splitext(filepath)
+            if ext == '.json':
+                with aiding.ocfn(filepath, "r") as f:
+                    it = json.load(f, object_pairs_hook=odict, encoding='utf-8')
+            elif ext == '.msgpack':
+                if not msgpack:
+                    raise raeting.KeepError("Invalid filepath ext '{0}' "
+                                "needs msgpack installed".format(filepath))
+                with aiding.ocfn(filepath, "rb", binary=True) as f:
+                    it = msgpack.load(f, object_pairs_hook=odict, encoding='utf-8')
+            else:
+                it = None
+        except EOFError:
+            return None
+        except ValueError:
+            return None
+        return it
         return None
 
     def clearAllDir(self):

@@ -58,7 +58,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(page0.body.data, body)
         page0.pack()
         self.assertEqual(len(page0.packed), 169)
-        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 0\nsn \ndn \nsi 000000000000000000\nbi 0\npn 0000\npc 0001\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
+        self.assertEqual(page0.packed, b'ri RAET\nvn 0\npk 0\nsn \ndn \nsi 000000000000000000\nbi 0\npn 0000\npc 0001\n\n{"route":{"src":["mayor","main",null],"dst":["citizen","other",null]},"content":"Hello all yards."}')
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()
         self.assertDictEqual(page1.body.data, body)
@@ -134,7 +134,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertDictEqual(page0.body.data, body)
         page0.pack()
         self.assertEqual(len(page0.packed), 147)
-        self.assertEqual(page0.packed, 'ri RAET\nvn 0\npk 1\nsn boy\ndn girl\nsi {0:.18s}\nbi 1\npn 0000\npc 0001\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.'.format(sid))
+        self.assertEqual(page0.packed, ns2b('ri RAET\nvn 0\npk 1\nsn boy\ndn girl\nsi {0:.18s}\nbi 1\npn 0000\npc 0001\n\n\x82\xa5route\x82\xa3src\x93\xa5mayor\xa4main\xc0\xa3dst\x93\xa7citizen\xa5other\xc0\xa7content\xb0Hello all yards.'.format(sid)))
         page1 = paging.RxPage(packed=page0.packed)
         page1.parse()
         self.assertDictEqual(page1.body.data, body)
@@ -257,8 +257,8 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    #runOne('testSectionedMsgpack')
+    #runOne('testPackParseJson')

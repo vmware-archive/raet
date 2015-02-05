@@ -31,9 +31,9 @@ if sys.version > '3':  # Python3
         return x
 
 else:  # Python2
-    #long = long
-    #basestring = basestring
-    #unicode = unicode
+    # long = long
+    # basestring = basestring
+    # unicode = unicode
 
     def ns2b(x):
         """

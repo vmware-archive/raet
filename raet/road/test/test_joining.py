@@ -313,8 +313,8 @@ class BasicTestCase(unittest.TestCase):
     def copyData(self, remote, fuid=None):
         keep = {}
         keep['role'] = remote.role
-        keep['verhex'] = remote.verfer.keyhex
-        keep['pubhex'] = remote.pubber.keyhex
+        keep['verhex'] = str(remote.verfer.keyhex.decode('ISO-8859-1'))
+        keep['pubhex'] = str(remote.pubber.keyhex.decode('ISO-8859-1'))
         keep['name'] = remote.name
         keep['ha'] = remote.ha
         keep['fuid'] = fuid if fuid is not None else remote.fuid
@@ -327,8 +327,8 @@ class BasicTestCase(unittest.TestCase):
         Returns True if role and keys match, False otherwise
         '''
         return (remote.role ==  data['role'] and
-                remote.verfer.keyhex == data['verhex'] and
-                remote.pubber.keyhex == data['pubhex'])
+                remote.verfer.keyhex == ns2b(data['verhex']) and
+                remote.pubber.keyhex == ns2b(data['pubhex']))
 
     def sameAll(self, remote, data):
         return (self.sameRoleKeys(remote, data) and
@@ -1105,9 +1105,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
-
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Name: Old
         # Main: Either
         # Kind: Either
@@ -1154,8 +1153,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1194,8 +1193,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         oldRole = 'beta'
         newRole = 'beta_new'
@@ -1243,13 +1242,13 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
         # Reject the new role
         alpha.keep.rejectRemote(alphaRemote)
@@ -1283,13 +1282,13 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1327,8 +1326,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Either
@@ -1364,8 +1363,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1403,8 +1402,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Old
@@ -1438,8 +1437,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1468,8 +1467,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Mutable: Either (use Yes, as most loyal)
         alpha.mutable = True
@@ -1510,8 +1509,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1548,8 +1547,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         oldMain = None
         newMain = True
@@ -1599,8 +1598,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1637,8 +1636,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         oldKind = None
         newKind = 33
@@ -1688,8 +1687,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1731,8 +1730,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Either
@@ -1781,8 +1780,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1824,8 +1823,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Either
@@ -1871,8 +1870,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -1913,8 +1912,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Either
@@ -1964,8 +1963,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2021,8 +2020,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new remote role
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -2061,13 +2060,13 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2103,8 +2102,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Set to most strict auto mode
         alpha.keep.auto = raeting.autoModes.never
@@ -2150,8 +2149,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2183,8 +2182,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Body
         # Main: Body
@@ -2226,8 +2225,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2267,8 +2266,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         oldMain = None
         newMain = True
@@ -2316,15 +2315,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Accept the transaction
         alpha.keep.acceptRemote(alphaRemote)
@@ -2354,8 +2353,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2395,8 +2394,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         oldKind = None
         newKind = 33
@@ -2444,14 +2443,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Accept the transaction
         alpha.keep.acceptRemote(alphaRemote)
@@ -2481,8 +2480,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2527,8 +2526,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Either
@@ -2575,14 +2574,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Accept the transaction
         alpha.keep.acceptRemote(alphaRemote)
@@ -2612,8 +2611,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2656,8 +2655,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Either
@@ -2700,14 +2699,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Accept the transaction
         alpha.keep.acceptRemote(alphaRemote)
@@ -2737,8 +2736,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2795,8 +2794,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -2831,14 +2830,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Accept the transaction
         alpha.keep.acceptRemote(alphaRemote)
@@ -2868,13 +2867,13 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -2912,8 +2911,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Old
@@ -2952,14 +2951,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Accept the transaction
         alpha.keep.acceptRemote(alphaRemote)
@@ -2989,8 +2988,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -3023,8 +3022,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Body
         # Main: Body
@@ -3061,14 +3060,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Accept the transaction
         alphaRemote = alpha.remotes.values()[0]
@@ -3099,8 +3098,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -3780,8 +3779,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -3829,8 +3828,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -3888,8 +3887,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -3922,19 +3921,19 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alphaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], alphaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -3975,8 +3974,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Old
@@ -4010,8 +4009,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4053,8 +4052,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -4090,8 +4089,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4135,8 +4134,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -4173,8 +4172,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4219,8 +4218,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -4255,8 +4254,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4301,8 +4300,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -4337,8 +4336,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4395,9 +4394,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
-
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
 
@@ -4431,8 +4429,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4478,8 +4476,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -4514,8 +4512,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4561,8 +4559,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -4602,8 +4600,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4628,8 +4626,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Mode: Always
         alpha.keep.auto = raeting.autoModes.always
@@ -4684,8 +4682,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4728,9 +4726,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
-
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
 
@@ -4760,8 +4757,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4803,8 +4800,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: New
         oldName = beta.name
@@ -4852,14 +4849,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remoteData['name'], beta.name) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
         beta.mutable = True
@@ -4892,8 +4889,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -4935,8 +4932,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Either
         # Main: New
@@ -4983,14 +4980,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remoteData['main'], beta.main) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
         beta.mutable = True
@@ -5021,8 +5018,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -5064,8 +5061,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -5112,14 +5109,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remoteData['kind'], beta.kind) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
         beta.mutable = True
@@ -5150,8 +5147,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -5198,8 +5195,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -5245,14 +5242,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(tuple(remoteData['ha']), beta.local.ha) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
         beta.mutable = True
@@ -5283,8 +5280,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -5332,8 +5329,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -5376,14 +5373,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
         beta.mutable = True
@@ -5414,8 +5411,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -5474,8 +5471,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -5510,14 +5507,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
         beta.mutable = True
@@ -5548,8 +5545,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -5590,8 +5587,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Name: Old
         # Main: Old
@@ -5631,14 +5628,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Allow beta to modify it's remote estate: set proper name and role for alpha remote estate on accept
         beta.mutable = True
@@ -5669,8 +5666,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['verhex'], beta.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], beta.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6162,8 +6159,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -6214,8 +6211,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6307,8 +6304,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Ensure beta knows nothing about the new role
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
@@ -6355,15 +6352,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Reject the transaction
         alpha.clearStats()
@@ -6397,8 +6394,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6440,8 +6437,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Name: Old
         # Main: Old
@@ -6491,8 +6488,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6535,8 +6532,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Name: Either
         oldName = alpha.name
@@ -6588,8 +6585,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6631,8 +6628,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Name: Body
         # Main: Body
@@ -6682,8 +6679,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6721,8 +6718,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Mutable: Yes
         beta.mutable = True
@@ -6762,8 +6759,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6809,8 +6806,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: Yes
@@ -6844,8 +6841,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6889,8 +6886,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: Yes
@@ -6924,8 +6921,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -6946,8 +6943,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -7004,8 +7001,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -7048,8 +7045,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Ensure beta knows nothing about new role
         roleData = beta.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -7089,8 +7086,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -7131,8 +7128,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: Yes
@@ -7163,8 +7160,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -7205,8 +7202,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: No
@@ -7238,8 +7235,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -7329,8 +7326,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         beta.clearStats()
         alpha.clearStats()
@@ -7415,15 +7412,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remoteData['fuid'], gammaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], gamma.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], gamma.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], gamma.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), gamma.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), gamma.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(gamma.local.role)
         self.assertEqual(roleData['role'], gamma.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], gamma.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], gamma.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), gamma.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), gamma.local.priver.pubhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -7458,8 +7455,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(gamma.local.role)
         self.assertEqual(roleData['role'], gamma.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], gamma.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], gamma.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), gamma.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), gamma.local.priver.pubhex)
 
         for stack in [gamma, beta]:
             stack.server.close()
@@ -7569,8 +7566,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         beta.clearStats()
         alpha.clearStats()
@@ -7612,15 +7609,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -7654,8 +7651,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -7752,8 +7749,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: Yes
@@ -7792,15 +7789,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -7834,8 +7831,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -7930,8 +7927,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], None)
@@ -7977,15 +7974,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role) # new value
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role) # new value
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -8019,8 +8016,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -8107,8 +8104,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         beta.clearStats()
         alpha.clearStats()
@@ -8149,15 +8146,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
-
+        self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -8189,8 +8185,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         for stack in [alpha, beta]:
             stack.server.close()
             stack.clearAllKeeps()
@@ -8247,8 +8243,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: No
@@ -8277,8 +8273,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -8309,8 +8305,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9012,8 +9008,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -9064,8 +9060,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9128,8 +9124,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Check beta knows nothing about new role
         roleData = beta.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -9169,8 +9165,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9230,8 +9226,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -9264,8 +9260,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9322,8 +9318,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -9355,8 +9351,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.rejected)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9397,8 +9393,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -9431,8 +9427,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9476,8 +9472,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: Yes
@@ -9511,8 +9507,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9554,8 +9550,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -9588,8 +9584,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9634,8 +9630,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: No
@@ -9674,8 +9670,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9721,8 +9717,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: No
@@ -9759,8 +9755,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9802,8 +9798,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         roleData = beta.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
         self.assertIs(roleData['acceptance'], None)
@@ -9841,8 +9837,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9863,8 +9859,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Name: Either
         # Main: Either
@@ -9917,8 +9913,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -9955,8 +9951,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -9986,8 +9982,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -10049,8 +10045,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid, duration=0.50)
@@ -10080,8 +10076,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -10112,8 +10108,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -10173,8 +10169,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid, duration=0.50)
@@ -10204,8 +10200,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -10236,8 +10232,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -10300,8 +10296,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         self.join(beta, alpha, deid=betaRemote.nuid)
@@ -10331,8 +10327,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -10363,8 +10359,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -10430,8 +10426,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         console.terse("\nJoin Transaction **************\n")
@@ -10466,8 +10462,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -10498,8 +10494,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -10565,8 +10561,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         console.terse("\nJoin Transaction **************\n")
@@ -10599,8 +10595,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -10631,8 +10627,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -10695,8 +10691,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Ensure beta knows nothing about the newRole
         roleData = beta.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], newRole)
@@ -10732,8 +10728,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -10764,8 +10760,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -10824,8 +10820,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertIs(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         # Test
         # Renew: Yes
@@ -10854,8 +10850,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.pending)
-        self.assertEqual(roleData['verhex'], betaRemote.verfer.keyhex)
-        self.assertEqual(roleData['pubhex'], betaRemote.pubber.keyhex)
+        self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
+        self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
         # Accept the transaction
         console.terse("\nAccept Transaction **************\n")
@@ -10886,8 +10882,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -11001,15 +10997,15 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['fuid'], oldUid) # renew was refused
         self.assertEqual(remoteData['role'], alpha.local.role)
         self.assertEqual(remoteData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(remoteData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(remoteData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -11375,7 +11371,7 @@ class BasicTestCase(unittest.TestCase):
                                       rxPacket=packet)
         # Hack: set stack name to None
         flags = [0, 0, 0, 0, 0, 0, 0, alpha.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         # Skip actual join, it's not needed for test
         # Hack: set mode to none
         body = odict([ ('name', alpha.local.name),
@@ -11441,7 +11437,7 @@ class BasicTestCase(unittest.TestCase):
                                       rxPacket=packet)
         # Skip actual join, it's not needed for test
         flags = [0, 0, 0, 0, 0, 0, 0, alpha.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         # Skip actual join, it's not needed for test
         # Hack: set remote uid to None
         body = odict([ ('name', alpha.local.name),
@@ -12020,8 +12016,8 @@ class BasicTestCase(unittest.TestCase):
         data = beta.keep.loadRemoteRoleData(role= alpha.local.role)
         self.assertEqual(data['role'], alpha.local.role)
         self.assertEqual(data['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(data['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(data['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(data['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(data['pubhex']), alpha.local.priver.pubhex)
         self.assertEqual(beta.keep.auto, raeting.autoModes.once)
         self.assertEqual(beta.puid, 2)
 
@@ -12093,8 +12089,8 @@ class BasicTestCase(unittest.TestCase):
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(roleData['acceptance'], raeting.acceptances.accepted)
-        self.assertEqual(roleData['verhex'], alpha.local.signer.verhex)
-        self.assertEqual(roleData['pubhex'], alpha.local.priver.pubhex)
+        self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
+        self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
         for stack in [alpha, beta]:
             stack.server.close()
@@ -12473,7 +12469,7 @@ class BasicTestCase(unittest.TestCase):
         # joiner join
         remote.joined = None
         flags = [0, 0, 0, 0, 0, 0, 0, beta.main] # stack operation mode flags
-        operation = packByte(fmt='11111111', fields=flags)
+        operation = packByte(fmt=b'11111111', fields=flags)
         # Hack: Set kind to None here
         body = odict([('name', beta.local.name),
                       ('mode', operation),
