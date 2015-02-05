@@ -5,6 +5,15 @@ CHANGE LOG
 -----------
 20150201
 ----------
+v0.5.0
+
+Python3 support
+
+
+
+-----------
+20150201
+----------
 v0.4.7
 
 Added support for burst size limits in the Message transaction to deal with
