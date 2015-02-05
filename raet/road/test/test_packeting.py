@@ -542,7 +542,7 @@ class StackTestCase(unittest.TestCase):
         self.assertEqual( tray1.body, self.stuff)
 
         # Json body
-        body = odict(stuff=self.stuff.decode(encoding='ISO-8859-1'))
+        body = odict(stuff=str(self.stuff.decode(encoding='ISO-8859-1')))
         self.data.update(se=2, de=3, bk=raeting.bodyKinds.json, fk=raeting.footKinds.nacl)
         tray0 = packeting.TxTray(stack=self.main, data=self.data, body=body)
         tray0.pack()
@@ -605,7 +605,7 @@ class StackTestCase(unittest.TestCase):
         self.assertEqual(len(self.stuff), 1200)
         self.assertTrue(len(self.stuff) > raeting.UDP_MAX_PACKET_SIZE)
 
-        body = odict(stuff=self.stuff.decode('ISO-8859-1'))
+        body = odict(stuff=str(self.stuff.decode('ISO-8859-1')))
         self.data.update(se=2, de=3,
                     bk=raeting.bodyKinds.json,
                     ck=raeting.coatKinds.nacl,

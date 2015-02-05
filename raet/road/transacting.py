@@ -526,9 +526,9 @@ class Joiner(Initiator):
         body = odict([('name', self.stack.local.name),
                       ('mode', operation),
                       ('kind', self.stack.kind),
-                      ('verhex', self.stack.local.signer.verhex.decode('ISO-8859-1')
+                      ('verhex', str(self.stack.local.signer.verhex.decode('ISO-8859-1'))
                                if self.stack.local.signer.verhex else None ),
-                      ('pubhex', self.stack.local.priver.pubhex.decode('ISO-8859-1')
+                      ('pubhex', str(self.stack.local.priver.pubhex.decode('ISO-8859-1'))
                                if    self.stack.local.priver.pubhex else None),
                       ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,
@@ -1362,9 +1362,9 @@ class Joinent(Correspondent):
                        ('mode', operation),
                        ('kind', self.stack.kind),
                        ('uid', self.remote.uid),
-                       ('verhex', self.stack.local.signer.verhex.decode('ISO-8859-1')
+                       ('verhex', str(self.stack.local.signer.verhex.decode('ISO-8859-1'))
                                   if self.stack.local.signer.verhex else None ),
-                       ('pubhex', self.stack.local.priver.pubhex.decode('ISO-8859-1')
+                       ('pubhex', str(self.stack.local.priver.pubhex.decode('ISO-8859-1'))
                                   if self.stack.local.priver.pubhex else None),
                        ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,

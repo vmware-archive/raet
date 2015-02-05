@@ -177,7 +177,7 @@ class RxHead(Head):
             front, sep, back = packed.partition(raeting.HEAD_END)
             self.packed = front + sep
             kit = odict()
-            lines = front.decode(encoding='ISO-8859-1').split('\n')
+            lines = str(front.decode(encoding='ISO-8859-1')).split('\n')
             for line in lines:
                 key, val = line.split(' ')
                 if key not in raeting.PACKET_HEAD_FIELDS:
