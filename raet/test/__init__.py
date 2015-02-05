@@ -32,8 +32,7 @@ def run(start=None):
                sys.modules.get(__name__).__file__))))
 
     if not start:
-        #start = top
-        start = 'raet'
+        start = 'raet' # top
 
     console.terse("\nRunning all RAET tests in '{0}', starting at '{1}'\n".format(top, start))
     loader = unittest.TestLoader()
