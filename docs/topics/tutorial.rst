@@ -33,7 +33,7 @@ The default location for the persisted data is in /tmp on unix. If the user
 does not have write permissions to /tmp then the .raet folder in the user's home
 directory is used.
 
-.. code-block:: bash
+.. code-block:: python
     >>> alpha.keep.dirpath
        '/Users/username/.raet/keep/alpha'
 
