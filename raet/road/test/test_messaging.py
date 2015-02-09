@@ -306,7 +306,6 @@ class BasicTestCase(unittest.TestCase):
         for k in range(len(stacks) - len(limits)):
             limits.append(None)  # ensure a limit per stack even if empty
 
-
         self.timer.restart(duration=duration)
         while not self.timer.expired:
             for i, stack in enumerate(stacks):
