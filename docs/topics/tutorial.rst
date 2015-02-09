@@ -6,8 +6,7 @@ RAET is written in python. RAET uses Stack objects.
 There are currently two types of RAET Stacks.
 
 - A RoadStack provides communication between IP hosts via UDP sockets
-- A LaneStack provides communication between processes on the same host via
-Unix Domain Sockets (UXD) on unix or mail slots on windows.
+- A LaneStack provides communication between processes on the same host via Unix Domain Sockets (UXD) on unix or mail slots on windows.
 
 Although a RoadStack has a flexible set of configuration parameters,
 it tries to use intelligent defaults where ever possible.
