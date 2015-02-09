@@ -39,6 +39,7 @@ directory is used.
        '/Users/username/.raet/keep/alpha'
 
 To clear the persisted data call:
+
 .. code-block:: bash
     >>> alpha.keep.clearAllDir()
 
@@ -136,20 +137,4 @@ The default RAET log lever should print the following to the console.
     Alivent beta. Do ack alive with alpha in 3 at 0.3
     Alivent beta. Done with alpha in 3 at 0.3
     Aliver alpha. Done with beta in 3 at 0.4
-
- The code snippet
-below shows how to create and add a RemoteEstate instance to stack alpha.
-
-.. code-block:: python
-
-    import raet
-    betaRemote = raet.road.estating.RemoteEstate(stack=alpha, ha = ('0.0.0.0', 7532))
-    alpha.addRemote(betaRemote)
-    alpha.join(uid=betaRemote.uid, cascade=True)
-
-On OS X:
-
-.. code-block:: bash
-
-    $ sudo pip install raet
 
