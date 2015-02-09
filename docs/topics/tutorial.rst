@@ -47,33 +47,37 @@ A different name or a host address can be assigned at creation time.
 To create another RoadStack just provide it with a unique name and host address.
 
 In order for two RoadStacks to communicate one with another. They need to be connected.
-By default RAET uses elliptic curve cryptography to sign and encrypt messages.
+RAET uses elliptic curve cryptography to sign and encrypt messages.
 This requires that the two RoadStacks exchange keys and perform a handshake.
+
 Each RoadStack has an .auto accept attribute that governs how it will accept keys.
-The auto accept has three modes, these are: Never, Once, and Always. For the
-purposes of this tutorial we will use the least restrictive mode which is always.
-The default is the most restrictive which is never.
+The auto accept has three modes, these are: never, once, and always. For the
+purposes of this tutorial we will use the least restrictive mode which is 'always'.
+The default is the most restrictive which is 'never'.
+
 If two RoadStack have never been connected before and have not exchanged keys then
 they may perform what is called a vacuous join handshake to exhange keys. The main
 parameter, if True, will allow that RoadStack to accept a vacuous join handshake
 from another RoadStack.
 
 The first step for one RoadStack to initiate the formation of a connection with
-another RoadStack is for the RoadStack to add a RemoteEstate to its list of estates.
-In the RAET metaphor, an estate represents a host on a UDP channel.
+another RoadStack is for that RoadStack to add a RemoteEstate to its list of estates.
+In the RAET coding metaphor, an estate represents a host on a UDP channel.
 
 Another important concept to understand about a RoadStack is that it uses a
 non-blocking UDP socket. This means that the socket must be repeatedly polled.
 Non-blocking sockets makes RAET compatible with non-blocking concurrency frameworks.
 RAET is  intended to be used with Ioflo, a non blocking flow based programming framework.
-But RAET can be used with other non-blocking io python frameworks especially those
-that use yield (generators).  One can easily service the non-blocking io with a
-'busy loop' when not using a framework.
+But RAET can be used with other non-blocking I/O python frameworks especially those
+that use yield (generators).  When not using a framework, One can easily service
+the non-blocking I/O with a'busy loop'.
 
-The following code will create two roadstacks and perform a vacuous handshake
+The following example code will create two roadstacks and perform a vacuous handshake
 to exchange keys. It employs a busy loop to service the non-blocking io. At the
-end it closes the UDP sockets and clears the persistence files. In a real application
-the closing and clearing should not happen until exiting the application.
+end it closes the UDP sockets and clears the persistence files.
+
+In a real application the closing and clearing should not happen until exiting
+the application.
 
 .. code-block:: python
 
