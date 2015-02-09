@@ -119,13 +119,16 @@ the application.
             stack.server.close()  # close the UDP socket
             stack.keep.clearAllDir()  # clear persisted data
 
+        print("Finished\n")
+
     if __name__ == "__main__":
         example()
 
 
-The default RAET log lever should print the following to the console.
+The RAET log should print the following to the console.
 
-.. code-block:: bash
+.. code-block::
+
     Joiner alpha. Do Join with estate_3181b42bb09b11e4a6136c400891de78 in 1 at 0.0
     Joinent beta. Added new remote name='alpha' nuid='2' fuid='2' ha='('127.0.0.1', 7531)' role='alpha'
     Joinent beta. Do Accept of alpha in 1 at 0.0
@@ -141,4 +144,140 @@ The default RAET log lever should print the following to the console.
     Alivent beta. Do ack alive with alpha in 3 at 0.3
     Alivent beta. Done with alpha in 3 at 0.3
     Aliver alpha. Done with beta in 3 at 0.4
+    Finished
+
+What the log shows is that 3 different transactions are completed successfully.
+The first transaction is a Join that is composed of a Joiner on the alpha side and
+a Joinent on the beta side. The next transaction is an Allow that is composed of
+an Allower on the alpha side and an Allowent on the beta side. The final transaction
+is an Alive that is composed of an Aliver on the alpha side and an Alivent on the
+beta side.
+
+The Join transaction exchanges the signing and long term encryption keys. The
+Allow transaction performs a Curve-CP handshake to exchange the short term encryption
+keys. The Alive transaction performs a heatbeat to verify that both sides are
+communicative and is used to support a presence service in RAET.
+
+In the following example, to stacks will first complete the handshake and each
+send a message to each other. The messages will be signed and encrypted.
+
+.. code-block:: python
+
+    '''
+    RAET Tutorial Example
+    '''
+    import time
+
+    import raet
+    from raet import raeting
+
+    def example():
+
+        alpha = raet.road.stacking.RoadStack(name='alpha',
+                                             ha=('0.0.0.0', 7531),
+                                             auto=raeting.autoModes.always)
+
+        beta = raet.road.stacking.RoadStack(name='beta',
+                                            ha=('0.0.0.0', 7532),
+                                            main=True,
+                                            auto=raeting.autoModes.always)
+
+        remote = raet.road.estating.RemoteEstate(stack=alpha,
+                                                 ha=beta.ha)
+
+        alpha.addRemote(remote)
+
+        alpha.join(uid=remote.uid, cascade=True)
+
+        stacks = [alpha, beta]
+        while True:
+            for stack in stacks:
+                stack.serviceAll()
+                stack.store.advanceStamp(0.1)
+            if all([not stack.transactions for stack in stacks]):
+                break
+            time.sleep(0.1)
+
+        print("Finished Handshake\n")
+
+        msg =  {'subject': 'Example message alpha to beta',
+                'content': 'The dict keys in this dict are not special any dict will do.',}
+
+        alpha.transmit(msg, remote.uid)
+        while True:
+            for stack in stacks:
+                stack.serviceAll()
+                stack.store.advanceStamp(0.1)
+            if all([not stack.transactions for stack in stacks]):
+                break
+            time.sleep(0.1)
+
+        rx = beta.rxMsgs.popleft()
+        print("{0}\n".format(rx))
+        print("Finished Message alpha to beta\n")
+
+        msg =  {'subject': 'Example message beta to alpha',
+                'content': 'Messages are the core of raet.',}
+
+        beta.transmit(msg, remote.uid)
+        while True:
+            for stack in stacks:
+                stack.serviceAll()
+                stack.store.advanceStamp(0.1)
+            if all([not stack.transactions for stack in stacks]):
+                break
+            time.sleep(0.1)
+
+        rx = alpha.rxMsgs.popleft()
+        print("{0}\n".format(rx))
+        print("Finished Message beta to alpha\n")
+
+        for stack in stacks:
+            stack.server.close()  # close the UDP socket
+            stack.keep.clearAllDir()  # clear persisted data
+
+        print("Finished\n")
+
+    if __name__ == "__main__":
+        example()
+
+The RAET log should print the following to the console.
+
+.. code-block::
+
+    Joiner alpha. Do Join with estate_d68ca540b0a011e4ba4e6c400891de78 in 1 at 0.0
+    Joinent beta. Added new remote name='alpha' nuid='2' fuid='2' ha='('127.0.0.1', 7531)' role='alpha'
+    Joinent beta. Do Accept of alpha in 1 at 0.0
+    Joiner alpha. Do Ack Accept, Done with beta in 1 at 0.1
+    Allower alpha. Do Hello with beta in 2 at 0.1
+    Joinent beta. Done with alpha in 1 at 0.1
+    Allowent beta. Do Cookie with alpha in 2 at 0.1
+    Allower alpha. Do Initiate with beta in 2 at 0.2
+    Allowent beta. Do Ack Initiate with alpha in 2 at 0.2
+    Allower alpha. Do Ack Final, Done with beta in 2 at 0.3
+    Aliver alpha. Do Alive with beta in 3 at 0.3
+    Allowent beta. Done with alpha in 2 at 0.3
+    Alivent beta. Do ack alive with alpha in 3 at 0.3
+    Alivent beta. Done with alpha in 3 at 0.3
+    Aliver alpha. Done with beta in 3 at 0.4
+    Finished Handshake
+
+    Messenger alpha. Do Message Segment 0 with beta in 4 at 0.5
+    Messengent beta. Do Ack Done Message on Segment 0 with alpha in 4 at 0.5
+    Messengent beta. Complete with alpha in 4 at 0.5
+    Messenger alpha. Done with beta in 4 at 0.6
+    ({u'content': u'The dict keys in this dict are not special any dict will do.', u'subject': u'Example message alpha to beta'}, u'alpha')
+
+    Finished Message alpha to beta
+
+    Messenger beta. Do Message Segment 0 with alpha in 1 at 0.7
+    Messengent alpha. Do Ack Done Message on Segment 0 with beta in 1 at 0.8
+    Messengent alpha. Complete with beta in 1 at 0.8
+    Messenger beta. Done with alpha in 1 at 0.8
+    ({u'content': u'Messages are the core of raet.', u'subject': u'Example message beta to alpha'}, u'beta')
+
+    Finished Message beta to alpha
+
+    Finished
+
 
