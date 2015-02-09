@@ -40,6 +40,7 @@ directory is used.
 To clear the persisted data call:
 
 .. code-block:: bash
+
     >>> alpha.keep.clearAllDir()
 
 A different name or a host address can be assigned at creation time.
