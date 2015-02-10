@@ -52,7 +52,7 @@ class LaneStack(stacking.Stack):
                  lanename='lane',
                  sockdirpath='',
                  ha='',
-                 bufcnt=10,
+                 bufcnt=100,
                  accept=None,
                  **kwa
                  ):
@@ -236,7 +236,7 @@ class LaneStack(stacking.Stack):
                 if yard:
                     self.removeRemote(yard)
                     console.terse("Reaped yard {0}\n".format(yard.name))
-            elif ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
+            elif ex.errno in [errno.EAGAIN, errno.EWOULDBLOCK, errno.ENOBUFS]:
                 self.incStat("busy_transmit_yard")
                 #busy with last message save it for later
                 laters.append((tx, ta))
