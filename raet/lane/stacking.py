@@ -248,7 +248,7 @@ class LaneStack(stacking.Stack):
 
     def message(self, body, uid=None):
         '''
-        Sends message body to yard name and manages paging of long messages
+        Sends message body to yard  given by uid and manages paging of long messages
         '''
         if uid is None:
             if not self.remotes:
@@ -256,7 +256,7 @@ class LaneStack(stacking.Stack):
                 console.terse(emsg)
                 self.incStat("invalid_destination")
                 return
-            uid = self.remotes.values()[0].name
+            uid = self.remotes.values()[0].uid
         if uid not in self.remotes:
             emsg = "Invalid destination yard '{0}'\n".format(uid)
             console.terse(emsg)
