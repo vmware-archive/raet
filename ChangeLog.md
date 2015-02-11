@@ -3,6 +3,16 @@ CHANGE LOG
 -------------------
 
 -----------
+20150211
+----------
+v0.5.3
+
+Added tutorial documents
+Fixed merge error
+Fixed bugs
+
+
+-----------
 20150204
 ----------
 v0.5.2
