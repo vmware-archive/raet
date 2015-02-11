@@ -86,7 +86,7 @@ class TxHead(Head):
                 (data[k] != v)):
                 kit[k] = data[k]
 
-        if data['hk'] == raeting.headKinds.raet:
+        if data['hk'] == raeting.HeadKind.raet:
             packed = b''
             lines = []
             for k, v in kit.items():
@@ -124,7 +124,7 @@ class TxHead(Head):
                                     1)
             self.packed = packed
 
-        elif data['hk'] == raeting.headKinds.json:
+        elif data['hk'] == raeting.HeadKind.json:
             kit['pl'] = '0000000'  # need hex string so fixed length and jsonable
             kit['hl'] = '00'  # need hex string so fixed length and jsonable
             packed = (ns2b(json.dumps(kit, separators=(',', ':'),
@@ -173,7 +173,7 @@ class RxHead(Head):
         packed = self.packet.packed  # for speed
 
         if packed.startswith(b'ri RAET\n') and raeting.HEAD_END in packed: # raet head
-            hk = raeting.headKinds.raet
+            hk = int(raeting.HeadKind.raet)
             front, sep, back = packed.partition(raeting.HEAD_END)
             self.packed = front + sep
             kit = odict()
@@ -211,7 +211,7 @@ class RxHead(Head):
 
 
         elif packed.startswith(ns2b('{"ri":"RAET",')) and raeting.JSON_END in packed: # json head
-            hk = raeting.headKinds.json
+            hk = int(raeting.HeadKind.json)
             front, sep, back = packed.partition(raeting.JSON_END)
             self.packed = front + sep
             kit = json.loads(front.decode(encoding='ascii'),
@@ -237,7 +237,7 @@ class RxHead(Head):
             data['pl'] = pl
 
         else:  # notify unrecognizable packet head
-            data['hk'] = raeting.headKinds.unknown
+            data['hk'] = int(raeting.HeadKind.unknown)
             emsg = "Unrecognizable packet head."
             raise raeting.PacketError(emsg)
 
@@ -785,9 +785,9 @@ class TxTray(Tray):
         Create packeted segments from .packed using headsize footsize
         '''
         extrasize = 0
-        if self.data['hk'] == raeting.headKinds.raet:
+        if self.data['hk'] == raeting.HeadKind.raet:
             extrasize = 27 # extra header size as a result of segmentation
-        elif self.data['hk'] == raeting.headKinds.json:
+        elif self.data['hk'] == raeting.HeadKind.json:
             extrasize = 36 # extra header size as a result of segmentation
 
         hotelsize = headsize + extrasize + footsize

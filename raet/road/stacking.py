@@ -80,7 +80,7 @@ class RoadStack(stacking.KeepStack):
         The local estate role identifier for key management
     '''
     Count = 0 # count of Stack instances to give unique stack names
-    Hk = raeting.headKinds.raet # stack default
+    Hk = int(raeting.HeadKind.raet) # stack default
     Bk = raeting.bodyKinds.json # stack default
     Fk = raeting.footKinds.nacl # stack default
     Ck = raeting.coatKinds.nacl # stack default

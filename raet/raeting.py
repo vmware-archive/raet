@@ -99,6 +99,7 @@ except ImportError:
     import json
 
 import struct
+import enum
 
 # Import ioflo libs
 from ioflo.base.odicting import odict
@@ -134,11 +135,21 @@ VERSIONS = odict([('0.1', 0)])
 VERSION_NAMES = odict((v, k) for k, v in VERSIONS.iteritems())
 VERSION = VERSIONS.values()[0]
 
-HEAD_KINDS = odict([('raet', 0), ('json', 1), ('binary', 2),
-                    ('unknown', 255)])
-HEAD_KIND_NAMES = odict((v, k) for k, v in HEAD_KINDS.iteritems())  # inverse map
-HeadKind = namedtuple('HeadKind', HEAD_KINDS.keys())
-headKinds = HeadKind(**HEAD_KINDS)  # headKinds.json is '00'
+#HEAD_KINDS = odict([('raet', 0), ('json', 1), ('binary', 2),
+                    #('unknown', 255)])
+#HEAD_KIND_NAMES = odict((v, k) for k, v in HEAD_KINDS.iteritems())  # inverse map
+#HeadKind = namedtuple('HeadKind', HEAD_KINDS.keys())
+#headKinds = HeadKind(**HEAD_KINDS)  # headKinds.json is '00'
+
+@enum.unique
+class HeadKind(enum.IntEnum):
+    '''
+    Integer Enums of Head Kinds
+    '''
+    raet = 0
+    json = 1
+    binary = 2
+    unknown = 255
 
 
 BODY_KINDS = odict([('nada', 0), ('json', 1), ('raw', 2), ('msgpack', 3),

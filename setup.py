@@ -42,6 +42,11 @@ if sys.version_info < (2, 7): #tuple comparison element by element
         'argparse>=1.2.1'
     ])
 
+if sys.version_info < (3, 4): #tuple comparison element by element
+    REQUIREMENTS.extend([
+        'enum34>=1.0.4',
+    ])
+
 setup(
     name='raet',
     version=__version__,

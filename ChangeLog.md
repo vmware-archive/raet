@@ -5,6 +5,14 @@ CHANGE LOG
 -----------
 20150211
 ----------
+v0.6.0
+
+Added enum support using python 3.4 enums via backport enum34
+raeting.py NamedTuples replaced with enums
+
+-----------
+20150211
+----------
 v0.5.3
 
 Added tutorial documents
