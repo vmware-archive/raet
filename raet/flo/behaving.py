@@ -490,7 +490,7 @@ class RaetRoadStackPrinter(deeding.Deed):
 
     def action(self, **kwa):
         '''
-        Queue up message
+        Receive message
         '''
         rxMsgs = self.rxmsgs.value
         while rxMsgs:
@@ -658,15 +658,17 @@ class RaetLaneStackPrinter(deeding.Deed):
     '''
     Ioinits = odict(
         inode=".raet.lane.stack.",
+        total=odict(ipath="totalRxMsg", ival=odict(value=0)),
         stack="stack",
         rxmsgs=odict(ipath='rxmsgs', ival=deque()),)
 
     def action(self, **kwa):
         '''
-        Queue up message
+        Receive message
         '''
         rxMsgs = self.rxmsgs.value
         stack = self.stack.value
         while rxMsgs:
             msg, name = rxMsgs.popleft()
             console.terse("\n{0} Received....\n{1}\n".format(stack.name, msg))
+            self.total.value += 1
