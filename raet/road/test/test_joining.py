@@ -11316,7 +11316,7 @@ class BasicTestCase(unittest.TestCase):
                        ('pubhex', alpha.local.priver.pubhex),
                        ('role', alpha.local.role)])
         packet = packeting.TxPacket(stack=alpha,
-                                    kind=raeting.pcktKinds.response,
+                                    kind=int(raeting.PcktKind.response),
                                     embody=body,
                                     data=joinent.txData)
         packet.pack()
@@ -11382,7 +11382,7 @@ class BasicTestCase(unittest.TestCase):
                        ('pubhex', alpha.local.priver.pubhex),
                        ('role', alpha.local.role)])
         packet = packeting.TxPacket(stack=alpha,
-                                    kind=raeting.pcktKinds.response,
+                                    kind=int(raeting.PcktKind.response),
                                     embody=body,
                                     data=joinent.txData)
         packet.pack()
@@ -11448,7 +11448,7 @@ class BasicTestCase(unittest.TestCase):
                        ('pubhex', alpha.local.priver.pubhex),
                        ('role', alpha.local.role)])
         packet = packeting.TxPacket(stack=alpha,
-                                    kind=raeting.pcktKinds.response,
+                                    kind=int(raeting.PcktKind.response),
                                     embody=body,
                                     data=joinent.txData)
         packet.pack()
@@ -11785,7 +11785,7 @@ class BasicTestCase(unittest.TestCase):
 
         beta.clearStats()
         beta.join()
-        beta.transactions[0].nack(kind=raeting.pcktKinds.unknown)
+        beta.transactions[0].nack(kind=int(raeting.PcktKind.unknown))
 
         # Checks
         self.assertIn('joiner_transaction_failure', beta.stats)
@@ -11926,7 +11926,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStacks([alpha], duration=0.1) # process join, add pend transaction
         # Do malformed nack from alpha
         alpha.transactions[0].txData['ck'] = -1
-        alpha.transactions[0].nack(kind=raeting.pcktKinds.reject)
+        alpha.transactions[0].nack(kind=int(raeting.PcktKind.reject))
         self.serviceStacks([alpha], duration=0.1) # process join, add pend transaction
         self.serviceStacks([beta], duration=0.1) # receive and handle
 
@@ -12425,7 +12425,7 @@ class BasicTestCase(unittest.TestCase):
                       ('pubhex', beta.local.priver.pubhex),
                       ('role', beta.local.role)])
         packet = packeting.TxPacket(stack=beta,
-                                    kind=raeting.pcktKinds.request,
+                                    kind=int(raeting.PcktKind.request),
                                     embody=body,
                                     data=joiner.txData)
         packet.pack()
@@ -12478,7 +12478,7 @@ class BasicTestCase(unittest.TestCase):
                       ('pubhex', beta.local.priver.pubhex),
                       ('role', beta.local.role)])
         packet = packeting.TxPacket(stack=beta,
-                                    kind=raeting.pcktKinds.request,
+                                    kind=int(raeting.PcktKind.request),
                                     embody=body,
                                     data=joiner.txData)
         packet.pack()
@@ -12845,7 +12845,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest joinent recieve refuse *********\n")
         # Initiate non vacuous transaction
         beta.join() # initiate transaction
-        beta.transactions[0].nack(kind=raeting.pcktKinds.refuse)
+        beta.transactions[0].nack(kind=int(raeting.PcktKind.refuse))
 
         self.serviceStacks([beta], duration=0.1) # send 2 packets
         # receive 2 packets on alpha
@@ -13051,7 +13051,7 @@ class BasicTestCase(unittest.TestCase):
         joiner.rxPacket = packet
         # Break packet Inner
         joiner.txData['ck'] = -1
-        joiner.nack(kind=raeting.pcktKinds.reject) # Reject
+        joiner.nack(kind=int(raeting.PcktKind.reject)) # Reject
         self.serviceStacks([beta], duration=0.1) # send join
         self.serviceStacks([alpha], duration=0.1) # read join, handle
 
@@ -13092,7 +13092,7 @@ class BasicTestCase(unittest.TestCase):
         joiner.rxPacket = packet
         # Break packet Inner
         joiner.txData['ck'] = -1
-        joiner.nack(kind=raeting.pcktKinds.refuse) # Refuse
+        joiner.nack(kind=int(raeting.PcktKind.refuse)) # Refuse
         self.serviceStacks([beta], duration=0.1) # send join
         self.serviceStacks([alpha], duration=0.1) # read join, handle
 
@@ -13148,7 +13148,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStacks([beta], duration=0.1) # request join
         self.serviceStacks([alpha], duration=0.1) # handle, responce
         self.assertEqual(len(alpha.transactions), 1)
-        alpha.transactions[0].nack(kind=raeting.pcktKinds.renew)
+        alpha.transactions[0].nack(kind=int(raeting.PcktKind.renew))
 
         # Checks
         self.assertIn('joinent_transaction_failure', alpha.stats)
@@ -13171,7 +13171,7 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStacks([beta], duration=0.1) # request join
         self.serviceStacks([alpha], duration=0.1) # handle, responce
         self.assertEqual(len(alpha.transactions), 1)
-        alpha.transactions[0].nack(kind=raeting.pcktKinds.unknown)
+        alpha.transactions[0].nack(kind=int(raeting.PcktKind.unknown))
 
         # Checks
         self.assertIn('joinent_transaction_failure', alpha.stats)
@@ -14051,8 +14051,8 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    runAll() #run all unittests
+    #runAll() #run all unittests
 
-    #runSome()#only run some
+    runSome()#only run some
 
-    #runOne('testVacuousJoinentJoinDuplicateNonVacuousJoiner')
+    #runOne('testAllJoinAcceptDropped')

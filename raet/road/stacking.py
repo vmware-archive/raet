@@ -450,10 +450,12 @@ class RoadStack(stacking.KeepStack):
             tkname = raeting.TrnsKind(packet.data['tk'])
         except ValueError as ex:
             tkname = None
+        try:
+            pkname = raeting.PcktKind(packet.data['pk'])
+        except ValueError as ex:
+            pkname = None
         console.verbose("{0} received trans kind = '{1}' packet kind = '{2}'"
-                        "\n".format(self.name,
-                                    tkname,
-                                    raeting.PCKT_KIND_NAMES[packet.data['pk']]))
+                        "\n".format(self.name, tkname, pkname))
 
         bf = packet.data['bf']
         if bf:
@@ -515,7 +517,7 @@ class RoadStack(stacking.KeepStack):
 
                     if not remote: # no current joinees for remote initiator at rha
                         # is it not first packet of join
-                        if pk not in [raeting.pcktKinds.request]:
+                        if pk not in [raeting.PcktKind.request]:
                             emsg = ("Stack '{0}'. Stale join initiatance from '{1}',"
                                 " Not a request and no remote. Dropping...\n".format(
                                         self.name, sha))
@@ -604,22 +606,22 @@ class RoadStack(stacking.KeepStack):
         Create correspondent transaction remote and handle packet
         '''
         if (packet.data['tk'] == raeting.TrnsKind.join and
-                packet.data['pk'] == raeting.pcktKinds.request):
+                packet.data['pk'] == raeting.PcktKind.request):
             self.replyJoin(packet, remote)
             return
 
         if (packet.data['tk'] == raeting.TrnsKind.allow and
-                packet.data['pk'] == raeting.pcktKinds.hello):
+                packet.data['pk'] == raeting.PcktKind.hello):
             self.replyAllow(packet, remote)
             return
 
         if (packet.data['tk'] == raeting.TrnsKind.alive and
-                packet.data['pk'] == raeting.pcktKinds.request):
+                packet.data['pk'] == raeting.PcktKind.request):
             self.replyAlive(packet, remote)
             return
 
         if (packet.data['tk'] == raeting.TrnsKind.message and
-                packet.data['pk'] == raeting.pcktKinds.message):
+                packet.data['pk'] == raeting.PcktKind.message):
             if packet.data['af']:  # packet is a stale resend
                 self.replyStale(packet, remote)
             else:
@@ -658,12 +660,12 @@ class RoadStack(stacking.KeepStack):
         Initiate stale transaction in order to nack a stale correspondent packet
         but only for preexisting remotes
         '''
-        if packet.data['pk'] in [raeting.pcktKinds.nack,
-                                         raeting.pcktKinds.unjoined,
-                                         raeting.pcktKinds.unallowed,
-                                         raeting.pcktKinds.renew,
-                                         raeting.pcktKinds.refuse,
-                                         raeting.pcktKinds.reject,]:
+        if packet.data['pk'] in [raeting.PcktKind.nack,
+                                raeting.PcktKind.unjoined,
+                                raeting.PcktKind.unallowed,
+                                raeting.PcktKind.renew,
+                                raeting.PcktKind.refuse,
+                                raeting.PcktKind.reject,]:
             return # ignore stale nacks
         create = False
         uid = packet.data['de']
@@ -688,11 +690,11 @@ class RoadStack(stacking.KeepStack):
         '''
         Correspond to stale initiated transaction
         '''
-        if packet.data['pk'] in [raeting.pcktKinds.nack,
-                                 raeting.pcktKinds.unjoined,
-                                 raeting.pcktKinds.unallowed,
-                                 raeting.pcktKinds.refuse,
-                                 raeting.pcktKinds.reject,]:
+        if packet.data['pk'] in [raeting.PcktKind.nack,
+                                 raeting.PcktKind.unjoined,
+                                 raeting.PcktKind.unallowed,
+                                 raeting.PcktKind.refuse,
+                                 raeting.PcktKind.reject,]:
             return # ignore stale nacks
         data = odict(hk=self.Hk, bk=self.Bk)
         stalent = transacting.Stalent(stack=self,
@@ -703,7 +705,7 @@ class RoadStack(stacking.KeepStack):
                                       txData=data,
                                       rxPacket=packet)
         if renew:
-            stalent.nack(kind=raeting.pcktKinds.renew) # refuse and renew
+            stalent.nack(kind=int(raeting.PcktKind.renew)) # refuse and renew
         else:
             stalent.nack()
 

@@ -495,8 +495,8 @@ class Packet(object):
         if data:
             self.data.update(data)
         if kind:
-            if kind not in raeting.PCKT_KIND_NAMES:
-                self.data['pk'] = raeting.pcktKinds.unknown
+            if kind not in list(raeting.PcktKind):
+                self.data['pk'] = int(raeting.PcktKind.unknown)
                 emsg = "Unrecognizable packet kind."
                 raise raeting.PacketError(emsg)
             self.data.update(pk=kind)
@@ -768,7 +768,7 @@ class TxTray(Tray):
         self.current = 0
         self.packets = []
         packet = TxPacket(stack=self.stack,
-                          kind=raeting.pcktKinds.message,
+                          kind=int(raeting.PcktKind.message),
                           embody=self.body,
                           data=self.data)
 

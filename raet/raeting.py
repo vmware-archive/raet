@@ -207,7 +207,7 @@ class TailSize(enum.IntEnum):
 @enum.unique
 class TrnsKind(enum.IntEnum):
     '''
-    Integer Enums of Coat Kinds
+    Integer Enums of Transaction Kinds
     '''
     message = 0
     join = 1
@@ -216,15 +216,29 @@ class TrnsKind(enum.IntEnum):
     alive = 4
     unknown = 255
 
-PCKT_KINDS = odict([('message', 0), ('ack', 1), ('nack', 2), ('resend', 3),
-                    ('request', 4), ('response', 5),
-                    ('hello', 6), ('cookie', 7), ('initiate', 8),
-                    ('unjoined', 9), ('unallowed', 10),
-                    ('renew', 11), ('refuse', 12), ('reject', 13),
-                    ('pend', 14), ('done', 15), ('unknown', 255)])
-PCKT_KIND_NAMES = odict((v, k) for k, v in PCKT_KINDS.iteritems())  # inverse map
-PcktKind = namedtuple('PcktKind', PCKT_KINDS.keys())
-pcktKinds = PcktKind(**PCKT_KINDS)
+
+@enum.unique
+class PcktKind(enum.IntEnum):
+    '''
+    Integer Enums of Packet Kinds
+    '''
+    message = 0
+    ack = 1
+    nack = 2
+    resend = 3
+    request = 4
+    response = 5
+    hello = 6
+    cookie = 7
+    initiate = 8
+    unjoined = 9
+    unallowed = 10
+    renew = 11
+    refuse = 12
+    reject = 13
+    pend = 14
+    done = 15
+    unknown = 255
 
 HELLO_PACKER = struct.Struct('!64s32s80s24s') #curvecp allow trans bodies
 COOKIESTUFF_PACKER = struct.Struct('!32sLL24s')
