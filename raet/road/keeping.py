@@ -387,50 +387,50 @@ class RoadKeep(keeping.Keep):
         status = data.get('acceptance') if data else None # pre-existing status
 
         if self.auto == raeting.autoModes.always:
-            status = raeting.acceptances.accepted
+            status = int(raeting.Acceptance.accepted)
 
         elif self.auto == raeting.autoModes.once:
             if status is None: # first time so accept once
-                status = raeting.acceptances.accepted
+                status = int(raeting.Acceptance.accepted)
 
-            elif status == raeting.acceptances.accepted:
+            elif status == raeting.Acceptance.accepted:
                 # already been accepted if keys not match then reject
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = raeting.acceptances.rejected
+                    status = int(raeting.Acceptance.rejected)
                     console.concise("Rejection Reason: Once keys not match prior accepted.\n")
 
-            elif status == raeting.acceptances.pending:
+            elif status == raeting.Acceptance.pending:
                 # already pending prior mode of never if keys not match then reject
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = raeting.acceptances.rejected
+                    status = int(raeting.Acceptance.rejected)
                     console.concise("Rejection Reason: Once keys not match prior pended.\n")
                 else: # in once mode convert pending to accepted
-                    status = raeting.acceptances.accepted
+                    status = int(raeting.Acceptance.accepted)
             else:
                 console.concise("Rejection Reason: Once keys already rejected.\n")
 
         elif self.auto == raeting.autoModes.never:
             if status is None: # first time so pend
-                status = raeting.acceptances.pending
+                status = int(raeting.Acceptance.pending)
 
-            elif status == raeting.acceptances.accepted:
+            elif status == raeting.Acceptance.accepted:
                 # already been accepted if keys not match then reject
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = raeting.acceptances.rejected
+                    status = int(raeting.Acceptance.rejected)
                     console.concise("Rejection Reason: Never keys not match prior accepted.\n")
 
-            elif status == raeting.acceptances.pending:
+            elif status == raeting.Acceptance.pending:
                 # already pending if keys not match then reject
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = raeting.acceptances.rejected
+                    status = int(raeting.Acceptance.rejected)
                     console.concise("Rejection Reason: Never keys not match prior pended.\n")
             else:
                 console.concise("Rejection Reason: Never keys already rejected.\n")
@@ -441,7 +441,7 @@ class RoadKeep(keeping.Keep):
         if dump:
             dirty = False
             # update changed keys if any when accepted or pending
-            if status != raeting.acceptances.rejected:
+            if status != raeting.Acceptance.rejected:
                 if (verhex and verhex != data.get('verhex')):
                     data['verhex'] = verhex
                     dirty = True
@@ -462,21 +462,21 @@ class RoadKeep(keeping.Keep):
         '''
         Set acceptance status to rejected
         '''
-        remote.acceptance = raeting.acceptances.rejected
+        remote.acceptance = int(raeting.Acceptance.rejected)
         self.dumpRemoteRole(remote)
 
     def pendRemote(self, remote):
         '''
         Set acceptance status to pending
         '''
-        remote.acceptance = raeting.acceptances.pending
+        remote.acceptance = int(raeting.Acceptance.pending)
         self.dumpRemoteRole(remote)
 
     def acceptRemote(self, remote):
         '''
         Set acceptance status to accepted
         '''
-        remote.acceptance = raeting.acceptances.accepted
+        remote.acceptance = int(raeting.Acceptance.accepted)
         self.dumpRemoteRole(remote)
 
 def clearAllKeep(dirpath):

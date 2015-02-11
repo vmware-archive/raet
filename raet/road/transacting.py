@@ -480,9 +480,9 @@ class Joiner(Initiator):
             else: #check to see if status has changed to accept after other kind
                 if self.remote:
                     status = self.stack.keep.statusRemote(self.remote, dump=True)
-                    if status == raeting.acceptances.accepted:
+                    if status == raeting.Acceptance.accepted:
                         self.completify()
-                    elif status == raeting.acceptances.rejected:
+                    elif status == raeting.Acceptance.rejected:
                         "Joiner {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                 self.stack.name, self.remote.name, self.remote.uid)
                         self.stack.removeRemote(self.remote, clear=True)
@@ -717,7 +717,7 @@ class Joiner(Initiator):
                                                     pubhex=pubhex,
                                                     dump=True)
 
-        if status == raeting.acceptances.rejected:
+        if status == raeting.Acceptance.rejected:
             if sameRoleKeys:
                 self.stack.removeRemote(self.remote, clear=True)
                 # remove also nacks so will also reject
@@ -762,7 +762,7 @@ class Joiner(Initiator):
                 self.remote.pubber = nacling.Publican(pubhex) # long term crypt key manager
             # don't dump until complete
 
-        if status == raeting.acceptances.accepted: # accepted
+        if status == raeting.Acceptance.accepted: # accepted
             self.completify()
             return
 
@@ -1014,9 +1014,9 @@ class Joinent(Correspondent):
             else: #check to see if status has changed to accept
                 if self.remote:
                     status = self.stack.keep.statusRemote(self.remote, dump=True)
-                    if status == raeting.acceptances.accepted:
+                    if status == raeting.Acceptance.accepted:
                         self.ackAccept()
-                    elif status == raeting.acceptances.rejected:
+                    elif status == raeting.Acceptance.rejected:
                         "Stack {0}: Estate '{1}' uid '{2}' keys rejected\n".format(
                                 self.stack.name, self.remote.name, self.remote.uid)
                         self.stack.removeRemote(self.remote,clear=True)
@@ -1237,7 +1237,7 @@ class Joinent(Correspondent):
                                             dump=True)
 
 
-        if status == raeting.acceptances.rejected:
+        if status == raeting.Acceptance.rejected:
             emsg = ("Joinent {0}. Keys of role='{1}' rejected for remote name='{2}'"
                     " nuid='{3}' fuid='{4}' ha='{5}'\n".format(self.stack.name,
                                                               self.remote.role,
@@ -1312,7 +1312,7 @@ class Joinent(Correspondent):
         self.add(remote=self.remote, index=self.rxPacket.index)
         self.remote.joined = None
 
-        if status == raeting.acceptances.accepted:
+        if status == raeting.Acceptance.accepted:
             duration = min(
                             max(self.redoTimeoutMin,
                               self.redoTimer.duration * 2.0),

@@ -135,6 +135,12 @@ VERSIONS = odict([('0.1', 0)])
 VERSION_NAMES = odict((v, k) for k, v in VERSIONS.iteritems())
 VERSION = VERSIONS.values()[0]
 
+HELLO_PACKER = struct.Struct('!64s32s80s24s') #curvecp allow trans bodies
+COOKIESTUFF_PACKER = struct.Struct('!32sLL24s')
+COOKIE_PACKER = struct.Struct('!80s24s')
+INITIATESTUFF_PACKER = struct.Struct('!32s48s24s128s')
+INITIATE_PACKER = struct.Struct('!32s24s248s24s')
+
 @enum.unique
 class HeadKind(enum.IntEnum):
     '''
@@ -240,16 +246,16 @@ class PcktKind(enum.IntEnum):
     done = 15
     unknown = 255
 
-HELLO_PACKER = struct.Struct('!64s32s80s24s') #curvecp allow trans bodies
-COOKIESTUFF_PACKER = struct.Struct('!32sLL24s')
-COOKIE_PACKER = struct.Struct('!80s24s')
-INITIATESTUFF_PACKER = struct.Struct('!32s48s24s128s')
-INITIATE_PACKER = struct.Struct('!32s24s248s24s')
 
-ACCEPTANCES = odict([('pending', 0), ('accepted', 1), ('rejected', 2),])
-ACCEPTANCE_NAMES = odict((v, k) for k, v in ACCEPTANCES.iteritems())  # inverse map
-Acceptance = namedtuple('Acceptance', ACCEPTANCES.keys())
-acceptances = Acceptance(**ACCEPTANCES)
+@enum.unique
+class Acceptance(enum.IntEnum):
+    '''
+    Integer Enums of Acceptances
+    '''
+    pending = 0
+    accepted = 1
+    rejected = 2
+
 
 AUTO_MODES = odict([('never', 0), ('once', 1), ('always', 2),])
 AUTO_MODE_NAMES = odict((v, k) for k, v in AUTO_MODES.iteritems())  # inverse map
