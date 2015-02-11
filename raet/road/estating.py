@@ -421,7 +421,7 @@ class RemoteEstate(Estate):
             sid = index[3]
 
             if not rf and not self.validSid(sid): # transaction sid newer or equal
-                if transaction.kind in [raeting.trnsKinds.message]:
+                if transaction.kind in [raeting.TrnsKind.message]:
                     self.saveMessage(transaction)
                 transaction.nack()
                 self.removeTransaction(index)
@@ -463,7 +463,7 @@ class RemoteEstate(Estate):
         that are already in process
         '''
         return ([t for t in self.transactions.values()
-                     if t.kind == raeting.trnsKinds.allow])
+                     if t.kind == raeting.TrnsKind.allow])
 
     def joinInProcess(self):
         '''
@@ -471,5 +471,5 @@ class RemoteEstate(Estate):
         that are already in process
         '''
         return ([t for t in self.transactions.values()
-                     if t.kind == raeting.trnsKinds.join])
+                     if t.kind == raeting.TrnsKind.join])
 

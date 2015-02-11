@@ -203,7 +203,7 @@ class Staler(Initiator):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=raeting.coatKinds.nada,
+                            ck=int(raeting.CoatKind.nada),
                             fk=int(raeting.FootKind.nada)
                           )
 
@@ -215,9 +215,14 @@ class Staler(Initiator):
         a nack packet back. Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
+        try:
+            tkname = raeting.TrnsKind(self.rxPacket.data['tk'])
+        except ValueError as ex:
+            tkname = None
+
         emsg = ("Staler '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' "
                "nacking...\n".format(self.stack.name,
-                raeting.TRNS_KIND_NAMES.get(self.rxPacket.data['tk']),
+                tkname,
                 raeting.PCKT_KIND_NAMES.get(self.rxPacket.data['pk']),
                 ha ))
         console.terse(emsg)
@@ -276,7 +281,7 @@ class Stalent(Correspondent):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=raeting.coatKinds.nada,
+                            ck=int(raeting.CoatKind.nada),
                             fk=int(raeting.FootKind.nada)
                            )
 
@@ -288,9 +293,13 @@ class Stalent(Correspondent):
         Do not add transaction so don't need to remove it.
         '''
         ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
+        try:
+            tkname = raeting.TrnsKind(self.rxPacket.data['tk'])
+        except ValueError as ex:
+            tkname = None
         emsg = ("Stalent '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' "
                 "nacking ...\n".format(self.stack.name,
-                raeting.TRNS_KIND_NAMES.get(self.rxPacket.data['tk']),
+                tkname,
                 raeting.PCKT_KIND_NAMES.get(self.rxPacket.data['pk']),
                                         ha ))
         console.terse(emsg)
@@ -361,7 +370,7 @@ class Joiner(Initiator):
         '''
         Setup Transaction instance
         '''
-        kwa['kind'] = raeting.trnsKinds.join
+        kwa['kind'] = int(raeting.TrnsKind.join)
         super(Joiner, self).__init__(**kwa)
 
         self.cascade = cascade
@@ -413,7 +422,7 @@ class Joiner(Initiator):
         """
         super(Joiner, self).receive(packet) #  self.rxPacket = packet
 
-        if packet.data['tk'] == raeting.trnsKinds.join:
+        if packet.data['tk'] == raeting.TrnsKind.join:
             if packet.data['pk'] == raeting.pcktKinds.pend: # pending
                 self.stack.incStat('joiner_rx_pend')
                 self.pend()
@@ -490,7 +499,7 @@ class Joiner(Initiator):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=raeting.coatKinds.nada,
+                            ck=int(raeting.CoatKind.nada),
                             fk=int(raeting.FootKind.nada)
                           )
 
@@ -907,7 +916,7 @@ class Joinent(Correspondent):
         '''
         Setup Transaction instance
         '''
-        kwa['kind'] = raeting.trnsKinds.join
+        kwa['kind'] = int(raeting.TrnsKind.join)
         super(Joinent, self).__init__(**kwa)
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -950,7 +959,7 @@ class Joinent(Correspondent):
         """
         super(Joinent, self).receive(packet) #  self.rxPacket = packet
 
-        if packet.data['tk'] == raeting.trnsKinds.join:
+        if packet.data['tk'] == raeting.TrnsKind.join:
             if packet.data['pk'] == raeting.pcktKinds.request:
                 self.stack.incStat('joinent_rx_request')
                 self.join()
@@ -1025,7 +1034,7 @@ class Joinent(Correspondent):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=raeting.coatKinds.nada,
+                            ck=int(raeting.CoatKind.nada),
                             fk=int(raeting.FootKind.nada),
                           )
 
@@ -1503,7 +1512,7 @@ class Allower(Initiator):
         '''
         Setup instance
         '''
-        kwa['kind'] = raeting.trnsKinds.allow
+        kwa['kind'] = int(raeting.TrnsKind.allow)
         super(Allower, self).__init__(**kwa)
 
         self.cascade = cascade
@@ -1531,7 +1540,7 @@ class Allower(Initiator):
         """
         super(Allower, self).receive(packet) #  self.rxPacket = packet
 
-        if packet.data['tk'] == raeting.trnsKinds.allow:
+        if packet.data['tk'] == raeting.TrnsKind.allow:
             if packet.data['pk'] == raeting.pcktKinds.cookie:
                 self.cookie()
             elif packet.data['pk'] == raeting.pcktKinds.ack:
@@ -1887,7 +1896,7 @@ class Allowent(Correspondent):
         '''
         Setup instance
         '''
-        kwa['kind'] = raeting.trnsKinds.allow
+        kwa['kind'] = int(raeting.TrnsKind.allow)
         super(Allowent, self).__init__(**kwa)
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -1911,7 +1920,7 @@ class Allowent(Correspondent):
         """
         super(Allowent, self).receive(packet) #  self.rxPacket = packet
 
-        if packet.data['tk'] == raeting.trnsKinds.allow:
+        if packet.data['tk'] == raeting.TrnsKind.allow:
             if packet.data['pk'] == raeting.pcktKinds.hello:
                 self.hello()
             elif packet.data['pk'] == raeting.pcktKinds.initiate:
@@ -2318,7 +2327,7 @@ class Aliver(Initiator):
         '''
         Setup instance
         '''
-        kwa['kind'] = raeting.trnsKinds.alive
+        kwa['kind'] = int(raeting.TrnsKind.alive)
         super(Aliver, self).__init__(**kwa)
 
         self.cascade = cascade
@@ -2345,7 +2354,7 @@ class Aliver(Initiator):
         """
         super(Aliver, self).receive(packet)
 
-        if packet.data['tk'] == raeting.trnsKinds.alive:
+        if packet.data['tk'] == raeting.TrnsKind.alive:
             if packet.data['pk'] == raeting.pcktKinds.ack:
                 self.complete()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # refused
@@ -2518,7 +2527,7 @@ class Alivent(Correspondent):
         '''
         Setup instance
         '''
-        kwa['kind'] = raeting.trnsKinds.alive
+        kwa['kind'] = int(raeting.TrnsKind.alive)
         super(Alivent, self).__init__(**kwa)
 
         self.prep() # prepare .txData
@@ -2529,7 +2538,7 @@ class Alivent(Correspondent):
         """
         super(Alivent, self).receive(packet)
 
-        if packet.data['tk'] == raeting.trnsKinds.alive:
+        if packet.data['tk'] == raeting.TrnsKind.alive:
             if packet.data['pk'] == raeting.pcktKinds.request:
                 self.alive()
 
@@ -2671,7 +2680,7 @@ class Messenger(Initiator):
         '''
         Setup instance
         '''
-        kwa['kind'] = raeting.trnsKinds.message
+        kwa['kind'] = int(raeting.TrnsKind.message)
         super(Messenger, self).__init__(**kwa)
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -2700,7 +2709,7 @@ class Messenger(Initiator):
         """
         super(Messenger, self).receive(packet)
 
-        if packet.data['tk'] == raeting.trnsKinds.message:
+        if packet.data['tk'] == raeting.TrnsKind.message:
             if packet.data['pk'] == raeting.pcktKinds.ack: # more
                 self.another()  # continue message
             elif packet.data['pk'] == raeting.pcktKinds.resend:  # resend
@@ -2976,7 +2985,7 @@ class Messengent(Correspondent):
         '''
         Setup instance
         '''
-        kwa['kind'] = raeting.trnsKinds.message
+        kwa['kind'] = int(raeting.TrnsKind.message)
         super(Messengent, self).__init__(**kwa)
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
@@ -3003,7 +3012,7 @@ class Messengent(Correspondent):
         super(Messengent, self).receive(packet)
 
         # resent message
-        if packet.data['tk'] == raeting.trnsKinds.message:
+        if packet.data['tk'] == raeting.TrnsKind.message:
             if packet.data['pk'] == raeting.pcktKinds.message:
                 self.message()
             elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected

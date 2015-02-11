@@ -608,7 +608,7 @@ class StackTestCase(unittest.TestCase):
         body = odict(stuff=str(self.stuff.decode('ISO-8859-1')))
         self.data.update(se=2, de=3,
                     bk=int(raeting.BodyKind.json),
-                    ck=raeting.coatKinds.nacl,
+                    ck=int(raeting.CoatKind.nacl),
                     fk=int(raeting.FootKind.nacl))
         tray0 = packeting.TxTray(stack=self.main, data=self.data, body=body)
         tray0.pack()

@@ -181,24 +181,40 @@ class FootSize(enum.IntEnum):
     unknown = 0
 
 
-COAT_KINDS = odict([('nada', 0), ('nacl', 1), ('crc16', 2), ('crc64', 3),
-                    ('unknown', 255)])
-COAT_KIND_NAMES = odict((v, k) for k, v in COAT_KINDS.iteritems())  # inverse map
-CoatKind = namedtuple('CoatKind', COAT_KINDS.keys())
-coatKinds = CoatKind(**COAT_KINDS)
+@enum.unique
+class CoatKind(enum.IntEnum):
+    '''
+    Integer Enums of Coat Kinds
+    '''
+    nada = 0
+    nacl = 1
+    crc16 = 2
+    crc64 = 3
+    unknown = 255
 
-# bytes
-TAIL_SIZES = odict([('nada', 0), ('nacl', 24), ('crc16', 2), ('crc64', 8),
-                    ('unknown', 0)])
-TailSize = namedtuple('TailSize', TAIL_SIZES.keys())
-tailSizes = TailSize(**TAIL_SIZES)
 
-TRNS_KINDS = odict([('message', 0), ('join', 1),
-                    ('bind', 2), ('allow', 3),
-                    ('alive', 4), ('unknown', 255)])
-TRNS_KIND_NAMES = odict((v, k) for k, v in TRNS_KINDS.iteritems())  # inverse map
-TrnsKind = namedtuple('TrnsKind', TRNS_KINDS.keys())
-trnsKinds = TrnsKind(**TRNS_KINDS)
+class TailSize(enum.IntEnum):
+    '''
+    Integer Enums of Tail Sizes in bytes
+    '''
+    nada = 0
+    nacl = 24
+    crc16 = 2
+    crc64 = 8
+    unknown = 0
+
+
+@enum.unique
+class TrnsKind(enum.IntEnum):
+    '''
+    Integer Enums of Coat Kinds
+    '''
+    message = 0
+    join = 1
+    bind = 2
+    allow = 3
+    alive = 4
+    unknown = 255
 
 PCKT_KINDS = odict([('message', 0), ('ack', 1), ('nack', 2), ('resend', 3),
                     ('request', 4), ('response', 5),

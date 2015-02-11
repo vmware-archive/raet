@@ -83,7 +83,7 @@ class RoadStack(stacking.KeepStack):
     Hk = int(raeting.HeadKind.raet) # stack default
     Bk = int(raeting.BodyKind.json) # stack default
     Fk = int(raeting.FootKind.nacl) # stack default
-    Ck = raeting.coatKinds.nacl # stack default
+    Ck = int(raeting.CoatKind.nacl) # stack default
     Bf = False # stack default for bcstflag
     BurstSize = 0  # stack default for max segments in each burst, 0 = no limit
     Period = 1.0 # stack default for keep alive
@@ -446,9 +446,13 @@ class RoadStack(stacking.KeepStack):
         console.profuse("{0} received packet data\n{1}\n".format(self.name, packet.data))
         console.verbose("{0} received packet index: (rf={1[0]}, le={1[1]}, re={1[2]},"
                 " si={1[3]}, ti={1[4]}, bf={1[5]})\n".format(self.name, packet.index))
+        try:
+            tkname = raeting.TrnsKind(packet.data['tk'])
+        except ValueError as ex:
+            tkname = None
         console.verbose("{0} received trans kind = '{1}' packet kind = '{2}'"
                         "\n".format(self.name,
-                                    raeting.TRNS_KIND_NAMES[packet.data['tk']],
+                                    tkname,
                                     raeting.PCKT_KIND_NAMES[packet.data['pk']]))
 
         bf = packet.data['bf']
@@ -464,7 +468,7 @@ class RoadStack(stacking.KeepStack):
 
         remote = None
 
-        if tk in [raeting.trnsKinds.join]: # join transaction
+        if tk in [raeting.TrnsKind.join]: # join transaction
             sha = (packet.data['sh'],  packet.data['sp'])
             if rsid != 0: # join  must use sid == 0
                 emsg = ("Stack '{0}'. Nonzero join sid '{1}' in packet from {2}."
@@ -599,22 +603,22 @@ class RoadStack(stacking.KeepStack):
         '''
         Create correspondent transaction remote and handle packet
         '''
-        if (packet.data['tk'] == raeting.trnsKinds.join and
+        if (packet.data['tk'] == raeting.TrnsKind.join and
                 packet.data['pk'] == raeting.pcktKinds.request):
             self.replyJoin(packet, remote)
             return
 
-        if (packet.data['tk'] == raeting.trnsKinds.allow and
+        if (packet.data['tk'] == raeting.TrnsKind.allow and
                 packet.data['pk'] == raeting.pcktKinds.hello):
             self.replyAllow(packet, remote)
             return
 
-        if (packet.data['tk'] == raeting.trnsKinds.alive and
+        if (packet.data['tk'] == raeting.TrnsKind.alive and
                 packet.data['pk'] == raeting.pcktKinds.request):
             self.replyAlive(packet, remote)
             return
 
-        if (packet.data['tk'] == raeting.trnsKinds.message and
+        if (packet.data['tk'] == raeting.TrnsKind.message and
                 packet.data['pk'] == raeting.pcktKinds.message):
             if packet.data['af']:  # packet is a stale resend
                 self.replyStale(packet, remote)
