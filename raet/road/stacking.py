@@ -82,7 +82,7 @@ class RoadStack(stacking.KeepStack):
     Count = 0 # count of Stack instances to give unique stack names
     Hk = int(raeting.HeadKind.raet) # stack default
     Bk = int(raeting.BodyKind.json) # stack default
-    Fk = raeting.footKinds.nacl # stack default
+    Fk = int(raeting.FootKind.nacl) # stack default
     Ck = raeting.coatKinds.nacl # stack default
     Bf = False # stack default for bcstflag
     BurstSize = 0  # stack default for max segments in each burst, 0 = no limit

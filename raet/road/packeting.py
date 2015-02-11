@@ -414,15 +414,15 @@ class TxFoot(Foot):
         self.packed = b''
         fk = self.packet.data['fk']
 
-        if fk not in raeting.FOOT_KIND_NAMES:
-            self.packet.data['fk'] = raeting.footKinds.unknown
+        if fk not in list(raeting.FootKind):
+            self.packet.data['fk'] = int(raeting.FootKind.unknown)
             emsg = "Unrecognizable packet foot."
             raise raeting.PacketError(emsg)
 
-        if fk == raeting.footKinds.nacl:
-            self.packed = b''.rjust(raeting.footSizes.nacl, b'\x00')
+        if fk == raeting.FootKind.nacl:
+            self.packed = b''.rjust(int(raeting.FootSize.nacl), b'\x00')
 
-        elif fk == raeting.footKinds.nada:
+        elif fk == raeting.FootKind.nada:
             pass
 
     def sign(self):
@@ -430,15 +430,15 @@ class TxFoot(Foot):
         Compute signature on packet.packed and update packet.packet with signature
         '''
         fk = self.packet.data['fk']
-        if fk not in raeting.FOOT_KIND_NAMES:
-            self.packet.data['fk'] = raeting.footKinds.unknown
+        if fk not in list(raeting.FootKind):
+            self.packet.data['fk'] = int(raeting.FootKind.unknown)
             emsg = "Unrecognizable packet foot."
             raise raeting.PacketError(emsg)
 
-        if fk == raeting.footKinds.nacl:
+        if fk == raeting.FootKind.nacl:
             self.packed = self.packet.signature(self.packet.packed)
 
-        elif fk == raeting.footKinds.nada:
+        elif fk == raeting.FootKind.nada:
             pass
 
 class RxFoot(Foot):
@@ -453,8 +453,8 @@ class RxFoot(Foot):
         fl = self.packet.data['fl']
         self.packed = b''
 
-        if fk not in raeting.FOOT_KIND_NAMES:
-            self.packet.data['fk'] = raeting.footKinds.unknown
+        if fk not in list(raeting.FootKind):
+            self.packet.data['fk'] = int(raeting.FootKind.unknown)
             emsg = "Unrecognizable packet foot."
             raise raeting.PacketError(emsg)
 
@@ -464,14 +464,14 @@ class RxFoot(Foot):
 
         self.packed = self.packet.packed[self.packet.size - fl:]
 
-        if fk == raeting.footKinds.nacl:
-            if self.size != raeting.footSizes.nacl:
+        if fk == raeting.FootKind.nacl:
+            if self.size != raeting.FootSize.nacl:
                 emsg = ("Actual foot size '{0}' does not match "
-                    "kind size '{1}'".format(self.size, raeting.footSizes.nacl))
+                    "kind size '{1}'".format(self.size, int(raeting.FootSize.nacl)))
                 raise raeting.PacketError(emsg)
 
             signature = self.packed
-            blank = b''.rjust(raeting.footSizes.nacl, b'\x00')
+            blank = b''.rjust(int(raeting.FootSize.nacl), b'\x00')
 
             front = self.packet.packed[:self.packet.size - fl]
 
@@ -480,7 +480,7 @@ class RxFoot(Foot):
                 emsg = "Failed verification"
                 raise raeting.PacketError(emsg)
 
-        if fk == raeting.footKinds.nada:
+        if fk == raeting.FootKind.nada:
             pass
 
 class Packet(object):

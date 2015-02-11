@@ -145,11 +145,6 @@ class HeadKind(enum.IntEnum):
     binary = 2
     unknown = 255
 
-#BODY_KINDS = odict([('nada', 0), ('json', 1), ('raw', 2), ('msgpack', 3),
-                    #('unknown', 255)])
-#BODY_KIND_NAMES = odict((v, k) for k, v in BODY_KINDS.iteritems())  # inverse map
-#BodyKind = namedtuple('BodyKind', BODY_KINDS.keys())
-#bodyKinds = BodyKind(**BODY_KINDS)
 
 @enum.unique
 class BodyKind(enum.IntEnum):
@@ -163,17 +158,27 @@ class BodyKind(enum.IntEnum):
     unknown = 255
 
 
-FOOT_KINDS = odict([('nada', 0), ('nacl', 1), ('sha2', 2),
-                     ('crc64', 2), ('unknown', 255)])
-FOOT_KIND_NAMES = odict((v, k) for k, v in FOOT_KINDS.iteritems())  # inverse map
-FootKind = namedtuple('FootKind', FOOT_KINDS.keys())
-footKinds = FootKind(**FOOT_KINDS)
+@enum.unique
+class FootKind(enum.IntEnum):
+    '''
+    Integer Enums of Foot Kinds
+    '''
+    nada = 0
+    nacl = 1
+    sha2 = 2
+    crc64 = 3
+    unknown = 255
 
-# bytes
-FOOT_SIZES = odict([('nada', 0), ('nacl', 64), ('sha2', 0),
-                     ('crc64', 8), ('unknown', 0)])
-FootSize = namedtuple('FootSize', FOOT_SIZES.keys())
-footSizes = FootSize(**FOOT_SIZES)
+
+class FootSize(enum.IntEnum):
+    '''
+    Integer Enums of Foot Sizes in bytes
+    '''
+    nada = 0
+    nacl = 64
+    sha2 = 256
+    crc64 = 8
+    unknown = 0
 
 
 COAT_KINDS = odict([('nada', 0), ('nacl', 1), ('crc16', 2), ('crc64', 3),

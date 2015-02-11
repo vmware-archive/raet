@@ -204,7 +204,7 @@ class Staler(Initiator):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada
+                            fk=int(raeting.FootKind.nada)
                           )
 
     def nack(self):
@@ -277,7 +277,7 @@ class Stalent(Correspondent):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada
+                            fk=int(raeting.FootKind.nada)
                            )
 
     def nack(self, kind=raeting.pcktKinds.nack):
@@ -491,7 +491,7 @@ class Joiner(Initiator):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada
+                            fk=int(raeting.FootKind.nada)
                           )
 
     def join(self):
@@ -1026,7 +1026,7 @@ class Joinent(Correspondent):
                             si=self.sid,
                             ti=self.tid,
                             ck=raeting.coatKinds.nada,
-                            fk=raeting.footKinds.nada,
+                            fk=int(raeting.FootKind.nada),
                           )
 
     def join(self):
