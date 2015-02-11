@@ -81,7 +81,7 @@ class RoadStack(stacking.KeepStack):
     '''
     Count = 0 # count of Stack instances to give unique stack names
     Hk = int(raeting.HeadKind.raet) # stack default
-    Bk = raeting.bodyKinds.json # stack default
+    Bk = int(raeting.BodyKind.json) # stack default
     Fk = raeting.footKinds.nacl # stack default
     Ck = raeting.coatKinds.nacl # stack default
     Bf = False # stack default for bcstflag
@@ -749,7 +749,7 @@ class RoadStack(stacking.KeepStack):
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return
-        data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
+        data = odict(hk=self.Hk, bk=int(raeting.BodyKind.raw), fk=self.Fk)
         allower = transacting.Allower(stack=self,
                                       remote=remote,
                                       timeout=timeout,
@@ -761,7 +761,7 @@ class RoadStack(stacking.KeepStack):
         '''
         Correspond to new allow transaction
         '''
-        data = odict(hk=self.Hk, bk=raeting.bodyKinds.raw, fk=self.Fk)
+        data = odict(hk=self.Hk, bk=int(raeting.BodyKind.raw), fk=self.Fk)
         allowent = transacting.Allowent(stack=self,
                                         remote=remote,
                                         sid=packet.data['si'],

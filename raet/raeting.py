@@ -135,12 +135,6 @@ VERSIONS = odict([('0.1', 0)])
 VERSION_NAMES = odict((v, k) for k, v in VERSIONS.iteritems())
 VERSION = VERSIONS.values()[0]
 
-#HEAD_KINDS = odict([('raet', 0), ('json', 1), ('binary', 2),
-                    #('unknown', 255)])
-#HEAD_KIND_NAMES = odict((v, k) for k, v in HEAD_KINDS.iteritems())  # inverse map
-#HeadKind = namedtuple('HeadKind', HEAD_KINDS.keys())
-#headKinds = HeadKind(**HEAD_KINDS)  # headKinds.json is '00'
-
 @enum.unique
 class HeadKind(enum.IntEnum):
     '''
@@ -151,12 +145,22 @@ class HeadKind(enum.IntEnum):
     binary = 2
     unknown = 255
 
+#BODY_KINDS = odict([('nada', 0), ('json', 1), ('raw', 2), ('msgpack', 3),
+                    #('unknown', 255)])
+#BODY_KIND_NAMES = odict((v, k) for k, v in BODY_KINDS.iteritems())  # inverse map
+#BodyKind = namedtuple('BodyKind', BODY_KINDS.keys())
+#bodyKinds = BodyKind(**BODY_KINDS)
 
-BODY_KINDS = odict([('nada', 0), ('json', 1), ('raw', 2), ('msgpack', 3),
-                    ('unknown', 255)])
-BODY_KIND_NAMES = odict((v, k) for k, v in BODY_KINDS.iteritems())  # inverse map
-BodyKind = namedtuple('BodyKind', BODY_KINDS.keys())
-bodyKinds = BodyKind(**BODY_KINDS)
+@enum.unique
+class BodyKind(enum.IntEnum):
+    '''
+    Integer Enums of Body Kinds
+    '''
+    nada = 0
+    json = 1
+    raw = 2
+    msgpack = 3
+    unknown = 255
 
 
 FOOT_KINDS = odict([('nada', 0), ('nacl', 1), ('sha2', 2),
