@@ -76,7 +76,7 @@ class BasicTestCase(unittest.TestCase):
         self.main = stacking.RoadStack(store=self.store,
                                        name=mainName,
                                        main=True,
-                                       auto=raeting.autoModes.once,
+                                       auto=int(raeting.AutoMode.once),
                                        sigkey=mainSignKeyHex,
                                        prikey=mainPriKeyHex,
                                        dirpath=mainDirpath,
@@ -84,7 +84,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.other = stacking.RoadStack(store=self.store,
                                         name=otherName,
-                                        auto=raeting.autoModes.once,
+                                        auto=int(raeting.AutoMode.once),
                                         ha=("", raeting.RAET_TEST_PORT),
                                         sigkey=otherSignKeyHex,
                                         prikey=otherPriKeyHex,
