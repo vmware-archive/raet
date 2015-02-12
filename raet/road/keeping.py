@@ -55,7 +55,7 @@ class RoadKeep(keeping.Keep):
     RemoteDumpFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'fqdn', 'dyned',
                          'sid', 'main', 'kind', 'joined', 'role']
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
-    Auto = int(raeting.AutoMode.never) #auto accept
+    Auto = raeting.AutoMode.never.value #auto accept
 
     def __init__(self,
                  stackname='stack',

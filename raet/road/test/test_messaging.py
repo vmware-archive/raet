@@ -59,7 +59,7 @@ class BasicTestCase(unittest.TestCase):
                        name='',
                        ha=None,
                        main=None,
-                       auto=int(raeting.AutoMode.never),
+                       auto=raeting.AutoMode.never.value,
                        role=None,
                        kind=None, ):
         '''
@@ -392,7 +392,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -401,7 +401,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -480,7 +480,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -489,7 +489,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -568,7 +568,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -577,7 +577,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -656,7 +656,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -665,7 +665,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                      main=True,
@@ -757,7 +757,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -767,7 +767,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -863,7 +863,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -872,7 +872,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -949,7 +949,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -958,7 +958,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -1034,7 +1034,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -1043,7 +1043,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -1126,7 +1126,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -1135,7 +1135,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
@@ -1218,7 +1218,7 @@ class BasicTestCase(unittest.TestCase):
 
         alphaData = self.createRoadData(name='alpha',
                                         base=self.base,
-                                        auto=int(raeting.AutoMode.once))
+                                        auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData,
                                      main=True,
@@ -1227,7 +1227,7 @@ class BasicTestCase(unittest.TestCase):
 
         betaData = self.createRoadData(name='beta',
                                        base=self.base,
-                                       auto=int(raeting.AutoMode.once))
+                                       auto=raeting.AutoMode.once.value)
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData,
                                     main=True,
