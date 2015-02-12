@@ -87,7 +87,7 @@ the application.
     import time
 
     import raet
-    from raet import raeting
+    from raet.raeting import AutoMode
 
     def example():
         alpha = raet.road.stacking.RoadStack(name='alpha',
@@ -169,7 +169,7 @@ send a message to each other. The messages will be signed and encrypted.
     import time
 
     import raet
-    from raet import raeting
+    from raet.raeting import AutoMode
 
     def example():
 
@@ -277,6 +277,267 @@ The RAET log should print the following to the console.
     ({u'content': u'Messages are the core of raet.', u'subject': u'Example message beta to alpha'}, u'beta')
 
     Finished Message beta to alpha
+
+    Finished
+
+
+The next example show communication between 3 stacks.
+
+.. code-block::
+
+    '''
+    RAET Tutorial Example
+    '''
+    import time
+
+    import ioflo
+
+    from ioflo.base.consoling import getConsole
+    console = getConsole()
+    console.reinit(verbosity=console.Wordage.concise)
+
+    import raet
+    from raet import raeting
+    from raet.raeting import AutoMode
+
+
+    def serviceStacks(stacks, duration=1.0, period=0.1):
+        '''
+        Utility method to service queues. Call from test method.
+        '''
+        store = ioflo.base.storing.Store(stamp=0.0)
+        timer = ioflo.base.aiding.StoreTimer(store=store, duration=duration)
+        while not timer.expired:
+            for stack in stacks:
+                stack.serviceAll()
+                stack.store.advanceStamp(period)
+
+            store.advanceStamp(period)
+            if all([not stack.transactions for stack in stacks]):
+                break
+            time.sleep(period)
+        console.concise("Perceived service duration = {0} seconds\n".format(timer.elapsed))
+
+
+    def example():
+        alpha = raet.road.stacking.RoadStack(name='alpha',
+                                             ha=('0.0.0.0', 7531),
+                                             main=True,
+                                             auto=AutoMode.always.value)
+
+        beta = raet.road.stacking.RoadStack(name='beta',
+                                            ha=('0.0.0.0', 7532),
+                                            main=True,
+                                            auto=AutoMode.always.value)
+
+        gamma = raet.road.stacking.RoadStack(name='gamma',
+                                            ha=('0.0.0.0', 7533),
+                                            main=True,
+                                            auto=AutoMode.always.value)
+
+        remote = raet.road.estating.RemoteEstate(stack=alpha,
+                                                 name=beta.name,
+                                                 ha=beta.ha)
+        alpha.addRemote(remote)
+        alpha.join(uid=remote.uid, cascade=True)
+
+        remote = raet.road.estating.RemoteEstate(stack=alpha,
+                                                 name=gamma.name,
+                                                 ha=gamma.ha)
+        alpha.addRemote(remote)
+        alpha.join(uid=remote.uid, cascade=True)
+
+        remote = raet.road.estating.RemoteEstate(stack=beta,
+                                                 name=gamma.name,
+                                                 ha=gamma.ha)
+        beta.addRemote(remote)
+        beta.join(uid=remote.uid, cascade=True)
+
+        stacks = [alpha, beta, gamma]
+        serviceStacks(stacks)
+        print("Finished Handshakes\n")
+
+        msg =  {'subject': 'Example message alpha to whoever',
+                'content': 'Hi',}
+        for remote in alpha.remotes.values():
+            alpha.transmit(msg, remote.uid)
+
+        msg =  {'subject': 'Example message beta to whoever',
+                'content': 'Hello.',}
+        for remote in beta.remotes.values():
+            beta.transmit(msg, remote.uid)
+
+        msg =  {'subject': 'Example message gamma to whoever',
+                'content': 'Good Day',}
+        for remote in gamma.remotes.values():
+            gamma.transmit(msg, remote.uid)
+
+        serviceStacks(stacks)
+        print("Finished Messages\n")
+
+        for stack in stacks:
+            print("Stack {0} received:\n".format(stack.name))
+            while stack.rxMsgs:
+                msg, source = stack.rxMsgs.popleft()
+                print("source = '{0}'.\nmsg= {1}\n".format(source, msg))
+
+
+        for stack in stacks:
+            stack.server.close()  # close the UDP socket
+            stack.keep.clearAllDir()  # clear persisted data
+
+        print("Finished\n")
+
+
+    if __name__ == "__main__":
+        example3()
+
+
+With the console verbosity level set to concise the following log output is given:
+
+.. code-block::
+
+    Joiner alpha. Do Join with beta in 1 at 0.0
+    Joiner alpha. Do Join with gamma in 1 at 0.0
+    Joiner beta. Do Join with gamma in 1 at 0.0
+    Joinent beta. Added new remote name='alpha' nuid='3' fuid='2' ha='('127.0.0.1', 7531)' role='alpha'
+    Joinent beta. Do Accept of alpha in 1 at 0.0
+    Joinent gamma. Added new remote name='alpha' nuid='2' fuid='3' ha='('127.0.0.1', 7531)' role='alpha'
+    Joinent gamma. Do Accept of alpha in 1 at 0.0
+    Joinent gamma. Added new remote name='beta' nuid='3' fuid='2' ha='('127.0.0.1', 7532)' role='beta'
+    Joinent gamma. Do Accept of beta in 1 at 0.0
+    Joiner alpha. Do Ack Accept, Done with beta in 1 at 0.1
+    Allower alpha. Do Hello with beta in 2 at 0.1
+    Joiner alpha. Do Ack Accept, Done with gamma in 1 at 0.1
+    Allower alpha. Do Hello with gamma in 2 at 0.1
+    Joiner beta. Do Ack Accept, Done with gamma in 1 at 0.1
+    Allower beta. Do Hello with gamma in 2 at 0.1
+    Joinent beta. Done with alpha in 1 at 0.1
+    Allowent beta. Do Cookie with alpha in 2 at 0.1
+    Joinent gamma. Done with alpha in 1 at 0.1
+    Allowent gamma. Do Cookie with alpha in 2 at 0.1
+    Joinent gamma. Done with beta in 1 at 0.1
+    Allowent gamma. Do Cookie with beta in 2 at 0.1
+    Allower alpha. Do Initiate with beta in 2 at 0.2
+    Allower alpha. Do Initiate with gamma in 2 at 0.2
+    Allower beta. Do Initiate with gamma in 2 at 0.2
+    Allowent beta. Do Ack Initiate with alpha in 2 at 0.2
+    Allowent gamma. Do Ack Initiate with alpha in 2 at 0.2
+    Allowent gamma. Do Ack Initiate with beta in 2 at 0.2
+    Allower alpha. Do Ack Final, Done with beta in 2 at 0.3
+    Aliver alpha. Do Alive with beta in 3 at 0.3
+    Allower alpha. Do Ack Final, Done with gamma in 2 at 0.3
+    Aliver alpha. Do Alive with gamma in 3 at 0.3
+    Allower beta. Do Ack Final, Done with gamma in 2 at 0.3
+    Aliver beta. Do Alive with gamma in 3 at 0.3
+    Allowent beta. Done with alpha in 2 at 0.3
+    Alivent beta. Do ack alive with alpha in 3 at 0.3
+    Alivent beta. Done with alpha in 3 at 0.3
+    Allowent gamma. Done with alpha in 2 at 0.3
+    Alivent gamma. Do ack alive with alpha in 3 at 0.3
+    Alivent gamma. Done with alpha in 3 at 0.3
+    Allowent gamma. Done with beta in 2 at 0.3
+    Alivent gamma. Do ack alive with beta in 3 at 0.3
+    Alivent gamma. Done with beta in 3 at 0.3
+    Aliver alpha. Done with beta in 3 at 0.4
+    Aliver alpha. Done with gamma in 3 at 0.4
+    Aliver beta. Done with gamma in 3 at 0.4
+    Perceived service duration = 0.5 seconds
+    Finished Handshakes
+
+    Messenger alpha. Do Message Segment 0 with beta in 4 at 0.5
+    Messenger alpha. Do Message Segment 0 with gamma in 4 at 0.5
+    Messengent beta. Do Ack Done Message on Segment 0 with alpha in 4 at 0.5
+    Messengent beta. Complete with alpha in 4 at 0.5
+    Messenger beta. Do Message Segment 0 with gamma in 4 at 0.5
+    Messenger beta. Do Message Segment 0 with alpha in 1 at 0.5
+    Messengent gamma. Do Ack Done Message on Segment 0 with alpha in 4 at 0.5
+    Messengent gamma. Complete with alpha in 4 at 0.5
+    Messengent gamma. Do Ack Done Message on Segment 0 with beta in 4 at 0.5
+    Messengent gamma. Complete with beta in 4 at 0.5
+    Messenger gamma. Do Message Segment 0 with alpha in 1 at 0.5
+    Messenger gamma. Do Message Segment 0 with beta in 1 at 0.5
+    Messenger alpha. Done with beta in 4 at 0.6
+    Messengent alpha. Do Ack Done Message on Segment 0 with beta in 1 at 0.6
+    Messengent alpha. Complete with beta in 1 at 0.6
+    Messenger alpha. Done with gamma in 4 at 0.6
+    Messengent alpha. Do Ack Done Message on Segment 0 with gamma in 1 at 0.6
+    Messengent alpha. Complete with gamma in 1 at 0.6
+    Messenger beta. Done with gamma in 4 at 0.6
+    Messengent beta. Do Ack Done Message on Segment 0 with gamma in 1 at 0.6
+    Messengent beta. Complete with gamma in 1 at 0.6
+    Messenger beta. Done with alpha in 1 at 0.6
+    Messenger gamma. Done with alpha in 1 at 0.6
+    Messenger gamma. Done with beta in 1 at 0.6
+    Perceived service duration = 0.2 seconds
+    Finished Messages
+
+    Stack alpha received:
+
+    source = 'beta'.
+    msg= {u'content': u'Hello.', u'subject': u'Example message beta to whoever'}
+
+    source = 'gamma'.
+    msg= {u'content': u'Good Day', u'subject': u'Example message gamma to whoever'}
+
+    Stack beta received:
+
+    source = 'alpha'.
+    msg= {u'content': u'Hi', u'subject': u'Example message alpha to whoever'}
+
+    source = 'gamma'.
+    msg= {u'content': u'Good Day', u'subject': u'Example message gamma to whoever'}
+
+    Stack gamma received:
+
+    source = 'alpha'.
+    msg= {u'content': u'Hi', u'subject': u'Example message alpha to whoever'}
+
+    source = 'beta'.
+    msg= {u'content': u'Hello.', u'subject': u'Example message beta to whoever'}
+
+    Finished
+
+
+If the console verbosity is set to terse as follows:
+
+.. code-block::
+
+    console.reinit(verbosity=console.Wordage.terse)
+
+
+The console log outputs the following:
+
+
+.. code-block::
+
+    Finished Handshakes
+
+    Finished Messages
+
+    Stack alpha received:
+
+    source = 'beta'.
+    msg= {u'content': u'Hello.', u'subject': u'Example message beta to whoever'}
+
+    source = 'gamma'.
+    msg= {u'content': u'Good Day', u'subject': u'Example message gamma to whoever'}
+
+    Stack beta received:
+
+    source = 'alpha'.
+    msg= {u'content': u'Hi', u'subject': u'Example message alpha to whoever'}
+
+    source = 'gamma'.
+    msg= {u'content': u'Good Day', u'subject': u'Example message gamma to whoever'}
+
+    Stack gamma received:
+
+    source = 'alpha'.
+    msg= {u'content': u'Hi', u'subject': u'Example message alpha to whoever'}
+
+    source = 'beta'.
+    msg= {u'content': u'Hello.', u'subject': u'Example message beta to whoever'}
 
     Finished
 
