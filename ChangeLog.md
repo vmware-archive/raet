@@ -5,6 +5,15 @@ CHANGE LOG
 -----------
 20150212
 ----------
+v0.6.1
+
+Updated tutorial
+fixed log message
+
+
+-----------
+20150212
+----------
 v0.6.0
 
 Added enum support using python 3.4 enums via backport enum34
