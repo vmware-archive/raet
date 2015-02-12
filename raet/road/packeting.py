@@ -27,6 +27,7 @@ console = getConsole()
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
+from ..raeting import PcktKind
 
 class Part(object):
     '''
@@ -495,8 +496,8 @@ class Packet(object):
         if data:
             self.data.update(data)
         if kind:
-            if kind not in list(raeting.PcktKind):
-                self.data['pk'] = raeting.PcktKind.unknown.value
+            if kind not in list(PcktKind):
+                self.data['pk'] = PcktKind.unknown.value
                 emsg = "Unrecognizable packet kind."
                 raise raeting.PacketError(emsg)
             self.data.update(pk=kind)
@@ -768,7 +769,7 @@ class TxTray(Tray):
         self.current = 0
         self.packets = []
         packet = TxPacket(stack=self.stack,
-                          kind=raeting.PcktKind.message.value,
+                          kind=PcktKind.message.value,
                           embody=self.body,
                           data=self.data)
 

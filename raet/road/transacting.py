@@ -24,7 +24,7 @@ from ioflo.base.aiding import packByte, unpackByte
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import Acceptance
+from ..raeting import Acceptance, PcktKind
 from .. import nacling
 from . import packeting
 from . import estating
@@ -239,7 +239,7 @@ class Staler(Initiator):
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.nack.value,
+                                    kind=PcktKind.nack.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -287,7 +287,7 @@ class Stalent(Correspondent):
                             fk=int(raeting.FootKind.nada)
                            )
 
-    def nack(self, kind=raeting.PcktKind.nack.value):
+    def nack(self, kind=PcktKind.nack.value):
         '''
         Send nack to stale packet from initiator.
         This is used when a initiator packet is received but with a stale session id
@@ -329,16 +329,16 @@ class Stalent(Correspondent):
             self.stack.incStat("packing_error")
             return
 
-        if kind == raeting.PcktKind.renew:
+        if kind == PcktKind.renew:
             console.terse("Stalent '{0}'. Do Renew of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.refuse:
+        elif kind == PcktKind.refuse:
             console.terse("Stalent '{0}'. Do Refuse of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.reject:
+        elif kind == PcktKind.reject:
             console.terse("Stalent '{0}'. Do Reject of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.nack:
+        elif kind == PcktKind.nack:
             console.terse("Stalent '{0}'. Do Nack of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
         else:
@@ -348,7 +348,7 @@ class Stalent(Correspondent):
                                        ha,
                                        self.tid,
                                        self.stack.store.stamp))
-            kind == raeting.PcktKind.nack
+            kind == PcktKind.nack
 
         self.stack.txes.append((packet.packed, ha))
         self.stack.incStat('stale_initiator_nack')
@@ -427,22 +427,22 @@ class Joiner(Initiator):
         super(Joiner, self).receive(packet) #  self.rxPacket = packet
 
         if packet.data['tk'] == raeting.TrnsKind.join:
-            if packet.data['pk'] == raeting.PcktKind.pend: # pending
+            if packet.data['pk'] == PcktKind.pend: # pending
                 self.stack.incStat('joiner_rx_pend')
                 self.pend()
-            elif packet.data['pk'] == raeting.PcktKind.response: # accepted
+            elif packet.data['pk'] == PcktKind.response: # accepted
                 self.stack.incStat('joiner_rx_response')
                 self.accept()
-            elif packet.data['pk'] == raeting.PcktKind.nack: #stale
+            elif packet.data['pk'] == PcktKind.nack: #stale
                 self.stack.incStat('joiner_rx_nack')
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.refuse: #refused
+            elif packet.data['pk'] == PcktKind.refuse: #refused
                 self.stack.incStat('joiner_rx_refuse')
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.renew: #renew
+            elif packet.data['pk'] == PcktKind.renew: #renew
                 self.stack.incStat('joiner_rx_renew')
                 self.renew()
-            elif packet.data['pk'] == raeting.PcktKind.reject: #rejected
+            elif packet.data['pk'] == PcktKind.reject: #rejected
                 self.stack.incStat('joiner_rx_reject')
                 self.reject()
 
@@ -451,7 +451,7 @@ class Joiner(Initiator):
         Perform time based processing of transaction
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            if self.txPacket and self.txPacket.data['pk'] == raeting.PcktKind.request:
+            if self.txPacket and self.txPacket.data['pk'] == PcktKind.request:
                 self.remove(index=self.txPacket.index)
             else:
                 self.remove(index=self.index) # in case never sent txPacket
@@ -473,7 +473,7 @@ class Joiner(Initiator):
 
             self.redoTimer.restart(duration=duration)
             if (self.txPacket and
-                    self.txPacket.data['pk'] == raeting.PcktKind.request):
+                    self.txPacket.data['pk'] == PcktKind.request):
                 self.transmit(self.txPacket) #redo
                 console.concise("Joiner {0}. Redo Join with {1} in {2} at {3}\n".format(
                      self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -545,7 +545,7 @@ class Joiner(Initiator):
                                if    self.stack.local.priver.pubhex else None),
                       ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.request.value,
+                                    kind=PcktKind.request.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -677,7 +677,7 @@ class Joiner(Initiator):
                                                       name,
                                                       self.remote.name))
                         console.terse(emsg)
-                        self.nack(kind=raeting.PcktKind.reject.value)
+                        self.nack(kind=PcktKind.reject.value)
                         return
                     try:
                         self.stack.renameRemote(self.remote, new=name)
@@ -709,7 +709,7 @@ class Joiner(Initiator):
                                    "'{1}'\n".format(self.stack.name,
                                                     self.remote.name))
             console.terse(emsg)
-            self.nack(kind=raeting.PcktKind.reject.value) # reject not mutable road
+            self.nack(kind=PcktKind.reject.value) # reject not mutable road
             self.remove(index=self.txPacket.index)
             return
 
@@ -723,7 +723,7 @@ class Joiner(Initiator):
                 self.stack.removeRemote(self.remote, clear=True)
                 # remove also nacks so will also reject
             else:
-                self.nack(kind=raeting.PcktKind.reject.value) # reject
+                self.nack(kind=PcktKind.reject.value) # reject
             return
 
         # accepted or pending
@@ -735,7 +735,7 @@ class Joiner(Initiator):
                 emsg = "Joiner {0}. Name '{1}' unavailable for remote {2}\n".format(
                                 self.stack.name, name, self.remote.name)
                 console.terse(emsg)
-                self.nack(kind=raeting.PcktKind.reject.value)
+                self.nack(kind=PcktKind.reject.value)
                 return
 
             if name != self.remote.name:
@@ -783,7 +783,7 @@ class Joiner(Initiator):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.pend.value,
+                                    kind=PcktKind.pend.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -819,7 +819,7 @@ class Joiner(Initiator):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.ack.value,
+                                    kind=PcktKind.ack.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -864,7 +864,7 @@ class Joiner(Initiator):
         self.remove(index=self.txPacket.index)
         self.stack.removeRemote(self.remote, clear=True)
 
-    def nack(self, kind=raeting.PcktKind.nack.value):
+    def nack(self, kind=PcktKind.nack.value):
         '''
         Send nack to accept response
         '''
@@ -881,13 +881,13 @@ class Joiner(Initiator):
             self.remove(index=self.txPacket.index)
             return
 
-        if kind == raeting.PcktKind.refuse:
+        if kind == PcktKind.refuse:
             console.terse("Joiner {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif  kind == raeting.PcktKind.reject:
+        elif  kind == PcktKind.reject:
             console.terse("Joiner {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.nack:
+        elif kind == PcktKind.nack:
             console.terse("Joiner {0}. Do Nack of {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
@@ -897,7 +897,7 @@ class Joiner(Initiator):
                                        self.remote.name,
                                        self.tid,
                                        self.stack.store.stamp))
-            kind == raeting.PcktKind.nack
+            kind == PcktKind.nack
         self.stack.incStat(self.statKey())
         self.transmit(packet)
         self.remove(index=self.txPacket.index)
@@ -964,22 +964,22 @@ class Joinent(Correspondent):
         super(Joinent, self).receive(packet) #  self.rxPacket = packet
 
         if packet.data['tk'] == raeting.TrnsKind.join:
-            if packet.data['pk'] == raeting.PcktKind.request:
+            if packet.data['pk'] == PcktKind.request:
                 self.stack.incStat('joinent_rx_request')
                 self.join()
-            elif packet.data['pk'] == raeting.PcktKind.pend: # maybe pending
+            elif packet.data['pk'] == PcktKind.pend: # maybe pending
                 self.stack.incStat('joinent_rx_pend')
                 self.pend()
-            elif packet.data['pk'] == raeting.PcktKind.ack: #accepted by joiner
+            elif packet.data['pk'] == PcktKind.ack: #accepted by joiner
                 self.stack.incStat('joinent_rx_ack')
                 self.complete()
-            elif packet.data['pk'] == raeting.PcktKind.nack: #stale
+            elif packet.data['pk'] == PcktKind.nack: #stale
                 self.stack.incStat('joinent_rx_nack')
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.refuse: #refused
+            elif packet.data['pk'] == PcktKind.refuse: #refused
                 self.stack.incStat('joinent_rx_refuse')
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.reject: #rejected
+            elif packet.data['pk'] == PcktKind.reject: #rejected
                 self.stack.incStat('joinent_rx_reject')
                 self.reject()
 
@@ -1007,7 +1007,7 @@ class Joinent(Correspondent):
             self.redoTimer.restart(duration=duration)
 
             if (self.txPacket and
-                    self.txPacket.data['pk'] == raeting.PcktKind.response):
+                    self.txPacket.data['pk'] == PcktKind.response):
                 self.transmit(self.txPacket) #redo
                 console.concise("Joinent {0}. Redo Accept with {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -1138,7 +1138,7 @@ class Joinent(Correspondent):
                        "Aborting...\n".format(self.stack.name, self.remote.name))
                 console.concise(emsg)
                 self.stack.incStat('redundant_join_attempt')
-                self.nack(kind=raeting.PcktKind.refuse.value)
+                self.nack(kind=PcktKind.refuse.value)
                 return
 
             else: # already initiator join in process, resolve race condition
@@ -1148,7 +1148,7 @@ class Joinent(Correspondent):
                                 self.stack.name, self.remote.name))
                     console.concise(emsg)
                     self.stack.incStat('redundant_join_attempt')
-                    self.nack(kind=raeting.PcktKind.refuse.value)
+                    self.nack(kind=PcktKind.refuse.value)
                     return
 
                 if not self.vacuous and join.vacuous: # non-vacuous beats vacuous
@@ -1156,7 +1156,7 @@ class Joinent(Correspondent):
                             " {1}. Proceeding because not vacuous...\n".format(
                                             self.stack.name, self.remote.name))
                     console.concise(emsg)
-                    join.nack(kind=raeting.PcktKind.refuse.value)
+                    join.nack(kind=PcktKind.refuse.value)
 
                 else: # both vacuous or non-vacuous, so use name to resolve
                     if self.stack.local.name < name: # abort local correspondent and remote initiator
@@ -1165,7 +1165,7 @@ class Joinent(Correspondent):
                                     self.stack.name, self.remote.name))
                         console.concise(emsg)
                         self.stack.incStat('redundant_join_attempt')
-                        self.nack(kind=raeting.PcktKind.refuse.value)
+                        self.nack(kind=PcktKind.refuse.value)
                         return
 
                     else: # nack to abort local initiator and remote correspondent
@@ -1173,13 +1173,13 @@ class Joinent(Correspondent):
                                 "Proceeding because lesser local name...\n".format(
                                     self.stack.name, self.remote.name))
                         console.concise(emsg)
-                        join.nack(kind=raeting.PcktKind.refuse.value)
+                        join.nack(kind=PcktKind.refuse.value)
 
         if self.vacuous: # vacuous join
             if not self.stack.main:
                 emsg = "Joinent {0}. Invalid vacuous join not main\n".format(self.stack.name)
                 console.terse(emsg)
-                self.nack(kind=raeting.PcktKind.reject.value)
+                self.nack(kind=PcktKind.reject.value)
                 return
 
             if name in self.stack.nameRemotes: # non ephemeral name match
@@ -1200,7 +1200,7 @@ class Joinent(Correspondent):
                         emsg = ("Joinent {0}. Mishandled join reid='{1}' !=  fuid='{2}' for "
                                "remote {2}\n".format(self.stack.name, reid, self.remote.fuid, name))
                         console.terse(emsg)
-                        self.nack(kind=raeting.PcktKind.reject.value)
+                        self.nack(kind=PcktKind.reject.value)
                         return
 
         else: # non vacuous join
@@ -1208,7 +1208,7 @@ class Joinent(Correspondent):
                 emsg = "Joinent {0}. Mishandled join leid '{1}' for remote {2}\n".format(
                                                     self.stack.name, leid, name)
                 console.terse(emsg)
-                self.nack(kind=raeting.PcktKind.reject.value)
+                self.nack(kind=PcktKind.reject.value)
                 return
 
 
@@ -1229,7 +1229,7 @@ class Joinent(Correspondent):
                                                     self.remote.name))
             console.terse(emsg)
             # reject not mutable road
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         status = self.stack.keep.statusRole(role=role,
@@ -1251,7 +1251,7 @@ class Joinent(Correspondent):
                 self.stack.removeRemote(self.remote, clear=True) #clear remote
                 # removeRemote also nacks which is a reject
             else: # reject as keys rejected
-                self.nack(kind=raeting.PcktKind.reject.value)
+                self.nack(kind=PcktKind.reject.value)
             return
 
         #accepted or pended
@@ -1283,7 +1283,7 @@ class Joinent(Correspondent):
                 emsg = "Joinent {0}.  Name '{1}' unavailable for remote {2}\n".format(
                                 self.stack.name, name, self.remote.name)
                 console.terse(emsg)
-                self.nack(kind=raeting.PcktKind.reject.value)
+                self.nack(kind=PcktKind.reject.value)
                 return
 
             if name != self.remote.name:
@@ -1338,7 +1338,7 @@ class Joinent(Correspondent):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.pend.value,
+                                    kind=PcktKind.pend.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -1381,7 +1381,7 @@ class Joinent(Correspondent):
                                   if self.stack.local.priver.pubhex else None),
                        ('role', self.stack.local.role)])
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.response.value,
+                                    kind=PcktKind.response.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -1449,7 +1449,7 @@ class Joinent(Correspondent):
         self.stack.incStat(self.statKey())
         self.remove(index=self.rxPacket.index)
 
-    def nack(self, kind=raeting.PcktKind.nack.value):
+    def nack(self, kind=PcktKind.nack.value):
         '''
         Send nack to join request.
         Sometimes nack occurs without remote being added so have to nack using
@@ -1476,16 +1476,16 @@ class Joinent(Correspondent):
             self.remove(index=self.rxPacket.index)
             return
 
-        if kind == raeting.PcktKind.renew:
+        if kind == PcktKind.renew:
             console.terse("Joinent {0}. Do Nack Renew of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.refuse:
+        elif kind == PcktKind.refuse:
             console.terse("Joinent {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.reject:
+        elif kind == PcktKind.reject:
             console.terse("Joinent {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.nack:
+        elif kind == PcktKind.nack:
             console.terse("Joinent {0}. Do Nack of {1} in {2} at {3}\n".format(
                     self.stack.name, ha, self.tid, self.stack.store.stamp))
         else:
@@ -1495,7 +1495,7 @@ class Joinent(Correspondent):
                                        ha,
                                        self.tid,
                                        self.stack.store.stamp))
-            kind == raeting.PcktKind.nack
+            kind == PcktKind.nack
 
         self.stack.incStat(self.statKey())
 
@@ -1545,17 +1545,17 @@ class Allower(Initiator):
         super(Allower, self).receive(packet) #  self.rxPacket = packet
 
         if packet.data['tk'] == raeting.TrnsKind.allow:
-            if packet.data['pk'] == raeting.PcktKind.cookie:
+            if packet.data['pk'] == PcktKind.cookie:
                 self.cookie()
-            elif packet.data['pk'] == raeting.PcktKind.ack:
+            elif packet.data['pk'] == PcktKind.ack:
                 self.allow()
-            elif packet.data['pk'] == raeting.PcktKind.nack: # rejected
+            elif packet.data['pk'] == PcktKind.nack: # rejected
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.refuse: # refused
+            elif packet.data['pk'] == PcktKind.refuse: # refused
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.reject: #rejected
+            elif packet.data['pk'] == PcktKind.reject: #rejected
                 self.reject()
-            elif packet.data['pk'] == raeting.PcktKind.unjoined: # unjoined
+            elif packet.data['pk'] == PcktKind.unjoined: # unjoined
                 self.unjoin()
 
     def process(self):
@@ -1576,19 +1576,19 @@ class Allower(Initiator):
                          self.redoTimeoutMax)
             self.redoTimer.restart(duration=duration)
             if self.txPacket:
-                if self.txPacket.data['pk'] == raeting.PcktKind.hello:
+                if self.txPacket.data['pk'] == PcktKind.hello:
                     self.transmit(self.txPacket) # redo
                     console.concise("Allower {0}. Redo Hello with {1} in {2} at {3}\n".format(
                             self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_hello')
 
-                if self.txPacket.data['pk'] == raeting.PcktKind.initiate:
+                if self.txPacket.data['pk'] == PcktKind.initiate:
                     self.transmit(self.txPacket) # redo
                     console.concise("Allower {0}. Redo Initiate with {1} in {2} at {3}\n".format(
                              self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_initiate')
 
-                if self.txPacket.data['pk'] == raeting.PcktKind.ack:
+                if self.txPacket.data['pk'] == PcktKind.ack:
                     self.transmit(self.txPacket) # redo
                     console.concise("Allower {0}. Redo Ack Final with {1} in {2} at {3}\n".format(
                              self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -1645,7 +1645,7 @@ class Allower(Initiator):
         body = raeting.HELLO_PACKER.pack(plain, self.remote.privee.pubraw, cipher, nonce)
 
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.hello,
+                                    kind=PcktKind.hello,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -1674,7 +1674,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         if len(body) != raeting.COOKIE_PACKER.size:
@@ -1682,7 +1682,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         cipher, nonce = raeting.COOKIE_PACKER.unpack(body)
@@ -1694,7 +1694,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         if len(msg) != raeting.COOKIESTUFF_PACKER.size:
@@ -1702,7 +1702,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         shortraw, seid, deid, oreo = raeting.COOKIESTUFF_PACKER.unpack(msg)
@@ -1712,7 +1712,7 @@ class Allower(Initiator):
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         self.oreo = binascii.hexlify(oreo)
@@ -1746,7 +1746,7 @@ class Allower(Initiator):
                                             nonce)
 
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.initiate,
+                                    kind=PcktKind.initiate,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -1782,7 +1782,7 @@ class Allower(Initiator):
         '''
         body = b''
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.ack.value,
+                                    kind=PcktKind.ack.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -1807,7 +1807,7 @@ class Allower(Initiator):
         if self.cascade:
             self.stack.alive(uid=self.remote.uid, cascade=self.cascade, timeout=self.timeout)
 
-    def nack(self, kind=raeting.PcktKind.nack.value):
+    def nack(self, kind=PcktKind.nack.value):
         '''
         Send nack to accept response
         '''
@@ -1824,13 +1824,13 @@ class Allower(Initiator):
             self.remove()
             return
 
-        if kind == raeting.PcktKind.refuse:
+        if kind == PcktKind.refuse:
             console.terse("Allower {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.reject:
+        elif kind == PcktKind.reject:
             console.terse("Allower {0}. Do Nack Reject of {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.nack:
+        elif kind == PcktKind.nack:
             console.terse("Allower {0}. Do Nack of {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
@@ -1840,7 +1840,7 @@ class Allower(Initiator):
                                        self.remote.name,
                                        self.tid,
                                        self.stack.store.stamp))
-            kind == raeting.PcktKind.nack
+            kind == PcktKind.nack
 
         self.remove()
         self.stack.incStat(self.statKey())
@@ -1925,17 +1925,17 @@ class Allowent(Correspondent):
         super(Allowent, self).receive(packet) #  self.rxPacket = packet
 
         if packet.data['tk'] == raeting.TrnsKind.allow:
-            if packet.data['pk'] == raeting.PcktKind.hello:
+            if packet.data['pk'] == PcktKind.hello:
                 self.hello()
-            elif packet.data['pk'] == raeting.PcktKind.initiate:
+            elif packet.data['pk'] == PcktKind.initiate:
                 self.initiate()
-            elif packet.data['pk'] == raeting.PcktKind.ack:
+            elif packet.data['pk'] == PcktKind.ack:
                 self.final()
-            elif packet.data['pk'] == raeting.PcktKind.nack: # rejected
+            elif packet.data['pk'] == PcktKind.nack: # rejected
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.refuse: # refused
+            elif packet.data['pk'] == PcktKind.refuse: # refused
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.reject: # rejected
+            elif packet.data['pk'] == PcktKind.reject: # rejected
                 self.reject()
 
     def process(self):
@@ -1944,7 +1944,7 @@ class Allowent(Correspondent):
 
         '''
         if self.timeout > 0.0 and self.timer.expired:
-            self.nack(kind=raeting.PcktKind.refuse.value)
+            self.nack(kind=PcktKind.refuse.value)
             console.concise("Allowent {0}. Timed out with {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
             return
@@ -1958,13 +1958,13 @@ class Allowent(Correspondent):
             self.redoTimer.restart(duration=duration)
 
             if self.txPacket:
-                if self.txPacket.data['pk'] == raeting.PcktKind.cookie:
+                if self.txPacket.data['pk'] == PcktKind.cookie:
                     self.transmit(self.txPacket) #redo
                     console.concise("Allowent {0}. Redo Cookie with {1} in {2} at {3}\n".format(
                              self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
                     self.stack.incStat('redo_cookie')
 
-                if self.txPacket.data['pk'] == raeting.PcktKind.ack:
+                if self.txPacket.data['pk'] == PcktKind.ack:
                     self.transmit(self.txPacket) #redo
                     console.concise("Allowent {0}. Redo Ack with {1} in {2} at {3}\n".format(
                              self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -1999,7 +1999,7 @@ class Allowent(Correspondent):
                                     "Aborting...\n".format(self.stack.name, self.remote.name))
             console.concise(emsg)
             self.stack.incStat('invalid_allow_attempt')
-            self.nack(kind=raeting.PcktKind.refuse.value)
+            self.nack(kind=PcktKind.refuse.value)
 
         allows = self.remote.allowInProcess()
         for allow in allows:
@@ -2015,7 +2015,7 @@ class Allowent(Correspondent):
                         "Aborting...\n".format(self.stack.name, self.remote.name))
                 console.concise(emsg)
                 self.stack.incStat('redundant_allow_attempt')
-                self.nack(kind=raeting.PcktKind.refuse.value)
+                self.nack(kind=PcktKind.refuse.value)
                 return
 
             else: # already initiator allow in process, resolve race condition
@@ -2025,7 +2025,7 @@ class Allowent(Correspondent):
                                 self.stack.name, self.remote.name))
                     console.concise(emsg)
                     self.stack.incStat('redundant_allow_attempt')
-                    self.nack(kind=raeting.PcktKind.refuse.value)
+                    self.nack(kind=PcktKind.refuse.value)
                     return
 
                 else: # abort initiator, could let otherside nack do this
@@ -2033,7 +2033,7 @@ class Allowent(Correspondent):
                             "Proceeding because lesser local name...\n".format(
                                 self.stack.name, self.remote.name))
                     console.concise(emsg)
-                    allow.nack(kind=raeting.PcktKind.refuse.value)
+                    allow.nack(kind=PcktKind.refuse.value)
 
         self.remote.allowed = None
 
@@ -2042,7 +2042,7 @@ class Allowent(Correspondent):
                 self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_allow_attempt')
-            self.nack(kind=raeting.PcktKind.unjoined.value)
+            self.nack(kind=PcktKind.unjoined.value)
             return
 
         self.remote.rekey() # refresh short term keys and .allowed
@@ -2056,7 +2056,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         if len(body) != raeting.HELLO_PACKER.size:
@@ -2064,7 +2064,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         plain, shortraw, cipher, nonce = raeting.HELLO_PACKER.unpack(body)
@@ -2076,7 +2076,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         self.cookie()
@@ -2096,7 +2096,7 @@ class Allowent(Correspondent):
         cipher, nonce = self.stack.local.priver.encrypt(stuff, self.remote.publee.key)
         body = raeting.COOKIE_PACKER.pack(cipher, nonce)
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.cookie.value,
+                                    kind=PcktKind.cookie.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -2124,7 +2124,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         if len(body) != raeting.INITIATE_PACKER.size:
@@ -2132,7 +2132,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         shortraw, oreo, cipher, nonce = raeting.INITIATE_PACKER.unpack(body)
@@ -2142,7 +2142,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         if (binascii.hexlify(oreo) != self.oreo):
@@ -2150,7 +2150,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         msg = self.remote.privee.decrypt(cipher, nonce, self.remote.publee.key)
@@ -2159,7 +2159,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         pubraw, vcipher, vnonce, fqdn = raeting.INITIATESTUFF_PACKER.unpack(msg)
@@ -2168,7 +2168,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         fqdn = fqdn.rstrip(b' ')
@@ -2190,7 +2190,7 @@ class Allowent(Correspondent):
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             #self.remove()
-            self.nack(kind=raeting.PcktKind.reject.value)
+            self.nack(kind=PcktKind.reject.value)
             return
 
         self.ackInitiate()
@@ -2202,7 +2202,7 @@ class Allowent(Correspondent):
 
         body = b''
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.ack.value,
+                                    kind=PcktKind.ack.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -2270,7 +2270,7 @@ class Allowent(Correspondent):
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
-    def nack(self, kind=raeting.PcktKind.nack.value):
+    def nack(self, kind=PcktKind.nack.value):
         '''
         Send nack to terminate allow transaction
         '''
@@ -2287,16 +2287,16 @@ class Allowent(Correspondent):
             self.remove()
             return
 
-        if kind==raeting.PcktKind.refuse:
+        if kind==PcktKind.refuse:
             console.terse("Allowent {0}. Do Nack Refuse of {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind==raeting.PcktKind.reject:
+        elif kind==PcktKind.reject:
             console.concise("Allowent {0}. Do Nack Reject {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind==raeting.PcktKind.unjoined:
+        elif kind==PcktKind.unjoined:
             console.concise("Allowent {0}. Do Nack Unjoined {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.nack:
+        elif kind == PcktKind.nack:
             console.terse("Allowent {0}. Do Nack of {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
@@ -2306,7 +2306,7 @@ class Allowent(Correspondent):
                                        self.remote.name,
                                        self.tid,
                                        self.stack.store.stamp))
-            kind == raeting.PcktKind.nack
+            kind == PcktKind.nack
 
         self.remove()
         self.transmit(packet)
@@ -2359,17 +2359,17 @@ class Aliver(Initiator):
         super(Aliver, self).receive(packet)
 
         if packet.data['tk'] == raeting.TrnsKind.alive:
-            if packet.data['pk'] == raeting.PcktKind.ack:
+            if packet.data['pk'] == PcktKind.ack:
                 self.complete()
-            elif packet.data['pk'] == raeting.PcktKind.nack: # refused
+            elif packet.data['pk'] == PcktKind.nack: # refused
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.refuse: # refused
+            elif packet.data['pk'] == PcktKind.refuse: # refused
                 self.refuse()
-            elif packet.data['pk'] == raeting.PcktKind.unjoined: # unjoin
+            elif packet.data['pk'] == PcktKind.unjoined: # unjoin
                 self.unjoin()
-            elif packet.data['pk'] == raeting.PcktKind.unallowed: # unallow
+            elif packet.data['pk'] == PcktKind.unallowed: # unallow
                 self.unallow()
-            elif packet.data['pk'] == raeting.PcktKind.reject: # rejected
+            elif packet.data['pk'] == PcktKind.reject: # rejected
                 self.reject()
 
     def process(self):
@@ -2391,7 +2391,7 @@ class Aliver(Initiator):
                          self.redoTimeoutMax)
             self.redoTimer.restart(duration=duration)
             if self.txPacket:
-                if self.txPacket.data['pk'] == raeting.PcktKind.request:
+                if self.txPacket.data['pk'] == PcktKind.request:
                     self.transmit(self.txPacket) # redo
                     console.concise("Aliver {0}. Redo with {1} in {2} at {3}\n".format(
                         self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
@@ -2438,7 +2438,7 @@ class Aliver(Initiator):
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.request.value,
+                                    kind=PcktKind.request.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -2543,7 +2543,7 @@ class Alivent(Correspondent):
         super(Alivent, self).receive(packet)
 
         if packet.data['tk'] == raeting.TrnsKind.alive:
-            if packet.data['pk'] == raeting.PcktKind.request:
+            if packet.data['pk'] == PcktKind.request:
                 self.alive()
 
     def process(self):
@@ -2586,7 +2586,7 @@ class Alivent(Correspondent):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unjoined_alive_attempt')
-            self.nack(kind=raeting.PcktKind.unjoined.value)
+            self.nack(kind=PcktKind.unjoined.value)
             return
 
         if not self.remote.allowed:
@@ -2595,7 +2595,7 @@ class Alivent(Correspondent):
                     self.stack.name, self.remote.name)
             console.terse(emsg)
             self.stack.incStat('unallowed_alive_attempt')
-            self.nack(kind=raeting.PcktKind.unallowed.value)
+            self.nack(kind=PcktKind.unallowed.value)
             return
 
         self.add()
@@ -2605,7 +2605,7 @@ class Alivent(Correspondent):
 
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.ack.value,
+                                    kind=PcktKind.ack.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -2625,7 +2625,7 @@ class Alivent(Correspondent):
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("alive_complete")
 
-    def nack(self, kind=raeting.PcktKind.nack.value):
+    def nack(self, kind=PcktKind.nack.value):
         '''
         Send nack to terminate alive transaction
         '''
@@ -2642,19 +2642,19 @@ class Alivent(Correspondent):
             self.remove()
             return
 
-        if kind == raeting.PcktKind.refuse:
+        if kind == PcktKind.refuse:
                 console.terse("Alivent {0}. Do Refuse of {1} in {2} at {3}\n".format(
                         self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.unjoined:
+        elif kind == PcktKind.unjoined:
                 console.terse("Alivent {0}. Do Unjoined of {1} in {2} at {3}\n".format(
                         self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.unallowed:
+        elif kind == PcktKind.unallowed:
                 console.terse("Alivent {0}. Do Unallowed of {1} in {2} at {3}\n".format(
                         self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.reject:
+        elif kind == PcktKind.reject:
             console.concise("Alivent {0}. Do Reject {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        elif kind == raeting.PcktKind.nack:
+        elif kind == PcktKind.nack:
             console.terse("Alivent {0}. Do Nack of {1} in {2} at {3}\n".format(
                     self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         else:
@@ -2664,7 +2664,7 @@ class Alivent(Correspondent):
                                        self.remote.name,
                                        self.tid,
                                        self.stack.store.stamp))
-            kind == raeting.PcktKind.nack
+            kind == PcktKind.nack
 
         self.transmit(packet)
         self.remove()
@@ -2714,13 +2714,13 @@ class Messenger(Initiator):
         super(Messenger, self).receive(packet)
 
         if packet.data['tk'] == raeting.TrnsKind.message:
-            if packet.data['pk'] == raeting.PcktKind.ack: # more
+            if packet.data['pk'] == PcktKind.ack: # more
                 self.another()  # continue message
-            elif packet.data['pk'] == raeting.PcktKind.resend:  # resend
+            elif packet.data['pk'] == PcktKind.resend:  # resend
                 self.resend()  # resend missed segments
-            elif packet.data['pk'] == raeting.PcktKind.done:  # completed
+            elif packet.data['pk'] == PcktKind.done:  # completed
                 self.complete()
-            elif packet.data['pk'] == raeting.PcktKind.nack: # rejected
+            elif packet.data['pk'] == PcktKind.nack: # rejected
                 self.reject()
 
     def process(self):
@@ -2741,7 +2741,7 @@ class Messenger(Initiator):
                          self.redoTimeoutMax)
             self.redoTimer.restart(duration=duration)
             if self.txPacket:
-                if self.txPacket.data['pk'] in [raeting.PcktKind.message]:
+                if self.txPacket.data['pk'] in [PcktKind.message]:
                     if not self.txPacket.data['af']:  # turn on AgnFlag if not set
                         self.txPacket.data.update(af=True)
                         self.txPacket.repack()
@@ -2958,7 +2958,7 @@ class Messenger(Initiator):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.nack.value,
+                                    kind=PcktKind.nack.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -3017,9 +3017,9 @@ class Messengent(Correspondent):
 
         # resent message
         if packet.data['tk'] == raeting.TrnsKind.message:
-            if packet.data['pk'] == raeting.PcktKind.message:
+            if packet.data['pk'] == PcktKind.message:
                 self.message()
-            elif packet.data['pk'] == raeting.PcktKind.nack: # rejected
+            elif packet.data['pk'] == PcktKind.nack: # rejected
                 self.reject()
 
     def process(self):
@@ -3122,7 +3122,7 @@ class Messengent(Correspondent):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.ack.value,
+                                    kind=PcktKind.ack.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -3154,7 +3154,7 @@ class Messengent(Correspondent):
 
             body = odict(misseds=misseds)
             packet = packeting.TxPacket(stack=self.stack,
-                                        kind=raeting.PcktKind.resend.value,
+                                        kind=PcktKind.resend.value,
                                         embody=body,
                                         data=self.txData)
             try:
@@ -3194,7 +3194,7 @@ class Messengent(Correspondent):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.done.value,
+                                    kind=PcktKind.done.value,
                                     embody=body,
                                     data=self.txData)
         try:
@@ -3235,7 +3235,7 @@ class Messengent(Correspondent):
         '''
         body = odict()
         packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.PcktKind.nack.value,
+                                    kind=PcktKind.nack.value,
                                     embody=body,
                                     data=self.txData)
         try:
