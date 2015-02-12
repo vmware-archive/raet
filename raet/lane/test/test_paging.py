@@ -48,7 +48,7 @@ class BasicTestCase(unittest.TestCase):
         Test basic page pack and parse
         '''
         console.terse("{0}\n".format(self.testPackParseJson.__doc__))
-        data = odict(pk=raeting.packKinds.json)
+        data = odict(pk=raeting.PackKind.json.value)
         src = ['mayor', 'main', None]
         dst = ['citizen', 'other', None]
         route = odict([('src', src), ('dst', dst)])
@@ -122,7 +122,7 @@ class BasicTestCase(unittest.TestCase):
         Test basic page pack and parse
         '''
         console.terse("{0}\n".format(self.testPackParseMsgpack.__doc__))
-        data = odict(pk=raeting.packKinds.pack)
+        data = odict(pk=raeting.PackKind.pack.value)
         sid = nacling.uuid(size=18)
         data.update(odict(sn="boy", dn='girl', si=sid, bi=1))
         src = ['mayor', 'main', None]
@@ -144,7 +144,7 @@ class BasicTestCase(unittest.TestCase):
         Test sectioned pack and parse json packing
         '''
         console.terse("{0}\n".format(self.testSectionedJson.__doc__))
-        data = odict(pk=raeting.packKinds.json)
+        data = odict(pk=raeting.PackKind.json.value)
         sid = nacling.uuid(size=18)
         data.update(odict(sn="boy", dn='girl', si=sid, bi=1))
         src = ['mayor', 'main', None]
@@ -187,7 +187,7 @@ class BasicTestCase(unittest.TestCase):
         Test sectioned pack and parse msgpack packing
         '''
         console.terse("{0}\n".format(self.testSectionedMsgpack.__doc__))
-        data = odict(pk=raeting.packKinds.pack)
+        data = odict(pk=raeting.PackKind.pack.value)
         sid = nacling.uuid(size=18)
         data.update(odict(sn="boy", dn='girl', si=sid, bi=1))
         src = ['mayor', 'main', None]

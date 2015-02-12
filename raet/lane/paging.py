@@ -26,6 +26,7 @@ console = getConsole()
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
+from ..raeting import PackKind
 
 class Part(object):
     '''
@@ -152,12 +153,12 @@ class TxBody(Body):
         self.packed = b''
         pk = self.page.data['pk']
 
-        if pk == raeting.packKinds.json:
+        if pk == PackKind.json:
             if self.data:
                 self.packed = ns2b(json.dumps(self.data,
                                          separators=(',', ':'),
                                          encoding='utf-8'))
-        elif pk == raeting.packKinds.pack:
+        elif pk == PackKind.pack:
             if self.data:
                 if not msgpack:
                     emsg = "Msgpack not installed."
@@ -186,16 +187,16 @@ class RxBody(Body):
         self.data = odict()
         pk = self.page.data['pk']
 
-        if pk not in raeting.PACK_KIND_NAMES:
+        if pk not in list(PackKind):
             emsg = "Unrecognizable page body."
             raise raeting.PageError(emsg)
 
-        if pk == raeting.packKinds.json:
+        if pk == PackKind.json:
             if self.packed:
                 self.data = json.loads(self.packed.decode(encoding='utf-8'),
                                        object_pairs_hook=odict,
                                        encoding='utf-8')
-        elif pk == raeting.packKinds.pack:
+        elif pk == PackKind.pack:
             if self.packed:
                 if not msgpack:
                     emsg = "Msgpack not installed."

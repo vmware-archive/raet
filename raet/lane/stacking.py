@@ -31,6 +31,7 @@ from ioflo.base import storing
 from ..abiding import *  # import globals
 from .. import raeting, nacling, stacking
 from . import paging, yarding
+from ..raeting import PackKind
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
@@ -41,7 +42,7 @@ class LaneStack(stacking.Stack):
     '''
     Count = 0
     Uid =  0
-    Pk = raeting.packKinds.json # serialization pack kind of Uxd message
+    Pk = PackKind.json.value # serialization pack kind of Uxd message
     Accept = True # accept any uxd messages if True from yards not already in lanes
 
     def __init__(self,

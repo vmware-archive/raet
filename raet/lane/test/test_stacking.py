@@ -109,7 +109,7 @@ class BasicTestCase(unittest.TestCase):
             if real:
                 time.sleep(0.1)
 
-    def bootstrap(self, kind=raeting.packKinds.json):
+    def bootstrap(self, kind=raeting.PackKind.json.value):
         '''
         Basic messaging
         '''
@@ -299,7 +299,7 @@ class BasicTestCase(unittest.TestCase):
         Basic messaging with json packing
         '''
         console.terse("{0}\n".format(self.testMessageJson.__doc__))
-        self.bootstrap(kind=raeting.packKinds.json)
+        self.bootstrap(kind=raeting.PackKind.json.value)
 
         mains = []
         mains.append(odict(what="This is a message to the serf. Get to Work", extra="Fix the fence."))
@@ -314,7 +314,7 @@ class BasicTestCase(unittest.TestCase):
         Basic messaging with msgpack packing
         '''
         console.terse("{0}\n".format(self.testMessageMsgpack.__doc__))
-        self.bootstrap(kind=raeting.packKinds.pack)
+        self.bootstrap(kind=raeting.PackKind.pack.value)
 
         mains = []
         mains.append(odict(what="This is a message to the serf. Get to Work", extra="Fix the fence."))
@@ -329,7 +329,7 @@ class BasicTestCase(unittest.TestCase):
         Multiple messages with json packing
         '''
         console.terse("{0}\n".format(self.testMessageMultipleJson.__doc__))
-        self.bootstrap(kind=raeting.packKinds.json)
+        self.bootstrap(kind=raeting.PackKind.json.value)
 
         mains = []
         mains.append(odict([('house', "Mama mia1"), ('queue', "fix me")]))
@@ -351,7 +351,7 @@ class BasicTestCase(unittest.TestCase):
         multiple messages with msgpack packing
         '''
         console.terse("{0}\n".format(self.testMessageMultipleMsgpack.__doc__))
-        self.bootstrap(kind=raeting.packKinds.pack)
+        self.bootstrap(kind=raeting.PackKind.pack.value)
 
         mains = []
         mains.append(odict([('house', "Mama mia1"), ('queue', "fix me")]))
@@ -373,7 +373,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testMessageSectionedJson.__doc__))
 
-        self.bootstrap(kind=raeting.packKinds.json)
+        self.bootstrap(kind=raeting.PackKind.json.value)
 
         #big packets
         stuff = []
@@ -404,7 +404,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testMessageSectionedMsgpack.__doc__))
 
-        self.bootstrap(kind=raeting.packKinds.pack)
+        self.bootstrap(kind=raeting.PackKind.pack.value)
 
         #big packets
         stuff = []
@@ -459,7 +459,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(self.other.nameRemotes[remote.name], remote)
         self.assertIs(self.other.haRemotes[remote.ha], remote)
 
-        stacking.LaneStack.Pk = raeting.packKinds.pack
+        stacking.LaneStack.Pk = raeting.PackKind.pack.value
 
         others = []
         others.append(odict(what="This is a message to the lord. Let me be", extra="Go away."))
@@ -515,7 +515,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(self.other.nameRemotes[remote.name], remote)
         self.assertIs(self.other.haRemotes[remote.ha], remote)
 
-        stacking.LaneStack.Pk = raeting.packKinds.pack
+        stacking.LaneStack.Pk = raeting.PackKind.pack.value
 
         others = []
         others.append(odict(what="This is a message to the lord. Let me be", extra="Go away."))
@@ -534,7 +534,7 @@ class BasicTestCase(unittest.TestCase):
         Fetching remote yard by HA
         '''
         console.terse("{0}\n".format(self.testFetchRemoteFromHa.__doc__))
-        self.bootstrap(kind=raeting.packKinds.json)
+        self.bootstrap(kind=raeting.PackKind.json.value)
 
         for remote in self.main.remotes.values():
             fetched = self.main.haRemotes.get(remote.ha)
@@ -551,7 +551,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testRestart.__doc__))
 
-        stacking.LaneStack.Pk = raeting.packKinds.json
+        stacking.LaneStack.Pk = raeting.PackKind.json.value
 
         mainData = self.createLaneData(name='main',
                                        uid=1,

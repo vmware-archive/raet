@@ -271,6 +271,14 @@ PACK_KIND_NAMES = odict((v, k) for k, v in PACK_KINDS.iteritems())  # inverse ma
 PackKind = namedtuple('PackKind', PACK_KINDS.keys())
 packKinds = PackKind(**PACK_KINDS)
 
+@enum.unique
+class PackKind(enum.IntEnum):
+    '''
+    Integer Enums of Pack Kinds for Lane Pages
+    '''
+    json = 0
+    pack = 1
+
 # head fields that may be included in packet header if not default value
 PACKET_DEFAULTS = odict([
                             ('sh', DEFAULT_SRC_HOST),
