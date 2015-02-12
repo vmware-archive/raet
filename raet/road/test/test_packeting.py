@@ -432,7 +432,7 @@ class StackTestCase(unittest.TestCase):
                                        uid=1,
                                        sigkey=mainSignKeyHex,
                                        prikey=mainPriKeyHex,
-                                       auto=raeting.autoModes.once,
+                                       auto=int(raeting.AutoMode.once),
                                        main=True,
                                        dirpath=mainDirpath,
                                        store=self.store)
@@ -447,7 +447,7 @@ class StackTestCase(unittest.TestCase):
 
         self.other = stacking.RoadStack(name=otherName,
                                         uid=2,
-                                        auto=raeting.autoModes.once,
+                                        auto=int(raeting.AutoMode.once),
                                         ha=("", raeting.RAET_TEST_PORT),
                                         sigkey=otherSignKeyHex,
                                         prikey=otherPriKeyHex,

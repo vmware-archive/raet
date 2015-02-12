@@ -55,7 +55,7 @@ class RoadKeep(keeping.Keep):
     RemoteDumpFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'fqdn', 'dyned',
                          'sid', 'main', 'kind', 'joined', 'role']
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
-    Auto = raeting.autoModes.never #auto accept
+    Auto = int(raeting.AutoMode.never) #auto accept
 
     def __init__(self,
                  stackname='stack',
@@ -386,10 +386,10 @@ class RoadKeep(keeping.Keep):
         data = self.loadRemoteRoleData(role)
         status = data.get('acceptance') if data else None # pre-existing status
 
-        if self.auto == raeting.autoModes.always:
+        if self.auto == raeting.AutoMode.always:
             status = int(raeting.Acceptance.accepted)
 
-        elif self.auto == raeting.autoModes.once:
+        elif self.auto == raeting.AutoMode.once:
             if status is None: # first time so accept once
                 status = int(raeting.Acceptance.accepted)
 
@@ -413,7 +413,7 @@ class RoadKeep(keeping.Keep):
             else:
                 console.concise("Rejection Reason: Once keys already rejected.\n")
 
-        elif self.auto == raeting.autoModes.never:
+        elif self.auto == raeting.AutoMode.never:
             if status is None: # first time so pend
                 status = int(raeting.Acceptance.pending)
 

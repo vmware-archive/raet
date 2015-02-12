@@ -257,10 +257,14 @@ class Acceptance(enum.IntEnum):
     rejected = 2
 
 
-AUTO_MODES = odict([('never', 0), ('once', 1), ('always', 2),])
-AUTO_MODE_NAMES = odict((v, k) for k, v in AUTO_MODES.iteritems())  # inverse map
-AutoMode = namedtuple('AutoMode', AUTO_MODES.keys())
-autoModes = AutoMode(**AUTO_MODES)
+@enum.unique
+class AutoMode(enum.IntEnum):
+    '''
+    Integer Enums of Auto Modes
+    '''
+    never = 0
+    once = 1
+    always = 2
 
 PACK_KINDS = odict([('json', 0), ('pack', 1)])
 PACK_KIND_NAMES = odict((v, k) for k, v in PACK_KINDS.iteritems())  # inverse map

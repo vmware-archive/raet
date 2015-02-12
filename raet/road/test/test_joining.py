@@ -61,7 +61,7 @@ class BasicTestCase(unittest.TestCase):
                        name='',
                        ha=None,
                        main=None,
-                       auto=raeting.autoModes.never,
+                       auto=int(raeting.AutoMode.never),
                        role=None,
                        sigkey=None,
                        prikey=None,
@@ -203,7 +203,7 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.05)
             time.sleep(0.05)
 
-    def bootstrapJoinedRemotes(self, autoMode=raeting.autoModes.once):
+    def bootstrapJoinedRemotes(self, autoMode=int(raeting.AutoMode.once)):
         alphaData = self.createRoadData(base=self.base,
                                        name='alpha',
                                        ha=("", raeting.RAET_PORT),
@@ -244,7 +244,7 @@ class BasicTestCase(unittest.TestCase):
 
         return alpha, beta
 
-    def bootstrapStacks(self, autoMode = raeting.autoModes.once):
+    def bootstrapStacks(self, autoMode=int(raeting.AutoMode.once):
         alphaData = self.createRoadData(base=self.base,
                                         name='alpha',
                                         ha=("", raeting.RAET_PORT),
@@ -276,7 +276,7 @@ class BasicTestCase(unittest.TestCase):
                        name='',
                        ha=None,
                        main=None,
-                       auto=raeting.autoModes.never,
+                       auto=int(raeting.AutoMode.never),
                        role=None,
                        sigkey=None,
                        prikey=None,
@@ -348,7 +348,7 @@ class BasicTestCase(unittest.TestCase):
                                         name='alpha',
                                         ha=("", raeting.RAET_PORT),
                                         main=True,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData)
 
@@ -356,16 +356,16 @@ class BasicTestCase(unittest.TestCase):
                                        name='beta',
                                        ha=("", raeting.RAET_TEST_PORT),
                                        main=None,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData)
 
         console.terse("\nJoin from Beta to Alpha *********\n")
         self.assertTrue(alpha.main)
-        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertIs(alpha.keep.auto, int(raeting.AutoMode.once))
         self.assertEqual(len(alpha.remotes), 0)
         self.assertIs(beta.main, None)
-        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertIs(beta.keep.auto, int(raeting.AutoMode.once))
         self.assertEqual(len(beta.remotes), 0)
         self.join(beta, alpha)
         for stack in [alpha, beta]:
@@ -403,7 +403,7 @@ class BasicTestCase(unittest.TestCase):
                                         name='alpha',
                                         ha=("", raeting.RAET_PORT),
                                         main=True,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData)
 
@@ -411,16 +411,16 @@ class BasicTestCase(unittest.TestCase):
                                        name='beta',
                                        ha=("", raeting.RAET_TEST_PORT),
                                        main=True,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData)
 
         console.terse("\nJoin Joint Alpha and Beta *********\n")
         self.assertIs(alpha.main, True)
-        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertIs(alpha.keep.auto, int(raeting.AutoMode.once))
         self.assertEqual(len(alpha.remotes), 0)
         self.assertIs(beta.main, True)
-        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertIs(beta.keep.auto, int(raeting.AutoMode.once))
         self.assertEqual(len(beta.remotes), 0)
 
         console.terse("\nJoint Join Transaction **************\n")
@@ -472,7 +472,7 @@ class BasicTestCase(unittest.TestCase):
                                         name='alpha',
                                         ha=("", raeting.RAET_PORT),
                                         main=True,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(alphaData['dirpath'])
         alpha = self.createRoadStack(data=alphaData)
 
@@ -480,16 +480,16 @@ class BasicTestCase(unittest.TestCase):
                                        name='beta',
                                        ha=("", raeting.RAET_TEST_PORT),
                                        main=True,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(betaData['dirpath'])
         beta = self.createRoadStack(data=betaData)
 
         console.terse("\nJoin Joint Alpha and Beta *********\n")
         self.assertIs(alpha.main, True)
-        self.assertIs(alpha.keep.auto, raeting.autoModes.once)
+        self.assertIs(alpha.keep.auto, int(raeting.AutoMode.once))
         self.assertEqual(len(alpha.remotes), 0)
         self.assertIs(beta.main, True)
-        self.assertIs(beta.keep.auto, raeting.autoModes.once)
+        self.assertIs(beta.keep.auto, int(raeting.AutoMode.once))
         self.assertEqual(len(beta.remotes), 0)
 
         console.terse("\nJoint Join Transaction **************\n")
@@ -1079,7 +1079,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
 
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1168,7 +1168,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
 
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1301,7 +1301,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousRejectedRejectSameRoleKeys.__doc__))
 
         # Mode: Never
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1377,7 +1377,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousRejectedRejectSameAll.__doc__))
 
         # Mode: Never
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
         # Mutable: Yes
         alpha.mutable = True
 
@@ -1451,7 +1451,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentVacuousEphemeralRejectedRejectSameall.__doc__))
 
         # Mode: Never, Once
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
 
         self.join(beta, alpha)
 
@@ -1885,7 +1885,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Always
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
         # Mutable: Yes
         alpha.mutable = True
 
@@ -2106,7 +2106,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Set to most strict auto mode
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
 
         # Name: Old
         # Main: Old
@@ -2172,7 +2172,7 @@ class BasicTestCase(unittest.TestCase):
         # Mutable: Either (use No as most strict)
         self.assertIs(alpha.mutable, None)
         # AutoMode: Any (use Never as most strict)
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
 
         # Ensure the next join would be ephemeral
         self.assertIs(len(alpha.remotes), 0)
@@ -2243,7 +2243,7 @@ class BasicTestCase(unittest.TestCase):
 
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -2371,7 +2371,7 @@ class BasicTestCase(unittest.TestCase):
 
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -2498,7 +2498,7 @@ class BasicTestCase(unittest.TestCase):
 
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -2628,7 +2628,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -2753,7 +2753,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -2888,7 +2888,7 @@ class BasicTestCase(unittest.TestCase):
         # Status: Pending
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Either
         alpha.mutable = True
 
@@ -3012,7 +3012,7 @@ class BasicTestCase(unittest.TestCase):
         # Mutable: Either
         alpha.mutable = True
         # AutoMode: Never
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
 
         # Ensure the next join would be ephemeral
         self.assertIs(len(alpha.remotes), 0)
@@ -3113,7 +3113,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: None (auto accept keys)
         # Mode: Never, Once, Always (use Always as most loyal
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Mutable: No
         self.assertIs(alpha.mutable, None)
@@ -3200,7 +3200,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: None (auto accept keys)
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Mutable: No
         self.assertIs(alpha.mutable, None)
@@ -3290,7 +3290,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: None (auto accept keys)
         # Mode: Never, Once, Always
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Mutable: No
         self.assertIs(alpha.mutable, None)
@@ -3381,7 +3381,7 @@ class BasicTestCase(unittest.TestCase):
         # Status: None (auto accept keys)
         # Mode: Never, Once, Always (use always as most loyal)
 
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -3474,7 +3474,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: None (auto accept keys)
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -3565,7 +3565,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: None (auto accept keys)
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -3653,7 +3653,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
         # Mutable: No
         self.assertIs(alpha.mutable, None)
 
@@ -3842,7 +3842,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentNonVacuousRejectedRejectNewRole.__doc__))
 
         # Mode: Never
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
         # Mutable: Yes
         alpha.mutable = True
 
@@ -3946,7 +3946,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinentNonVacuousRejectedRejectSameAll.__doc__))
 
         # Mode: Never, Once
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
 
         # Mutable: Either
         alpha.mutable = True
@@ -4024,7 +4024,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
 
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.never)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.never))
 
         # Mutable: Yes
         alpha.mutable = True
@@ -4630,7 +4630,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
         # Mode: Always
-        alpha.keep.auto = raeting.autoModes.always
+        alpha.keep.auto = int(raeting.AutoMode.always)
         # Mutable: Yes
         alpha.mutable = True
         # Name: Either
@@ -4707,7 +4707,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mutable: Either (use No as more strict)
         self.assertIs(alpha.mutable, None)
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
 
         # Name: Old
         # Main: Old
@@ -4774,7 +4774,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -4906,7 +4906,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -5035,7 +5035,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -5164,7 +5164,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -5297,7 +5297,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -5428,7 +5428,7 @@ class BasicTestCase(unittest.TestCase):
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Yes
         alpha.mutable = True
 
@@ -5561,7 +5561,7 @@ class BasicTestCase(unittest.TestCase):
         # Status: Pending
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         # Mutable: Either
         alpha.mutable = True
 
@@ -5680,7 +5680,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinerVacuousImmutableRejectNewName.__doc__))
 
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -5769,7 +5769,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinerVacuousImmutableRejectNewMain.__doc__))
 
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -5857,7 +5857,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinerVacuousImmutableRejectNewKind.__doc__))
 
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -5947,7 +5947,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinerVacuousImmutableRejectNewKeys.__doc__))
 
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -6036,7 +6036,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinerVacuousImmutableRejectNewRole.__doc__))
 
         # Mode: Never, Once, Always (use always as most loyal)
-        alpha, beta = self.bootstrapStacks(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapStacks(autoMode=int(raeting.AutoMode.always))
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -6132,7 +6132,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -6227,7 +6227,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                                ha=("", raeting.RAET_PORT),
                                                main=True,
-                                               auto=raeting.autoModes.once,
+                                               auto=int(raeting.AutoMode.once),
                                                role=None,
                                                kind=None,
                                                mutable=True, )
@@ -6239,7 +6239,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.once,
+                                             auto=int(raeting.AutoMode.once),
                                              role=None,
                                              kind=None,
                                              mutable=True, )
@@ -6280,8 +6280,8 @@ class BasicTestCase(unittest.TestCase):
         # Status: Rejected
         beta.keep.rejectRemote(betaRemoteAlpha)
         self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.rejected))
-        beta.keep.auto = raeting.autoModes.never
-        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        beta.keep.auto = int(raeting.AutoMode.never)
+        self.assertEqual(beta.keep.auto, int(raeting.AutoMode.never))
         # Name: Either
         # Main: Either
         # Kind: Either
@@ -6409,7 +6409,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -6504,7 +6504,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -6600,7 +6600,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -6936,7 +6936,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Always
-        alpha, beta = self.bootstrapJoinedRemotes(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapJoinedRemotes(autoMode=int(raeting.AutoMode.always))
         betaRemote = beta.remotes.values()[0]
 
         # Ensure remote status is Accepted
@@ -7119,7 +7119,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mutable: Either (use false as more strict)
         self.assertIs(beta.mutable, None)
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
         # Vacuous: Yes
         betaRemote.fuid = 0
         betaRemote.sid = 0
@@ -7193,7 +7193,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mutable: Either (use No as more strict)
         self.assertIs(beta.mutable, None)
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
         # Vacuous: Yes
         betaRemote.fuid = 0
         betaRemote.sid = 0
@@ -7251,7 +7251,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                        ha=("", raeting.RAET_PORT),
                                        main=True,
-                                       auto=raeting.autoModes.once,
+                                       auto=int(raeting.AutoMode.once),
                                        role=None,
                                        kind=None,
                                        mutable=True, )
@@ -7263,7 +7263,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.once,
+                                             auto=int(raeting.AutoMode.once),
                                              role=None,
                                              kind=None,
                                              mutable=True, )
@@ -7306,8 +7306,8 @@ class BasicTestCase(unittest.TestCase):
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
         self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
-        beta.keep.auto = raeting.autoModes.never
-        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        beta.keep.auto = int(raeting.AutoMode.never)
+        self.assertEqual(beta.keep.auto, int(raeting.AutoMode.never))
         # Name: New # have to do this mid transaction below
         # Main: Either
         # Kind: Either
@@ -7358,7 +7358,7 @@ class BasicTestCase(unittest.TestCase):
         gamma, gammaData = self.bootstrapStack(name='gamma',
                                                ha=("", raeting.RAET_PORT),
                                                main=True,
-                                               auto=raeting.autoModes.once,
+                                               auto=int(raeting.AutoMode.once),
                                                role='alpha',
                                                sigkey=alpha.local.signer.keyhex,
                                                prikey=alpha.local.priver.keyhex,
@@ -7471,7 +7471,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                                ha=("", raeting.RAET_PORT),
                                                main=True,
-                                               auto=raeting.autoModes.once,
+                                               auto=int(raeting.AutoMode.once),
                                                role=None,
                                                kind=None,
                                                mutable=True, )
@@ -7483,7 +7483,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.once,
+                                             auto=int(raeting.AutoMode.once),
                                              role=None,
                                              kind=None,
                                              mutable=True, )
@@ -7542,8 +7542,8 @@ class BasicTestCase(unittest.TestCase):
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
         self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
-        beta.keep.auto = raeting.autoModes.never
-        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        beta.keep.auto = int(raeting.AutoMode.never)
+        self.assertEqual(beta.keep.auto, int(raeting.AutoMode.never))
         # Name: Either
         # Main: New  # old value was False now we change to True
         oldMain = alpha.main
@@ -7667,7 +7667,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                                        ha=("", raeting.RAET_PORT),
                                                        main=True,
-                                                       auto=raeting.autoModes.once,
+                                                       auto=int(raeting.AutoMode.once),
                                                        role=None,
                                                        kind=None,
                                                        mutable=True, )
@@ -7679,7 +7679,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.once,
+                                             auto=int(raeting.AutoMode.once),
                                              role=None,
                                              kind=None,
                                              mutable=True, )
@@ -7722,8 +7722,8 @@ class BasicTestCase(unittest.TestCase):
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
         self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
-        beta.keep.auto = raeting.autoModes.never
-        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        beta.keep.auto = int(raeting.AutoMode.never)
+        self.assertEqual(beta.keep.auto, int(raeting.AutoMode.never))
         # Name: Either
         # Main: Either
         # Kind: New # old value was None (0) now we change to 3
@@ -7847,7 +7847,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                                ha=("", raeting.RAET_PORT),
                                                main=True,
-                                               auto=raeting.autoModes.once,
+                                               auto=int(raeting.AutoMode.once),
                                                role=None,
                                                kind=None,
                                                mutable=True, )
@@ -7859,7 +7859,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.once,
+                                             auto=int(raeting.AutoMode.once),
                                              role=None,
                                              kind=None,
                                              mutable=True, )
@@ -7902,8 +7902,8 @@ class BasicTestCase(unittest.TestCase):
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
         self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
-        beta.keep.auto = raeting.autoModes.never
-        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        beta.keep.auto = int(raeting.AutoMode.never)
+        self.assertEqual(beta.keep.auto, int(raeting.AutoMode.never))
         # Name: Either
         # Main: Old
         # Kind: Either
@@ -8032,7 +8032,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                                ha=("", raeting.RAET_PORT),
                                                main=True,
-                                               auto=raeting.autoModes.once,
+                                               auto=int(raeting.AutoMode.once),
                                                role=None,
                                                kind=None,
                                                mutable=True, )
@@ -8044,7 +8044,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.once,
+                                             auto=int(raeting.AutoMode.once),
                                              role=None,
                                              kind=None,
                                              mutable=True, )
@@ -8084,8 +8084,8 @@ class BasicTestCase(unittest.TestCase):
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
         self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
-        beta.keep.auto = raeting.autoModes.never
-        self.assertEqual(beta.keep.auto, raeting.autoModes.never)
+        beta.keep.auto = int(raeting.AutoMode.never)
+        self.assertEqual(beta.keep.auto, int(raeting.AutoMode.never))
         # Name: Old
         # Main: Old
         # Kind: Old
@@ -8199,7 +8199,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -8979,7 +8979,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -9075,7 +9075,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -9180,7 +9180,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -9275,7 +9275,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never, Once
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: Yes
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -9599,7 +9599,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Always
-        alpha, beta = self.bootstrapJoinedRemotes(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapJoinedRemotes(autoMode=int(raeting.AutoMode.always))
         betaRemote = beta.remotes.values()[0]
 
         # Name: Either
@@ -9685,7 +9685,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Always
-        alpha, beta = self.bootstrapJoinedRemotes(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapJoinedRemotes(autoMode=int(raeting.AutoMode.always))
         alphaRemote = alpha.remotes.values()[0]
         betaRemote = beta.remotes.values()[0]
 
@@ -9852,7 +9852,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Accepted (auto accept keys)
         # Mode: Always
-        alpha, beta = self.bootstrapJoinedRemotes(autoMode=raeting.autoModes.always)
+        alpha, beta = self.bootstrapJoinedRemotes(autoMode=int(raeting.AutoMode.always))
         betaRemote = beta.remotes.values()[0]
 
         # Ensure remote status is Accepted
@@ -9997,7 +9997,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -10123,7 +10123,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         # Main: New (set main to false in betaRemote)
@@ -10247,7 +10247,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -10374,7 +10374,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -10509,7 +10509,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -10643,7 +10643,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -10775,7 +10775,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Mode: Never
         alpha, beta = self.bootstrapStacks()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
 
         # Vacuous: No
         betaRemote = estating.RemoteEstate(stack=beta,
@@ -10898,7 +10898,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                                ha=("", raeting.RAET_PORT),
                                                main=True,
-                                               auto=raeting.autoModes.always,
+                                               auto=int(raeting.AutoMode.always),
                                                role=None,
                                                kind=None,
                                                mutable=True, )
@@ -10910,7 +10910,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.always,
+                                             auto=int(raeting.AutoMode.always),
                                              role=None,
                                              kind=None,
                                              mutable=True, )
@@ -11092,7 +11092,7 @@ class BasicTestCase(unittest.TestCase):
                                         name='gamma',
                                         ha=("", 7532),
                                         main=None,
-                                        auto=raeting.autoModes.always)
+                                        auto=int(raeting.AutoMode.always))
         keeping.clearAllKeep(gammaData['dirpath'])
         gamma = self.createRoadStack(data=gammaData)
         self.join(gamma, alpha)
@@ -11629,7 +11629,7 @@ class BasicTestCase(unittest.TestCase):
                                         name='gamma',
                                         ha=("", raeting.RAET_TEST_PORT+1),
                                         main=True,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(gammaData['dirpath'])
         gamma = self.createRoadStack(data=gammaData)
 
@@ -11692,7 +11692,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("{0}\n".format(self.testJoinerPendErrorParseInner.__doc__))
 
         alpha, beta = self.bootstrapJoinedRemotes()
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         alpha.mutable = True
         alphaRemoteBeta = alpha.remotes.values()[0]
         alpha.keep.pendRemote(alphaRemoteBeta)
@@ -11748,7 +11748,7 @@ class BasicTestCase(unittest.TestCase):
 
         alpha, beta = self.bootstrapJoinedRemotes()
 
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
         beta.mutable = True
         betaRemoteAlpha = beta.remotes.values()[0]
         beta.keep.rejectRemote(betaRemoteAlpha) # force nack the next join request
@@ -11803,7 +11803,7 @@ class BasicTestCase(unittest.TestCase):
 
         alpha, beta = self.bootstrapJoinedRemotes()
 
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
         beta.mutable = True
         betaRemoteAlpha = beta.remotes.values()[0]
         beta.keep.pendRemote(betaRemoteAlpha)
@@ -11886,7 +11886,7 @@ class BasicTestCase(unittest.TestCase):
 
         alpha, beta = self.bootstrapJoinedRemotes()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         alpha.keep.pendRemote(alpha.remotes.values()[0])
 
         # Test
@@ -11917,7 +11917,7 @@ class BasicTestCase(unittest.TestCase):
 
         alpha, beta = self.bootstrapJoinedRemotes()
 
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         alpha.keep.pendRemote(alpha.remotes.values()[0])
 
         # Test
@@ -11948,7 +11948,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, alphaData = self.bootstrapStack(name='alpha',
                                                ha=("", raeting.RAET_PORT),
                                                main=True,
-                                               auto=raeting.autoModes.once,
+                                               auto=int(raeting.AutoMode.once),
                                                role=None,
                                                kind=None,
                                                mutable=False, )
@@ -11960,7 +11960,7 @@ class BasicTestCase(unittest.TestCase):
         beta, betaData = self.bootstrapStack(name='beta',
                                              ha=("", raeting.RAET_TEST_PORT),
                                              main=None,
-                                             auto=raeting.autoModes.once,
+                                             auto=int(raeting.AutoMode.once),
                                              role=None,
                                              kind=None,
                                              mutable=False, )
@@ -12018,7 +12018,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(data['acceptance'], int(raeting.Acceptance.accepted))
         self.assertEqual(ns2b(data['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(data['pubhex']), alpha.local.priver.pubhex)
-        self.assertEqual(beta.keep.auto, raeting.autoModes.once)
+        self.assertEqual(beta.keep.auto, int(raeting.AutoMode.once))
         self.assertEqual(beta.puid, 2)
 
         # create remote to join to alpha
@@ -12837,7 +12837,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Pend transaction
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         alpha.keep.pendRemote(alpha.remotes.values()[0])
 
         alpha.clearStats()
@@ -12869,7 +12869,7 @@ class BasicTestCase(unittest.TestCase):
         alpha, beta = self.bootstrapJoinedRemotes()
 
         # Pend beta on alpha
-        alpha.keep.auto = raeting.autoModes.never
+        alpha.keep.auto = int(raeting.AutoMode.never)
         alpha.keep.pendRemote(alpha.remotes.values()[0])
 
         # Ensure remote status is Pending
@@ -12948,7 +12948,7 @@ class BasicTestCase(unittest.TestCase):
         # Status: Accepted (auto accept keys)
         # Mode: Never, Once, Always
         alpha, beta = self.bootstrapJoinedRemotes()
-        beta.keep.auto = raeting.autoModes.never
+        beta.keep.auto = int(raeting.AutoMode.never)
         # Test:
         beta.clearStats()
         console.terse("\nTest joinent pend parseInner error *********\n")
@@ -13627,7 +13627,7 @@ class BasicTestCase(unittest.TestCase):
         beta.server.close()
         beta.clearAllKeeps()
 
-        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=raeting.autoModes.once)
+        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=int(raeting.AutoMode.once))
         stacks = [alpha, beta]
 
         self.serviceStacks(stacks)
@@ -13639,7 +13639,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(beta.remotes), 0)
 
         console.terse("\nJoin beta again *********\n")
-        alpha.keep.auto = raeting.autoModes.always
+        alpha.keep.auto = int(raeting.AutoMode.always)
         alpha.mutable = True
         self.join(beta, alpha)
 
@@ -13674,7 +13674,7 @@ class BasicTestCase(unittest.TestCase):
         beta.server.close()
         beta.clearAllKeeps()
 
-        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=raeting.autoModes.once)
+        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=int(raeting.AutoMode.once))
         stacks = [alpha, beta]
 
         self.serviceStacks(stacks)
@@ -13687,7 +13687,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(beta.remotes), 0)
 
         console.terse("\nJoin beta again *********\n")
-        alpha.keep.auto = raeting.autoModes.always
+        alpha.keep.auto = int(raeting.AutoMode.always)
         alpha.mutable = True
         self.join(beta, alpha)
 
@@ -13724,7 +13724,7 @@ class BasicTestCase(unittest.TestCase):
         beta.server.close()
         beta.clearAllKeeps()
 
-        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=raeting.autoModes.once)
+        beta, betaData = self.bootstrapStack(name='beta', ha=('', raeting.RAET_TEST_PORT), auto=int(raeting.AutoMode.once))
         stacks = [alpha, beta]
 
         self.serviceStacks(stacks)
@@ -13736,7 +13736,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(beta.remotes), 0)
 
         console.terse("\nJoin beta again *********\n")
-        alpha.keep.auto = raeting.autoModes.always
+        alpha.keep.auto = int(raeting.AutoMode.always)
         alpha.mutable = True
         self.join(beta, alpha)
 
@@ -13773,9 +13773,9 @@ class BasicTestCase(unittest.TestCase):
         alpha.clearAllKeeps()
 
         alpha, alphaData = self.bootstrapStack(name='alpha', ha=('', raeting.RAET_PORT),
-                                               auto=raeting.autoModes.always, mutable=True, main=True)
+                                               auto=int(raeting.AutoMode.always), mutable=True, main=True)
         stacks = [alpha, beta]
-        beta.keep.auto = raeting.autoModes.always
+        beta.keep.auto = int(raeting.AutoMode.always)
         beta.mutable = True
 
         self.serviceStacks(stacks)
@@ -13813,9 +13813,9 @@ class BasicTestCase(unittest.TestCase):
         alpha.clearAllKeeps()
 
         alpha, alphaData = self.bootstrapStack(name='alpha', ha=('', raeting.RAET_PORT),
-                                               auto=raeting.autoModes.always, mutable=True, main=True)
+                                               auto=int(raeting.AutoMode.always), mutable=True, main=True)
         stacks = [alpha, beta]
-        beta.keep.auto = raeting.autoModes.always
+        beta.keep.auto = int(raeting.AutoMode.always)
         beta.mutable = True
 
         self.serviceStacks(stacks)
@@ -13827,7 +13827,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(beta.remotes.values()[0].joined)
 
         console.terse("\nJoin beta again *********\n")
-        alpha.keep.auto = raeting.autoModes.always
+        alpha.keep.auto = int(raeting.AutoMode.always)
         alpha.mutable = True
         self.join(beta, alpha)
 

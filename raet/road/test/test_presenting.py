@@ -59,7 +59,7 @@ class BasicTestCase(unittest.TestCase):
                        name='',
                        ha=None,
                        main=None,
-                       auto=raeting.autoModes.never,
+                       auto=int(raeting.AutoMode.never),
                        role=None,
                        kind=None, ):
         '''
@@ -304,7 +304,7 @@ class BasicTestCase(unittest.TestCase):
         mainData = self.createRoadData(name='main_stack',
                                        role='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -314,7 +314,7 @@ class BasicTestCase(unittest.TestCase):
         otherData = self.createRoadData(name='other_stack',
                                         role='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -323,7 +323,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertNotEqual(main.local.name, main.local.role)
         self.assertNotEqual(other.local.name, other.local.role)
         self.assertIs(other.main, None)
-        self.assertIs(other.keep.auto, raeting.autoModes.once)
+        self.assertIs(other.keep.auto, int(raeting.AutoMode.once))
 
         console.terse("\nJoin Other to Main *********\n")
         self.join(other, main)
@@ -381,7 +381,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -390,13 +390,13 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.never)
+                                        auto=int(raeting.AutoMode.never))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
                                      ha=("", raeting.RAET_TEST_PORT))
 
-        self.assertIs(other.keep.auto, raeting.autoModes.never)
+        self.assertIs(other.keep.auto, int(raeting.AutoMode.never))
         self.assertIs(other.main, None)
 
         console.terse("\nJoin Main to Other *********\n")
@@ -408,9 +408,9 @@ class BasicTestCase(unittest.TestCase):
 
         # now fix it so other can accept vacuous joins
         other.main = True
-        other.keep.auto = raeting.autoModes.once
+        other.keep.auto = int(raeting.AutoMode.once)
         self.assertIs(other.main, True)
-        self.assertIs(other.keep.auto, raeting.autoModes.once)
+        self.assertIs(other.keep.auto, int(raeting.AutoMode.once))
 
         self.join(main, other)
         for stack in [main, other]:
@@ -475,7 +475,7 @@ class BasicTestCase(unittest.TestCase):
         mainData = self.createRoadData(name='main_stack',
                                        role='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -485,7 +485,7 @@ class BasicTestCase(unittest.TestCase):
         otherData = self.createRoadData(name='other_stack',
                                         role='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.never)
+                                        auto=int(raeting.AutoMode.never))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -493,7 +493,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertNotEqual(main.local.name, main.local.role)
         self.assertNotEqual(other.local.name, other.local.role)
-        self.assertIs(other.keep.auto, raeting.autoModes.never)
+        self.assertIs(other.keep.auto, int(raeting.AutoMode.never))
         self.assertIs(other.main, None)
 
         console.terse("\nJoin Main to Other *********\n")
@@ -505,9 +505,9 @@ class BasicTestCase(unittest.TestCase):
 
         # now fix it so other can accept vacuous joins
         other.main = True
-        other.keep.auto = raeting.autoModes.once
+        other.keep.auto = int(raeting.AutoMode.once)
         self.assertIs(other.main, True)
-        self.assertIs(other.keep.auto, raeting.autoModes.once)
+        self.assertIs(other.keep.auto, int(raeting.AutoMode.once))
 
 
         self.join(main, other)
@@ -575,7 +575,7 @@ class BasicTestCase(unittest.TestCase):
         mainData = self.createRoadData(name='main_stack',
                                        role='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -585,7 +585,7 @@ class BasicTestCase(unittest.TestCase):
         otherData = self.createRoadData(name='other_stack',
                                         role='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True,
@@ -594,7 +594,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertNotEqual(main.local.name, main.local.role)
         self.assertNotEqual(other.local.name, other.local.role)
         self.assertIs(other.main, True)
-        self.assertIs(other.keep.auto, raeting.autoModes.once)
+        self.assertIs(other.keep.auto, int(raeting.AutoMode.once))
 
         console.terse("\nJoin Main to Other *********\n")
         self.join(main, other)
@@ -691,7 +691,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -702,7 +702,7 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
-                                     auto=raeting.autoModes.once,
+                                     auto=int(raeting.AutoMode.once),
                                      ha=("", raeting.RAET_TEST_PORT))
 
         self.join(other, main)
@@ -799,7 +799,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -808,7 +808,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -836,7 +836,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1',
                                          base=self.base,
-                                         auto=raeting.autoModes.once)
+                                         auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
@@ -1020,7 +1020,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      #uid=1,
@@ -1030,7 +1030,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      #uid=1,
@@ -1215,7 +1215,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -1224,7 +1224,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -1256,7 +1256,7 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
-                                     auto=raeting.autoModes.never,
+                                     auto=int(raeting.AutoMode.never),
                                      ha=("", raeting.RAET_TEST_PORT))
 
         for stack in [main, other]:
@@ -1269,7 +1269,7 @@ class BasicTestCase(unittest.TestCase):
 
         # now fix it so other can accept vacuous joins
         other.main = True
-        other.keep.auto = raeting.autoModes.once
+        other.keep.auto = int(raeting.AutoMode.once)
 
         self.join(main, other) # bootstrap channel
         for stack in [main, other]:
@@ -1351,7 +1351,7 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
-                                     auto=raeting.autoModes.never,
+                                     auto=int(raeting.AutoMode.never),
                                      ha=("", raeting.RAET_TEST_PORT))
 
         for stack in [main, other]:
@@ -1364,7 +1364,7 @@ class BasicTestCase(unittest.TestCase):
 
         # now fix it so other can accept vacuous joins
         other.main = True
-        other.keep.auto = raeting.autoModes.once
+        other.keep.auto = int(raeting.AutoMode.once)
 
         self.join(main, other) # bootstrap channel since allow requires remote
         for stack in [main, other]:
@@ -1446,7 +1446,7 @@ class BasicTestCase(unittest.TestCase):
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
-                                     auto=raeting.autoModes.never,
+                                     auto=int(raeting.AutoMode.never),
                                      ha=("", raeting.RAET_TEST_PORT))
 
         for stack in [main, other]:
@@ -1459,7 +1459,7 @@ class BasicTestCase(unittest.TestCase):
 
         # now fix it so other can accept vacuous joins
         other.main = True
-        other.keep.auto = raeting.autoModes.once
+        other.keep.auto = int(raeting.AutoMode.once)
 
         self.join(main, other) # bootstrap channel
         for stack in [main, other]:
@@ -1498,7 +1498,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -1507,7 +1507,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -1516,7 +1516,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1',
                                          base=self.base,
-                                         auto=raeting.autoModes.once,)
+                                         auto=int(raeting.AutoMode.once),)
         keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
@@ -1569,7 +1569,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                      main=True,
@@ -1578,7 +1578,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -1587,7 +1587,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1',
                                          base=self.base,
-                                         auto=raeting.autoModes.once)
+                                         auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
                                      main=None,
@@ -1649,7 +1649,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         mainDirpath = mainData['dirpath']
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
@@ -1659,7 +1659,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         otherDirpath = otherData['dirpath']
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
@@ -1669,7 +1669,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1',
                                          base=self.base,
-                                         auto=raeting.autoModes.once)
+                                         auto=int(raeting.AutoMode.once))
         other1Dirpath = other1Data['dirpath']
         keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
@@ -1769,7 +1769,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         mainDirpath = mainData['dirpath']
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
@@ -1779,7 +1779,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         otherDirpath = otherData['dirpath']
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
@@ -1789,7 +1789,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1',
                                          base=self.base,
-                                         auto=raeting.autoModes.once)
+                                         auto=int(raeting.AutoMode.once))
         other1Dirpath = other1Data['dirpath']
         keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
@@ -2013,7 +2013,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='zmain',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         mainDirpath = mainData['dirpath']
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
@@ -2023,7 +2023,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         otherDirpath = otherData['dirpath']
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
@@ -2033,7 +2033,7 @@ class BasicTestCase(unittest.TestCase):
 
         other1Data = self.createRoadData(name='other1',
                                          base=self.base,
-                                         auto=raeting.autoModes.once)
+                                         auto=int(raeting.AutoMode.once))
         other1Dirpath = other1Data['dirpath']
         keeping.clearAllKeep(other1Data['dirpath'])
         other1 = self.createRoadStack(data=other1Data,
@@ -2256,7 +2256,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2265,7 +2265,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2334,7 +2334,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2343,7 +2343,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2403,7 +2403,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2412,7 +2412,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2480,7 +2480,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2489,7 +2489,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2549,7 +2549,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2558,7 +2558,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2620,7 +2620,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2629,7 +2629,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2698,7 +2698,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2707,7 +2707,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2767,7 +2767,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2776,7 +2776,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2844,7 +2844,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2853,7 +2853,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2913,7 +2913,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2922,7 +2922,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -2984,7 +2984,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -2994,7 +2994,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3055,7 +3055,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3064,7 +3064,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3123,7 +3123,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3132,7 +3132,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3197,7 +3197,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3206,7 +3206,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3281,7 +3281,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3290,7 +3290,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3363,7 +3363,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3372,7 +3372,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -3438,7 +3438,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3447,7 +3447,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3555,7 +3555,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3564,7 +3564,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3616,7 +3616,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3625,7 +3625,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=None,
@@ -3785,7 +3785,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3794,7 +3794,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -3857,7 +3857,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3866,7 +3866,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -3933,7 +3933,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -3942,7 +3942,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4014,7 +4014,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4023,7 +4023,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4100,7 +4100,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4109,7 +4109,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4191,7 +4191,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4200,7 +4200,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4253,7 +4253,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4262,7 +4262,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4312,7 +4312,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4321,7 +4321,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4385,7 +4385,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4394,7 +4394,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4459,7 +4459,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4468,7 +4468,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
@@ -4529,7 +4529,7 @@ class BasicTestCase(unittest.TestCase):
 
         mainData = self.createRoadData(name='main',
                                        base=self.base,
-                                       auto=raeting.autoModes.once)
+                                       auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(mainData['dirpath'])
         main = self.createRoadStack(data=mainData,
                                     main=True,
@@ -4538,7 +4538,7 @@ class BasicTestCase(unittest.TestCase):
 
         otherData = self.createRoadData(name='other',
                                         base=self.base,
-                                        auto=raeting.autoModes.once)
+                                        auto=int(raeting.AutoMode.once))
         keeping.clearAllKeep(otherData['dirpath'])
         other = self.createRoadStack(data=otherData,
                                      main=True, # only main can reap and unreap
