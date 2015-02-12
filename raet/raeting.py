@@ -92,7 +92,7 @@ Body Decoding
 # pylint: disable=C0103
 
 # Import python libs
-from collections import namedtuple, Mapping
+from collections import Mapping
 try:
     import simplejson as json
 except ImportError:
@@ -266,10 +266,6 @@ class AutoMode(enum.IntEnum):
     once = 1
     always = 2
 
-PACK_KINDS = odict([('json', 0), ('pack', 1)])
-PACK_KIND_NAMES = odict((v, k) for k, v in PACK_KINDS.iteritems())  # inverse map
-PackKind = namedtuple('PackKind', PACK_KINDS.keys())
-packKinds = PackKind(**PACK_KINDS)
 
 @enum.unique
 class PackKind(enum.IntEnum):
