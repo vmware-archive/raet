@@ -29,7 +29,7 @@ from ioflo.base import storing
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import PcktKind, TrnsKind, CoatKind, FootKind
+from ..raeting import PcktKind, TrnsKind, CoatKind, FootKind, BodyKind
 from .. import nacling
 from .. import stacking
 from . import keeping
@@ -82,7 +82,7 @@ class RoadStack(stacking.KeepStack):
     '''
     Count = 0 # count of Stack instances to give unique stack names
     Hk = int(raeting.HeadKind.raet) # stack default
-    Bk = int(raeting.BodyKind.json) # stack default
+    Bk = BodyKind.json.value # stack default
     Fk = FootKind.nacl.value # stack default
     Ck = CoatKind.nacl.value # stack default
     Bf = False # stack default for bcstflag
@@ -756,7 +756,7 @@ class RoadStack(stacking.KeepStack):
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return
-        data = odict(hk=self.Hk, bk=int(raeting.BodyKind.raw), fk=self.Fk)
+        data = odict(hk=self.Hk, bk=BodyKind.raw.value, fk=self.Fk)
         allower = transacting.Allower(stack=self,
                                       remote=remote,
                                       timeout=timeout,
@@ -768,7 +768,7 @@ class RoadStack(stacking.KeepStack):
         '''
         Correspond to new allow transaction
         '''
-        data = odict(hk=self.Hk, bk=int(raeting.BodyKind.raw), fk=self.Fk)
+        data = odict(hk=self.Hk, bk=BodyKind.raw.value, fk=self.Fk)
         allowent = transacting.Allowent(stack=self,
                                         remote=remote,
                                         sid=packet.data['si'],

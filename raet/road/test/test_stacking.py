@@ -50,7 +50,7 @@ class BasicTestCase(unittest.TestCase):
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
         self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
-        stacking.RoadStack.Bk = int(raeting.BodyKind.json)
+        stacking.RoadStack.Bk = raeting.BodyKind.json.value
 
         #main stack
         mainName = "main"
@@ -175,7 +175,7 @@ class BasicTestCase(unittest.TestCase):
             if real:
                 time.sleep(0.1)
 
-    def bootstrap(self, bk=int(raeting.BodyKind.json)):
+    def bootstrap(self, bk=raeting.BodyKind.json.value):
         '''
         Initialize
             main on port 7530 with uid of 1
@@ -276,7 +276,7 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
         self.assertDictEqual(body, self.other.rxMsgs[0][0])
 
-    def bidirectional(self, bk=int(raeting.BodyKind.json), mains=None, others=None, duration=3.0):
+    def bidirectional(self, bk=raeting.BodyKind.json.value, mains=None, others=None, duration=3.0):
         '''
         Initialize
             main on port 7530 with uid of 1
@@ -332,14 +332,14 @@ class BasicTestCase(unittest.TestCase):
         Test join allow message transactions with JSON Serialization of body
         '''
         console.terse("{0}\n".format(self.testBootstrapJson.__doc__))
-        self.bootstrap(bk=int(raeting.BodyKind.json))
+        self.bootstrap(bk=raeting.BodyKind.json.value)
 
     def testBootstrapMsgpack(self):
         '''
         Test join allow message transactions with MsgPack Serialization of body
         '''
         console.terse("{0}\n".format(self.testBootstrapMsgpack.__doc__))
-        self.bootstrap(bk=int(raeting.BodyKind.msgpack))
+        self.bootstrap(bk=raeting.BodyKind.msgpack.value)
 
     def testMsgBothwaysJson(self):
         '''
@@ -359,7 +359,7 @@ class BasicTestCase(unittest.TestCase):
         mains.append(odict(house="Papa pia3", queue="stop me"))
         mains.append(odict(house="Papa pia4", queue="run me"))
 
-        self.bidirectional(bk=int(raeting.BodyKind.json), mains=mains, others=others)
+        self.bidirectional(bk=raeting.BodyKind.json.value, mains=mains, others=others)
 
     def testMsgBothwaysMsgpack(self):
         '''
@@ -379,7 +379,7 @@ class BasicTestCase(unittest.TestCase):
         mains.append(odict(house="Papa pia3", queue="stop me"))
         mains.append(odict(house="Papa pia4", queue="run me"))
 
-        self.bidirectional(bk=int(raeting.BodyKind.msgpack), mains=mains, others=others)
+        self.bidirectional(bk=raeting.BodyKind.msgpack.value, mains=mains, others=others)
 
     def testSegmentedJson(self):
         '''
@@ -404,7 +404,7 @@ class BasicTestCase(unittest.TestCase):
         others.append(odict(house="Other", queue="big stuff", bloat=bloat))
         mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
-        self.bidirectional(bk=int(raeting.BodyKind.json), mains=mains, others=others, duration=20.0)
+        self.bidirectional(bk=raeting.BodyKind.json.value, mains=mains, others=others, duration=20.0)
 
     def testSegmentedMsgpack(self):
         '''
@@ -429,7 +429,7 @@ class BasicTestCase(unittest.TestCase):
         others.append(odict(house="Other", queue="big stuff", bloat=bloat))
         mains.append(odict(house="Main", queue="gig stuff", bloat=bloat))
 
-        self.bidirectional(bk=int(raeting.BodyKind.msgpack), mains=mains, others=others, duration=20.0)
+        self.bidirectional(bk=raeting.BodyKind.msgpack.value, mains=mains, others=others, duration=20.0)
 
     def testSegmentedJsonBurst(self):
         '''
@@ -456,7 +456,7 @@ class BasicTestCase(unittest.TestCase):
 
         stacking.RoadStack.BurstSize = 16
         self.assertEqual(stacking.RoadStack.BurstSize, 16)
-        self.bidirectional(bk=int(raeting.BodyKind.json), mains=mains, others=others, duration=20.0)
+        self.bidirectional(bk=raeting.BodyKind.json.value, mains=mains, others=others, duration=20.0)
         stacking.RoadStack.BurstSize = 0
         self.assertEqual(stacking.RoadStack.BurstSize, 0)
 
@@ -485,7 +485,7 @@ class BasicTestCase(unittest.TestCase):
 
         stacking.RoadStack.BurstSize = 16
         self.assertEqual(stacking.RoadStack.BurstSize, 16)
-        self.bidirectional(bk=int(raeting.BodyKind.msgpack), mains=mains, others=others, duration=20.0)
+        self.bidirectional(bk=raeting.BodyKind.msgpack.value, mains=mains, others=others, duration=20.0)
         stacking.RoadStack.BurstSize = 0
         self.assertEqual(stacking.RoadStack.BurstSize, 0)
 

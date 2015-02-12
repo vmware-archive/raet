@@ -27,7 +27,7 @@ console = getConsole()
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import PcktKind, TailSize, CoatKind, FootSize, FootKind
+from ..raeting import PcktKind, TailSize, CoatKind, FootSize, FootKind, BodyKind
 
 class Part(object):
     '''
@@ -275,19 +275,19 @@ class TxBody(Body):
         '''
         self.packed = b''
         bk = self.packet.data['bk']
-        if bk == raeting.BodyKind.json:
+        if bk == BodyKind.json:
             if self.data:
                 self.packed = ns2b(json.dumps(self.data,
                                               separators=(',', ':'),
                                               encoding='utf-8'))
-        elif bk == raeting.BodyKind.msgpack:
+        elif bk == BodyKind.msgpack:
             if self.data:
                 if not msgpack:
                     emsg = "Msgpack not installed."
                     raise raeting.PacketError(emsg)
                 self.packed = msgpack.dumps(self.data,
                                             encoding='utf-8')
-        elif bk == raeting.BodyKind.raw:
+        elif bk == BodyKind.raw:
             self.packed = self.data # data is already formatted string
 
 class RxBody(Body):
@@ -301,14 +301,14 @@ class RxBody(Body):
         '''
         bk = self.packet.data['bk']
 
-        if bk not in list(raeting.BodyKind):
-            self.packet.data['bk']= int(raeting.BodyKind.unknown)
+        if bk not in list(BodyKind):
+            self.packet.data['bk']= BodyKind.unknown.value
             emsg = "Unrecognizable packet body."
             raise raeting.PacketError(emsg)
 
         self.data = odict()
 
-        if bk == raeting.BodyKind.json:
+        if bk == BodyKind.json:
             if self.packed:
                 kit = json.loads(self.packed.decode(encoding='utf-8'),
                                  object_pairs_hook=odict,
@@ -317,7 +317,7 @@ class RxBody(Body):
                     emsg = "Packet body not a mapping."
                     raise raeting.PacketError(emsg)
                 self.data = kit
-        elif bk == raeting.BodyKind.msgpack:
+        elif bk == BodyKind.msgpack:
             if self.packed:
                 if not msgpack:
                     emsg = "Msgpack not installed."
@@ -329,9 +329,9 @@ class RxBody(Body):
                     emsg = "Packet body not a mapping."
                     raise raeting.PacketError(emsg)
                 self.data = kit
-        elif bk == raeting.BodyKind.raw:
+        elif bk == BodyKind.raw:
             self.data = self.packed # return as bytes
-        elif bk == raeting.BodyKind.nada:
+        elif bk == BodyKind.nada:
             pass
 
 class Coat(Part):
