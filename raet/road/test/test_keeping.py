@@ -735,7 +735,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.transactions), 1)
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, None)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.pending))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.pending.value)
         self.assertEqual(len(other.transactions), 1)
         remote = other.remotes.values()[0]
         self.assertIs(remote.joined, None)
@@ -753,7 +753,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, None)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main)
         for stack in [main, other]:
@@ -805,7 +805,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.transactions), 1)
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, None)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.pending))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.pending.value)
         self.assertEqual(len(other.transactions), 1)
         remote = other.remotes.values()[0]
         self.assertIs(remote.joined, None)
@@ -837,11 +837,11 @@ class BasicTestCase(unittest.TestCase):
         # because main remote was pended it was dumped
         self.assertEqual(len(main.remotes), 1)
         remote = main.remotes.values()[0]
-        self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
 
         # role data for remotes role (other)
         roleData = main.keep.loadRemoteRoleData(other.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
 
         self.join(other, main, duration=5.0)
         for stack in [main, other]:
@@ -850,7 +850,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, None)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main)
         for stack in [main, other]:
@@ -868,14 +868,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.remotes), 1)
         remote = main.remotes.values()[0]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(remote.name, 'other') # not whowho
         # other has no remotes
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0) # since rejected
         # but role of main on other from previous join still ok
         roleData = other.keep.loadRemoteRoleData(main.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
 
         # change main to mutable and retry
         main.mutable = True
@@ -885,13 +885,13 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.remotes), 2)
         remote = main.remotes[3]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(remote.name, 'whowho')
 
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main, other.remotes.values()[0].uid)
         self.assertEqual(len(main.transactions), 0)
@@ -920,7 +920,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes[3]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(remote.name, 'whowho')
         self.assertEqual(remote.ha, ('127.0.0.1', 7531))
         # other remote deleted since rejected
@@ -947,14 +947,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(main.transactions), 0)
         remote = main.remotes[3]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(remote.name, 'whowho')
         self.assertEqual(remote.ha, ('127.0.0.1', 7533))
 
         self.assertEqual(len(other.transactions), 0)
         remote = other.remotes.values()[0]
         self.assertTrue(remote.joined)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main)
         self.assertEqual(len(main.transactions), 0)
@@ -1317,7 +1317,7 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, True) # unlost other remote still there
         self.assertIs(remote.allowed,  True)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted)) #unlost other remote still accepted
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0)
 
@@ -1425,7 +1425,7 @@ class BasicTestCase(unittest.TestCase):
         remote = main.remotes.values()[0]
         self.assertIs(remote.joined, True) # unlost other remote still there
         self.assertIs(remote.allowed, True)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted)) #unlost other remote still accepted
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value) #unlost other remote still accepted
         self.assertEqual(len(other.transactions), 0)
         self.assertEqual(len(other.remotes), 0)
 
@@ -1543,7 +1543,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         for stack in [main, other]:
             stack.server.close()
@@ -1590,7 +1590,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
 
         #now forget the main data only to simulate main changing all data
@@ -1687,7 +1687,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main)
         for stack in [main, other]:
@@ -1696,7 +1696,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         # so try to send messages should succeed
         self.assertEqual(main.remotes.values()[0].fuid, other.remotes.values()[0].nuid)
@@ -1760,7 +1760,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main)
         for stack in [main, other]:
@@ -1769,7 +1769,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         #now forget the main local data only to simulate main changing keys
         main.server.close()
@@ -1790,7 +1790,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(main.keep.auto, raeting.AutoMode.once.value)
         self.assertIs(main.mutable, None)
         remote = main.remotes.values()[0]
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted)) # saved still accepted
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value) # saved still accepted
 
         # attempt to join to main with main auto accept enabled main will accept
         # but other reject since main keys differ from previous join and immutable
@@ -1802,7 +1802,7 @@ class BasicTestCase(unittest.TestCase):
         remote = other.remotes.values()[0]
         self.assertIs(remote.joined, None) # no lost main remote still there
         # no lost main still accepted
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         # allow will fail but trigger join which which will attempt join but
         # no remote on main side so trigger renew which will fail since immutable
@@ -1879,7 +1879,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main)
         for stack in [main, other]:
@@ -1888,7 +1888,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         # so try to send messages should succeed
         mains = [odict(content="Hello other body")]
@@ -1953,7 +1953,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.allow(other, main)
         for stack in [main, other]:
@@ -1962,7 +1962,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         #save copy of other remotes
         otherRemotes = odict(other.remotes)
@@ -1993,12 +1993,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(main.keep.dirpath.endswith(os.path.join('road','keep','main')))
         self.assertEqual(main.ha, ("0.0.0.0", raeting.RAET_PORT))
         remote = main.remotes.values()[0]
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted)) # saved still accepted
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value) # saved still accepted
 
         self.assertTrue(other.keep.dirpath.endswith(os.path.join('road','keep','other')))
         self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
         remote = other.remotes.values()[0]
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted)) # saved still accepted
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value) # saved still accepted
 
         # attempt to join to main with main auto accept enabled
         self.join(other, main)
@@ -2049,7 +2049,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(main.keep.auto, raeting.AutoMode.once.value)
         self.assertIs(main.mutable, None)
         remote = main.remotes.values()[0]
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted)) # saved still accepted
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value) # saved still accepted
 
         self.assertTrue(other.keep.dirpath.endswith(os.path.join('road','keep','other')))
         self.assertEqual(other.ha, ("0.0.0.0", raeting.RAET_TEST_PORT))
@@ -2065,7 +2065,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
 
         self.allow(other, main)
@@ -2075,7 +2075,7 @@ class BasicTestCase(unittest.TestCase):
             remote = stack.remotes.values()[0]
             self.assertIs(remote.joined, True)
             self.assertIs(remote.allowed, True)
-            self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+            self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         # so try to send messages should succeed
         mains = [odict(content="Hello other body")]

@@ -1104,7 +1104,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Name: Old
@@ -1151,7 +1151,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData, None)
         # Assert role dump isn't changed
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
@@ -1192,7 +1192,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1241,12 +1241,12 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
@@ -1281,12 +1281,12 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
@@ -1325,7 +1325,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1361,7 +1361,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData, None)
         # Assert role/keys aren't touched
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -1401,7 +1401,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1435,7 +1435,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData, None)
         # Assert role/keys aren't touched
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -1466,7 +1466,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1507,7 +1507,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData, None)
         # Assert role/keys aren't touched
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -1546,7 +1546,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1579,7 +1579,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(beta.mutable, None)
         self.assertTrue(alpha.mutable)
         self.assertFalse(self.sameAll(alphaRemote, keep))
@@ -1596,7 +1596,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -1635,7 +1635,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1668,7 +1668,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(beta.mutable, None)
         self.assertTrue(alpha.mutable)
         self.assertFalse(self.sameAll(alphaRemote, keep))
@@ -1685,7 +1685,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -1729,7 +1729,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1761,7 +1761,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(beta.mutable, None)
         self.assertTrue(alpha.mutable)
         self.assertFalse(self.sameAll(alphaRemote, keep))
@@ -1778,7 +1778,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -1822,7 +1822,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1851,7 +1851,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(beta.mutable, None)
         self.assertTrue(alpha.mutable)
         self.assertFalse(self.sameAll(alphaRemote, keep))
@@ -1868,7 +1868,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -1911,7 +1911,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -1943,7 +1943,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertFalse(self.sameAll(alphaRemote, keep))
@@ -1961,7 +1961,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2019,7 +2019,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure old remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new remote role
@@ -2041,7 +2041,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(beta.mutable, None)
         self.assertTrue(alpha.mutable)
         self.assertFalse(self.sameAll(alphaRemote, keep))
@@ -2059,11 +2059,11 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2101,7 +2101,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -2134,7 +2134,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(self.sameAll(alphaRemote, keep))
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
@@ -2147,7 +2147,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2181,7 +2181,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -2223,7 +2223,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alpha.remotes.values()[0], remoteData))
         # Check role/keys dumped
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2265,7 +2265,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -2305,7 +2305,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertIs(alphaRemote.main, newMain)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump of pended data
@@ -2314,13 +2314,13 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['main'], beta.main) # new main value
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2337,7 +2337,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -2351,7 +2351,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2393,7 +2393,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -2433,7 +2433,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.kind, newKind)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -2442,12 +2442,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['kind'], beta.kind) # new main value
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2464,7 +2464,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -2478,7 +2478,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2525,7 +2525,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -2564,7 +2564,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.ha, newHa)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -2573,12 +2573,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(tuple(remoteData['ha']), beta.local.ha) # new value
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2595,7 +2595,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -2609,7 +2609,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2654,7 +2654,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -2690,7 +2690,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.fuid, newFuid)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -2698,12 +2698,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2720,7 +2720,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -2734,7 +2734,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2793,7 +2793,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
@@ -2822,19 +2822,19 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.role, newRole)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2851,7 +2851,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -2866,11 +2866,11 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2910,7 +2910,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -2941,7 +2941,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         # Assert alphaRemote isn't modified
         self.assertTrue(self.sameAll(alphaRemote, keep))
 
@@ -2950,12 +2950,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertIs(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -2972,7 +2972,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -2986,7 +2986,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -3021,7 +3021,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -3053,18 +3053,18 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
-        self.assertIs(alpha.remotes.values()[0].acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alpha.remotes.values()[0].acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -3082,7 +3082,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -3096,7 +3096,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -3778,7 +3778,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -3826,7 +3826,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData, None)
         # Assert role dump isn't changed
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
@@ -3886,7 +3886,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
@@ -3920,18 +3920,18 @@ class BasicTestCase(unittest.TestCase):
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
         roleData = alpha.keep.loadRemoteRoleData(newRole)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alphaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), alphaRemote.pubber.keyhex)
 
@@ -3973,7 +3973,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4007,7 +4007,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData, None)
         # Assert role/keys aren't touched
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4051,7 +4051,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is rejected
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4087,7 +4087,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData, None)
         # Assert role/keys aren't touched
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4133,7 +4133,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4149,7 +4149,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
@@ -4170,7 +4170,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4217,7 +4217,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4233,7 +4233,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
@@ -4252,7 +4252,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4299,7 +4299,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4315,7 +4315,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
@@ -4334,7 +4334,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4393,7 +4393,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Test
@@ -4408,7 +4408,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
@@ -4427,7 +4427,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4475,7 +4475,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4491,7 +4491,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
@@ -4510,7 +4510,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4558,7 +4558,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
@@ -4580,7 +4580,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
@@ -4598,7 +4598,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4625,7 +4625,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4661,7 +4661,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(alpha.mutable)
         self.assertIs(beta.mutable, None)
         # Assert alphaRemote is modified
@@ -4680,7 +4680,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4725,7 +4725,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote role is accepted
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Test
@@ -4741,7 +4741,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         # Assert alphaRemote isn't modified
         self.assertTrue(self.sameAll(alphaRemote, keep))
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -4755,7 +4755,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4799,7 +4799,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4838,7 +4838,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.name, newName)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -4848,12 +4848,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['name'], beta.name) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4873,7 +4873,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -4887,7 +4887,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -4931,7 +4931,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -4971,7 +4971,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.main, newMain)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -4979,12 +4979,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['main'], beta.main) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5004,7 +5004,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -5016,7 +5016,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5060,7 +5060,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -5100,7 +5100,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.kind, newKind)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -5108,12 +5108,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['kind'], beta.kind) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5133,7 +5133,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -5145,7 +5145,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5194,7 +5194,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -5233,7 +5233,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.ha, newHa)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -5241,12 +5241,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(tuple(remoteData['ha']), beta.local.ha) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5266,7 +5266,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -5278,7 +5278,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5328,7 +5328,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -5364,7 +5364,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.fuid, newFuid)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
@@ -5372,12 +5372,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['fuid'], betaRemote.nuid) # new value
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5397,7 +5397,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -5409,7 +5409,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5470,7 +5470,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
         # Ensure alpha knows nothing about the new role
@@ -5499,19 +5499,19 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameRoleKeys(alphaRemote, keep))
         self.assertEqual(alphaRemote.role, newRole)
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5531,7 +5531,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -5543,7 +5543,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5586,7 +5586,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
 
@@ -5620,19 +5620,19 @@ class BasicTestCase(unittest.TestCase):
         # Assert alphaRemote is modified
         self.assertTrue(self.sameAll(alphaRemote, keep))
 
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.pending.value)
         self.assertIs(betaRemote.acceptance, None)
 
         # Check remote dump
         remoteData = alpha.keep.loadRemoteData(beta.local.name)
         self.assertIsNot(remoteData, None)
         self.assertEqual(remoteData['role'], beta.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), beta.local.priver.pubhex)
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -5652,7 +5652,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 1)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -5664,7 +5664,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(alphaRemote, remoteData))
         # Check role/keys dump
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], beta.local.role)
         self.assertEqual(ns2b(roleData['verhex']), beta.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), beta.local.priver.pubhex)
@@ -6158,7 +6158,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6191,7 +6191,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.rejected))
+                self.assertIs(remote.acceptance, raeting.Acceptance.rejected.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertEqual(len(alpha.remotes), 0)
@@ -6210,7 +6210,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -6260,7 +6260,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -6279,7 +6279,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Rejected
         beta.keep.rejectRemote(betaRemoteAlpha)
-        self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.rejected))
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.Acceptance.rejected.value)
         beta.keep.auto = raeting.AutoMode.never.value
         self.assertEqual(beta.keep.auto, raeting.AutoMode.never.value)
         # Name: Either
@@ -6303,7 +6303,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Ensure beta knows nothing about the new role
@@ -6343,22 +6343,22 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertFalse(self.sameRoleKeys(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertEqual(betaRemoteAlpha.role, alpha.local.role)
-        self.assertIs(alphaRemoteBeta.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump with pended data
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
         self.assertIsNot(remoteData, None)
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6375,7 +6375,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertEqual(len(alpha.remotes), 1)
         self.assertEqual(len(beta.remotes), 0)
@@ -6393,7 +6393,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6436,7 +6436,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6473,7 +6473,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.nameRemotes), 1)
         self.assertEqual(len(beta.remotes), 0)
         self.assertEqual(len(beta.nameRemotes), 0)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(len(alpha.transactions), 1)
         self.assertEqual(len(beta.transactions), 0)
         self.assertTrue(self.sameAll(betaRemote, keep))
@@ -6487,7 +6487,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -6531,7 +6531,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6569,7 +6569,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.nameRemotes), 0)
         self.assertEqual(len(beta.remotes), 1)
         self.assertEqual(len(beta.nameRemotes), 1)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(len(alpha.transactions), 0)
         self.assertEqual(len(beta.transactions), 0)
         self.assertTrue(self.sameAll(betaRemote, keep))
@@ -6584,7 +6584,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -6627,7 +6627,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6664,7 +6664,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.nameRemotes), 1)
         self.assertEqual(len(beta.remotes), 0)
         self.assertEqual(len(beta.nameRemotes), 0)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(len(alpha.transactions), 1)
         self.assertEqual(len(beta.transactions), 0)
         self.assertTrue(self.sameAll(betaRemote, keep))
@@ -6678,7 +6678,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -6717,7 +6717,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6740,7 +6740,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -6757,7 +6757,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -6805,7 +6805,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6822,7 +6822,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -6839,7 +6839,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -6885,7 +6885,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6902,7 +6902,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -6919,7 +6919,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -6942,7 +6942,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -6981,7 +6981,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -6999,7 +6999,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -7044,7 +7044,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Ensure beta knows nothing about new role
@@ -7067,7 +7067,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -7084,7 +7084,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -7127,7 +7127,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7145,7 +7145,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(self.sameAll(betaRemote, keep))
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 2)
@@ -7158,7 +7158,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -7201,7 +7201,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7218,7 +7218,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertIs(beta.mutable, None)
         self.assertTrue(self.sameAll(betaRemote, keep))
@@ -7233,7 +7233,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -7284,7 +7284,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -7305,7 +7305,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
-        self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
         beta.keep.auto = raeting.AutoMode.never.value
         self.assertEqual(beta.keep.auto, raeting.AutoMode.never.value)
         # Name: New # have to do this mid transaction below
@@ -7325,7 +7325,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7395,7 +7395,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.alived, None)
 
         gammaRemoteBeta = gamma.remotes.values()[0]
-        self.assertIs(gammaRemoteBeta.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(gammaRemoteBeta.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertIs(beta.mutable, True)
         betaRemoteGamma = beta.remotes.values()[0]
@@ -7403,7 +7403,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemoteGamma, betaRemoteAlphaSave))
         self.assertTrue(self.sameRoleKeys(betaRemoteGamma, betaRemoteAlphaSave))
         self.assertEqual(betaRemoteGamma.name, gamma.name)
-        self.assertIs(betaRemoteGamma.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(betaRemoteGamma.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump with pended data
         remoteData = beta.keep.loadRemoteData(gamma.local.name)
@@ -7411,14 +7411,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(remoteData['name'], gamma.name) # new name value
         self.assertEqual(remoteData['fuid'], gammaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], gamma.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), gamma.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), gamma.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(gamma.local.role)
         self.assertEqual(roleData['role'], gamma.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), gamma.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), gamma.local.priver.pubhex)
 
@@ -7434,7 +7434,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertTrue(beta.mutable)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -7454,7 +7454,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(gamma.local.role)
         self.assertEqual(roleData['role'], gamma.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), gamma.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), gamma.local.priver.pubhex)
 
@@ -7504,7 +7504,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -7523,7 +7523,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -7541,7 +7541,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
-        self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
         beta.keep.auto = raeting.AutoMode.never.value
         self.assertEqual(beta.keep.auto, raeting.AutoMode.never.value)
         # Name: Either
@@ -7565,7 +7565,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7599,8 +7599,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertTrue(self.sameRoleKeys(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertEqual(betaRemoteAlpha.main, alpha.main)
-        self.assertIs(alphaRemoteBeta.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump with pended data
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -7608,14 +7608,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['main'], alpha.main) # new main value
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7631,7 +7631,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertTrue(beta.mutable)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -7650,7 +7650,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7700,7 +7700,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -7721,7 +7721,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
-        self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
         beta.keep.auto = raeting.AutoMode.never.value
         self.assertEqual(beta.keep.auto, raeting.AutoMode.never.value)
         # Name: Either
@@ -7748,7 +7748,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7779,8 +7779,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertTrue(self.sameRoleKeys(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertEqual(betaRemoteAlpha.kind, alpha.kind)
-        self.assertIs(alphaRemoteBeta.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump with pended data
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -7788,14 +7788,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(remoteData['kind'], alpha.kind) # new kind value
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7811,7 +7811,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertTrue(beta.mutable)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -7830,7 +7830,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7880,7 +7880,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -7901,7 +7901,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
-        self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
         beta.keep.auto = raeting.AutoMode.never.value
         self.assertEqual(beta.keep.auto, raeting.AutoMode.never.value)
         # Name: Either
@@ -7926,7 +7926,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
@@ -7965,22 +7965,22 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertFalse(self.sameRoleKeys(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertEqual(betaRemoteAlpha.role, alpha.local.role)
-        self.assertIs(alphaRemoteBeta.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump with pended data
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
         self.assertIsNot(remoteData, None)
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role) # new value
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role) # new value
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -7996,7 +7996,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertTrue(beta.mutable)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -8015,7 +8015,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -8065,7 +8065,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -8083,7 +8083,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Status: Pending
         beta.keep.pendRemote(betaRemoteAlpha)
-        self.assertEqual(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertEqual(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
         beta.keep.auto = raeting.AutoMode.never.value
         self.assertEqual(beta.keep.auto, raeting.AutoMode.never.value)
         # Name: Old
@@ -8103,7 +8103,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -8137,21 +8137,21 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertTrue(self.sameRoleKeys(betaRemoteAlpha, betaRemoteAlphaSave))
         self.assertEqual(betaRemoteAlpha.fuid, alphaRemoteBeta.nuid)
-        self.assertIs(alphaRemoteBeta.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemoteAlpha.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump with pended data
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
         self.assertIsNot(remoteData, None)
         self.assertIs(remoteData['fuid'], alphaRemoteBeta.nuid) # new value
         self.assertEqual(remoteData['role'], alpha.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -8167,7 +8167,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertTrue(beta.mutable)
         self.assertIn('join_initiate_complete', beta.stats)
@@ -8184,7 +8184,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         for stack in [alpha, beta]:
@@ -8242,7 +8242,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -8262,8 +8262,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertTrue(self.sameAll(betaRemote, keep))
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -8272,7 +8272,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -8289,7 +8289,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -8304,7 +8304,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9007,7 +9007,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9040,7 +9040,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertIs(remote.joined, None)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.rejected))
+                self.assertIs(remote.acceptance, raeting.Acceptance.rejected.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertEqual(len(alpha.remotes), 0)
@@ -9059,7 +9059,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -9123,7 +9123,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Check beta knows nothing about new role
@@ -9151,7 +9151,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(beta.nameRemotes), 0)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.rejected))
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.rejected.value)
         self.assertFalse(self.sameAll(betaRemote, keep))
         self.assertIn('joinent_transaction_failure', alpha.stats)
         self.assertEqual(alpha.stats['joinent_transaction_failure'], 1)
@@ -9164,7 +9164,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -9225,7 +9225,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9244,7 +9244,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.nameRemotes), 0)
         self.assertEqual(len(beta.remotes), 1)
         self.assertEqual(len(beta.nameRemotes), 1)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(len(alpha.transactions), 0)
         self.assertEqual(len(beta.transactions), 0)
         self.assertTrue(self.sameAll(betaRemote, keep))
@@ -9259,7 +9259,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -9317,7 +9317,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Rejected
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9336,7 +9336,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.nameRemotes), 1)
         self.assertEqual(len(beta.remotes), 0)
         self.assertEqual(len(beta.nameRemotes), 0)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(len(alpha.transactions), 1)
         self.assertEqual(len(beta.transactions), 0)
         self.assertTrue(self.sameAll(betaRemote, keep))
@@ -9350,7 +9350,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.rejected.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -9392,7 +9392,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9408,7 +9408,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -9425,7 +9425,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -9471,7 +9471,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9488,7 +9488,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -9505,7 +9505,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -9549,7 +9549,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9565,7 +9565,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -9582,7 +9582,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -9629,7 +9629,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9651,7 +9651,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -9668,7 +9668,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -9716,7 +9716,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9736,7 +9736,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -9753,7 +9753,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -9797,7 +9797,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         roleData = beta.keep.loadRemoteRoleData(newRole)
@@ -9818,7 +9818,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -9835,7 +9835,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -9858,7 +9858,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9893,7 +9893,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertFalse(self.sameAll(betaRemote, keep))
@@ -9911,7 +9911,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -9950,7 +9950,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Accepted
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -9967,7 +9967,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertTrue(self.sameAll(betaRemote, keep))
         self.assertIn('join_correspond_complete', alpha.stats)
         self.assertEqual(alpha.stats['join_correspond_complete'], 2)
@@ -9980,7 +9980,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(self.sameAll(betaRemote, remoteData))
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(roleData['role'], alpha.local.role)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
@@ -10044,7 +10044,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10065,8 +10065,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemote, keep))
         self.assertTrue(self.sameRoleKeys(betaRemote, keep))
         self.assertEqual(betaRemote.name, newName)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -10075,7 +10075,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -10092,7 +10092,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -10107,7 +10107,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10168,7 +10168,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10189,8 +10189,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemote, keep))
         self.assertTrue(self.sameRoleKeys(betaRemote, keep))
         self.assertEqual(betaRemote.main, alpha.main)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -10199,7 +10199,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -10216,7 +10216,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -10231,7 +10231,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10295,7 +10295,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10316,8 +10316,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemote, keep))
         self.assertTrue(self.sameRoleKeys(betaRemote, keep))
         self.assertEqual(betaRemote.kind, newKind)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -10326,7 +10326,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -10343,7 +10343,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -10358,7 +10358,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10425,7 +10425,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10451,8 +10451,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemote, keep))
         self.assertTrue(self.sameRoleKeys(betaRemote, keep))
         self.assertEqual(betaRemote.ha, alpha.local.ha)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -10461,7 +10461,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -10478,7 +10478,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -10493,7 +10493,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10560,7 +10560,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10584,8 +10584,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemote, keep))
         self.assertTrue(self.sameRoleKeys(betaRemote, keep))
         self.assertEqual(betaRemote.fuid, initFuid)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -10594,7 +10594,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -10611,7 +10611,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -10626,7 +10626,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10690,7 +10690,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(oldRole)
         self.assertEqual(roleData['role'], oldRole)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
         # Ensure beta knows nothing about the newRole
@@ -10717,8 +10717,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertFalse(self.sameAll(betaRemote, keep))
         self.assertFalse(self.sameRoleKeys(betaRemote, keep))
         self.assertEqual(betaRemote.role, newRole)
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -10727,7 +10727,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -10744,7 +10744,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -10759,7 +10759,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10819,7 +10819,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10839,8 +10839,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertTrue(self.sameAll(betaRemote, keep))
-        self.assertIs(alphaRemote.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemote.acceptance, int(raeting.Acceptance.pending))
+        self.assertIs(alphaRemote.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemote.acceptance, raeting.Acceptance.pending.value)
 
         # Check remote dump
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
@@ -10849,7 +10849,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.pending.value)
         self.assertEqual(ns2b(roleData['verhex']), betaRemote.verfer.keyhex)
         self.assertEqual(ns2b(roleData['pubhex']), betaRemote.pubber.keyhex)
 
@@ -10866,7 +10866,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertIs(alpha.mutable, None)
         self.assertTrue(beta.mutable)
         self.assertIn('join_correspond_complete', alpha.stats)
@@ -10881,7 +10881,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -10931,7 +10931,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -10988,22 +10988,22 @@ class BasicTestCase(unittest.TestCase):
         self.assertIs(betaRemoteAlpha.joined, None)
         self.assertIs(beta.mutable, False)
         self.assertTrue(self.sameAll(betaRemoteAlpha, betaRemoteAlphaSave))
-        self.assertIs(alphaRemoteBeta.acceptance, int(raeting.Acceptance.accepted))
-        self.assertIs(betaRemoteAlpha.acceptance, int(raeting.Acceptance.accepted))
+        self.assertIs(alphaRemoteBeta.acceptance, raeting.Acceptance.accepted.value)
+        self.assertIs(betaRemoteAlpha.acceptance, raeting.Acceptance.accepted.value)
 
         # Check remote dump with pended data
         remoteData = beta.keep.loadRemoteData(alpha.local.name)
         self.assertIsNot(remoteData, None)
         self.assertIs(remoteData['fuid'], oldUid) # renew was refused
         self.assertEqual(remoteData['role'], alpha.local.role)
-        self.assertEqual(remoteData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(remoteData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(remoteData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(remoteData['pubhex']), alpha.local.priver.pubhex)
 
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -11030,7 +11030,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
         self.assertEqual(len(alpha.remotes), 0)
         self.assertEqual(len(alpha.nameRemotes), 0)
         self.assertEqual(len(beta.remotes), 0)
@@ -11700,7 +11700,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
 
         # Test
         beta.join()
@@ -11756,7 +11756,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.rejected))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.rejected.value)
 
         # Test
         beta.join()
@@ -11811,7 +11811,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
 
         # Test
         beta.join()
@@ -11981,7 +11981,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(stack.remotes), 1)
             for remote in stack.remotes.values():
                 self.assertIs(remote.joined, True)
-                self.assertIs(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertIs(remote.acceptance, raeting.Acceptance.accepted.value)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
 
@@ -12015,7 +12015,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(beta.keep.dirpath, betaData['dirpath'])
         data = beta.keep.loadRemoteRoleData(role= alpha.local.role)
         self.assertEqual(data['role'], alpha.local.role)
-        self.assertEqual(data['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(data['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(data['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(data['pubhex']), alpha.local.priver.pubhex)
         self.assertEqual(beta.keep.auto, raeting.AutoMode.once.value)
@@ -12039,7 +12039,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(remote.joined)
         self.assertIs(remote.allowed, None)
         self.assertIs(remote.alived, None)
-        self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+        self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertEqual(len(beta.transactions), 0)
         self.assertEqual(len(beta.remotes), 0)
@@ -12067,7 +12067,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(remote.joined)
                 self.assertIs(remote.allowed, None)
                 self.assertIs(remote.alived, None)
-                self.assertEqual(remote.acceptance, int(raeting.Acceptance.accepted))
+                self.assertEqual(remote.acceptance, raeting.Acceptance.accepted.value)
 
         self.assertTrue(self.sameAll(newBetaRemoteAlpha, betaRemoteAlphaSave))
         self.assertTrue(self.sameRoleKeys(newBetaRemoteAlpha, betaRemoteAlphaSave))
@@ -12088,7 +12088,7 @@ class BasicTestCase(unittest.TestCase):
         # Check role/keys dump
         roleData = beta.keep.loadRemoteRoleData(alpha.local.role)
         self.assertEqual(roleData['role'], alpha.local.role)
-        self.assertEqual(roleData['acceptance'], int(raeting.Acceptance.accepted))
+        self.assertEqual(roleData['acceptance'], raeting.Acceptance.accepted.value)
         self.assertEqual(ns2b(roleData['verhex']), alpha.local.signer.verhex)
         self.assertEqual(ns2b(roleData['pubhex']), alpha.local.priver.pubhex)
 
@@ -12875,7 +12875,7 @@ class BasicTestCase(unittest.TestCase):
         # Ensure remote status is Pending
         roleData = alpha.keep.loadRemoteRoleData(beta.local.role)
         self.assertEqual(roleData['role'], beta.local.role)
-        self.assertIs(roleData['acceptance'], int(raeting.Acceptance.pending))
+        self.assertIs(roleData['acceptance'], raeting.Acceptance.pending.value)
 
         # Test
         beta.join()

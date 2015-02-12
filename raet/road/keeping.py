@@ -388,18 +388,18 @@ class RoadKeep(keeping.Keep):
         status = data.get('acceptance') if data else None # pre-existing status
 
         if self.auto == AutoMode.always:
-            status = int(raeting.Acceptance.accepted)
+            status = raeting.Acceptance.accepted.value
 
         elif self.auto == AutoMode.once:
             if status is None: # first time so accept once
-                status = int(raeting.Acceptance.accepted)
+                status = raeting.Acceptance.accepted.value
 
             elif status == raeting.Acceptance.accepted:
                 # already been accepted if keys not match then reject
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = int(raeting.Acceptance.rejected)
+                    status = raeting.Acceptance.rejected.value
                     console.concise("Rejection Reason: Once keys not match prior accepted.\n")
 
             elif status == raeting.Acceptance.pending:
@@ -407,23 +407,23 @@ class RoadKeep(keeping.Keep):
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = int(raeting.Acceptance.rejected)
+                    status = raeting.Acceptance.rejected.value
                     console.concise("Rejection Reason: Once keys not match prior pended.\n")
                 else: # in once mode convert pending to accepted
-                    status = int(raeting.Acceptance.accepted)
+                    status = raeting.Acceptance.accepted.value
             else:
                 console.concise("Rejection Reason: Once keys already rejected.\n")
 
         elif self.auto == AutoMode.never:
             if status is None: # first time so pend
-                status = int(raeting.Acceptance.pending)
+                status = raeting.Acceptance.pending.value
 
             elif status == raeting.Acceptance.accepted:
                 # already been accepted if keys not match then reject
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = int(raeting.Acceptance.rejected)
+                    status = raeting.Acceptance.rejected.value
                     console.concise("Rejection Reason: Never keys not match prior accepted.\n")
 
             elif status == raeting.Acceptance.pending:
@@ -431,7 +431,7 @@ class RoadKeep(keeping.Keep):
                 if (data and (
                         (verhex != data.get('verhex')) or
                         (pubhex != data.get('pubhex')) )):
-                    status = int(raeting.Acceptance.rejected)
+                    status = raeting.Acceptance.rejected.value
                     console.concise("Rejection Reason: Never keys not match prior pended.\n")
             else:
                 console.concise("Rejection Reason: Never keys already rejected.\n")
@@ -463,21 +463,21 @@ class RoadKeep(keeping.Keep):
         '''
         Set acceptance status to rejected
         '''
-        remote.acceptance = int(raeting.Acceptance.rejected)
+        remote.acceptance = raeting.Acceptance.rejected.value
         self.dumpRemoteRole(remote)
 
     def pendRemote(self, remote):
         '''
         Set acceptance status to pending
         '''
-        remote.acceptance = int(raeting.Acceptance.pending)
+        remote.acceptance = raeting.Acceptance.pending.value
         self.dumpRemoteRole(remote)
 
     def acceptRemote(self, remote):
         '''
         Set acceptance status to accepted
         '''
-        remote.acceptance = int(raeting.Acceptance.accepted)
+        remote.acceptance = raeting.Acceptance.accepted.value
         self.dumpRemoteRole(remote)
 
 def clearAllKeep(dirpath):
