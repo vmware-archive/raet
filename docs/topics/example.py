@@ -7,7 +7,7 @@ import ioflo
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
-console.reinit(verbosity=console.Wordage.terse)
+console.reinit(verbosity=console.Wordage.concise)
 
 import raet
 from raet import raeting
