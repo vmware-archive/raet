@@ -21,6 +21,7 @@ from ioflo.base import aiding
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
+from ..raeting import AutoMode
 from .. import nacling
 from .. import keeping
 
@@ -55,7 +56,7 @@ class RoadKeep(keeping.Keep):
     RemoteDumpFields = ['name', 'uid', 'fuid', 'ha', 'iha', 'natted', 'fqdn', 'dyned',
                          'sid', 'main', 'kind', 'joined', 'role']
     RemoteRoleFields = ['role', 'acceptance', 'verhex', 'pubhex']
-    Auto = raeting.AutoMode.never.value #auto accept
+    Auto = AutoMode.never.value #auto accept
 
     def __init__(self,
                  stackname='stack',
@@ -386,10 +387,10 @@ class RoadKeep(keeping.Keep):
         data = self.loadRemoteRoleData(role)
         status = data.get('acceptance') if data else None # pre-existing status
 
-        if self.auto == raeting.AutoMode.always:
+        if self.auto == AutoMode.always:
             status = int(raeting.Acceptance.accepted)
 
-        elif self.auto == raeting.AutoMode.once:
+        elif self.auto == AutoMode.once:
             if status is None: # first time so accept once
                 status = int(raeting.Acceptance.accepted)
 
@@ -413,7 +414,7 @@ class RoadKeep(keeping.Keep):
             else:
                 console.concise("Rejection Reason: Once keys already rejected.\n")
 
-        elif self.auto == raeting.AutoMode.never:
+        elif self.auto == AutoMode.never:
             if status is None: # first time so pend
                 status = int(raeting.Acceptance.pending)
 

@@ -50,6 +50,7 @@ console = getConsole()
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
+from ..raeting import AutoMode
 from ..road.stacking import  RoadStack
 from ..lane.stacking import  LaneStack
 from ..road import packeting, estating
@@ -98,7 +99,7 @@ class RaetRoadStack(deeding.Deed):
                                                  basedirpath='/tmp/raet/keep',
                                                  main=False,
                                                  mutable=True,
-                                                 auto=raeting.AutoMode.once.value,
+                                                 auto=AutoMode.once.value,
                                                  uid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,
@@ -159,7 +160,7 @@ class RaetRoadStackSetup(deeding.Deed):
                                                  basedirpath='/tmp/raet/keep',
                                                  main=False,
                                                  mutable=True,
-                                                 auto=raeting.AutoMode.once.value,
+                                                 auto=AutoMode.once.value,
                                                  uid=None,
                                                  host='0.0.0.0',
                                                  port=raeting.RAET_PORT,

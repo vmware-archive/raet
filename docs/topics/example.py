@@ -5,16 +5,17 @@ import time
 
 import raet
 from raet import raeting
+from raet.raeting import AutoMode
 
 def example1():
     alpha = raet.road.stacking.RoadStack(name='alpha',
                                          ha=('0.0.0.0', 7531),
-                                         auto=raeting.AutoMode.always.value)
+                                         auto=AutoMode.always.value)
 
     beta = raet.road.stacking.RoadStack(name='beta',
                                          ha=('0.0.0.0', 7532),
                                          main=True,
-                                         auto=raeting.AutoMode.always.value)
+                                         auto=AutoMode.always.value)
 
     remote = raet.road.estating.RemoteEstate(stack=alpha,
                                              ha=beta.ha)
@@ -42,12 +43,12 @@ def example1():
 def example2():
     alpha = raet.road.stacking.RoadStack(name='alpha',
                                          ha=('0.0.0.0', 7531),
-                                         auto=raeting.AutoMode.always.value)
+                                         auto=AutoMode.always.value)
 
     beta = raet.road.stacking.RoadStack(name='beta',
                                         ha=('0.0.0.0', 7532),
                                         main=True,
-                                        auto=raeting.AutoMode.always.value)
+                                        auto=AutoMode.always.value)
 
     remote = raet.road.estating.RemoteEstate(stack=alpha,
                                              ha=beta.ha)
