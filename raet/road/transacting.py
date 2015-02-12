@@ -1411,7 +1411,7 @@ class Joinent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
 
-        console.terse("Joinent {0}. Done with {1} in {2} at {3}\n".format(
+        console.concise("Joinent {0}. Done with {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat("join_correspond_complete")
 
