@@ -20,6 +20,7 @@ from ioflo.base import storing
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
+from ..raeting import TrnsKind
 from .. import nacling
 from .. import lotting
 
@@ -421,7 +422,7 @@ class RemoteEstate(Estate):
             sid = index[3]
 
             if not rf and not self.validSid(sid): # transaction sid newer or equal
-                if transaction.kind in [raeting.TrnsKind.message]:
+                if transaction.kind in [TrnsKind.message]:
                     self.saveMessage(transaction)
                 transaction.nack()
                 self.removeTransaction(index)
@@ -463,7 +464,7 @@ class RemoteEstate(Estate):
         that are already in process
         '''
         return ([t for t in self.transactions.values()
-                     if t.kind == raeting.TrnsKind.allow])
+                     if t.kind == TrnsKind.allow])
 
     def joinInProcess(self):
         '''
@@ -471,5 +472,5 @@ class RemoteEstate(Estate):
         that are already in process
         '''
         return ([t for t in self.transactions.values()
-                     if t.kind == raeting.TrnsKind.join])
+                     if t.kind == TrnsKind.join])
 
