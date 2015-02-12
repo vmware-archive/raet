@@ -246,7 +246,7 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(0.1)
             time.sleep(0.1)
 
-    def answerAlive(self, stack, deid=None, kind=int(raeting.PcktKind.nack), dataMod=None):
+    def answerAlive(self, stack, deid=None, kind=raeting.PcktKind.nack.value, dataMod=None):
         '''
         Utility method to receive a packet in the given stack and send alive nack as a responce
         Call from test method.
@@ -3473,7 +3473,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive nack *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
         self.serviceStack(main, duration=0.1)
-        self.answerAlive(other, kind=int(raeting.PcktKind.nack))
+        self.answerAlive(other, kind=raeting.PcktKind.nack.value)
 
         self.serviceStacks(stacks)
         for stack in stacks:
@@ -3491,7 +3491,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive refuse *********\n")
         main.alive() # no cascade alive, aliver will set alive to False and remove transaction
         self.serviceStack(main, duration=0.1)
-        self.answerAlive(other, kind=int(raeting.PcktKind.refuse))
+        self.answerAlive(other, kind=raeting.PcktKind.refuse.value)
 
         self.serviceStacks(stacks)
         for stack in stacks:
@@ -3509,7 +3509,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive reject *********\n")
         main.alive() # no cascade alive, aliver will set alive to False and remove transaction
         self.serviceStack(main, duration=0.1)
-        self.answerAlive(other, kind=int(raeting.PcktKind.reject))
+        self.answerAlive(other, kind=raeting.PcktKind.reject.value)
 
         self.serviceStacks(stacks)
         for stack in stacks:
@@ -3527,7 +3527,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest invalid (unexpected) nack kind *********\n")
         main.alive() # no cascade alive, aliver will set alive to False and remove transaction
         self.serviceStack(main, duration=0.1)
-        self.answerAlive(other, kind=int(raeting.PcktKind.unknown)) # unknown is invalid kind for nack. it will be set to nack
+        self.answerAlive(other, kind=raeting.PcktKind.unknown.value) # unknown is invalid kind for nack. it will be set to nack
         self.serviceStack(other) # send nack
         self.serviceStack(main) # receive nack
 
@@ -3652,7 +3652,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive broken ack *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
         self.serviceStack(main, duration=0.1) # main send alive to other
-        self.answerAlive(other, kind=int(raeting.PcktKind.ack), dataMod={'ck': -1}) # other receive and answer
+        self.answerAlive(other, kind=raeting.PcktKind.ack.value, dataMod={'ck': -1}) # other receive and answer
         self.serviceStack(other, duration=0.1) # other send the answer to main
         self.serviceStack(main, duration=0.1) # main handle the answer
 
@@ -3677,7 +3677,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive broken refuse *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
         self.serviceStack(main, duration=0.1) # main send alive to other
-        self.answerAlive(other, kind=int(raeting.PcktKind.refuse), dataMod={'ck': -1}) # other receive and answer
+        self.answerAlive(other, kind=raeting.PcktKind.refuse.value, dataMod={'ck': -1}) # other receive and answer
         self.serviceStack(other, duration=0.1) # other send the answer to main
         self.serviceStack(main, duration=0.1) # main handle the answer
 
@@ -3702,7 +3702,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive broken reject *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
         self.serviceStack(main, duration=0.1) # main send alive to other
-        self.answerAlive(other, kind=int(raeting.PcktKind.reject), dataMod={'ck': -1}) # other receive and answer
+        self.answerAlive(other, kind=raeting.PcktKind.reject.value, dataMod={'ck': -1}) # other receive and answer
         self.serviceStack(other, duration=0.1) # other send the answer to main
         self.serviceStack(main, duration=0.1) # main handle the answer
 
@@ -3727,7 +3727,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive broken unjoined *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
         self.serviceStack(main, duration=0.1) # main send alive to other
-        self.answerAlive(other, kind=int(raeting.PcktKind.unjoined), dataMod={'ck': -1}) # other receive and answer
+        self.answerAlive(other, kind=raeting.PcktKind.unjoined.value, dataMod={'ck': -1}) # other receive and answer
         self.serviceStack(other, duration=0.1) # other send the answer to main
         self.serviceStack(main, duration=0.1) # main handle the answer
 
@@ -3752,7 +3752,7 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nTest aliver receive broken unallowed *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
         self.serviceStack(main, duration=0.1) # main send alive to other
-        self.answerAlive(other, kind=int(raeting.PcktKind.unallowed), dataMod={'ck': -1}) # other receive and answer
+        self.answerAlive(other, kind=raeting.PcktKind.unallowed.value, dataMod={'ck': -1}) # other receive and answer
         self.serviceStack(other, duration=0.1) # other send the answer to main
         self.serviceStack(main, duration=0.1) # main handle the answer
 

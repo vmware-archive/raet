@@ -705,7 +705,7 @@ class RoadStack(stacking.KeepStack):
                                       txData=data,
                                       rxPacket=packet)
         if renew:
-            stalent.nack(kind=int(raeting.PcktKind.renew)) # refuse and renew
+            stalent.nack(kind=raeting.PcktKind.renew.value) # refuse and renew
         else:
             stalent.nack()
 
