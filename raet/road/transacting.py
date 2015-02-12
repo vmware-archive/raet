@@ -24,7 +24,7 @@ from ioflo.base.aiding import packByte, unpackByte
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import Acceptance, PcktKind, TrnsKind
+from ..raeting import Acceptance, PcktKind, TrnsKind, CoatKind
 from .. import nacling
 from . import packeting
 from . import estating
@@ -204,7 +204,7 @@ class Staler(Initiator):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=int(raeting.CoatKind.nada),
+                            ck=CoatKind.nada.value,
                             fk=int(raeting.FootKind.nada)
                           )
 
@@ -283,7 +283,7 @@ class Stalent(Correspondent):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=int(raeting.CoatKind.nada),
+                            ck=CoatKind.nada.value,
                             fk=int(raeting.FootKind.nada)
                            )
 
@@ -503,7 +503,7 @@ class Joiner(Initiator):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=int(raeting.CoatKind.nada),
+                            ck=CoatKind.nada.value,
                             fk=int(raeting.FootKind.nada)
                           )
 
@@ -1038,7 +1038,7 @@ class Joinent(Correspondent):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=int(raeting.CoatKind.nada),
+                            ck=CoatKind.nada.value,
                             fk=int(raeting.FootKind.nada),
                           )
 

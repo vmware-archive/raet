@@ -27,7 +27,7 @@ console = getConsole()
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import PcktKind
+from ..raeting import PcktKind, TailSize, CoatKind
 
 class Part(object):
     '''
@@ -354,13 +354,13 @@ class TxCoat(Coat):
         self.packed = b''
         ck = self.packet.data['ck']
 
-        if ck == raeting.CoatKind.nacl:
+        if ck == CoatKind.nacl:
             msg = self.packet.body.packed
             if msg:
                 cipher, nonce = self.packet.encrypt(msg)
                 self.packed = b''.join([cipher, nonce])
 
-        if ck == raeting.CoatKind.nada:
+        if ck == CoatKind.nada:
             self.packed = self.packet.body.packed
 
 class RxCoat(Coat):
@@ -373,14 +373,14 @@ class RxCoat(Coat):
         '''
         ck = self.packet.data['ck']
 
-        if ck not in list(raeting.CoatKind):
-            self.packet.data['ck'] = int(raeting.CoatKind.unknown)
+        if ck not in list(CoatKind):
+            self.packet.data['ck'] = CoatKind.unknown.value
             emsg = "Unrecognizable packet coat."
             raise raeting.PacketError(emsg)
 
-        if ck == raeting.CoatKind.nacl:
+        if ck == CoatKind.nacl:
             if self.packed:
-                tl = int(raeting.TailSize.nacl) # nonce length
+                tl = TailSize.nacl.value # nonce length
                 cipher = self.packed[:-tl]
                 nonce = self.packed[-tl:]
                 msg = self.packet.decrypt(cipher, nonce)
@@ -388,7 +388,7 @@ class RxCoat(Coat):
             else:
                 self.packet.body.packed = self.packed
 
-        if ck == raeting.CoatKind.nada:
+        if ck == CoatKind.nada:
             self.packet.body.packed = self.packed
             pass
 

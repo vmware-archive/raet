@@ -29,7 +29,7 @@ from ioflo.base import storing
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import PcktKind, TrnsKind
+from ..raeting import PcktKind, TrnsKind, CoatKind
 from .. import nacling
 from .. import stacking
 from . import keeping
@@ -84,7 +84,7 @@ class RoadStack(stacking.KeepStack):
     Hk = int(raeting.HeadKind.raet) # stack default
     Bk = int(raeting.BodyKind.json) # stack default
     Fk = int(raeting.FootKind.nacl) # stack default
-    Ck = int(raeting.CoatKind.nacl) # stack default
+    Ck = CoatKind.nacl.value # stack default
     Bf = False # stack default for bcstflag
     BurstSize = 0  # stack default for max segments in each burst, 0 = no limit
     Period = 1.0 # stack default for keep alive
