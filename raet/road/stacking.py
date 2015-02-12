@@ -29,7 +29,7 @@ from ioflo.base import storing
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import PcktKind, TrnsKind, CoatKind, FootKind, BodyKind
+from ..raeting import PcktKind, TrnsKind, CoatKind, FootKind, BodyKind, HeadKind
 from .. import nacling
 from .. import stacking
 from . import keeping
@@ -81,7 +81,7 @@ class RoadStack(stacking.KeepStack):
         The local estate role identifier for key management
     '''
     Count = 0 # count of Stack instances to give unique stack names
-    Hk = int(raeting.HeadKind.raet) # stack default
+    Hk = HeadKind.raet.value # stack default
     Bk = BodyKind.json.value # stack default
     Fk = FootKind.nacl.value # stack default
     Ck = CoatKind.nacl.value # stack default

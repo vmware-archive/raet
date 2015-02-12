@@ -61,7 +61,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testBasicJson.__doc__))
 
-        hk = int(raeting.HeadKind.json)
+        hk = raeting.HeadKind.json.value
         bk = raeting.BodyKind.json.value
 
         data = odict(hk=hk, bk=bk)
@@ -116,7 +116,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testBasicMsgpack.__doc__))
 
-        hk = int(raeting.HeadKind.json)
+        hk = raeting.HeadKind.json.value
         bk = raeting.BodyKind.msgpack.value
 
         data = odict(hk=hk, bk=bk)
@@ -171,7 +171,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testBasicRaetJson.__doc__))
 
-        hk = int(raeting.HeadKind.raet)
+        hk = raeting.HeadKind.raet.value
         bk = raeting.BodyKind.json.value
 
         data = odict(hk=hk, bk=bk)
@@ -226,7 +226,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testBasicRaetMsgpack.__doc__))
 
-        hk = int(raeting.HeadKind.raet)
+        hk = raeting.HeadKind.raet.value
         bk = raeting.BodyKind.msgpack.value
 
         data = odict(hk=hk, bk=bk)
@@ -281,7 +281,7 @@ class BasicTestCase(unittest.TestCase):
         '''
         console.terse("{0}\n".format(self.testBasicRaetJson.__doc__))
 
-        hk = int(raeting.HeadKind.raet)
+        hk = raeting.HeadKind.raet.value
         bk = raeting.BodyKind.raw.value
 
         data = odict(hk=hk, bk=bk)
@@ -334,7 +334,7 @@ class BasicTestCase(unittest.TestCase):
         Test pack unpack segmented
         '''
         console.terse("{0}\n".format(self.testBasicRaetJson.__doc__))
-        hk = int(raeting.HeadKind.raet)
+        hk = raeting.HeadKind.raet.value
         bk = raeting.BodyKind.raw.value
 
         data = odict(hk=hk, bk=bk)
@@ -470,7 +470,7 @@ class StackTestCase(unittest.TestCase):
             stuff.append(str(i).rjust(4, " "))
         self.stuff = ns2b("".join(stuff))
 
-        self.data = odict(hk=int(raeting.HeadKind.raet))
+        self.data = odict(hk=raeting.HeadKind.raet.value)
 
 
     def tearDown(self):
