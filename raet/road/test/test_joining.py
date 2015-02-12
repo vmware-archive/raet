@@ -244,7 +244,7 @@ class BasicTestCase(unittest.TestCase):
 
         return alpha, beta
 
-    def bootstrapStacks(self, autoMode=int(raeting.AutoMode.once):
+    def bootstrapStacks(self, autoMode=int(raeting.AutoMode.once)):
         alphaData = self.createRoadData(base=self.base,
                                         name='alpha',
                                         ha=("", raeting.RAET_PORT),
