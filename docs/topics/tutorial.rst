@@ -8,6 +8,10 @@ There are currently two types of RAET Stacks.
 - A RoadStack provides communication between IP hosts via UDP sockets
 - A LaneStack provides communication between processes on the same host via Unix Domain Sockets (UXD) on unix or mail slots on windows.
 
+-------------
+RoadStack
+-------------
+
 Although a RoadStack has a flexible set of configuration parameters,
 it tries to use intelligent defaults where ever possible.
 
@@ -89,7 +93,7 @@ the application.
     import raet
     from raet.raeting import AutoMode
 
-    def example():
+    def example1():
         alpha = raet.road.stacking.RoadStack(name='alpha',
                                              ha=('0.0.0.0', 7531),
                                              auto=raeting.autoModes.always)
@@ -122,7 +126,7 @@ the application.
         print("Finished\n")
 
     if __name__ == "__main__":
-        example()
+        example1()
 
 
 The RAET log should print the following to the console.
@@ -171,7 +175,7 @@ send a message to each other. The messages will be signed and encrypted.
     import raet
     from raet.raeting import AutoMode
 
-    def example():
+    def example2():
 
         alpha = raet.road.stacking.RoadStack(name='alpha',
                                              ha=('0.0.0.0', 7531),
@@ -239,7 +243,7 @@ send a message to each other. The messages will be signed and encrypted.
         print("Finished\n")
 
     if __name__ == "__main__":
-        example()
+        example2()
 
 The RAET log should print the following to the console.
 
@@ -319,7 +323,7 @@ The next example show communication between 3 stacks.
         console.concise("Perceived service duration = {0} seconds\n".format(timer.elapsed))
 
 
-    def example():
+    def example3():
         alpha = raet.road.stacking.RoadStack(name='alpha',
                                              ha=('0.0.0.0', 7531),
                                              main=True,
@@ -542,3 +546,131 @@ The console log outputs the following:
     Finished
 
 
+-------------
+LaneStack
+-------------
+
+The setup of a LaneStack is similar to that for a RoadStack. The biggest
+difference is that because unix domain (UXD) sockets are reliable, LaneStack messages
+do not need to authenticated, encrypted, not transactioned. Consequently
+the setup is easier. UXD sockets, however, require a file be created for
+the socket.
+
+
+The following example shows how to create a pair of LandStacks and send
+messages between them.
+
+
+.. code-block::
+
+
+    import os
+    import shutil
+    import time
+    import tempfile
+
+    import ioflo
+    from ioflo.base.consoling import getConsole
+
+    import raet
+
+    console = getConsole()
+    console.reinit(verbosity=console.Wordage.concise)
+
+    def serviceStacks(stacks, duration=0.5, period=0.1):
+        '''
+        Utility method to service queues. Call from test method.
+        '''
+        store = ioflo.base.storing.Store(stamp=0.0)
+        timer = ioflo.base.aiding.StoreTimer(store=store, duration=duration)
+        while not timer.expired:
+            for stack in stacks:
+                stack.serviceAll()
+                stack.store.advanceStamp(period)
+
+            store.advanceStamp(period)
+            time.sleep(period)
+
+    def example1():
+        tempDirpath = tempfile.mkdtemp(prefix="raet", suffix="base", dir='/tmp')
+        baseDirpath = os.path.join(tempDirpath, 'lane')
+
+        alpha = raet.lane.stacking.LaneStack(name='alpha',
+                                             uid=1,
+                                             lanename='zeus',
+                                             sockdirpath=baseDirpath)
+
+        beta = raet.lane.stacking.LaneStack(name='beta',
+                                            uid=1,
+                                            lanename='zeus',
+                                            sockdirpath=baseDirpath)
+
+        stacks = [alpha, beta]
+
+        for stack in stacks:
+            console.terse("LaneStack '{0}': UXD socket ha = '{1}'\n".format(stack.name, stack.ha))
+
+        remote = raet.lane.yarding.RemoteYard(stack=alpha, ha=beta.ha)
+        alpha.addRemote(remote)
+
+        msg = dict(content="Hello this is a message from alpha to beta")
+        alpha.transmit(msg, remote.uid)
+        serviceStacks(stacks)
+
+        while beta.rxMsgs:
+            rxMsg, source = beta.rxMsgs.popleft()
+            console.terse("Beta received from {0} message = '{1}'\n".format(source, rxMsg))
+
+        remote = beta.remotes.values()[0]
+        console.terse("Beta remotes has '{0}' at '{1}'\n".format(remote.name, remote.ha))
+
+        remote = alpha.remotes.values()[0]
+        console.terse("Alpha remotes has '{0}' at '{1}'\n".format(remote.name, remote.ha))
+
+        beta.transmit(dict(content = "Hi from beta"))
+        beta.transmit(dict(content = "Hi again from beta"))
+        beta.transmit(dict(content = "Hi yet again from beta"))
+
+        alpha.transmit(dict(content = "Hello from alpha"))
+        alpha.transmit(dict(content = "Hello again from alpha"))
+        alpha.transmit(dict(content = "Hello yet again from alpha"))
+
+        serviceStacks(stacks)
+
+        for stack in stacks:
+            while stack.rxMsgs:
+                rxMsg, source = stack.rxMsgs.popleft()
+                console.terse("LaneStack {0} received from {1} message = '{2}'\n".format(stack.name, source, rxMsg))
+
+
+
+        for stack in stacks:
+            stack.server.close()
+
+        shutil.rmtree(tempDirpath)
+
+        print("Finished\n")
+
+
+
+    if __name__ == "__main__":
+        example1()
+
+
+
+The console log will output the following
+
+.. code-block::
+
+    LaneStack 'alpha': UXD socket ha = '/tmp/raetHdl6ZRbase/lane/zeus.alpha.uxd'
+    LaneStack 'beta': UXD socket ha = '/tmp/raetHdl6ZRbase/lane/zeus.beta.uxd'
+    Beta received from alpha message = '{u'content': u'Hello this is a message from alpha to beta'}'
+    Beta remotes has 'alpha' at '/tmp/raetHdl6ZRbase/lane/zeus.alpha.uxd'
+    Alpha remotes has 'beta' at '/tmp/raetHdl6ZRbase/lane/zeus.beta.uxd'
+    LaneStack alpha received from beta message = '{u'content': u'Hi from beta'}'
+    LaneStack alpha received from beta message = '{u'content': u'Hi again from beta'}'
+    LaneStack alpha received from beta message = '{u'content': u'Hi yet again from beta'}'
+    LaneStack beta received from alpha message = '{u'content': u'Hello from alpha'}'
+    LaneStack beta received from alpha message = '{u'content': u'Hello again from alpha'}'
+    LaneStack beta received from alpha message = '{u'content': u'Hello yet again from alpha'}'
+    Finished

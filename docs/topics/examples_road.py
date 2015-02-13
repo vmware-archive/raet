@@ -1,19 +1,18 @@
 '''
-RAET Tutorial Example
+RAET Tutorial Examples for RoadStack
 '''
 import time
 
 import ioflo
-
 from ioflo.base.consoling import getConsole
-console = getConsole()
-console.reinit(verbosity=console.Wordage.concise)
+
 
 import raet
 from raet import raeting
 from raet.raeting import AutoMode
 
-
+console = getConsole()
+console.reinit(verbosity=console.Wordage.concise)
 
 def serviceStacks(stacks, duration=1.0, period=0.1):
     '''
@@ -202,6 +201,6 @@ def example3():
 
 
 if __name__ == "__main__":
-    #example1()
-    #example2()
+    example1()
+    example2()
     example3()
