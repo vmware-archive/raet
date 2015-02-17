@@ -91,12 +91,6 @@ Body Decoding
 # pylint: disable=C0103
 
 # Import python libs
-from collections import Mapping
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 import struct
 import enum
 
