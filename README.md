@@ -11,7 +11,7 @@ what is commonly referred to as a publish/subscribe methodology for information
 exchange.
 
 While there are many advantages to a full featured message queuing service,
-one of the disadvantagesis the inability to manage performance at scale.
+one of the disadvantages is the inability to manage performance at scale.
 
 A message queuing service performs two distinct but complementary functions.
 
