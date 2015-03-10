@@ -45,7 +45,15 @@ def setUpModule():
 def tearDownModule():
     pass
 
-@ddt
+MULTI_MASTER_COUNT = 3
+MULTI_MINION_COUNT = 5
+MSG_SIZE_MED = 1024
+MSG_COUNT_MED = 10
+DIR_BIDIRECTIONAL = "bidirectional"
+DIR_TO_MASTER = "to_master"
+DIR_FROM_MASTER = "from_master"
+
+# @ddt
 class BasicTestCase(unittest.TestCase):
     """"""
 
@@ -126,7 +134,7 @@ class BasicTestCase(unittest.TestCase):
             initiator.allow(uid=remote.uid, timeout=timeout)
         self.serviceOne(initiator)
 
-    def serviceAll(self, stacks, duration=100.0, timeout=0.0, step=0.1):
+    def serviceAll(self, stacks, duration=100.0, timeout=0.0, step=0.1, exitCase=None):
         '''
         Utility method to service queues. Call from test method.
         '''
@@ -139,6 +147,9 @@ class BasicTestCase(unittest.TestCase):
             if any(stack.transactions for stack in stacks):
                 empty = False  # reset nop timeout
             else:
+                console.concise('Empty service loop, elapsed:current = {0}:{1}\n'.format(elapsed, self.timer.getElapsed()))
+                if exitCase and exitCase():
+                    break
                 if empty:
                     if self.timer.getElapsed() - elapsed > timeout:
                         break
@@ -148,8 +159,8 @@ class BasicTestCase(unittest.TestCase):
             self.store.advanceStamp(step)
             time.sleep(step)
 
-    def serviceOne(self, stack, duration=100.0, timeout=0.0, step=0.1):
-        self.serviceAll([stack], duration, timeout, step)
+    def serviceOne(self, stack, duration=100.0, timeout=0.0, step=0.1, exitCase=None):
+        self.serviceAll([stack], duration, timeout, step, exitCase)
 
     def bidirectional(self, stack, msgs=None, duration=3.0):
         msgs = msgs or []
@@ -189,7 +200,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMessages Receiver *********\n")
 
-        self.serviceOne(stack, duration=duration, timeout=1.0)
+        self.serviceOne(stack, duration=duration, timeout=10.0)
 
         console.terse("\nStack '{0}' uid={1}\n".format(stack.name, stack.local.uid))
         self.assertEqual(len(stack.transactions), 0)
@@ -202,7 +213,9 @@ class BasicTestCase(unittest.TestCase):
         # create stack
         self.stack = self.createStack(name, port)
 
-        self.serviceOne(self.stack)
+        self.serviceOne(self.stack, timeout=10.0,
+                        exitCase=lambda: self.stack.remotes and self.stack.remotes.values()[0].allowed)
+
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), minionCount)
         for remote in self.stack.remotes.values():
@@ -243,38 +256,38 @@ class BasicTestCase(unittest.TestCase):
     #     ("Bidirectional One To Many",  3, 1, 1024, 10, 100.0, "bidirectional"),
     #     ("Bidirectional Many To Many", 3, 5, 1024, 10, 100.0, "bidirectional")
     # ])
-    @data(
-        ("To Master One To One",       1, 1, 1024, 10, 100.0, "to_master"),
-        ("To Master Many To One",      1, 5, 1024, 10, 100.0, "to_master"),
-        ("To Master One To Many",      3, 1, 1024, 10, 100.0, "to_master"),
-        ("To Master Many To Many",     3, 5, 1024, 10, 100.0, "to_master"),
-        ("From Master One To One",     1, 1, 1024, 10, 100.0, "from_master"),
-        ("From Master Many To One",    1, 5, 1024, 10, 100.0, "from_master"),
-        ("From Master One To Many",    3, 1, 1024, 10, 100.0, "from_master"),
-        ("From Master Many To Many",   3, 5, 1024, 10, 100.0, "from_master"),
-        ("Bidirectional One To One",   1, 1, 1024, 10, 100.0, "bidirectional"),
-        ("Bidirectional Many To One",  1, 5, 1024, 10, 100.0, "bidirectional"),
-        ("Bidirectional One To Many",  3, 1, 1024, 10, 100.0, "bidirectional"),
-        ("Bidirectional Many To Many", 3, 5, 1024, 10, 100.0, "bidirectional"),
-    )
-    @unpack
-    def testMessagingMultiPeers(self,
-                                name,
-                                masterCount,
-                                minionCount,
-                                msgSize,
-                                msgCount,
-                                duration,
-                                direction):
+    # @data(
+    #     ("To Master One To One",       1, 1, 1024, 10, 100.0, "to_master"),
+    #     ("To Master Many To One",      1, 5, 1024, 10, 100.0, "to_master"),
+    #     ("To Master One To Many",      3, 1, 1024, 10, 100.0, "to_master"),
+    #     ("To Master Many To Many",     3, 5, 1024, 10, 100.0, "to_master"),
+    #     ("From Master One To One",     1, 1, 1024, 10, 100.0, "from_master"),
+    #     ("From Master Many To One",    1, 5, 1024, 10, 100.0, "from_master"),
+    #     ("From Master One To Many",    3, 1, 1024, 10, 100.0, "from_master"),
+    #     ("From Master Many To Many",   3, 5, 1024, 10, 100.0, "from_master"),
+    #     ("Bidirectional One To One",   1, 1, 1024, 10, 100.0, "bidirectional"),
+    #     ("Bidirectional Many To One",  1, 5, 1024, 10, 100.0, "bidirectional"),
+    #     ("Bidirectional One To Many",  3, 1, 1024, 10, 100.0, "bidirectional"),
+    #     ("Bidirectional Many To Many", 3, 5, 1024, 10, 100.0, "bidirectional"),
+    # )
+    # @unpack
+    def messagingMultiPeers(self,
+                            # name,
+                            masterCount,
+                            minionCount,
+                            msgSize,
+                            msgCount,
+                            duration,
+                            direction):
         data = self.createData(size=msgSize)
         self.data = [data for a in xrange(msgCount)]
         self.duration = duration
-        master_dir = {"bidirectional": self.bidirectional,
-                      "to_master": self.receive,
-                      "from_master": self.send}
-        minion_dir = {"bidirectional": self.bidirectional,
-                      "to_master": self.send,
-                      "from_master": self.receive}
+        master_dir = {DIR_BIDIRECTIONAL: self.bidirectional,
+                      DIR_TO_MASTER:     self.receive,
+                      DIR_FROM_MASTER:   self.send}
+        minion_dir = {DIR_BIDIRECTIONAL: self.bidirectional,
+                      DIR_TO_MASTER:     self.send,
+                      DIR_FROM_MASTER:   self.receive}
 
         port = raeting.RAET_PORT
         masterHostAddresses = []
@@ -319,45 +332,113 @@ class BasicTestCase(unittest.TestCase):
         for minionProc in minionProcs:
             self.assertEqual(minionProc.exitcode, 0)
 
-    # def testOneToOneUniSend(self):
-    #     self.messagingMultiPeers(masterCount=1,
-    #                              minionCount=1,
-    #                              msgSize=1024*1024,
-    #                              msgCount=6,
-    #                              duration=100.0,
-    #                              direction="to_master")
-    #
-    # def testOneToOne(self):
-    #     self.messagingMultiPeers(masterCount=1,
-    #                              minionCount=1,
-    #                              msgSize=1024*1024,
-    #                              msgCount=6,
-    #                              duration=100.0,
-    #                              direction="bidirectional")
-    #
-    # def testManyToOne(self):
-    #     self.messagingMultiPeers(masterCount=1,
-    #                              minionCount=2,
-    #                              msgSize=1024*10,
-    #                              msgCount=10,
-    #                              duration=100.0,
-    #                              direction="bidirectional")
-    #
-    # def testOneToMany(self):
-    #     self.messagingMultiPeers(masterCount=3,
-    #                              minionCount=1,
-    #                              msgSize=1024*10,
-    #                              msgCount=10,
-    #                              duration=100.0,
-    #                              direction="bidirectional")
-    #
-    # def testManyToMany(self):
-    #     self.messagingMultiPeers(masterCount=3,
-    #                              minionCount=5,
-    #                              msgSize=1024*10,
-    #                              msgCount=10,
-    #                              duration=100.0,
-    #                              direction="bidirectional")
+    def testOneToOneToMaster(self):
+        console.terse("{0}\n".format(self.testOneToOneToMaster.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=1,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_TO_MASTER)
+
+    def testManyToOneToMaster(self):
+        console.terse("{0}\n".format(self.testManyToOneToMaster.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=MULTI_MINION_COUNT,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_TO_MASTER)
+
+    def testOneToManyToMaster(self):
+        console.terse("{0}\n".format(self.testOneToManyToMaster.__doc__))
+        self.messagingMultiPeers(masterCount=MULTI_MASTER_COUNT,
+                                 minionCount=1,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_TO_MASTER)
+
+    def testManyToManyToMaster(self):
+        console.terse("{0}\n".format(self.testManyToManyToMaster.__doc__))
+        self.messagingMultiPeers(masterCount=MULTI_MASTER_COUNT,
+                                 minionCount=MULTI_MINION_COUNT,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_TO_MASTER)
+
+    def testOneToOneFromMaster(self):
+        console.terse("{0}\n".format(self.testOneToOneFromMaster.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=1,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_FROM_MASTER)
+
+    def testManyToOneFromMaster(self):
+        console.terse("{0}\n".format(self.testManyToOneFromMaster.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=MULTI_MINION_COUNT,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_FROM_MASTER)
+
+    def testOneToManyFromMaster(self):
+        console.terse("{0}\n".format(self.testOneToManyFromMaster.__doc__))
+        self.messagingMultiPeers(masterCount=MULTI_MASTER_COUNT,
+                                 minionCount=1,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_FROM_MASTER)
+
+    def testManyToManyFromMaster(self):
+        console.terse("{0}\n".format(self.testManyToManyFromMaster.__doc__))
+        self.messagingMultiPeers(masterCount=MULTI_MASTER_COUNT,
+                                 minionCount=MULTI_MINION_COUNT,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_FROM_MASTER)
+
+    def testOneToOneBidirectional(self):
+        console.terse("{0}\n".format(self.testOneToOneBidirectional.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=1,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_BIDIRECTIONAL)
+
+    def testManyToOneBidirectional(self):
+        console.terse("{0}\n".format(self.testManyToOneBidirectional.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=MULTI_MINION_COUNT,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_BIDIRECTIONAL)
+
+    def testOneToManyBidirectional(self):
+        console.terse("{0}\n".format(self.testOneToManyBidirectional.__doc__))
+        self.messagingMultiPeers(masterCount=MULTI_MASTER_COUNT,
+                                 minionCount=1,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
+                                 duration=100.0,
+                                 direction=DIR_BIDIRECTIONAL)
+
+    def testManyToManyBidirectional(self):
+        console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
+        self.messagingMultiPeers(masterCount=MULTI_MASTER_COUNT,
+                                 minionCount=MULTI_MINION_COUNT,
+                                 msgSize=MSG_SIZE_MED,
+                                 msgCount=MSG_SIZE_MED,
+                                 duration=100.0,
+                                 direction=DIR_BIDIRECTIONAL)
 
 def runOne(test):
     '''
