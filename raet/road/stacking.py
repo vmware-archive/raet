@@ -24,6 +24,7 @@ except ImportError:
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
+from ioflo.base import nonblocking
 from ioflo.base import storing
 
 # Import raet libs
@@ -187,7 +188,7 @@ class RoadStack(stacking.KeepStack):
         '''
         Create local listening server for stack
         '''
-        server = aiding.SocketUdpNb(ha=self.ha,
+        server = nonblocking.SocketUdpNb(ha=self.ha,
                         bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
         return server
 

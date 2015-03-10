@@ -3,6 +3,13 @@ CHANGE LOG
 -------------------
 
 -----------
+20150310
+----------
+v0.6.2
+
+Changed imports ioflo.base.nonblocking to be compat with ioflo 1.2.1
+
+-----------
 20150212
 ----------
 v0.6.1
