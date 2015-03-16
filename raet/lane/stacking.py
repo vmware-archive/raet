@@ -25,6 +25,7 @@ except ImportError:
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
+from ioflo.base import nonblocking
 from ioflo.base import storing
 
 # Import raet libs
@@ -84,10 +85,10 @@ class LaneStack(stacking.Stack):
         '''
 
         if not sys.platform == 'win32':
-            server = aiding.SocketUxdNb(ha=self.ha,
+            server = nonblocking.SocketUxdNb(ha=self.ha,
                                 bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         else:
-            server = aiding.WinMailslotNb(ha=self.ha,
+            server = nonblocking.WinMailslotNb(ha=self.ha,
                                 bufsize=raeting.UXD_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
