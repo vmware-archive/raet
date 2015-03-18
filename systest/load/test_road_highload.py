@@ -39,8 +39,10 @@ if sys.platform == 'win32':
 else:
     TEMPDIR = '/tmp'
 
+
 def setUpModule():
     console.reinit(verbosity=console.Wordage.concise)
+
 
 def tearDownModule():
     pass
@@ -53,6 +55,7 @@ DIR_BIDIRECTIONAL = "bidirectional"
 DIR_TO_MASTER = "to_master"
 DIR_FROM_MASTER = "from_master"
 
+
 # @ddt
 class BasicTestCase(unittest.TestCase):
     """"""
@@ -63,7 +66,7 @@ class BasicTestCase(unittest.TestCase):
     def setUp(self):
         self.store = storing.Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
-        self.baseDirpath=tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
+        self.baseDirpath = tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
         self.stack = None
         # This has to be set to True in the only one process that would perform tearDown steps
         self.engine = False
@@ -101,7 +104,7 @@ class BasicTestCase(unittest.TestCase):
         alpha = '{0}{1}'.format(''.join([chr(n) for n in xrange(ord('A'), ord('Z') + 1)]),
                                 ''.join([chr(n) for n in xrange(ord('a'), ord('z') + 1)]))
         num = size / len(alpha)
-        ret = ''.join([alpha for a in xrange(num)])
+        ret = ''.join([alpha for _ in xrange(num)])
         num = size - len(ret)
         ret = ''.join([ret, alpha[:num]])
         self.assertEqual(len(ret), size)
@@ -109,8 +112,8 @@ class BasicTestCase(unittest.TestCase):
 
     def createData(self, house="manor", queue="stuff", size=1024):
         stuff = self.getStuff(size)
-        data = odict(house=house, queue=queue, stuff=stuff)
-        return data
+        ret = odict(house=house, queue=queue, stuff=stuff)
+        return ret
 
     def joinAll(self, initiator, correspondentAddresses, timeout=None):
         '''
@@ -119,8 +122,8 @@ class BasicTestCase(unittest.TestCase):
         console.terse("\nJoin Transaction **************\n")
         for ha in correspondentAddresses:
             remote = initiator.addRemote(estating.RemoteEstate(stack=initiator,
-                                                               fuid=0, # vacuous join
-                                                               sid=0, # always 0 for join
+                                                               fuid=0,  # vacuous join
+                                                               sid=0,  # always 0 for join
                                                                ha=ha))
             initiator.join(uid=remote.uid, timeout=timeout)
         self.serviceOne(initiator)
@@ -141,39 +144,45 @@ class BasicTestCase(unittest.TestCase):
         self.timer.restart(duration=duration)
         empty = False
         elapsed = self.timer.getElapsed()
+        retReason = 'duration'
         while not self.timer.expired:
             for stack in stacks:
                 stack.serviceAll()
             if any(stack.transactions for stack in stacks):
                 empty = False  # reset nop timeout
             else:
-                console.concise('Empty service loop, elapsed:current = {0}:{1}\n'.format(elapsed, self.timer.getElapsed()))
                 if exitCase and exitCase():
+                    retReason = 'exitCase'
                     break
                 if empty:
                     if self.timer.getElapsed() - elapsed > timeout:
+                        retReason = 'timeout'
                         break
                 else:
                     empty = True
                     elapsed = self.timer.getElapsed()
             self.store.advanceStamp(step)
             time.sleep(step)
+        return retReason
 
     def serviceOne(self, stack, duration=100.0, timeout=0.0, step=0.1, exitCase=None):
-        self.serviceAll([stack], duration, timeout, step, exitCase)
+        return self.serviceAll([stack], duration, timeout, step, exitCase)
 
     def bidirectional(self, stack, msgs=None, duration=3.0):
         msgs = msgs or []
 
-        console.terse("\nMessages Bidirectional *********\n")
+        console.terse("\nMessages Bidirectional {0} *********\n".format(stack.name))
         for msg in msgs:
             for remote in stack.remotes.values():
                 stack.transmit(msg, uid=remote.uid)
                 self.serviceOne(stack, duration=0.01, step=0.01)
 
-        self.serviceOne(stack, duration=duration, timeout=1.0)
+        # Set timeout and duration to the same value because 1-segment messages are handled in 1 step so there wouldn't
+        # be any transaction when stack just receives data
+        serviceCode = self.serviceOne(stack, duration=duration, timeout=duration,
+                                      exitCase=lambda: len(stack.rxMsgs) == len(msgs) * len(stack.remotes))
 
-        console.terse("\nStack '{0}' uid={1}\n".format(stack.name, stack.local.uid))
+        console.terse("\nStack '{0}' uid={1} serviceCode={2}\n".format(stack.name, stack.local.uid, serviceCode))
         self.assertEqual(len(stack.transactions), 0)
         self.assertEqual(len(stack.rxMsgs), len(msgs) * len(stack.remotes))
         for i, duple in enumerate(stack.rxMsgs):
@@ -183,26 +192,29 @@ class BasicTestCase(unittest.TestCase):
     def send(self, stack, msgs=None, duration=3.0):
         msgs = msgs or []
 
-        console.terse("\nMessages Sender *********\n")
+        console.terse("\nMessages Sender {0} *********\n".format(stack.name))
         for msg in msgs:
             for remote in stack.remotes.values():
                 stack.transmit(msg, uid=remote.uid)
                 self.serviceOne(stack, duration=0.01, step=0.01)
 
-        self.serviceOne(stack, duration=duration, timeout=1.0)
+        serviceCode = self.serviceOne(stack, duration=duration, timeout=1.0)
 
-        console.terse("\nStack '{0}' uid={1}\n".format(stack.name, stack.local.uid))
+        console.terse("\nStack '{0}' uid={1} serviceCode={2}\n".format(stack.name, stack.local.uid, serviceCode))
         self.assertEqual(len(stack.transactions), 0)
         self.assertEqual(len(stack.rxMsgs), 0)
 
     def receive(self, stack, msgs=None, duration=3.0):
         msgs = msgs or []
 
-        console.terse("\nMessages Receiver *********\n")
+        console.terse("\nMessages Receiver {0} *********\n".format(stack.name))
 
-        self.serviceOne(stack, duration=duration, timeout=10.0)
+        # Set timeout and duration to the same value because 1-segment messages are handled in 1 step so there wouldn't
+        # be any transaction when stack just receives data
+        serviceCode = self.serviceOne(stack, duration=duration, timeout=duration,
+                                      exitCase=lambda: len(stack.rxMsgs) == len(msgs) * len(stack.remotes))
 
-        console.terse("\nStack '{0}' uid={1}\n".format(stack.name, stack.local.uid))
+        console.terse("\nStack '{0}' uid={1} serviceCode={2}\n".format(stack.name, stack.local.uid, serviceCode))
         self.assertEqual(len(stack.transactions), 0)
         self.assertEqual(len(stack.rxMsgs), len(msgs) * len(stack.remotes))
         for i, duple in enumerate(stack.rxMsgs):
@@ -213,8 +225,19 @@ class BasicTestCase(unittest.TestCase):
         # create stack
         self.stack = self.createStack(name, port)
 
-        self.serviceOne(self.stack, timeout=10.0,
-                        exitCase=lambda: self.stack.remotes and self.stack.remotes.values()[0].allowed)
+        console.terse("\n{0} Waiting For Minions *********\n".format(name))
+
+        def isBootstrapDone():
+            if not self.stack.remotes:
+                return False
+            if len(self.stack.remotes) != minionCount:
+                return False
+            for rmt in self.stack.remotes.values():
+                if not rmt.allowed:
+                    return False
+            return True
+
+        serviceCode = self.serviceOne(self.stack, timeout=10.0, exitCase=isBootstrapDone)
 
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), minionCount)
@@ -222,11 +245,15 @@ class BasicTestCase(unittest.TestCase):
             self.assertTrue(remote.joined)
             self.assertTrue(remote.allowed)
 
+        console.terse("\n{0} Bootstrap Done ({1}) *********\n".format(name, serviceCode))
+
         action(self.stack, msgs=self.data, duration=self.duration)
 
     def minionPeer(self, name, port, remoteAddresses, action):
         # Create stack
         self.stack = self.createStack(name, port)
+
+        console.terse("\n{0} Joining Remotes *********\n".format(name))
 
         self.joinAll(self.stack, remoteAddresses)
         self.assertEqual(len(self.stack.transactions), 0)
@@ -234,11 +261,15 @@ class BasicTestCase(unittest.TestCase):
         for remote in self.stack.remotes.values():
             self.assertTrue(remote.joined)
 
+        console.terse("\n{0} Allowing Remotes *********\n".format(name))
+
         self.allowAll(self.stack)
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), len(remoteAddresses))
         for remote in self.stack.remotes.values():
             self.assertTrue(remote.allowed)
+
+        console.terse("\n{0} Bootstrap Done *********\n".format(name))
 
         action(self.stack, msgs=self.data, duration=self.duration)
 
@@ -279,8 +310,8 @@ class BasicTestCase(unittest.TestCase):
                             msgCount,
                             duration,
                             direction):
-        data = self.createData(size=msgSize)
-        self.data = [data for a in xrange(msgCount)]
+        msgData = self.createData(size=msgSize)
+        self.data = [msgData for _ in xrange(msgCount)]
         self.duration = duration
         master_dir = {DIR_BIDIRECTIONAL: self.bidirectional,
                       DIR_TO_MASTER:     self.receive,
@@ -440,6 +471,7 @@ class BasicTestCase(unittest.TestCase):
                                  duration=100.0,
                                  direction=DIR_BIDIRECTIONAL)
 
+
 def runOne(test):
     '''
     Unittest Runner
@@ -451,7 +483,7 @@ def runOne(test):
 
 def runSome():
     """ Unittest runner """
-    tests =  []
+    tests = []
     names = [
         'testOneToOne',
         'testManyToOne',
@@ -474,9 +506,8 @@ def runAll():
 
 if __name__ == '__main__' and __package__ is None:
 
-    #console.reinit(verbosity=console.Wordage.concise)
+    # console.reinit(verbosity=console.Wordage.concise)
 
-    runAll()  #run all unittests
+    runAll()  # run all unittests
 
-    #runSome()  #only run some
-
+    # runSome()  #only run some
