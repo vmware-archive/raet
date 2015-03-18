@@ -286,7 +286,6 @@ class Stack(object):
         self.rxes.append((rx, ra))     # duple = ( packet, source address)
         return True
 
-
     def serviceReceives(self):
         '''
         Retrieve from server all recieved and put on the rxes deque
