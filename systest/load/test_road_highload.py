@@ -20,6 +20,8 @@ import tempfile
 import shutil
 import multiprocessing
 
+from BitVector import BitVector
+
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import Timer, StoreTimer
 from ioflo.base import storing
@@ -50,10 +52,74 @@ def tearDownModule():
 MULTI_MASTER_COUNT = 3
 MULTI_MINION_COUNT = 5
 MSG_SIZE_MED = 1024
-MSG_COUNT_MED = 10
-DIR_BIDIRECTIONAL = "bidirectional"
-DIR_TO_MASTER = "to_master"
-DIR_FROM_MASTER = "from_master"
+MSG_COUNT_MED = 100
+DIR_BIDIRECTIONAL = 'bidirectional'
+DIR_TO_MASTER = 'to_master'
+DIR_FROM_MASTER = 'from_master'
+
+
+def getStuff(name='master', size=1024, number=0):
+    alpha = '{0}{1}{2}{3}'.format(name, number,
+                                  ''.join([chr(n) for n in xrange(ord('A'), ord('Z') + 1)]),
+                                  ''.join([chr(n) for n in xrange(ord('a'), ord('z') + 1)]))
+    num = size / len(alpha)
+    ret = ''.join([alpha for _ in xrange(num)])
+    num = size - len(ret)
+    ret = ''.join([ret, alpha[:num]])
+    assert len(ret) == size, 'Coding fault: generated data size not equal to requested'
+    return ret
+
+
+def createData(name='master', size=1024, number=0, house='manor', queue='stuff'):
+    stuff = getStuff(name, size, number)
+    ret = odict(house=house, queue=queue, sender=name, number=number, stuff=stuff)
+    return ret
+
+
+def generateMessages(name, size, count, house='manor', queue='stuff'):
+    for i in xrange(count):
+        yield createData(name, size, i, house, queue)
+
+
+class MessageVerifier():
+    def __init__(self, size, count, house, queue):
+        self.size = size
+        self.count = count
+        self.house = house
+        self.queue = queue
+        self.received = {}
+
+    def verifyMessage(self, msg):
+        sender = msg[0]['sender']
+        number = msg[0]['number']
+        expectedMsg = createData(sender, self.size, number, self.house, self.queue)
+        equal = expectedMsg == msg[0]
+
+        if sender not in self.received:
+            self.received[sender] = (BitVector(size=self.count),  # received
+                                     BitVector(size=self.count),  # duplicated
+                                     BitVector(size=self.count))  # wrong content
+
+        if self.received[sender][0][number]:  # duplicate
+            self.received[sender][1][number] = 1
+        else:  # first time received
+            self.received[sender][0][number] = 1
+        if not equal:
+            self.received[sender][2][number] = 1
+
+    def checkAllDone(self, remoteCount, msgCount):
+        errors = []
+        for name, results in self.received.iteritems():
+            rcv = results[0].count_bits()
+            dup = results[1].count_bits()
+            bad = results[2].count_bits()
+            if rcv != self.count:
+                errors.append('{0}: lost {1} messages'.format(name, self.count - rcv))
+            if dup:
+                errors.append('{0}: got duplications for {1} messages'.format(name, dup))
+            if bad:
+                errors.append('{0}: {1} received messages are broken'.format(name, bad))
+        return errors
 
 
 # @ddt
@@ -99,21 +165,6 @@ class BasicTestCase(unittest.TestCase):
                                   prikey=mainPriKeyHex,
                                   dirpath=dirpath,
                                   )
-
-    def getStuff(self, size):
-        alpha = '{0}{1}'.format(''.join([chr(n) for n in xrange(ord('A'), ord('Z') + 1)]),
-                                ''.join([chr(n) for n in xrange(ord('a'), ord('z') + 1)]))
-        num = size / len(alpha)
-        ret = ''.join([alpha for _ in xrange(num)])
-        num = size - len(ret)
-        ret = ''.join([ret, alpha[:num]])
-        self.assertEqual(len(ret), size)
-        return ret
-
-    def createData(self, house="manor", queue="stuff", size=1024):
-        stuff = self.getStuff(size)
-        ret = odict(house=house, queue=queue, stuff=stuff)
-        return ret
 
     def joinAll(self, initiator, correspondentAddresses, timeout=None):
         '''
@@ -168,32 +219,55 @@ class BasicTestCase(unittest.TestCase):
     def serviceOne(self, stack, duration=100.0, timeout=0.0, step=0.1, exitCase=None):
         return self.serviceAll([stack], duration, timeout, step, exitCase)
 
-    def bidirectional(self, stack, msgs=None, duration=3.0):
-        msgs = msgs or []
-
+    def bidirectional(self, stack, duration=3.0):
         console.terse("\nMessages Bidirectional {0} *********\n".format(stack.name))
-        for msg in msgs:
+        verifier = MessageVerifier(size=self.msgSize, count=self.msgCount, house='manor', queue='stuff')
+        received = 0
+        expected = len(stack.remotes) * self.msgCount
+        for msg in generateMessages(name=self.stack.name, size=self.msgSize, count=self.msgCount):
             for remote in stack.remotes.values():
+                # send message
                 stack.transmit(msg, uid=remote.uid)
-                self.serviceOne(stack, duration=0.01, step=0.01)
+                self.serviceOne(stack, duration=0.05, step=0.05)
+                # check received
+                if len(stack.rxMsgs) >= min(10, expected - received):
+                    received += len(stack.rxMsgs)
+                    while stack.rxMsgs:
+                        rcvMsg = stack.rxMsgs.popleft()
+                        verifier.verifyMessage(rcvMsg)
 
-        # Set timeout and duration to the same value because 1-segment messages are handled in 1 step so there wouldn't
-        # be any transaction when stack just receives data
-        serviceCode = self.serviceOne(stack, duration=duration, timeout=duration,
-                                      exitCase=lambda: len(stack.rxMsgs) == len(msgs) * len(stack.remotes))
+        while received < expected:
+            self.serviceOne(stack, duration=3.0, timeout=3.0,
+                            exitCase=lambda: len(stack.rxMsgs) >= min(10, expected - received))
+            # received nothing during timeout, assume there is nothing to receive
+            if not stack.rxMsgs:
+                break
 
-        console.terse("\nStack '{0}' uid={1} serviceCode={2}\n".format(stack.name, stack.local.uid, serviceCode))
+            received += len(stack.rxMsgs)
+
+            while stack.rxMsgs:
+                rcvMsg = stack.rxMsgs.popleft()
+                verifier.verifyMessage(rcvMsg)
+
+        if stack.transactions:
+            self.serviceOne(stack, duration=duration)
+
+        console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n"
+                      .format(stack.name, stack.local.uid, stack.transactions, received, expected))
         self.assertEqual(len(stack.transactions), 0)
-        self.assertEqual(len(stack.rxMsgs), len(msgs) * len(stack.remotes))
-        for i, duple in enumerate(stack.rxMsgs):
-            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(stack.local.name, duple))
-            self.assertDictEqual(msgs[0], duple[0])  # TODO: make all messages differ
+        rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
+        if rcvErrors:
+            console.terse("{0} received message with the following errors:\n".format(stack.name))
+            for s in rcvErrors:
+                console.terse("\t{0} from {1}\n".format(stack.name, s))
+        self.assertEqual(len(rcvErrors), 0)
+        self.assertEqual(received, expected)
 
     def send(self, stack, msgs=None, duration=3.0):
         msgs = msgs or []
 
         console.terse("\nMessages Sender {0} *********\n".format(stack.name))
-        for msg in msgs:
+        for msg in generateMessages(name=stack.name, size=self.msgSize, count=self.msgCount):
             for remote in stack.remotes.values():
                 stack.transmit(msg, uid=remote.uid)
                 self.serviceOne(stack, duration=0.01, step=0.01)
@@ -209,17 +283,31 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nMessages Receiver {0} *********\n".format(stack.name))
 
-        # Set timeout and duration to the same value because 1-segment messages are handled in 1 step so there wouldn't
-        # be any transaction when stack just receives data
-        serviceCode = self.serviceOne(stack, duration=duration, timeout=duration,
-                                      exitCase=lambda: len(stack.rxMsgs) == len(msgs) * len(stack.remotes))
+        verifier = MessageVerifier(size=self.msgSize, count=self.msgCount, house='manor', queue='stuff')
+        received = 0
+        expected = len(stack.remotes) * self.msgCount
+        while received < expected:
+            self.serviceOne(stack, duration=3.0, timeout=3.0,
+                            exitCase=lambda: len(stack.rxMsgs) >= min(10, expected - received))
+            # received nothing during timeout, assume there is nothing to receive
+            if not stack.rxMsgs:
+                break
 
-        console.terse("\nStack '{0}' uid={1} serviceCode={2}\n".format(stack.name, stack.local.uid, serviceCode))
+            received += len(stack.rxMsgs)
+
+            while stack.rxMsgs:
+                rcvMsg = stack.rxMsgs.popleft()
+                verifier.verifyMessage(rcvMsg)
+
+        console.terse("\nStack '{0}' uid={1}\n".format(stack.name, stack.local.uid))
         self.assertEqual(len(stack.transactions), 0)
-        self.assertEqual(len(stack.rxMsgs), len(msgs) * len(stack.remotes))
-        for i, duple in enumerate(stack.rxMsgs):
-            console.terse("Estate '{0}' rxed:\n'{1}'\n".format(stack.local.name, duple))
-            self.assertDictEqual(msgs[0], duple[0])  # TODO: make all messages differ
+        rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
+        if rcvErrors:
+            console.terse("Receive message with the following errors:\n")
+            for s in rcvErrors:
+                console.terse("\t{0}".format(s))
+        self.assertEqual(len(rcvErrors), 0)
+        self.assertEqual(received, expected)
 
     def masterPeer(self, name, port, minionCount, action):
         # create stack
@@ -247,7 +335,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\n{0} Bootstrap Done ({1}) *********\n".format(name, serviceCode))
 
-        action(self.stack, msgs=self.data, duration=self.duration)
+        action(self.stack, duration=self.duration)
 
     def minionPeer(self, name, port, remoteAddresses, action):
         # Create stack
@@ -271,7 +359,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\n{0} Bootstrap Done *********\n".format(name))
 
-        action(self.stack, msgs=self.data, duration=self.duration)
+        action(self.stack, duration=self.duration)
 
     # @parameterized.expand([
     #     ("To Master One To One",       1, 1, 1024, 10, 100.0, "to_master"),
@@ -310,8 +398,10 @@ class BasicTestCase(unittest.TestCase):
                             msgCount,
                             duration,
                             direction):
-        msgData = self.createData(size=msgSize)
-        self.data = [msgData for _ in xrange(msgCount)]
+        self.masterCount = masterCount
+        self.minionCount = minionCount
+        self.msgSize = msgSize
+        self.msgCount = msgCount
         self.duration = duration
         master_dir = {DIR_BIDIRECTIONAL: self.bidirectional,
                       DIR_TO_MASTER:     self.receive,
@@ -467,7 +557,7 @@ class BasicTestCase(unittest.TestCase):
         self.messagingMultiPeers(masterCount=MULTI_MASTER_COUNT,
                                  minionCount=MULTI_MINION_COUNT,
                                  msgSize=MSG_SIZE_MED,
-                                 msgCount=MSG_SIZE_MED,
+                                 msgCount=MSG_COUNT_MED,
                                  duration=100.0,
                                  direction=DIR_BIDIRECTIONAL)
 
