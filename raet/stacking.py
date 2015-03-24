@@ -390,7 +390,6 @@ class Stack(object):
             raise raeting.StackError(msg)
         self.txes.append((packed, self.remotes[duid].ha))
 
-
     def _handleOneTx(self, laters, blocks):
         '''
         Handle one message on .txes deque
