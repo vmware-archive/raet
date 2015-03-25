@@ -43,7 +43,8 @@ else:
 
 
 def setUpModule():
-    console.reinit(verbosity=console.Wordage.concise)
+    console.reinit(verbosity=console.Wordage.terse)
+    # console.reinit(verbosity=console.Wordage.concise)
 
 
 def tearDownModule():
@@ -228,32 +229,29 @@ class BasicTestCase(unittest.TestCase):
             for remote in stack.remotes.values():
                 # send message
                 stack.transmit(msg, uid=remote.uid)
-                self.serviceOne(stack, duration=0.05, step=0.05)
+                self.serviceOne(stack, duration=0.01, step=0.01)
                 # check received
-                if len(stack.rxMsgs) >= min(10, expected - received):
+                if stack.rxMsgs:
                     received += len(stack.rxMsgs)
                     while stack.rxMsgs:
-                        rcvMsg = stack.rxMsgs.popleft()
-                        verifier.verifyMessage(rcvMsg)
+                        verifier.verifyMessage(stack.rxMsgs.popleft())
 
         while received < expected:
             self.serviceOne(stack, duration=3.0, timeout=3.0,
-                            exitCase=lambda: len(stack.rxMsgs) >= min(10, expected - received))
-            # received nothing during timeout, assume there is nothing to receive
+                            exitCase=lambda: stack.rxMsgs)
+            # if received nothing during timeout, assume we're done
             if not stack.rxMsgs:
                 break
-
             received += len(stack.rxMsgs)
-
             while stack.rxMsgs:
-                rcvMsg = stack.rxMsgs.popleft()
-                verifier.verifyMessage(rcvMsg)
+                verifier.verifyMessage(stack.rxMsgs.popleft())
 
+        # wait remaining messenger transactions if any to be closed
         if stack.transactions:
             self.serviceOne(stack, duration=duration)
 
-        console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n"
-                      .format(stack.name, stack.local.uid, stack.transactions, received, expected))
+        console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n\tStats: {5}"
+                      .format(stack.name, stack.local.uid, stack.transactions, received, expected, stack.stats))
         self.assertEqual(len(stack.transactions), 0)
         rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
         if rcvErrors:
@@ -560,6 +558,45 @@ class BasicTestCase(unittest.TestCase):
                                  msgCount=MSG_COUNT_MED,
                                  duration=100.0,
                                  direction=DIR_BIDIRECTIONAL)
+
+    def testManyToManyBidirectional1(self):
+        from datetime import datetime as dt
+        s = dt.now()
+        console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
+        self.messagingMultiPeers(masterCount=3,
+                                 minionCount=5,
+                                 msgSize=1024,
+                                 msgCount=100,
+                                 duration=100.0,
+                                 direction=DIR_BIDIRECTIONAL)
+        e = dt.now()
+        console.terse('Test time: {0}'.format(e-s))
+
+    def testManyToManyBidirectional2(self):
+        from datetime import datetime as dt
+        s = dt.now()
+        console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
+        self.messagingMultiPeers(masterCount=3,
+                                 minionCount=5,
+                                 msgSize=1024*10,
+                                 msgCount=100,
+                                 duration=100.0,
+                                 direction=DIR_BIDIRECTIONAL)
+        e = dt.now()
+        console.terse('Test time: {0}'.format(e-s))
+
+    def testManyToManyBidirectional3(self):
+        from datetime import datetime as dt
+        s = dt.now()
+        console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
+        self.messagingMultiPeers(masterCount=3,
+                                 minionCount=5,
+                                 msgSize=1024*100,
+                                 msgCount=100,
+                                 duration=1000.0,
+                                 direction=DIR_BIDIRECTIONAL)
+        e = dt.now()
+        console.terse('Test time: {0}'.format(e-s))
 
 
 def runOne(test):
