@@ -43,8 +43,8 @@ else:
 
 
 def setUpModule():
-    console.reinit(verbosity=console.Wordage.terse)
-    # console.reinit(verbosity=console.Wordage.concise)
+    # console.reinit(verbosity=console.Wordage.terse)
+    console.reinit(verbosity=console.Wordage.concise)
 
 
 def tearDownModule():
@@ -250,7 +250,7 @@ class BasicTestCase(unittest.TestCase):
         if stack.transactions:
             self.serviceOne(stack, duration=duration)
 
-        console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n\tStats: {5}"
+        console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n\tStats: {5}\n"
                       .format(stack.name, stack.local.uid, stack.transactions, received, expected, stack.stats))
         self.assertEqual(len(stack.transactions), 0)
         rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
