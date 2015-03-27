@@ -2842,8 +2842,15 @@ class Messenger(Initiator):
 
         if self.misseds:
             self.sendMisseds()
-        elif self.tray.current < len(self.tray.packets):
-            self.message()  # continue message
+        else:
+            current = self.rxPacket.data['sn'] + 1
+            if self.tray.current > current:
+                console.concise("Messenger {0}. Current {1} is ahead of requested {2}. Adjust.\n".format(
+                    self.stack.name, self.tray.current, current))
+                self.tray.current = current
+                self.tray.last = current - 1
+            if self.tray.current < len(self.tray.packets):
+                self.message()  # continue message
 
     def resend(self):
         '''
@@ -3125,6 +3132,7 @@ class Messengent(Correspondent):
                                     kind=PcktKind.ack.value,
                                     embody=body,
                                     data=self.txData)
+        packet.data['sn'] = self.tray.highest
         try:
             packet.pack()
         except raeting.PacketError as ex:
@@ -3134,8 +3142,9 @@ class Messengent(Correspondent):
             return
         self.transmit(packet)
         self.stack.incStat("message_more_ack")
-        console.concise("Messengent {0}. Do Ack More on Segment {1} with {2} in {3} at {4}\n".format(
+        console.concise("Messengent {0}. Do Ack More from {1} on Segment {2} with {3} in {4} at {5}\n".format(
             self.stack.name,
+            self.tray.highest + 1,
             self.rxPacket.data['sn'],
             self.remote.name,
             self.tid,

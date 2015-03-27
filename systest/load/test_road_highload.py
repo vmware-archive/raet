@@ -252,58 +252,56 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n\tStats: {5}\n"
                       .format(stack.name, stack.local.uid, stack.transactions, received, expected, stack.stats))
-        self.assertEqual(len(stack.transactions), 0)
         rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
         if rcvErrors:
             console.terse("{0} received message with the following errors:\n".format(stack.name))
             for s in rcvErrors:
                 console.terse("\t{0} from {1}\n".format(stack.name, s))
+        self.assertEqual(len(stack.transactions), 0)
         self.assertEqual(len(rcvErrors), 0)
         self.assertEqual(received, expected)
 
-    def send(self, stack, msgs=None, duration=3.0):
-        msgs = msgs or []
-
+    def send(self, stack, duration=3.0):
         console.terse("\nMessages Sender {0} *********\n".format(stack.name))
         for msg in generateMessages(name=stack.name, size=self.msgSize, count=self.msgCount):
             for remote in stack.remotes.values():
                 stack.transmit(msg, uid=remote.uid)
                 self.serviceOne(stack, duration=0.01, step=0.01)
 
-        serviceCode = self.serviceOne(stack, duration=duration, timeout=1.0)
+        serviceCode = self.serviceOne(stack, duration=duration, timeout=3.0)
 
-        console.terse("\nStack '{0}' uid={1} serviceCode={2}\n".format(stack.name, stack.local.uid, serviceCode))
+        console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\tStats: {3}\n"
+                      .format(stack.name, stack.local.uid, stack.transactions, stack.stats))
         self.assertEqual(len(stack.transactions), 0)
         self.assertEqual(len(stack.rxMsgs), 0)
 
-    def receive(self, stack, msgs=None, duration=3.0):
-        msgs = msgs or []
-
+    def receive(self, stack, duration=3.0):
         console.terse("\nMessages Receiver {0} *********\n".format(stack.name))
-
         verifier = MessageVerifier(size=self.msgSize, count=self.msgCount, house='manor', queue='stuff')
         received = 0
         expected = len(stack.remotes) * self.msgCount
         while received < expected:
-            self.serviceOne(stack, duration=3.0, timeout=3.0,
-                            exitCase=lambda: len(stack.rxMsgs) >= min(10, expected - received))
+            reason = self.serviceOne(stack, duration=duration, timeout=duration,
+                                     exitCase=lambda: stack.rxMsgs)
+            console.terse("Service exit reason: {0}, transactions: {1}\n".format(reason, stack.transactions))
             # received nothing during timeout, assume there is nothing to receive
             if not stack.rxMsgs:
                 break
-
             received += len(stack.rxMsgs)
-
             while stack.rxMsgs:
-                rcvMsg = stack.rxMsgs.popleft()
-                verifier.verifyMessage(rcvMsg)
+                verifier.verifyMessage(stack.rxMsgs.popleft())
 
-        console.terse("\nStack '{0}' uid={1}\n".format(stack.name, stack.local.uid))
-        self.assertEqual(len(stack.transactions), 0)
+        console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n\tStats: {5}\n"
+                      .format(stack.name, stack.local.uid, stack.transactions, received, expected, stack.stats))
+        for t in stack.transactions:
+            if isinstance(t, transacting.Messengent):
+                print("Tray lost segments: {0}\n".format([i for i, x in enumerate(t.tray.segments) if x is None]))
         rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
         if rcvErrors:
-            console.terse("Receive message with the following errors:\n")
+            console.terse("{0} received message with the following errors:\n".format(stack.name))
             for s in rcvErrors:
-                console.terse("\t{0}".format(s))
+                console.terse("\t{0} from {1}\n".format(stack.name, s))
+        self.assertEqual(len(stack.transactions), 0)
         self.assertEqual(len(rcvErrors), 0)
         self.assertEqual(received, expected)
 
@@ -597,6 +595,15 @@ class BasicTestCase(unittest.TestCase):
                                  direction=DIR_BIDIRECTIONAL)
         e = dt.now()
         console.terse('Test time: {0}'.format(e-s))
+
+    def testOneToOneToMasterBig(self):
+        console.terse("{0}\n".format(self.testOneToOneToMaster.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=1,
+                                 msgSize=1024*1024*10,
+                                 msgCount=1,
+                                 duration=100.0,
+                                 direction=DIR_TO_MASTER)
 
 
 def runOne(test):
