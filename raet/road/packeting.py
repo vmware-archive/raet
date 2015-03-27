@@ -825,16 +825,16 @@ class RxTray(Tray):
         super(RxTray, self).__init__(**kwa)
         self.segments = segments if segments is not None else []
         self.complete = False
-        self.last = 0 # last packet number received
-        self.prev = 0 # previous packet number received
+        self.highest = 0  # highest segment number received
 
     def parse(self, packet):
         '''
         Process a given packet assumes parseOuter done already
         '''
         sc = packet.data['sc']
-        self.prev = self.last
-        self.last = sn = packet.data['sn']
+        sn = packet.data['sn']
+        if sn > self.highest:
+            self.highest = sn
         console.verbose("segment count={0} number={1} tid={2}\n".format(
             sc, sn, packet.data['ti']))
 
@@ -854,30 +854,20 @@ class RxTray(Tray):
         segment = packet.packed[hl:packet.size - fl]
 
         self.segments[sn] = segment
-        if None in self.segments: #don't have all segments yet
+        if None in self.segments:  # don't have all segments yet
             return None
         self.body = self.desegmentize()
         return self.body
 
     def missing(self, begin=None, end=None):
         '''
-        return deque of missing packet numbers between begin and end where
-        after at least one is found one starting from the end
+        return list of missing packet numbers between begin (incl) and end (excl)
         '''
         if begin is None:
             begin = 0
         if end is None:
-            end = len(self.segments)
-        if begin >= end:
-            return []
-        misseds = deque()
-        found = False  # first missed after found
-        for i in range(end - 1, begin - 1, -1):  # iterate backwards
-            if self.segments[i]:
-                found =  True
-            if found and self.segments[i] is None:
-                misseds.appendleft(i)  # this reverses order
-        return list(misseds)   # convert into a list
+            end = self.highest  # don't return trailing empty numbers
+        return [i for i in xrange(begin, end) if self.segments[i] is None]
 
     def desegmentize(self):
         '''
