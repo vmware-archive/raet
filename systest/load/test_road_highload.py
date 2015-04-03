@@ -10,20 +10,16 @@ if sys.version_info < (2, 7):
     import unittest2 as unittest
 else:
     import unittest
-from nose_parameterized import parameterized
-from ddt import ddt, data, unpack
+
+from systest.lib import data
 
 import os
-import sys
 import time
 import tempfile
 import shutil
 import multiprocessing
 
-from BitVector import BitVector
-
-from ioflo.base.odicting import odict
-from ioflo.base.aiding import Timer, StoreTimer
+from ioflo.base.aiding import StoreTimer
 from ioflo.base import storing
 
 from ioflo.base.consoling import getConsole
@@ -59,71 +55,6 @@ DIR_TO_MASTER = 'to_master'
 DIR_FROM_MASTER = 'from_master'
 
 
-def getStuff(name='master', size=1024, number=0):
-    alpha = '{0}{1}{2}{3}'.format(name, number,
-                                  ''.join([chr(n) for n in xrange(ord('A'), ord('Z') + 1)]),
-                                  ''.join([chr(n) for n in xrange(ord('a'), ord('z') + 1)]))
-    num = size / len(alpha)
-    ret = ''.join([alpha for _ in xrange(num)])
-    num = size - len(ret)
-    ret = ''.join([ret, alpha[:num]])
-    assert len(ret) == size, 'Coding fault: generated data size not equal to requested'
-    return ret
-
-
-def createData(name='master', size=1024, number=0, house='manor', queue='stuff'):
-    stuff = getStuff(name, size, number)
-    ret = odict(house=house, queue=queue, sender=name, number=number, stuff=stuff)
-    return ret
-
-
-def generateMessages(name, size, count, house='manor', queue='stuff'):
-    for i in xrange(count):
-        yield createData(name, size, i, house, queue)
-
-
-class MessageVerifier():
-    def __init__(self, size, count, house, queue):
-        self.size = size
-        self.count = count
-        self.house = house
-        self.queue = queue
-        self.received = {}
-
-    def verifyMessage(self, msg):
-        sender = msg[0]['sender']
-        number = msg[0]['number']
-        expectedMsg = createData(sender, self.size, number, self.house, self.queue)
-        equal = expectedMsg == msg[0]
-
-        if sender not in self.received:
-            self.received[sender] = (BitVector(size=self.count),  # received
-                                     BitVector(size=self.count),  # duplicated
-                                     BitVector(size=self.count))  # wrong content
-
-        if self.received[sender][0][number]:  # duplicate
-            self.received[sender][1][number] = 1
-        else:  # first time received
-            self.received[sender][0][number] = 1
-        if not equal:
-            self.received[sender][2][number] = 1
-
-    def checkAllDone(self, remoteCount, msgCount):
-        errors = []
-        for name, results in self.received.iteritems():
-            rcv = results[0].count_bits()
-            dup = results[1].count_bits()
-            bad = results[2].count_bits()
-            if rcv != self.count:
-                errors.append('{0}: lost {1} messages'.format(name, self.count - rcv))
-            if dup:
-                errors.append('{0}: got duplications for {1} messages'.format(name, dup))
-            if bad:
-                errors.append('{0}: {1} received messages are broken'.format(name, bad))
-        return errors
-
-
-# @ddt
 class BasicTestCase(unittest.TestCase):
     """"""
 
@@ -222,10 +153,11 @@ class BasicTestCase(unittest.TestCase):
 
     def bidirectional(self, stack, duration=3.0):
         console.terse("\nMessages Bidirectional {0} *********\n".format(stack.name))
-        verifier = MessageVerifier(size=self.msgSize, count=self.msgCount, house='manor', queue='stuff')
+        verifier = data.MessageVerifier(size=self.msgSize, msgCount=self.msgCount, remoteCount=len(stack.remotes),
+                                        house='manor', queue='stuff')
         received = 0
         expected = len(stack.remotes) * self.msgCount
-        for msg in generateMessages(name=self.stack.name, size=self.msgSize, count=self.msgCount):
+        for msg in data.generateMessages(name=self.stack.name, size=self.msgSize, count=self.msgCount):
             for remote in stack.remotes.values():
                 # send message
                 stack.transmit(msg, uid=remote.uid)
@@ -252,7 +184,7 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\trcv/exp: {3}/{4}\n\tStats: {5}\n"
                       .format(stack.name, stack.local.uid, stack.transactions, received, expected, stack.stats))
-        rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
+        rcvErrors = verifier.checkAllDone()
         if rcvErrors:
             console.terse("{0} received message with the following errors:\n".format(stack.name))
             for s in rcvErrors:
@@ -263,12 +195,12 @@ class BasicTestCase(unittest.TestCase):
 
     def send(self, stack, duration=3.0):
         console.terse("\nMessages Sender {0} *********\n".format(stack.name))
-        for msg in generateMessages(name=stack.name, size=self.msgSize, count=self.msgCount):
+        for msg in data.generateMessages(name=stack.name, size=self.msgSize, count=self.msgCount):
             for remote in stack.remotes.values():
                 stack.transmit(msg, uid=remote.uid)
                 self.serviceOne(stack, duration=0.01, step=0.01)
 
-        serviceCode = self.serviceOne(stack, duration=duration, timeout=3.0)
+        self.serviceOne(stack, duration=duration, timeout=3.0)
 
         console.terse("\nStack '{0}' uid={1}\n\tTransactions: {2}\n\tStats: {3}\n"
                       .format(stack.name, stack.local.uid, stack.transactions, stack.stats))
@@ -277,7 +209,8 @@ class BasicTestCase(unittest.TestCase):
 
     def receive(self, stack, duration=3.0):
         console.terse("\nMessages Receiver {0} *********\n".format(stack.name))
-        verifier = MessageVerifier(size=self.msgSize, count=self.msgCount, house='manor', queue='stuff')
+        verifier = data.MessageVerifier(size=self.msgSize, msgCount=self.msgCount, remoteCount=len(stack.remotes),
+                                        house='manor', queue='stuff')
         received = 0
         expected = len(stack.remotes) * self.msgCount
         while received < expected:
@@ -296,7 +229,7 @@ class BasicTestCase(unittest.TestCase):
         for t in stack.transactions:
             if isinstance(t, transacting.Messengent):
                 print("Tray lost segments: {0}\n".format([i for i, x in enumerate(t.tray.segments) if x is None]))
-        rcvErrors = verifier.checkAllDone(remoteCount=len(stack.remotes), msgCount=self.msgCount)
+        rcvErrors = verifier.checkAllDone()
         if rcvErrors:
             console.terse("{0} received message with the following errors:\n".format(stack.name))
             for s in rcvErrors:
@@ -357,37 +290,7 @@ class BasicTestCase(unittest.TestCase):
 
         action(self.stack, duration=self.duration)
 
-    # @parameterized.expand([
-    #     ("To Master One To One",       1, 1, 1024, 10, 100.0, "to_master"),
-    #     ("To Master Many To One",      1, 5, 1024, 10, 100.0, "to_master"),
-    #     ("To Master One To Many",      3, 1, 1024, 10, 100.0, "to_master"),
-    #     ("To Master Many To Many",     3, 5, 1024, 10, 100.0, "to_master"),
-    #     ("From Master One To One",     1, 1, 1024, 10, 100.0, "from_master"),
-    #     ("From Master Many To One",    1, 5, 1024, 10, 100.0, "from_master"),
-    #     ("From Master One To Many",    3, 1, 1024, 10, 100.0, "from_master"),
-    #     ("From Master Many To Many",   3, 5, 1024, 10, 100.0, "from_master"),
-    #     ("Bidirectional One To One",   1, 1, 1024, 10, 100.0, "bidirectional"),
-    #     ("Bidirectional Many To One",  1, 5, 1024, 10, 100.0, "bidirectional"),
-    #     ("Bidirectional One To Many",  3, 1, 1024, 10, 100.0, "bidirectional"),
-    #     ("Bidirectional Many To Many", 3, 5, 1024, 10, 100.0, "bidirectional")
-    # ])
-    # @data(
-    #     ("To Master One To One",       1, 1, 1024, 10, 100.0, "to_master"),
-    #     ("To Master Many To One",      1, 5, 1024, 10, 100.0, "to_master"),
-    #     ("To Master One To Many",      3, 1, 1024, 10, 100.0, "to_master"),
-    #     ("To Master Many To Many",     3, 5, 1024, 10, 100.0, "to_master"),
-    #     ("From Master One To One",     1, 1, 1024, 10, 100.0, "from_master"),
-    #     ("From Master Many To One",    1, 5, 1024, 10, 100.0, "from_master"),
-    #     ("From Master One To Many",    3, 1, 1024, 10, 100.0, "from_master"),
-    #     ("From Master Many To Many",   3, 5, 1024, 10, 100.0, "from_master"),
-    #     ("Bidirectional One To One",   1, 1, 1024, 10, 100.0, "bidirectional"),
-    #     ("Bidirectional Many To One",  1, 5, 1024, 10, 100.0, "bidirectional"),
-    #     ("Bidirectional One To Many",  3, 1, 1024, 10, 100.0, "bidirectional"),
-    #     ("Bidirectional Many To Many", 3, 5, 1024, 10, 100.0, "bidirectional"),
-    # )
-    # @unpack
     def messagingMultiPeers(self,
-                            # name,
                             masterCount,
                             minionCount,
                             msgSize,
@@ -593,6 +496,19 @@ class BasicTestCase(unittest.TestCase):
                                  msgCount=100,
                                  duration=1000.0,
                                  direction=DIR_BIDIRECTIONAL)
+        e = dt.now()
+        console.terse('Test time: {0}'.format(e-s))
+
+    def testOneToOneUnidirectional3(self):
+        from datetime import datetime as dt
+        s = dt.now()
+        console.terse("{0}\n".format(self.testOneToOneUnidirectional3.__doc__))
+        self.messagingMultiPeers(masterCount=1,
+                                 minionCount=1,
+                                 msgSize=1024*1024,
+                                 msgCount=100,
+                                 duration=100.0,
+                                 direction=DIR_TO_MASTER)
         e = dt.now()
         console.terse('Test time: {0}'.format(e-s))
 
