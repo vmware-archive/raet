@@ -68,6 +68,7 @@ class BasicTestCase(unittest.TestCase):
         self.stack = None
         # This has to be set to True in the only one process that would perform tearDown steps
         self.engine = False
+        stacking.RoadStack.BurstSize = 100
 
     def tearDown(self):
         # The only engine have to tear down stacks after all workers have done
@@ -161,12 +162,16 @@ class BasicTestCase(unittest.TestCase):
             for remote in stack.remotes.values():
                 # send message
                 stack.transmit(msg, uid=remote.uid)
-                self.serviceOne(stack, duration=0.01, step=0.01)
-                # check received
-                if stack.rxMsgs:
-                    received += len(stack.rxMsgs)
-                    while stack.rxMsgs:
-                        verifier.verifyMessage(stack.rxMsgs.popleft())
+                while True:
+                    self.serviceOne(stack, duration=0.01, step=0.01)
+                    # check received
+                    if stack.rxMsgs:
+                        received += len(stack.rxMsgs)
+                        while stack.rxMsgs:
+                            verifier.verifyMessage(stack.rxMsgs.popleft())
+                    # keep servicing if there are a lot of transactions
+                    if len(stack.transactions) <= 2:
+                        break
 
         while received < expected:
             self.serviceOne(stack, duration=duration, timeout=duration,
@@ -198,7 +203,10 @@ class BasicTestCase(unittest.TestCase):
         for msg in data.generateMessages(name=stack.name, size=self.msgSize, count=self.msgCount):
             for remote in stack.remotes.values():
                 stack.transmit(msg, uid=remote.uid)
-                self.serviceOne(stack, duration=0.01, step=0.01)
+                while True:
+                    self.serviceOne(stack, duration=0.01, step=0.01)
+                    if len(stack.transactions) <= 2:
+                        break
 
         self.serviceOne(stack, duration=duration, timeout=3.0)
 
@@ -515,7 +523,7 @@ class BasicTestCase(unittest.TestCase):
                                  minionCount=1,
                                  msgSize=1024*1024,
                                  msgCount=100,
-                                 duration=100.0,
+                                 duration=1000.0,
                                  direction=DIR_TO_MASTER)
         e = dt.now()
         console.terse('Test time: {0}\n'.format(e-s))
