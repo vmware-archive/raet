@@ -76,6 +76,7 @@ class Estate(lotting.Lot):
         self.dyned = dyned
         self.role = role if role is not None else self.name
         self.transactions = odict() # estate transactions keyed by transaction index
+        self.doneTransactions = odict()  # temporary storage for done transaction ids
 
     @property
     def eha(self):
@@ -142,6 +143,15 @@ class Estate(lotting.Lot):
                     console.concise( "Removed transaction from '{0}' at '{1}',"
                             " instead of at '{2}'\n".format(self.name, i, index))
 
+    def addDoneTransaction(self, index):
+        self.doneTransactions[index] = aiding.StoreTimer(self.stack.store, duration=self.stack.MsgStaleTimeout)
+
+    def cleanupDoneTransactions(self):
+        for index, timer in self.doneTransactions.iteritems():
+            if not timer.expired:
+                break
+            del self.doneTransactions[index]
+            console.verbose("Removed already done transaction from {0} at '{1}'\n".format(self.name, index))
 
     def removeStaleTransactions(self):
         '''
@@ -155,6 +165,7 @@ class Estate(lotting.Lot):
         '''
         for transaction in self.transactions.values():
             transaction.process()
+        self.cleanupDoneTransactions()
 
     @staticmethod
     def nameGuid(prefix='estate'):
@@ -393,6 +404,7 @@ class RemoteEstate(Estate):
                                         self.stack.store.stamp))
                 console.terse(emsg)
                 self.stack.incStat('stale_correspondent')
+        self.doneTransactions.clear()
 
     def replaceStaleInitiators(self):
         '''

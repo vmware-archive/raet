@@ -354,12 +354,10 @@ class BasicTestCase(unittest.TestCase):
         self.timer.restart(duration=duration)
         while not self.timer.expired:
             for stack in stacks:
+                stack.serviceAllRx()
                 stack.serviceTxMsgs()
+                stack.txes.clear()
                 stack.serviceTxes()
-                self.txes.clear()
-                stack.serviceReceives()
-                stack.serviceRxes()
-                stack.process()
 
             if all([not stack.transactions for stack in stacks]):
                 break
@@ -1300,6 +1298,110 @@ class BasicTestCase(unittest.TestCase):
         for stack in [alpha, beta]:
             stack.server.close()
             stack.clearAllKeeps()
+
+    def testMessageDropAllFirst(self):
+        '''
+        Test message with all first segments dropped.
+        '''
+        console.terse("{0}\n".format(self.testMessageDropAllFirst.__doc__))
+
+        alphaData = self.createRoadData(name='alpha',
+                                        base=self.base,
+                                        auto=raeting.AutoMode.once.value)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData,
+                                     main=True,
+                                     auto=alphaData['auto'],
+                                     ha=None)
+
+        betaData = self.createRoadData(name='beta',
+                                       base=self.base,
+                                       auto=raeting.AutoMode.once.value)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData,
+                                    main=True,
+                                    auto=betaData['auto'],
+                                    ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nJoin *********\n")
+        self.join(alpha, beta)  # vacuous join fails because other not main
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow *********\n")
+        self.allow(alpha, beta)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # fast alive
+
+        console.terse("\nMessage Alpha to Beta *********\n")
+        msgs = []
+        bloat = []
+        for i in xrange(300):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        sentMsg = odict(who="Green", data=bloat)
+        msgs.append(sentMsg)
+
+        console.terse("\nMessage with drops Alpha to Beta *********\n")
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 0)
+        alpha.transmit(sentMsg)
+
+        drops = [1]*40
+        dropage = [list(drops), list(drops)]
+        self.serviceStacksFlushTx([alpha, beta], duration=0.01)  # 1 iteration drop all
+        self.serviceStacks([alpha, beta], duration=10.0)
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 1)
+        receivedMsg, source = beta.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        console.terse("\nMessage with drops Beta to Alpha *********\n")
+        self.assertEqual(len(beta.txMsgs), 0)
+        self.assertEqual(len(beta.txes), 0)
+        self.assertEqual(len(alpha.rxes), 0)
+        self.assertEqual(len(alpha.rxMsgs), 0)
+        beta.transmit(sentMsg)
+
+        drops = [1]*40
+        dropage = [list(drops), list(drops)]
+        self.serviceStacksWithDrops([alpha, beta], dropage=dropage, duration=0.01)  # 1 iteration drop all
+        self.serviceStacks([alpha, beta], duration=10.0)
+
+        for stack in [beta, alpha]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(beta.txMsgs), 0)
+        self.assertEqual(len(beta.txes), 0)
+        self.assertEqual(len(alpha.rxes), 0)
+        self.assertEqual(len(alpha.rxMsgs), 1)
+        receivedMsg, source = alpha.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
 
 def runOne(test):
     '''
