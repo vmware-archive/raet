@@ -1402,6 +1402,168 @@ class BasicTestCase(unittest.TestCase):
             stack.server.close()
             stack.clearAllKeeps()
 
+    def testMessageSingleSegmentedDuplicate(self):
+        '''
+        Test single segmented message received twice
+        '''
+        console.terse("{0}\n".format(self.testMessageSingleSegmentedDuplicate.__doc__))
+
+        alphaData = self.createRoadData(name='alpha',
+                                        base=self.base,
+                                        auto=raeting.AutoMode.once.value)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData,
+                                     main=True,
+                                     auto=alphaData['auto'],
+                                     ha=None)
+
+        betaData = self.createRoadData(name='beta',
+                                       base=self.base,
+                                       auto=raeting.AutoMode.once.value)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData,
+                                    main=True,
+                                    auto=betaData['auto'],
+                                    ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nJoin *********\n")
+        self.join(alpha, beta) # vacuous join fails because other not main
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow *********\n")
+        self.allow(alpha, beta)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # fast alive
+
+        console.terse("\nMessage Alpha to Beta *********\n")
+        msgs = []
+        bloat = []
+        for i in range(5):
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        sentMsg = odict(who="Green", data=bloat)
+        alpha.transmit(sentMsg)
+        # Send the message and redo the message
+        self.serviceStack(alpha, duration=0.5)  # transmit
+        self.assertIn('redo_segment', alpha.stats)
+
+        self.serviceStacks((beta, alpha))
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 1)
+        receivedMsg, source = beta.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        stacking.RoadStack.BurstSize = 0
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
+    def testMessageSegmentedLostAckDuplicate(self):
+        '''
+        Test single segmented message received twice
+        '''
+        console.terse("{0}\n".format(self.testMessageSegmentedLostAckDuplicate.__doc__))
+
+        alphaData = self.createRoadData(name='alpha',
+                                        base=self.base,
+                                        auto=raeting.AutoMode.once.value)
+        keeping.clearAllKeep(alphaData['dirpath'])
+        alpha = self.createRoadStack(data=alphaData,
+                                     main=True,
+                                     auto=alphaData['auto'],
+                                     ha=None)
+
+        betaData = self.createRoadData(name='beta',
+                                       base=self.base,
+                                       auto=raeting.AutoMode.once.value)
+        keeping.clearAllKeep(betaData['dirpath'])
+        beta = self.createRoadStack(data=betaData,
+                                    main=True,
+                                    auto=betaData['auto'],
+                                    ha=("", raeting.RAET_TEST_PORT))
+
+        console.terse("\nJoin *********\n")
+        self.join(alpha, beta) # vacuous join fails because other not main
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, None)
+            self.assertIs(remote.alived, None)
+
+        console.terse("\nAllow *********\n")
+        self.allow(alpha, beta)
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+            self.assertEqual(len(stack.remotes), 1)
+            self.assertEqual(len(stack.nameRemotes), 1)
+            remote = stack.remotes.values()[0]
+            self.assertIs(remote.joined, True)
+            self.assertIs(remote.allowed, True)
+            self.assertIs(remote.alived, True)  # fast alive
+
+        console.terse("\nMessage Alpha to Beta *********\n")
+        msgs = []
+        bloat = []
+        for i in range(15):  # 2 segments expected
+            bloat.append(str(i).rjust(100, " "))
+        bloat = "".join(bloat)
+        sentMsg = odict(who="Green", data=bloat)
+        alpha.transmit(sentMsg)
+        # Messenger: send the message
+        alpha.serviceAll()
+        self.store.advanceStamp(0.1)
+        time.sleep(0.1)
+        # Messengent: receive, handle the message, send Ack, remove transaction
+        beta.serviceAll()
+        self.store.advanceStamp(0.1)
+        time.sleep(0.1)
+        # Drop Ack as if it's lost
+        alpha.serviceReceives()
+        self.assertEqual(len(alpha.rxes), 1)
+        alpha.rxes.clear()
+        # Messenger: resend last segment without AF
+        self.serviceStack(alpha, duration=0.5)  # transmit
+        self.assertIn('redo_segment', alpha.stats)
+        # Messengent: create new transaction and request missed segments, all but the last one
+        self.serviceStacks((beta, alpha))
+
+        for stack in [alpha, beta]:
+            self.assertEqual(len(stack.transactions), 0)
+
+        self.assertEqual(len(alpha.txMsgs), 0)
+        self.assertEqual(len(alpha.txes), 0)
+        self.assertEqual(len(beta.rxes), 0)
+        self.assertEqual(len(beta.rxMsgs), 1)
+        receivedMsg, source = beta.rxMsgs.popleft()
+        self.assertDictEqual(sentMsg, receivedMsg)
+
+        stacking.RoadStack.BurstSize = 0
+        for stack in [alpha, beta]:
+            stack.server.close()
+            stack.clearAllKeeps()
+
 
 def runOne(test):
     '''
