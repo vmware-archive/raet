@@ -2694,6 +2694,7 @@ class Messenger(Initiator):
 
         self.burst = max(0, int(burst)) # BurstSize
         self.misseds = oset()  # ordered set of currently missed segments
+        self.acked = False  # Have received at least one ack
 
         self.sid = self.remote.sid
         self.tid = self.remote.nextTid()
@@ -2715,10 +2716,13 @@ class Messenger(Initiator):
 
         if packet.data['tk'] == TrnsKind.message:
             if packet.data['pk'] == PcktKind.ack: # more
+                self.acked = True
                 self.another()  # continue message
             elif packet.data['pk'] == PcktKind.resend:  # resend
+                self.acked = True
                 self.resend()  # resend missed segments
             elif packet.data['pk'] == PcktKind.done:  # completed
+                self.acked = True
                 self.complete()
             elif packet.data['pk'] == PcktKind.nack: # rejected
                 self.reject()
@@ -2742,7 +2746,7 @@ class Messenger(Initiator):
             self.redoTimer.restart(duration=duration)
             if self.txPacket:
                 if self.txPacket.data['pk'] in [PcktKind.message]:
-                    if not self.txPacket.data['af']:  # turn on AgnFlag if not set
+                    if self.acked and not self.txPacket.data['af']:  # turn on AgnFlag if not set
                         self.txPacket.data.update(af=True)
                         self.txPacket.repack()
                     self.transmit(self.txPacket) # redo
