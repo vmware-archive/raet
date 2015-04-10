@@ -216,7 +216,8 @@ class BasicTestCase(unittest.TestCase):
         while received < expected:
             reason = self.serviceOne(stack, duration=duration, timeout=duration,
                                      exitCase=lambda: stack.rxMsgs)
-            console.terse("Service exit reason: {0}, transactions: {1}\n".format(reason, stack.transactions))
+            console.terse("{0} service exit reason: {1}, transactions: {2}\n".format(
+                stack.name, reason, stack.transactions))
             # received nothing during timeout, assume there is nothing to receive
             if not stack.rxMsgs:
                 break
@@ -242,6 +243,8 @@ class BasicTestCase(unittest.TestCase):
         # create stack
         self.stack = self.createStack(name, port)
 
+        console.terse("\nCreated {0} at {1} *********\n".format(name, self.stack.ha))
+
         console.terse("\n{0} Waiting For Minions *********\n".format(name))
 
         def isBootstrapDone():
@@ -254,7 +257,9 @@ class BasicTestCase(unittest.TestCase):
                     return False
             return True
 
-        serviceCode = self.serviceOne(self.stack, timeout=10.0, exitCase=isBootstrapDone)
+        serviceCode = self.serviceOne(self.stack, timeout=100.0, exitCase=isBootstrapDone)
+
+        console.terse("\n{0} bootstrap done with code {1}".format(name, serviceCode))
 
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), minionCount)
@@ -270,13 +275,16 @@ class BasicTestCase(unittest.TestCase):
         # Create stack
         self.stack = self.createStack(name, port)
 
+        console.terse("\nCreated {0} at {1} *********\n".format(name, self.stack.ha))
+
         console.terse("\n{0} Joining Remotes *********\n".format(name))
 
         self.joinAll(self.stack, remoteAddresses)
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), len(remoteAddresses))
         for remote in self.stack.remotes.values():
-            self.assertTrue(remote.joined)
+            self.assertTrue(remote.joined, "{0}: remote '{1}' at {2} is not joined".format(
+                name, remote.name, remote.ha))
 
         console.terse("\n{0} Allowing Remotes *********\n".format(name))
 
@@ -284,7 +292,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), len(remoteAddresses))
         for remote in self.stack.remotes.values():
-            self.assertTrue(remote.allowed)
+            self.assertTrue(remote.allowed, "{0}: remote '{1}' at {2} is not allowed".format(
+                name, remote.name, remote.ha))
 
         console.terse("\n{0} Bootstrap Done *********\n".format(name))
 
@@ -336,21 +345,18 @@ class BasicTestCase(unittest.TestCase):
             minionProcs.append(minionProc)
             port += 1
 
-        for masterProc in masterProcs:
-            masterProc.start()
-        for minionProc in minionProcs:
-            minionProc.start()
+        for procs in (masterProcs, minionProcs):
+            for proc in procs:
+                proc.start()
         self.engine = True
 
-        for masterProc in masterProcs:
-            masterProc.join()
-        for minionProc in minionProcs:
-            minionProc.join()
+        for procs in (masterProcs, minionProcs):
+            for proc in procs:
+                proc.join()
 
-        for masterProc in masterProcs:
-            self.assertEqual(masterProc.exitcode, 0)
-        for minionProc in minionProcs:
-            self.assertEqual(minionProc.exitcode, 0)
+        for procs in (masterProcs, minionProcs):
+            for proc in procs:
+                self.assertEqual(proc.exitcode, 0, "'{0}' returned {1}".format(proc.name, proc.exitcode))
 
     def testOneToOneToMaster(self):
         console.terse("{0}\n".format(self.testOneToOneToMaster.__doc__))
@@ -471,7 +477,7 @@ class BasicTestCase(unittest.TestCase):
                                  duration=100.0,
                                  direction=DIR_BIDIRECTIONAL)
         e = dt.now()
-        console.terse('Test time: {0}'.format(e-s))
+        console.terse('Test time: {0}\n'.format(e-s))
 
     def testManyToManyBidirectional2(self):
         from datetime import datetime as dt
@@ -484,7 +490,7 @@ class BasicTestCase(unittest.TestCase):
                                  duration=100.0,
                                  direction=DIR_BIDIRECTIONAL)
         e = dt.now()
-        console.terse('Test time: {0}'.format(e-s))
+        console.terse('Test time: {0}\n'.format(e-s))
 
     def testManyToManyBidirectional3(self):
         from datetime import datetime as dt
@@ -497,7 +503,7 @@ class BasicTestCase(unittest.TestCase):
                                  duration=1000.0,
                                  direction=DIR_BIDIRECTIONAL)
         e = dt.now()
-        console.terse('Test time: {0}'.format(e-s))
+        console.terse('Test time: {0}\n'.format(e-s))
 
     def testOneToOneUnidirectional3(self):
         from datetime import datetime as dt
@@ -510,7 +516,7 @@ class BasicTestCase(unittest.TestCase):
                                  duration=100.0,
                                  direction=DIR_TO_MASTER)
         e = dt.now()
-        console.terse('Test time: {0}'.format(e-s))
+        console.terse('Test time: {0}\n'.format(e-s))
 
     def testOneToOneToMasterBig(self):
         console.terse("{0}\n".format(self.testOneToOneToMaster.__doc__))
