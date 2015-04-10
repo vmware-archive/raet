@@ -106,7 +106,7 @@ class MessageVerifier():
     def checkAllDone(self):
         errors = []
         if self.remoteCount != len(self.received):
-            errors.append('{0}: remote count not match {1} vs {2}'.format(self.remoteCount, len(self.received)))
+            errors.append('remote count not match {0} vs {1}'.format(self.remoteCount, len(self.received)))
         for name, results in self.received.iteritems():
             rcv = results[0].count_bits()
             dup = results[1].count_bits()
