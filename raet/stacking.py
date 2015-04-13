@@ -286,7 +286,6 @@ class Stack(object):
         self.rxes.append((rx, ra))     # duple = ( packet, source address)
         return True
 
-
     def serviceReceives(self):
         '''
         Retrieve from server all recieved and put on the rxes deque
@@ -390,7 +389,6 @@ class Stack(object):
             msg = "Invalid destination remote id '{0}'".format(duid)
             raise raeting.StackError(msg)
         self.txes.append((packed, self.remotes[duid].ha))
-
 
     def _handleOneTx(self, laters, blocks):
         '''
