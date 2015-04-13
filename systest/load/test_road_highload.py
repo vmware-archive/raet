@@ -169,7 +169,7 @@ class BasicTestCase(unittest.TestCase):
                         verifier.verifyMessage(stack.rxMsgs.popleft())
 
         while received < expected:
-            self.serviceOne(stack, duration=3.0, timeout=3.0,
+            self.serviceOne(stack, duration=duration, timeout=duration,
                             exitCase=lambda: stack.rxMsgs)
             # if received nothing during timeout, assume we're done
             if not stack.rxMsgs:
@@ -345,9 +345,11 @@ class BasicTestCase(unittest.TestCase):
             minionProcs.append(minionProc)
             port += 1
 
-        for procs in (masterProcs, minionProcs):
-            for proc in procs:
-                proc.start()
+        for proc in masterProcs:
+            proc.start()
+        time.sleep(1.0)  # let masters start
+        for proc in minionProcs:
+            proc.start()
         self.engine = True
 
         for procs in (masterProcs, minionProcs):
