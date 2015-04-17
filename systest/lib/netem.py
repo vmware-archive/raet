@@ -15,6 +15,7 @@ NETEM_SHOW_LO = ['tc', 'qdisc', 'show', 'dev', 'lo']
 def delay(time=100, jitter=10, correlation=25):
     '''
     Add loopback interface netem rule to delay packets
+
     :param time: delay value in ms
     :param jitter: deviation from the specified duration in ms
     :param correlation:
@@ -31,6 +32,7 @@ def delay(time=100, jitter=10, correlation=25):
 def loss(percent=5, correlation=25):
     '''
     Add loopback interface netem rule to loss packets
+
     :param percent: loss percentage
     :param correlation:
     :return: True if no error
@@ -44,6 +46,7 @@ def loss(percent=5, correlation=25):
 def duplicate(percent=5, correlation=25):
     '''
     Add loopback interface netem rule to loss packets
+
     :param percent: loss percentage
     :param correlation:
     :return: True if no error
@@ -57,6 +60,7 @@ def duplicate(percent=5, correlation=25):
 def reorder(time=100, percent=10, correlation=25):
     '''
     Add loopback interface netem rule to delay packets
+
     :param time: delay value, ms
     :param percent: deviation from the specified duration, ms
     :param correlation: how much packets
@@ -72,6 +76,7 @@ def reorder(time=100, percent=10, correlation=25):
 def corrupt(percent=5, correlation=25):
     '''
     Add loopback interface netem rule to delay packets
+
     :param duration: corruption percentage
     :param correlation: how much packets
     :return: True if no error
@@ -85,6 +90,7 @@ def corrupt(percent=5, correlation=25):
 def clear():
     '''
     Clear all netem rules on loopback interface
+
     :return: True if no error
     '''
     cmd = SU_CMD + NETEM_DEL_LO_ROOT_CMD
@@ -94,6 +100,7 @@ def clear():
 def check():
     '''
     Returns the count of netem rules applied to the loopback
+
     :return: The count of netem rules
     '''
     cmd = SU_CMD + NETEM_SHOW_LO

@@ -48,6 +48,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
         super(LoadTestCase, self).tearDown()
 
     def testOneToOneToMaster(self):
+        '''
+        One slave sends messages to one master
+        '''
         console.terse("{0}\n".format(self.testOneToOneToMaster.__doc__))
         self.messagingMultiPeers(masterCount=1,
                                  minionCount=1,
@@ -57,6 +60,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testManyToOneToMaster(self):
+        '''
+        Many slaves send messages to one master
+        '''
         console.terse("{0}\n".format(self.testManyToOneToMaster.__doc__))
         self.messagingMultiPeers(masterCount=1,
                                  minionCount=testing.MULTI_MINION_COUNT,
@@ -66,6 +72,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testOneToManyToMaster(self):
+        '''
+        One slave sends messages to many masters
+        '''
         console.terse("{0}\n".format(self.testOneToManyToMaster.__doc__))
         self.messagingMultiPeers(masterCount=testing.MULTI_MASTER_COUNT,
                                  minionCount=1,
@@ -75,6 +84,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testManyToManyToMaster(self):
+        '''
+        Many slaves send messages to many masters
+        '''
         console.terse("{0}\n".format(self.testManyToManyToMaster.__doc__))
         self.messagingMultiPeers(masterCount=testing.MULTI_MASTER_COUNT,
                                  minionCount=testing.MULTI_MINION_COUNT,
@@ -84,6 +96,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testOneToOneFromMaster(self):
+        '''
+        One master sends messages to one slave
+        '''
         console.terse("{0}\n".format(self.testOneToOneFromMaster.__doc__))
         self.messagingMultiPeers(masterCount=1,
                                  minionCount=1,
@@ -93,6 +108,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_FROM_MASTER)
 
     def testManyToOneFromMaster(self):
+        '''
+        One master sends messages to many slaves
+        '''
         console.terse("{0}\n".format(self.testManyToOneFromMaster.__doc__))
         self.messagingMultiPeers(masterCount=1,
                                  minionCount=testing.MULTI_MINION_COUNT,
@@ -102,6 +120,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_FROM_MASTER)
 
     def testOneToManyFromMaster(self):
+        '''
+        Many masters send messages to one slave
+        '''
         console.terse("{0}\n".format(self.testOneToManyFromMaster.__doc__))
         self.messagingMultiPeers(masterCount=testing.MULTI_MASTER_COUNT,
                                  minionCount=1,
@@ -111,6 +132,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_FROM_MASTER)
 
     def testManyToManyFromMaster(self):
+        '''
+        Many masters send messages to many slaves
+        '''
         console.terse("{0}\n".format(self.testManyToManyFromMaster.__doc__))
         self.messagingMultiPeers(masterCount=testing.MULTI_MASTER_COUNT,
                                  minionCount=testing.MULTI_MINION_COUNT,
@@ -120,6 +144,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_FROM_MASTER)
 
     def testOneToOneBidirectional(self):
+        '''
+        Bidirectional messaging between one master and one slave
+        '''
         console.terse("{0}\n".format(self.testOneToOneBidirectional.__doc__))
         self.messagingMultiPeers(masterCount=1,
                                  minionCount=1,
@@ -129,6 +156,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_BIDIRECTIONAL)
 
     def testManyToOneBidirectional(self):
+        '''
+        Bidirectional messaging between one master and many slaves
+        '''
         console.terse("{0}\n".format(self.testManyToOneBidirectional.__doc__))
         self.messagingMultiPeers(masterCount=1,
                                  minionCount=testing.MULTI_MINION_COUNT,
@@ -138,6 +168,9 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_BIDIRECTIONAL)
 
     def testOneToManyBidirectional(self):
+        '''
+        Bidirectional messaging between many masters and one slave
+        '''
         console.terse("{0}\n".format(self.testOneToManyBidirectional.__doc__))
         self.messagingMultiPeers(masterCount=testing.MULTI_MASTER_COUNT,
                                  minionCount=1,
@@ -147,74 +180,40 @@ class LoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_BIDIRECTIONAL)
 
     def testManyToManyBidirectional(self):
+        '''
+        Bidirectional messaging between many masters and many slaves
+        '''
         console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
         self.messagingMultiPeers(masterCount=testing.MULTI_MASTER_COUNT,
                                  minionCount=testing.MULTI_MINION_COUNT,
                                  msgSize=testing.MSG_SIZE_MED,
                                  msgCount=testing.MSG_COUNT_MED,
-                                 duration=100.0,
-                                 direction=testing.DIR_BIDIRECTIONAL)
-
-    def testManyToManyBidirectional1(self):
-        from datetime import datetime as dt
-        s = dt.now()
-        console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
-        self.messagingMultiPeers(masterCount=3,
-                                 minionCount=5,
-                                 msgSize=1024,
-                                 msgCount=100,
-                                 duration=100.0,
-                                 direction=testing.DIR_BIDIRECTIONAL)
-        e = dt.now()
-        console.terse('Test time: {0}\n'.format(e-s))
-
-    def testManyToManyBidirectional2(self):
-        from datetime import datetime as dt
-        s = dt.now()
-        console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
-        self.messagingMultiPeers(masterCount=3,
-                                 minionCount=5,
-                                 msgSize=1024*10,
-                                 msgCount=100,
-                                 duration=100.0,
-                                 direction=testing.DIR_BIDIRECTIONAL)
-        e = dt.now()
-        console.terse('Test time: {0}\n'.format(e-s))
-
-    def testManyToManyBidirectional3(self):
-        from datetime import datetime as dt
-        s = dt.now()
-        console.terse("{0}\n".format(self.testManyToManyBidirectional.__doc__))
-        self.messagingMultiPeers(masterCount=3,
-                                 minionCount=5,
-                                 msgSize=1024*100,
-                                 msgCount=100,
                                  duration=1000.0,
                                  direction=testing.DIR_BIDIRECTIONAL)
-        e = dt.now()
-        console.terse('Test time: {0}\n'.format(e-s))
-
-    def testOneToOneUnidirectional3(self):
-        from datetime import datetime as dt
-        s = dt.now()
-        console.terse("{0}\n".format(self.testOneToOneUnidirectional3.__doc__))
-        self.messagingMultiPeers(masterCount=1,
-                                 minionCount=1,
-                                 msgSize=1024*1024,
-                                 msgCount=100,
-                                 duration=1000.0,
-                                 direction=testing.DIR_TO_MASTER)
-        e = dt.now()
-        console.terse('Test time: {0}\n'.format(e-s))
 
     def testOneToOneToMasterBig(self):
-        console.terse("{0}\n".format(self.testOneToOneToMaster.__doc__))
+        '''
+        One slave sends one big message to one master
+        '''
+        console.terse("{0}\n".format(self.testOneToOneToMasterBig.__doc__))
         self.messagingMultiPeers(masterCount=1,
                                  minionCount=1,
-                                 msgSize=1024*1024*10,
+                                 msgSize=testing.MSG_SIZE_BIG,
                                  msgCount=1,
-                                 duration=100.0,
+                                 duration=1000.0,
                                  direction=testing.DIR_TO_MASTER)
+
+    def testManyToManyBidirectionalBig(self):
+        '''
+        Bidirectional messaging between many masters and many slaves with big messages
+        '''
+        console.terse("{0}\n".format(self.testManyToManyBidirectionalBig.__doc__))
+        self.messagingMultiPeers(masterCount=testing.MULTI_MASTER_COUNT,
+                                 minionCount=testing.MULTI_MINION_COUNT,
+                                 msgSize=testing.MSG_SIZE_BIG,
+                                 msgCount=testing.MSG_COUNT_MED,
+                                 duration=1000.0,
+                                 direction=testing.DIR_BIDIRECTIONAL)
 
 
 def runOne(test):
@@ -242,11 +241,8 @@ def runSome():
         'testManyToOneBidirectional',
         'testOneToManyBidirectional',
         'testManyToManyBidirectional',
-        'testManyToManyBidirectional1',
-        'testManyToManyBidirectional2',
-        'testManyToManyBidirectional3',
-        'testOneToOneUnidirectional3',
         'testOneToOneToMasterBig',
+        'testManyToManyBidirectionalBig',
         ]
     tests.extend(map(LoadTestCase, names))
 
