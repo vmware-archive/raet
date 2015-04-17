@@ -98,27 +98,43 @@ class BasicLoadTestCase(unittest.TestCase):
                                   dirpath=dirpath,
                                   )
 
-    def joinAll(self, initiator, correspondentAddresses, timeout=None):
+    def joinAll(self, initiator, correspondentAddresses, timeout=None, retryCount=1):
         '''
         Utility method to do join. Call from test method.
         '''
         console.terse("\nJoin Transaction **************\n")
-        for ha in correspondentAddresses:
-            remote = initiator.addRemote(estating.RemoteEstate(stack=initiator,
-                                                               fuid=0,  # vacuous join
-                                                               sid=0,  # always 0 for join
-                                                               ha=ha))
-            initiator.join(uid=remote.uid, timeout=timeout)
-        self.serviceOne(initiator)
+        addresses = list(correspondentAddresses)
+        for ha in addresses:
+            initiator.addRemote(estating.RemoteEstate(stack=initiator,
+                                                      fuid=0,  # vacuous join
+                                                      sid=0,  # always 0 for join
+                                                      ha=ha))
+        while retryCount > 0:
+            done = True
+            for remote in initiator.remotes.values():
+                if not remote.joined:
+                    done = False
+                    initiator.join(uid=remote.uid, timeout=timeout)
+            self.serviceOne(initiator)
+            if done:
+                break
+            retryCount -= 1
 
-    def allowAll(self, initiator, timeout=None):
+    def allowAll(self, initiator, timeout=None, retryCount=1):
         '''
         Utility method to do allow. Call from test method.
         '''
         console.terse("\nAllow Transaction **************\n")
-        for remote in initiator.remotes.values():
-            initiator.allow(uid=remote.uid, timeout=timeout)
-        self.serviceOne(initiator)
+        while retryCount > 0:
+            done = True
+            for remote in initiator.remotes.values():
+                if not remote.allowed:
+                    done = False
+                    initiator.allow(uid=remote.uid, timeout=timeout)
+            self.serviceOne(initiator)
+            if done:
+                break
+            retryCount -= 1
 
     def serviceAll(self, stacks, duration=100.0, timeout=0.0, step=0.1, exitCase=None):
         '''
@@ -315,7 +331,7 @@ class BasicLoadTestCase(unittest.TestCase):
 
         console.terse("\n{0} Joining Remotes *********\n".format(name))
 
-        self.joinAll(self.stack, remoteAddresses)
+        self.joinAll(self.stack, remoteAddresses, retryCount=10)
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), len(remoteAddresses))
         for remote in self.stack.remotes.values():
@@ -324,7 +340,7 @@ class BasicLoadTestCase(unittest.TestCase):
 
         console.terse("\n{0} Allowing Remotes *********\n".format(name))
 
-        self.allowAll(self.stack)
+        self.allowAll(self.stack, retryCount=10)
         self.assertEqual(len(self.stack.transactions), 0)
         self.assertEqual(len(self.stack.remotes), len(remoteAddresses))
         for remote in self.stack.remotes.values():
