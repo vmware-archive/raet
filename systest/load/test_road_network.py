@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Load test for Raet Road Stack
+Load test for Raet Road Stack with network issues
 
 '''
 from __future__ import print_function
@@ -67,6 +67,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
         self.assertEqual(netem.check(), 1)
 
     def testDelayOneToOneToMaster(self):
+        '''
+        One slave sends messages to one master with network delays
+        '''
         console.terse("{0}\n".format(self.testDelayOneToOneToMaster.__doc__))
         self.assertTrue(netem.delay(time=200, jitter=100, correlation=30))
         self.assertEqual(netem.check(), 1)
@@ -78,6 +81,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testLossOneToOneToMaster(self):
+        '''
+        One slave sends messages to one master with packet loss
+        '''
         console.terse("{0}\n".format(self.testLossOneToOneToMaster.__doc__))
         self.assertTrue(netem.loss(percent=30, correlation=25))
         self.assertEqual(netem.check(), 1)
@@ -89,6 +95,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testDuplicateOneToOneToMaster(self):
+        '''
+        One slave sends messages to one master with packet duplication
+        '''
         console.terse("{0}\n".format(self.testDuplicateOneToOneToMaster.__doc__))
         self.assertTrue(netem.duplicate(percent=50, correlation=25))
         self.assertEqual(netem.check(), 1)
@@ -100,6 +109,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testReorderOneToOneToMaster(self):
+        '''
+        One slave sends messages to one master with packet reordering
+        '''
         console.terse("{0}\n".format(self.testReorderOneToOneToMaster.__doc__))
         self.assertTrue(netem.reorder(time=200, percent=30, correlation=25))
         self.assertEqual(netem.check(), 1)
@@ -111,6 +123,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testCorruptOneToOneToMaster(self):
+        '''
+        One slave sends messages to one master with packet corruption
+        '''
         console.terse("{0}\n".format(self.testCorruptOneToOneToMaster.__doc__))
         self.assertTrue(netem.corrupt(percent=20, correlation=25))
         self.assertEqual(netem.check(), 1)
@@ -122,6 +137,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_TO_MASTER)
 
     def testDelayManyToManyBidirectional(self):
+        '''
+        Bidirectional messaging between many masters and many slaves with network delay
+        '''
         console.terse("{0}\n".format(self.testDelayManyToManyBidirectional.__doc__))
         self.assertTrue(netem.delay(time=200, jitter=100, correlation=30))
         self.assertEqual(netem.check(), 1)
@@ -133,6 +151,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_BIDIRECTIONAL)
 
     def testLossManyToManyBidirectional(self):
+        '''
+        Bidirectional messaging between many masters and many slaves with packet loss
+        '''
         console.terse("{0}\n".format(self.testLossManyToManyBidirectional.__doc__))
         self.assertTrue(netem.loss(percent=30, correlation=25))
         self.assertEqual(netem.check(), 1)
@@ -144,6 +165,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_BIDIRECTIONAL)
 
     def testDuplicateManyToManyBidirectional(self):
+        '''
+        Bidirectional messaging between many masters and many slaves with packet duplication
+        '''
         console.terse("{0}\n".format(self.testDuplicateManyToManyBidirectional.__doc__))
         self.assertTrue(netem.duplicate(percent=50, correlation=25))
         self.assertEqual(netem.check(), 1)
@@ -155,6 +179,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_BIDIRECTIONAL)
 
     def testReorderManyToManyBidirectional(self):
+        '''
+        Bidirectional messaging between many masters and many slaves with packet reordering
+        '''
         console.terse("{0}\n".format(self.testReorderManyToManyBidirectional.__doc__))
         self.assertTrue(netem.reorder(time=200, percent=30, correlation=25))
         self.assertEqual(netem.check(), 1)
@@ -166,6 +193,9 @@ class NetworkLoadTestCase(testing.BasicLoadTestCase):
                                  direction=testing.DIR_BIDIRECTIONAL)
 
     def testCorruptManyToManyBidirectional(self):
+        '''
+        Bidirectional messaging between many masters and many slaves with packet corruption
+        '''
         console.terse("{0}\n".format(self.testCorruptManyToManyBidirectional.__doc__))
         self.assertTrue(netem.corrupt(percent=20, correlation=25))
         self.assertEqual(netem.check(), 1)
