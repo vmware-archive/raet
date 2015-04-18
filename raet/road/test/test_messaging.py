@@ -354,12 +354,10 @@ class BasicTestCase(unittest.TestCase):
         self.timer.restart(duration=duration)
         while not self.timer.expired:
             for stack in stacks:
+                stack.serviceAllRx()
                 stack.serviceTxMsgs()
+                stack.txes.clear()
                 stack.serviceTxes()
-                self.txes.clear()
-                stack.serviceReceives()
-                stack.serviceRxes()
-                stack.process()
 
             if all([not stack.transactions for stack in stacks]):
                 break
