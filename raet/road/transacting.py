@@ -225,8 +225,8 @@ class Staler(Initiator):
         except ValueError as ex:
             pkname = None
 
-        emsg = ("Staler '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' "
-               "nacking...\n".format(self.stack.name, tkname, pkname, ha ))
+        emsg = ("Staler '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' in {4} "
+                "nacking...\n".format(self.stack.name, tkname, pkname, ha, self.tid))
         console.terse(emsg)
         self.stack.incStat('stale_correspondent_attempt')
 
@@ -304,8 +304,8 @@ class Stalent(Correspondent):
         except ValueError as ex:
             pkname = None
 
-        emsg = ("Stalent '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' "
-                "nacking ...\n".format(self.stack.name, tkname, pkname, ha ))
+        emsg = ("Stalent '{0}'. Stale transaction '{1}' packet '{2}' from '{3}' in {4} "
+                "nacking ...\n".format(self.stack.name, tkname, pkname, ha, self.tid))
         console.terse(emsg)
         self.stack.incStat('stale_initiator_attempt')
 
