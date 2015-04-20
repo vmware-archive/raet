@@ -93,7 +93,6 @@ class RoadStack(stacking.KeepStack):
     Interim = 3600 # stack default for reap timeout
     JoinerTimeout = 5.0 # stack default for joiner transaction timeout
     JoinentTimeout = 5.0 # stack default for joinent transaction timeout
-    MsgStaleTimeout = 600.0  # stale messages waiting timeout
 
     def __init__(self,
                  puid=None,
@@ -625,8 +624,7 @@ class RoadStack(stacking.KeepStack):
 
         if (packet.data['tk'] == TrnsKind.message and
                 packet.data['pk'] == PcktKind.message):
-            ti = packet.data['ti']
-            if ti in remote.doneTransactions:  # transaction with this ID already handled and removed
+            if packet.data['af']:  # packet is a stale resend
                 self.replyStale(packet, remote)
             else:
                 self.replyMessage(packet, remote)
