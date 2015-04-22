@@ -625,8 +625,8 @@ class RoadStack(stacking.KeepStack):
 
         if (packet.data['tk'] == TrnsKind.message and
                 packet.data['pk'] == PcktKind.message):
-            ti = packet.data['ti']
-            if ti in remote.doneTransactions:  # transaction with this ID already handled and removed
+            # transaction with this ID already handled and removed packet is a stale resend
+            if packet.data['af'] or packet.data['ti'] in remote.doneTransactions:
                 self.replyStale(packet, remote)
             else:
                 self.replyMessage(packet, remote)
