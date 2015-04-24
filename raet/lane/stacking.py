@@ -232,13 +232,14 @@ class LaneStack(stacking.Stack):
         except Exception as ex:
             console.concise("Error sending to '{0}' from '{1}: {2}\n".format(
                 ta, self.ha, ex))
-            if ex.errno == errno.ECONNREFUSED or ex.errno == errno.ENOENT:
+            err = raeting.get_exception_error(ex)
+            if err == errno.ECONNREFUSED or err == errno.ENOENT:
                 self.incStat("stale_transmit_yard")
                 yard = self.haRemotes.get(ta)
                 if yard:
                     self.removeRemote(yard)
                     console.terse("Reaped yard {0}\n".format(yard.name))
-            elif ex.errno in [errno.EAGAIN, errno.EWOULDBLOCK, errno.ENOBUFS]:
+            elif err in [errno.EAGAIN, errno.EWOULDBLOCK, errno.ENOBUFS]:
                 self.incStat("busy_transmit_yard")
                 #busy with last message save it for later
                 laters.append((tx, ta))
