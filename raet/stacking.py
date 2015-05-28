@@ -279,7 +279,8 @@ class Stack(object):
         try:
             rx, ra = self.server.receive()  # if no data the duple is ('',None)
         except socket.error as ex:
-            if ex.errno == errno.ECONNRESET:
+            err = raeting.get_exception_error(ex)
+            if err == errno.ECONNRESET:
                 return False
         if not rx:  # no received data
             return False
@@ -406,7 +407,8 @@ class Stack(object):
         try:
             self.server.send(tx, ta)
         except socket.error as ex:
-            if (ex.errno in [errno.EAGAIN, errno.EWOULDBLOCK,
+            err = raeting.get_exception_error(ex)
+            if (err in [errno.EAGAIN, errno.EWOULDBLOCK,
                              errno.ENETUNREACH, errno.ETIME,
                              errno.EHOSTUNREACH, errno.EHOSTDOWN,
                              errno.ECONNRESET]):
