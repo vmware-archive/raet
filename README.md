@@ -47,7 +47,7 @@ protocol that adds reliability to UDP/IP without sacrificing latency and scalabi
 A transactioned protocol, is much more appropriate for providing reliablity to
 asynchronous event transport than a streaming protocol.
 
-Morover, because most MQ services are based on TCP/IP they tend to also use
+Moreover, because most MQ services are based on TCP/IP they tend to also use
 HTTP and therefore TLS/SSL for secure communications. While using HTTP provides
 easy integration with web based systems, it can become problematic for high performant systems
 Furthermore, TLS is also problematic as a security system both from performance
