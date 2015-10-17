@@ -16,8 +16,8 @@ except ImportError:
     import json
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base.osetting import oset
+from ioflo.aid.odicting import odict
+from ioflo.aid.osetting import oset
 from ioflo.aid.timing import StoreTimer
 from ioflo.aid.aiding import packByte, unpackByte
 

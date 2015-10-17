@@ -16,7 +16,7 @@ attributes or properties that are both gettable and settable.
 # pylint: disable=W0611
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
+from ioflo.aid.odicting import odict
 
 from ioflo.base.consoling import getConsole
 console = getConsole()

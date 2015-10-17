@@ -16,7 +16,7 @@ import shutil
 import tempfile
 import time
 
-from ioflo.base import storing
+from ioflo.base.storing import Store
 from ioflo.aid.timing import StoreTimer
 
 from ioflo.base.consoling import getConsole
@@ -65,7 +65,7 @@ class BasicLoadTestCase(unittest.TestCase):
         super(BasicLoadTestCase, self).__init__(*args, **kwargs)
 
     def setUp(self):
-        self.store = storing.Store(stamp=0.0)
+        self.store = Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
         self.baseDirpath = tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
         self.stack = None

@@ -23,10 +23,8 @@ except ImportError:
     mspack = None
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base import aiding
+from ioflo.aid.odicting import odict
 from ioflo.base import nonblocking
-from ioflo.base import storing
 
 # Import raet libs
 from ..abiding import *  # import globals

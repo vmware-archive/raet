@@ -17,9 +17,9 @@ import tempfile
 import shutil
 from collections import deque
 
-from ioflo.base.odicting import odict
+from ioflo.aid.odicting import odict
 from ioflo.aid.timing import Timer, StoreTimer
-from ioflo.base import storing
+from ioflo.base.storing import Store
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
@@ -44,7 +44,7 @@ class BasicTestCase(unittest.TestCase):
     """"""
 
     def setUp(self):
-        self.store = storing.Store(stamp=0.0)
+        self.store = Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
         if sys.platform == 'win32':

@@ -25,9 +25,9 @@ except ImportError:
     mspack = None
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base import aiding
-from ioflo.base import storing
+from ioflo.aid.odicting import odict
+from ioflo.aid.timing import StoreTimer
+from ioflo.base.storing import Store
 
 # Import raet libs
 from .abiding import *  # import globals
@@ -66,7 +66,7 @@ class Stack(object):
         '''
         Setup Stack instance
         '''
-        self.store = store or storing.Store(stamp=0.0)
+        self.store = store or Store(stamp=0.0)
 
         self.version = version
         self.main = main
@@ -103,7 +103,7 @@ class Stack(object):
         self.rxes = rxes if rxes is not None else deque() # udp packets received
         self.txes = txes if txes is not None else deque() # udp packet to transmit
         self.stats = stats if stats is not None else odict() # udp statistics
-        self.statTimer = aiding.StoreTimer(self.store)
+        self.statTimer = StoreTimer(self.store)
 
     @property
     def name(self):

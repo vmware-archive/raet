@@ -22,8 +22,8 @@ except ImportError:
 import shutil
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base import aiding
+from ioflo.aid.odicting import odict
+from ioflo.aid.aiding import ocfn
 
 # Import raet libs
 from .abiding import *  # import globals
@@ -113,7 +113,7 @@ class Keep(object):
 
         root, ext = os.path.splitext(filepath)
         if ext == '.json':
-            with aiding.ocfn(filepath, "w+") as f:
+            with ocfn(filepath, "w+") as f:
                 json.dump(data, f, indent=2, encoding='utf-8')
                 f.flush()
                 os.fsync(f.fileno())
@@ -121,7 +121,7 @@ class Keep(object):
             if not msgpack:
                 raise raeting.KeepError("Invalid filepath ext '{0}' "
                             "needs msgpack installed".format(filepath))
-            with aiding.ocfn(filepath, "w+b", binary=True) as f:
+            with ocfn(filepath, "w+b", binary=True) as f:
                 msgpack.dump(data, f, encoding='utf-8')
                 f.flush()
                 os.fsync(f.fileno())
@@ -142,13 +142,13 @@ class Keep(object):
         try:
             root, ext = os.path.splitext(filepath)
             if ext == '.json':
-                with aiding.ocfn(filepath, "r") as f:
+                with ocfn(filepath, "r") as f:
                     it = json.load(f, object_pairs_hook=odict, encoding='utf-8')
             elif ext == '.msgpack':
                 if not msgpack:
                     raise raeting.KeepError("Invalid filepath ext '{0}' "
                                 "needs msgpack installed".format(filepath))
-                with aiding.ocfn(filepath, "rb", binary=True) as f:
+                with ocfn(filepath, "rb", binary=True) as f:
                     it = msgpack.load(f, object_pairs_hook=odict, encoding='utf-8')
             else:
                 it = None

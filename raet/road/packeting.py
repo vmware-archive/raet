@@ -18,7 +18,7 @@ except ImportError:
     mspack = None
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
+from ioflo.aid.odicting import odict
 from ioflo.aid.aiding import packByte, unpackByte
 
 from ioflo.base.consoling import getConsole
