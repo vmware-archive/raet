@@ -399,7 +399,7 @@ class StackTestCase(unittest.TestCase):
     '''
 
     def setUp(self):
-        self.store = storing.Store(stamp=0.0)
+        self.store = Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
         self.dirpathBase=tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
