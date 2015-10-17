@@ -48,13 +48,13 @@ if sys.version_info < (3, 4): #tuple comparison element by element
     ])
 
 setup(
-    name='raetp',
+    name='raet',
     version=__version__,
     description='Reliable Asynchronous Event Transport protocol',
     long_description='Asynchronous transaction based protocol'
                      ' using Ioflo. http://ioflo.com',
-    url='https://github.com/RaetProtocol/raet.git',
-    download_url='https://github.com/RaetProtocol/raet/archive/master.zip',
+    url='https://github.com/saltstack/raet',
+    download_url='https://github.com/saltstack/raet/archive/master.zip',
     author=__author__,
     author_email='info@ioflo.com',
     license=__license__,
