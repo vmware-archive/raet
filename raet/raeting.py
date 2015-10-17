@@ -137,6 +137,19 @@ INITIATESTUFF_PACKER = struct.Struct('!32s48s24s128s')
 INITIATE_PACKER = struct.Struct('!32s24s248s24s')
 
 
+def get_exception_error(ex):
+    '''
+    Return the error code from an exception
+    '''
+    if hasattr(ex, 'errno'):
+        return ex.errno
+    elif hasattr(ex, 'winerror'):
+        return ex.winerror
+    else:
+        emsg = "Cannot find error code in exception: {0}".format(ex)
+        raise TypeError(emsg)
+
+
 @enum.unique
 class HeadKind(enum.IntEnum):
     '''

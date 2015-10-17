@@ -3265,3 +3265,6 @@ class Messengent(Correspondent):
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
         self.stack.incStat(self.statKey())
 
+    def remove(self, remote=None, index=None):
+        self.remote.addDoneTransaction(self.tid)
+        super(Messengent, self).remove(remote, index)

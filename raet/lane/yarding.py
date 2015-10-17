@@ -113,7 +113,8 @@ class Yard(lotting.Lot):
                         try:
                             os.makedirs(dirpath)
                         except OSError as ex:
-                            if ex.errno == errno.EEXIST:
+                            err = raeting.get_exception_error(ex)
+                            if err == errno.EEXIST:
                                 pass # race condition
                             else:
                                 raise
@@ -124,7 +125,8 @@ class Yard(lotting.Lot):
                         try:
                             os.makedirs(dirpath)
                         except OSError as ex:
-                            if ex.errno == errno.EEXIST:
+                            err = raeting.get_exception_error(ex)
+                            if err == errno.EEXIST:
                                 pass # race condition
                             else:
                                 raise

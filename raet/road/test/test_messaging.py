@@ -1468,7 +1468,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.txMsgs), 0)
         self.assertEqual(len(alpha.txes), 0)
         self.assertEqual(len(beta.rxes), 0)
-        #self.assertEqual(len(beta.rxMsgs), 1)
+
+        # withoutfix comment out
+        self.assertEqual(len(beta.rxMsgs), 1)
         receivedMsg, source = beta.rxMsgs.popleft()
         self.assertDictEqual(sentMsg, receivedMsg)
 
@@ -1555,7 +1557,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.txMsgs), 0)
         self.assertEqual(len(alpha.txes), 0)
         self.assertEqual(len(beta.rxes), 0)
-        #self.assertEqual(len(beta.rxMsgs), 1)
+
+        # without fix comment out
+        self.assertEqual(len(beta.rxMsgs), 1)
+
         receivedMsg, source = beta.rxMsgs.popleft()
         self.assertDictEqual(sentMsg, receivedMsg)
 
