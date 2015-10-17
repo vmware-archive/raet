@@ -1,6 +1,16 @@
 ------------------
 CHANGE LOG
 -------------------
+-----------
+20151017
+----------
+v0.6.4
+
+Fixed issue with windows errno
+Minor corrections
+Fixed imports of ioflo to be compat with ioflo 1.2.3
+Removed unused imports and normalized some imports
+
 
 -----------
 20150310
