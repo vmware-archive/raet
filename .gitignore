@@ -13,10 +13,4 @@ raet.egg-info/*
 raet.egg-info/*.*
 raet.egg-info*
 raet.egg-info/PKG-INFO
-raetp.egg-info
-raetp.egg-info/
-raetp.egg-info/*
-raetp.egg-info/*.*
-raetp.egg-info*
-raetp.egg-info/PKG-INFO
 docs/_build
