@@ -19,7 +19,7 @@ except ImportError:
 
 # Import ioflo libs
 from ioflo.base.odicting import odict
-from ioflo.base.aiding import packByte, unpackByte
+from ioflo.aid.aiding import packByte, unpackByte
 
 from ioflo.base.consoling import getConsole
 console = getConsole()

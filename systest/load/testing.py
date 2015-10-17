@@ -17,7 +17,7 @@ import tempfile
 import time
 
 from ioflo.base import storing
-from ioflo.base.aiding import StoreTimer
+from ioflo.aid.timing import StoreTimer
 
 from ioflo.base.consoling import getConsole
 console = getConsole()

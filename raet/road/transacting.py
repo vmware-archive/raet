@@ -18,8 +18,8 @@ except ImportError:
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base.osetting import oset
-from ioflo.base import aiding
-from ioflo.base.aiding import packByte, unpackByte
+from ioflo.aid.timing import StoreTimer
+from ioflo.aid.aiding import packByte, unpackByte
 
 # Import raet libs
 from ..abiding import *  # import globals
@@ -52,7 +52,7 @@ class Transaction(object):
         if timeout is None:
             timeout = self.Timeout
         self.timeout = timeout
-        self.timer = aiding.StoreTimer(self.stack.store, duration=self.timeout)
+        self.timer = StoreTimer(self.stack.store, duration=self.timeout)
 
         self.rmt = rmt # remote initiator
         self.bcst = bcst # bf flag
@@ -381,7 +381,7 @@ class Joiner(Initiator):
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
+        self.redoTimer = StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
         self.pendRedoTimeout = pendRedoTimeout or self.PendRedoTimeout
 
@@ -925,7 +925,7 @@ class Joinent(Correspondent):
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store, duration=0.0)
+        self.redoTimer = StoreTimer(self.stack.store, duration=0.0)
         self.pendRedoTimeout = pendRedoTimeout or self.PendRedoTimeout
         self.vacuous = None # gets set in join method
         self.pended = False # Farside initiator has pended remote acceptance
@@ -1523,7 +1523,7 @@ class Allower(Initiator):
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
+        self.redoTimer = StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
         self.sid = self.remote.sid
@@ -1905,7 +1905,7 @@ class Allowent(Correspondent):
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
+        self.redoTimer = StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
         self.oreo = None #keep locally generated oreo around for redos
@@ -2338,7 +2338,7 @@ class Aliver(Initiator):
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
+        self.redoTimer = StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
         self.sid = self.remote.sid
@@ -2689,7 +2689,7 @@ class Messenger(Initiator):
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
+        self.redoTimer = StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
         self.burst = max(0, int(burst)) # BurstSize
@@ -3005,7 +3005,7 @@ class Messengent(Correspondent):
 
         self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
         self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
-        self.redoTimer = aiding.StoreTimer(self.stack.store,
+        self.redoTimer = StoreTimer(self.stack.store,
                                            duration=self.redoTimeoutMin)
 
         self.wait = False  # wf wait flag
