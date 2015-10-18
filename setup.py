@@ -31,8 +31,8 @@ RAET_METADATA = os.path.join(SETUP_DIRNAME, 'raet', '__metadata__.py')
 # Load the metadata using exec() in order not to trigger raet.__init__ import
 exec(compile(open(RAET_METADATA).read(), RAET_METADATA, 'exec'))
 
-REQUIREMENTS = ['ioflo>=1.2.1',
-                'libnacl>=1.4.0',
+REQUIREMENTS = ['ioflo>=1.2.4',
+                'libnacl>=1.4.3',
                 'six>=1.6.1', ]
 
 if sys.version_info < (2, 7): #tuple comparison element by element
