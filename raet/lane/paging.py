@@ -156,8 +156,7 @@ class TxBody(Body):
         if pk == PackKind.json:
             if self.data:
                 self.packed = ns2b(json.dumps(self.data,
-                                         separators=(',', ':'),
-                                         encoding='utf-8'))
+                                         separators=(',', ':')))
         elif pk == PackKind.pack:
             if self.data:
                 if not msgpack:
@@ -194,8 +193,7 @@ class RxBody(Body):
         if pk == PackKind.json:
             if self.packed:
                 self.data = json.loads(self.packed.decode(encoding='utf-8'),
-                                       object_pairs_hook=odict,
-                                       encoding='utf-8')
+                                       object_pairs_hook=odict)
         elif pk == PackKind.pack:
             if self.packed:
                 if not msgpack:

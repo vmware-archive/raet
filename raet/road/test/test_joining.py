@@ -11313,8 +11313,8 @@ class BasicTestCase(unittest.TestCase):
                        ('mode', None),
                        ('kind', alpha.kind),
                        ('uid', remote.uid),
-                       ('verhex', alpha.local.signer.verhex),
-                       ('pubhex', alpha.local.priver.pubhex),
+                       ('verhex', str(alpha.local.signer.verhex.decode('ISO-8859-1'))),
+                       ('pubhex', str(alpha.local.priver.pubhex.decode('ISO-8859-1'))),
                        ('role', alpha.local.role)])
         packet = packeting.TxPacket(stack=alpha,
                                     kind=raeting.PcktKind.response.value,
@@ -11379,8 +11379,8 @@ class BasicTestCase(unittest.TestCase):
                        ('mode', operation),
                        ('kind', None),
                        ('uid', remote.uid),
-                       ('verhex', alpha.local.signer.verhex),
-                       ('pubhex', alpha.local.priver.pubhex),
+                       ('verhex', str(alpha.local.signer.verhex.decode('ISO-8859-1'))),
+                       ('pubhex', str(alpha.local.priver.pubhex.decode('ISO-8859-1'))),
                        ('role', alpha.local.role)])
         packet = packeting.TxPacket(stack=alpha,
                                     kind=raeting.PcktKind.response.value,
@@ -11445,8 +11445,8 @@ class BasicTestCase(unittest.TestCase):
                        ('mode', operation),
                        ('kind', alpha.kind),
                        ('uid', None),
-                       ('verhex', alpha.local.signer.verhex),
-                       ('pubhex', alpha.local.priver.pubhex),
+                       ('verhex', str(alpha.local.signer.verhex.decode('ISO-8859-1'))),
+                       ('pubhex', str(alpha.local.priver.pubhex.decode('ISO-8859-1'))),
                        ('role', alpha.local.role)])
         packet = packeting.TxPacket(stack=alpha,
                                     kind=raeting.PcktKind.response.value,
@@ -12422,8 +12422,8 @@ class BasicTestCase(unittest.TestCase):
         body = odict([('name', beta.local.name),
                       ('mode', None),
                       ('kind', beta.kind),
-                      ('verhex', beta.local.signer.verhex),
-                      ('pubhex', beta.local.priver.pubhex),
+                      ('verhex', str(beta.local.signer.verhex.decode('ISO-8859-1'))),
+                      ('pubhex', str(beta.local.priver.pubhex.decode('ISO-8859-1'))),
                       ('role', beta.local.role)])
         packet = packeting.TxPacket(stack=beta,
                                     kind=raeting.PcktKind.request.value,
@@ -12475,8 +12475,8 @@ class BasicTestCase(unittest.TestCase):
         body = odict([('name', beta.local.name),
                       ('mode', operation),
                       ('kind', None),
-                      ('verhex', beta.local.signer.verhex),
-                      ('pubhex', beta.local.priver.pubhex),
+                      ('verhex', str(beta.local.signer.verhex.decode('ISO-8859-1'))),
+                      ('pubhex', str(beta.local.priver.pubhex.decode('ISO-8859-1'))),
                       ('role', beta.local.role)])
         packet = packeting.TxPacket(stack=beta,
                                     kind=raeting.PcktKind.request.value,
@@ -14057,3 +14057,4 @@ if __name__ == '__main__' and __package__ is None:
     runSome()#only run some
 
     #runOne('testAllJoinAcceptDropped')
+    #runOne('testJoinerAcceptMissingMode')

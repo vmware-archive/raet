@@ -111,10 +111,15 @@ class Keep(object):
             raise raeting.KeepError("Invalid filepath '{0}' "
                                     "contains space".format(filepath))
 
+        if hasattr(data, 'get'):
+            for key, val in data.items():  # P3 json.dump no encoding parameter
+                if isinstance(val, (bytes, bytearray)):
+                    data[key] = val.decode('utf-8')
+
         root, ext = os.path.splitext(filepath)
         if ext == '.json':
             with ocfn(filepath, "w+") as f:
-                json.dump(data, f, indent=2, encoding='utf-8')
+                json.dump(data, f, indent=2)
                 f.flush()
                 os.fsync(f.fileno())
         elif ext == '.msgpack':
@@ -143,7 +148,7 @@ class Keep(object):
             root, ext = os.path.splitext(filepath)
             if ext == '.json':
                 with ocfn(filepath, "r") as f:
-                    it = json.load(f, object_pairs_hook=odict, encoding='utf-8')
+                    it = json.load(f, object_pairs_hook=odict)
             elif ext == '.msgpack':
                 if not msgpack:
                     raise raeting.KeepError("Invalid filepath ext '{0}' "
