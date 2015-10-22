@@ -18,8 +18,8 @@ except ImportError:
     mspack = None
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base.aiding import packByte, unpackByte
+from ioflo.aid.odicting import odict
+from ioflo.aid.aiding import packByte, unpackByte
 
 from ioflo.base.consoling import getConsole
 console = getConsole()
@@ -128,8 +128,7 @@ class TxHead(Head):
         elif data['hk'] == HeadKind.json:
             kit['pl'] = '0000000'  # need hex string so fixed length and jsonable
             kit['hl'] = '00'  # need hex string so fixed length and jsonable
-            packed = (ns2b(json.dumps(kit, separators=(',', ':'),
-                                     encoding='ascii',)) + raeting.JSON_END)
+            packed = (ns2b(json.dumps(kit, separators=(',', ':'))) + raeting.JSON_END)
             hl = len(packed)
             if hl > raeting.MAX_HEAD_SIZE:
                 emsg = "Head length of {0}, exceeds max of {1}".format(hl, MAX_HEAD_SIZE)
@@ -216,7 +215,6 @@ class RxHead(Head):
             front, sep, back = packed.partition(raeting.JSON_END)
             self.packed = front + sep
             kit = json.loads(front.decode(encoding='ascii'),
-                             encoding='ascii',
                              object_pairs_hook=odict)
             data.update(kit)
             if 'fg' in data:
@@ -278,8 +276,7 @@ class TxBody(Body):
         if bk == BodyKind.json:
             if self.data:
                 self.packed = ns2b(json.dumps(self.data,
-                                              separators=(',', ':'),
-                                              encoding='utf-8'))
+                                              separators=(',', ':')))
         elif bk == BodyKind.msgpack:
             if self.data:
                 if not msgpack:

@@ -1,6 +1,26 @@
 ------------------
 CHANGE LOG
 -------------------
+-----------
+20151018
+----------
+v0.6.5
+
+Fixed to work with python 3.5 withoug simplejson. Removed encoding parameter.
+Fixed up unittests
+Add local test runners for sub section tests to run part of unit tests
+Added requirement of simpljson for python2.6 for object pairs hook
+
+
+-----------
+20151017
+----------
+v0.6.4
+
+Fixed issue with windows errno
+Minor corrections
+Fixed imports of ioflo to be compat with ioflo 1.2.3
+Removed unused imports and normalized some imports
 
 -----------
 20150310

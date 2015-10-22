@@ -37,11 +37,7 @@ except ImportError:
 import shutil
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base.globaling import *
-
-from ioflo.base import aiding
-from ioflo.base import storing
+from ioflo.aid.odicting import odict
 from ioflo.base import deeding
 
 from ioflo.base.consoling import getConsole

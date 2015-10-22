@@ -14,8 +14,7 @@ if sys.version_info > (3,):
     long = int
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base import aiding
+from ioflo.aid.odicting import odict
 
 # Import raet libs
 from ..abiding import *  # import globals

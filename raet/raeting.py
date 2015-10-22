@@ -95,7 +95,7 @@ import struct
 import enum
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
+from ioflo.aid.odicting import odict
 
 # Import raet libs
 # pylint: disable=wildcard-import,unused-wildcard-import,redefined-builtin

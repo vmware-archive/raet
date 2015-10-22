@@ -16,7 +16,7 @@ else:
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-from ioflo.base.odicting import odict
+from ioflo.aid.odicting import odict
 
 # Import raet libs
 from raet.abiding import *  # import globals

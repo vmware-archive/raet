@@ -20,7 +20,7 @@ def serviceStacks(stacks, duration=0.5, period=0.1):
     Utility method to service queues. Call from test method.
     '''
     store = ioflo.base.storing.Store(stamp=0.0)
-    timer = ioflo.base.aiding.StoreTimer(store=store, duration=duration)
+    timer = ioflo.aid.timing.StoreTimer(store=store, duration=duration)
     while not timer.expired:
         for stack in stacks:
             stack.serviceAll()

@@ -13,9 +13,8 @@ if sys.version_info > (3,):
     long = int
 
 # Import ioflo libs
-from ioflo.base.odicting import odict
-from ioflo.base import aiding
-from ioflo.base import storing
+from ioflo.aid.odicting import odict
+from ioflo.aid.timing import StoreTimer
 
 # Import raet libs
 from ..abiding import *  # import globals
@@ -144,7 +143,7 @@ class Estate(lotting.Lot):
                             " instead of at '{2}'\n".format(self.name, i, index))
 
     def addDoneTransaction(self, index):
-        self.doneTransactions[index] = aiding.StoreTimer(self.stack.store, duration=self.stack.MsgStaleTimeout)
+        self.doneTransactions[index] = StoreTimer(self.stack.store, duration=self.stack.MsgStaleTimeout)
 
     def cleanupDoneTransactions(self):
         for index, timer in self.doneTransactions.iteritems():
@@ -266,10 +265,10 @@ class RemoteEstate(Estate):
             duration = self.stack.period
         else:
             duration = self.stack.period + self.stack.offset
-        self.timer = aiding.StoreTimer(store=self.stack.store,
+        self.timer = StoreTimer(store=self.stack.store,
                                        duration=duration)
 
-        self.reapTimer = aiding.StoreTimer(self.stack.store,
+        self.reapTimer = StoreTimer(self.stack.store,
                                            duration=self.stack.interim)
         self.messages = deque() # deque of saved stale message body data to remote.uid
 

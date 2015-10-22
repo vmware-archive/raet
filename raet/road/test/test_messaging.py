@@ -17,9 +17,10 @@ import tempfile
 import shutil
 from collections import deque
 
-from ioflo.base.odicting import odict
-from ioflo.base.aiding import Timer, StoreTimer, just
-from ioflo.base import storing
+from ioflo.aid.odicting import odict
+from ioflo.aid.timing import Timer, StoreTimer
+from ioflo.aid.aiding import just
+from ioflo.base.storing import Store
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
@@ -45,7 +46,7 @@ class BasicTestCase(unittest.TestCase):
     """"""
 
     def setUp(self):
-        self.store = storing.Store(stamp=0.0)
+        self.store = Store(stamp=0.0)
         self.timer = StoreTimer(store=self.store, duration=1.0)
 
         self.base = tempfile.mkdtemp(prefix="raet",  suffix="base", dir=TEMPDIR)
@@ -1468,6 +1469,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.txMsgs), 0)
         self.assertEqual(len(alpha.txes), 0)
         self.assertEqual(len(beta.rxes), 0)
+
+        # withoutfix comment out
         self.assertEqual(len(beta.rxMsgs), 1)
         receivedMsg, source = beta.rxMsgs.popleft()
         self.assertDictEqual(sentMsg, receivedMsg)
@@ -1555,7 +1558,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(len(alpha.txMsgs), 0)
         self.assertEqual(len(alpha.txes), 0)
         self.assertEqual(len(beta.rxes), 0)
+
+        # without fix comment out
         self.assertEqual(len(beta.rxMsgs), 1)
+
         receivedMsg, source = beta.rxMsgs.popleft()
         self.assertDictEqual(sentMsg, receivedMsg)
 
@@ -1589,6 +1595,9 @@ def runSome():
                 'testMessageWithDropsLimits',
                 'testMessageWithBurstElevenDropsLimits',
                 'testMessageWithBurstSevenDropsLimits',
+                'testMessageDropAllFirst',
+                'testMessageSingleSegmentedDuplicate',
+                'testMessageSegmentedLostAckDuplicate',
             ]
 
     tests.extend(map(BasicTestCase, names))

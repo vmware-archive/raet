@@ -4,7 +4,7 @@ Data providers for system tests
 
 '''
 
-from ioflo.base.odicting import odict
+from ioflo.aid.odicting import odict
 from BitVector import BitVector
 import data
 
