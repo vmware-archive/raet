@@ -177,7 +177,7 @@ class RxHead(Head):
             front, sep, back = packed.partition(raeting.HEAD_END)
             self.packed = front + sep
             kit = odict()
-            lines = str(front.decode(encoding='ISO-8859-1')).split('\n')
+            lines = str(front.decode('ISO-8859-1')).split('\n')
             for line in lines:
                 key, val = line.split(' ')
                 if key not in raeting.PACKET_HEAD_FIELDS:
@@ -214,7 +214,7 @@ class RxHead(Head):
             hk = HeadKind.json.value
             front, sep, back = packed.partition(raeting.JSON_END)
             self.packed = front + sep
-            kit = json.loads(front.decode(encoding='ascii'),
+            kit = json.loads(front.decode('ascii'),
                              object_pairs_hook=odict)
             data.update(kit)
             if 'fg' in data:
@@ -307,7 +307,7 @@ class RxBody(Body):
 
         if bk == BodyKind.json:
             if self.packed:
-                kit = json.loads(self.packed.decode(encoding='utf-8'),
+                kit = json.loads(self.packed.decode('utf-8'),
                                  object_pairs_hook=odict,
                                  encoding='utf-8')
                 if not isinstance(kit, Mapping):
