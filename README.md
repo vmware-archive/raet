@@ -36,7 +36,7 @@ not well suited for the asynchronous nature of distibuted event driven applicati
 communications. This is primarily due to the way TCP/IP handles connection setup
 and teardown as well as failed connections in order to support streams. Fundamentally
 TCP/IP is optomized for sending large contiguous data streams not many small
-aynchronous events or messages. While not a problem for small scale systems,
+asynchronous events or messages. While not a problem for small scale systems,
 the differences in the associated traffic characteristics can become problematic
 at scale.
 
