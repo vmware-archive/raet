@@ -111,7 +111,7 @@ class RxHead(Head):
         self.page.body.packed = back
 
         kit = odict()
-        lines = str(front.decode(encoding='ISO-8859-1')).split('\n')
+        lines = str(front.decode('ISO-8859-1')).split('\n')
         for line in lines:
             key, val = line.split(' ')
             if key not in raeting.PAGE_FIELDS:
@@ -192,7 +192,7 @@ class RxBody(Body):
 
         if pk == PackKind.json:
             if self.packed:
-                self.data = json.loads(self.packed.decode(encoding='utf-8'),
+                self.data = json.loads(self.packed.decode('utf-8'),
                                        object_pairs_hook=odict)
         elif pk == PackKind.pack:
             if self.packed:

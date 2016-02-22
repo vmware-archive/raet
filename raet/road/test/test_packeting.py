@@ -542,7 +542,7 @@ class StackTestCase(unittest.TestCase):
         self.assertEqual( tray1.body, self.stuff)
 
         # Json body
-        body = odict(stuff=str(self.stuff.decode(encoding='ISO-8859-1')))
+        body = odict(stuff=str(self.stuff.decode('ISO-8859-1')))
         self.data.update(se=2, de=3, bk=raeting.BodyKind.json.value, fk=raeting.FootKind.nacl.value)
         tray0 = packeting.TxTray(stack=self.main, data=self.data, body=body)
         tray0.pack()

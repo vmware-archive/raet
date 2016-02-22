@@ -16,9 +16,7 @@ from ioflo.base.consoling import getConsole
 console = getConsole()
 
 # Import raet libs
-from raet.abiding import *  # import globals
 from raet.road import stacking
-from raet.flo import behaving
 
 def setUpModule():
     console.reinit(verbosity=console.Wordage.concise)
