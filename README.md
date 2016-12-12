@@ -84,7 +84,7 @@ support for the viability of the RAET approach.
 Indeed, one might ask, why not use Erlang? Unfortunately, the Erlang ecosystem is
 somewhat limited in comparison to Python's and the language itself uses what one
 might describe as a very unfortunate syntax.
-One of the design objectives behine RAET was to leverage existing Python expertise
+One of the design objectives behind RAET was to leverage existing Python expertise
 and the richness of the Python ecosystem but still be able to develop distributed
 applications using a micro-threaded multi-process architectural model. The goal was
 to combine the best of both worlds.
