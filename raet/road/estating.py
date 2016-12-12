@@ -56,18 +56,25 @@ class Estate(lotting.Lot):
 
         self.tid = tid # current transaction ID
 
+        # if host is unspecified or all then use loopback address as host
         if ha:
             host, port = ha
-            host = socket.gethostbyname(host)
-            if host in ['0.0.0.0', '']:
+            #host = socket.gethostbyname(host)
+            host = self.normalizeHost(host)
+            if host in ('0.0.0.0',):
                 host = '127.0.0.1'
+            elif host in ("::", "0:0:0:0:0:0:0:0"):
+                host = "::1"
             ha = (host, port)
         self.ha = ha
-        if iha:  # takes precedence
+        if iha:  # future iha should take precedence
             host, port = iha
-            host = socket.gethostbyname(host)
-            if host in ['0.0.0.0', '']:
+            #host = socket.gethostbyname(host)
+            host = self.normalizeHost(host)
+            if host in ('0.0.0.0',):
                 host = '127.0.0.1'
+            elif host in ("::", "0:0:0:0:0:0:0:0"):
+                host = "::1"
             iha = (host, port)
         self.iha = iha # internal host address duple (host, port)
         self.natted = natted # is estate behind nat router
@@ -91,6 +98,38 @@ class Estate(lotting.Lot):
         Expects value is tuple of (host, port)
         '''
         self.ha = value
+
+    def normalizeHost(self, host):
+        '''
+        Returns ip address host string in normalized dotted form or empty string
+        converts host parameter which may be the dns name not ip address
+        Prefers ipv4 addresses over ipv6 in that it will only return the ipv6
+        address if no ipv4 address equivalent is available
+        '''
+        if host == "":
+            host = "0.0.0.0"
+
+        try:  # try ipv4
+            info =  socket.getaddrinfo(host,
+                                       None,
+                                       socket.AF_INET,
+                                       socket.SOCK_DGRAM,
+                                       socket.IPPROTO_IP, 0)
+        except socket.gaierror as ex: # try ipv6
+            if host in ("", "0.0.0.0"):
+                host = "::"
+
+            info =  socket.getaddrinfo(host,
+                                        None,
+                                        socket.AF_INET6,
+                                        socket.SOCK_DGRAM,
+                                        socket.IPPROTO_IP, 0)
+        if not info:
+            emsg = "Cannot resolve address for host '{0}'".format(host)
+            raise raeting.EstateError(emsg)
+
+        host = info[0][4][0]
+        return host
 
     def nextTid(self):
         '''
