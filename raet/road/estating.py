@@ -59,7 +59,6 @@ class Estate(lotting.Lot):
         # if host is unspecified or all then use loopback address as host
         if ha:
             host, port = ha
-            #host = socket.gethostbyname(host)
             host = self.normalizeHost(host)
             if host in ('0.0.0.0',):
                 host = '127.0.0.1'
@@ -69,7 +68,6 @@ class Estate(lotting.Lot):
         self.ha = ha
         if iha:  # future iha should take precedence
             host, port = iha
-            #host = socket.gethostbyname(host)
             host = self.normalizeHost(host)
             if host in ('0.0.0.0',):
                 host = '127.0.0.1'
