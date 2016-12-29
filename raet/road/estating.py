@@ -433,10 +433,11 @@ class RemoteEstate(Estate):
             if rf and not self.validRsid(sid):
                 transaction.nack()
                 self.removeTransaction(index)
-                emsg = ("Stack {0}: Stale correspondent {1} from remote {2} at {3}"
-                            "\n".format(self.stack.name,
+                emsg = ("Stack {0}: Stale correspondent {1} from remote {2} "
+                        "with prior rsid {3} at {4}\n".format(self.stack.name,
                                         index,
                                         self.name,
+                                        self.rsid,
                                         self.stack.store.stamp))
                 console.terse(emsg)
                 self.stack.incStat('stale_correspondent')
