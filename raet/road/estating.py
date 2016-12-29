@@ -476,8 +476,7 @@ class RemoteEstate(Estate):
                 transaction.nack()
                 self.removeTransaction(index)
                 emsg = ("Stack {0}: Stale initiator {1} to remote {2} with "
-                        "prior rsid {3} at {4}"
-                        "\n".format(self.stack.name,
+                        "prior rsid {3} at {4}\n".format(self.stack.name,
                                     index,
                                     self.name,
                                     self.rsid,
