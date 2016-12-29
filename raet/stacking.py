@@ -581,8 +581,8 @@ class KeepStack(Stack):
 
     def moveRemote(self, remote, new, clear=False, dump=False):
         '''
-        Move remote with key remote.uid old to key new uid and replace the odict key index
-        so order is the same.
+        Move remote with key remote.uid old to key new uid and replace
+           the odict key index so the order is the same.
         If clear then clear the keep file for remote at old
         If dump then dump the keep file for the remote at new
         '''
