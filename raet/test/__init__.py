@@ -23,7 +23,7 @@ console.reinit(verbosity=console.Wordage.concise)
 
 import raet
 
-def run(start=None):
+def run(start=None,  failfast=False):
     '''
     Run unittests starting at directory given by start
     Default start is the location of the raet package
@@ -37,7 +37,7 @@ def run(start=None):
     console.terse("\nRunning all RAET tests in '{0}', starting at '{1}'\n".format(top, start))
     loader = unittest.TestLoader()
     suite = loader.discover(start, 'test_*.py', top)
-    unittest.TextTestRunner(verbosity=2, failfast=False).run(suite)
+    unittest.TextTestRunner(verbosity=2, failfast=failfast).run(suite)
 
 if __name__ == "__main__":
     run()
