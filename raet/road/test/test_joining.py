@@ -14037,7 +14037,7 @@ def runSome():
     tests.extend(map(BasicTestCase, names))
 
     suite = unittest.TestSuite(tests)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.TextTestRunner(verbosity=2,  failfast=True).run(suite)
 
 def runAll():
     '''
@@ -14052,9 +14052,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #console.reinit(verbosity=console.Wordage.concise)
 
-    #runAll() #run all unittests
+    runAll() #run all unittests
 
-    runSome()#only run some
+    #runSome()#only run some
 
     #runOne('testAllJoinAcceptDropped')
     #runOne('testJoinerAcceptMissingMode')
