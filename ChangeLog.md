@@ -1,6 +1,16 @@
 ------------------
 CHANGE LOG
 -------------------
+
+-----------
+20161228
+----------
+v0.6.6
+
+Support for ipv6
+Bug fixes
+More detail in console log messages associated with stale sessions
+
 -----------
 20151018
 ----------

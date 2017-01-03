@@ -74,6 +74,8 @@ class BasicTestCase(unittest.TestCase):
         host = estate.normalizeHost("2607:f8b0:400a:809::200e")
         self.assertEqual(host, '2607:f8b0:400a:809::200e')
 
+        stack.server.close()
+
 
 def runOneBasic(test):
     '''

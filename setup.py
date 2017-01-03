@@ -8,6 +8,10 @@ See:
 
 python setup.py register sdist upload
 
+More secure to use twine to upload  $ pip3 install twine
+$ python setup.py sdist
+$ twine upload dist/raet-0.6.6.tar.gz
+
 """
 import os
 import  sys

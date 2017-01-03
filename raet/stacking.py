@@ -408,10 +408,15 @@ class Stack(object):
             self.server.send(tx, ta)
         except socket.error as ex:
             err = raeting.get_exception_error(ex)
-            if (err in [errno.EAGAIN, errno.EWOULDBLOCK,
-                             errno.ENETUNREACH, errno.ETIME,
-                             errno.EHOSTUNREACH, errno.EHOSTDOWN,
-                             errno.ECONNRESET]):
+            errors = [errno.EAGAIN,
+                      errno.EWOULDBLOCK,
+                      errno.ENETUNREACH,
+                      errno.EHOSTUNREACH,
+                      errno.EHOSTDOWN,
+                      errno.ECONNRESET]
+            if hasattr(errno, 'ETIME'):
+                errors.append[errno.ETIME]
+            if (err in errors):
                 # problem sending such as busy with last message. save it for later
                 laters.append((tx, ta))
                 blocks.append(ta)
@@ -576,8 +581,8 @@ class KeepStack(Stack):
 
     def moveRemote(self, remote, new, clear=False, dump=False):
         '''
-        Move remote with key remote.uid old to key new uid and replace the odict key index
-        so order is the same.
+        Move remote with key remote.uid old to key new uid and replace
+           the odict key index so the order is the same.
         If clear then clear the keep file for remote at old
         If dump then dump the keep file for the remote at new
         '''

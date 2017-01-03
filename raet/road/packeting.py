@@ -475,7 +475,11 @@ class RxFoot(Foot):
 
             msg = front + blank
             if not self.packet.verify(signature, msg):
-                emsg = "Failed verification"
+                if self.packet.data['de'] not in self.packet.stack.remotes:
+                    reason =  "nuid not in remotes"
+                else:
+                    reason = "key invalid"
+                emsg = "Failed verification: {0}".format(reason)
                 raise raeting.PacketError(emsg)
 
         if fk == FootKind.nada:
