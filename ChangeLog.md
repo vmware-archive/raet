@@ -1,6 +1,13 @@
 ------------------
 CHANGE LOG
 -------------------
+-----------
+201702XX
+----------
+v0.6.7
+
+Fixed some test race timing conditions on new computer with python3.6
+
 
 -----------
 20161228
