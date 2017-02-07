@@ -13317,9 +13317,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nTest joinent didn't received ack accept, redo timeout *********\n")
         beta.join() # join from beta to alpha
-        self.serviceStacks([beta], duration=0.1) # beta: send join
-        self.serviceStacks([alpha], duration=0.1) # alpha: process join, send ack
-        self.serviceStacks([beta], duration=0.1) # beta: send ack accept, remove
+        self.serviceStacks([beta], duration=0.125) # beta: send join
+        self.serviceStacks([alpha], duration=0.125) # alpha: process join, send ack
+        self.serviceStacks([beta], duration=0.125) # beta: send ack accept, remove
         self.flushReceives(alpha)
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
