@@ -3651,10 +3651,10 @@ class BasicTestCase(unittest.TestCase):
         main.clearStats()
         console.terse("\nTest aliver receive broken ack *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
-        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.serviceStack(main, duration=0.125) # main send alive to other
         self.answerAlive(other, kind=raeting.PcktKind.ack.value, dataMod={'ck': -1}) # other receive and answer
-        self.serviceStack(other, duration=0.1) # other send the answer to main
-        self.serviceStack(main, duration=0.1) # main handle the answer
+        self.serviceStack(other, duration=0.125) # other send the answer to main
+        self.serviceStack(main, duration=0.125) # main handle the answer
 
         self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
         self.assertEqual(len(main.remotes), 1)
@@ -3676,10 +3676,10 @@ class BasicTestCase(unittest.TestCase):
         main.clearStats()
         console.terse("\nTest aliver receive broken refuse *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
-        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.serviceStack(main, duration=0.125) # main send alive to other
         self.answerAlive(other, kind=raeting.PcktKind.refuse.value, dataMod={'ck': -1}) # other receive and answer
-        self.serviceStack(other, duration=0.1) # other send the answer to main
-        self.serviceStack(main, duration=0.1) # main handle the answer
+        self.serviceStack(other, duration=0.125) # other send the answer to main
+        self.serviceStack(main, duration=0.125) # main handle the answer
 
         self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
         self.assertEqual(len(main.remotes), 1)
@@ -3701,10 +3701,10 @@ class BasicTestCase(unittest.TestCase):
         main.clearStats()
         console.terse("\nTest aliver receive broken reject *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
-        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.serviceStack(main, duration=0.125) # main send alive to other
         self.answerAlive(other, kind=raeting.PcktKind.reject.value, dataMod={'ck': -1}) # other receive and answer
-        self.serviceStack(other, duration=0.1) # other send the answer to main
-        self.serviceStack(main, duration=0.1) # main handle the answer
+        self.serviceStack(other, duration=0.125) # other send the answer to main
+        self.serviceStack(main, duration=0.125) # main handle the answer
 
         self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
         self.assertEqual(len(main.remotes), 1)
@@ -3726,10 +3726,10 @@ class BasicTestCase(unittest.TestCase):
         main.clearStats()
         console.terse("\nTest aliver receive broken unjoined *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
-        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.serviceStack(main, duration=0.125) # main send alive to other
         self.answerAlive(other, kind=raeting.PcktKind.unjoined.value, dataMod={'ck': -1}) # other receive and answer
-        self.serviceStack(other, duration=0.1) # other send the answer to main
-        self.serviceStack(main, duration=0.1) # main handle the answer
+        self.serviceStack(other, duration=0.125) # other send the answer to main
+        self.serviceStack(main, duration=0.125) # main handle the answer
 
         self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
         self.assertEqual(len(main.remotes), 1)
@@ -3751,10 +3751,10 @@ class BasicTestCase(unittest.TestCase):
         main.clearStats()
         console.terse("\nTest aliver receive broken unallowed *********\n")
         main.alive() # no cascade alive, answer nack, aliver will not change alive status and remove transaction
-        self.serviceStack(main, duration=0.1) # main send alive to other
+        self.serviceStack(main, duration=0.125) # main send alive to other
         self.answerAlive(other, kind=raeting.PcktKind.unallowed.value, dataMod={'ck': -1}) # other receive and answer
-        self.serviceStack(other, duration=0.1) # other send the answer to main
-        self.serviceStack(main, duration=0.1) # main handle the answer
+        self.serviceStack(other, duration=0.125) # other send the answer to main
+        self.serviceStack(main, duration=0.125) # main handle the answer
 
         self.assertEqual(len(main.transactions), 1) # transaction wasn't handled
         self.assertEqual(len(main.remotes), 1)
@@ -4570,11 +4570,11 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.alived,  None) #  Reset alived
 
         main.alive() # alive from main to other
-        self.serviceStack(main, duration=0.1) # Send alive
-        self.serviceStack(other, duration=0.1) # Send ack
+        self.serviceStack(main, duration=0.25) # Send alive
+        self.serviceStack(other, duration=0.25) # Send ack
         self.dupReceives(main) # duplicate response
-        self.serviceStacks(stacks) # 1st accept, 2nd stale nack
-        self.serviceStacks(stacks) # fix race condition
+        self.serviceStacks(stacks, duration=0.25) # 1st accept, 2nd stale nack
+        self.serviceStacks(stacks, duration=0.25) # fix race condition
 
         self.assertIn('stale_correspondent_attempt', main.stats)
         self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)
