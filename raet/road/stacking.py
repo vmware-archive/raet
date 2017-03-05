@@ -338,7 +338,8 @@ class RoadStack(stacking.KeepStack):
                                                 acceptance=keepData['acceptance'],
                                                 verkey=keepData['verhex'],
                                                 pubkey=keepData['pubhex'],
-                                                role=keepData['role'])
+                                                role=keepData['role']),
+                                      addRemote=False
                                       )
                 if remote:
                     self.addRemote(remote)
@@ -372,7 +373,8 @@ class RoadStack(stacking.KeepStack):
                                                     acceptance=keepData['acceptance'],
                                                     verkey=keepData['verhex'],
                                                     pubkey=keepData['pubhex'],
-                                                    role=keepData['role'])
+                                                    role=keepData['role']),
+                                          addRemote=False
                                           )
                     if remote:
                         self.addRemote(remote)
@@ -532,7 +534,7 @@ class RoadStack(stacking.KeepStack):
                             return
 
                         # create vacuous remote will be assigned to joinees in joinent
-                        remote = createRemote(ha=sha)
+                        remote = createRemote(ha=sha, addRemote=False)
 
                 else: # nonvacuous join match by nuid from .remotes
                     remote = self.remotes.get(de, None)
@@ -542,7 +544,7 @@ class RoadStack(stacking.KeepStack):
                                 " Renewing....\n".format( self.name, de, sha))
                         console.terse(emsg)
                         self.incStat('stale_nuid')
-                        remote = createRemote(ha=sha)
+                        remote = createRemote(ha=sha, addRemote=False)
                         if not remote:
                           return
                         self.replyStale(packet, remote, renew=True) # nack stale transaction
