@@ -415,7 +415,7 @@ class Stack(object):
                       errno.EHOSTDOWN,
                       errno.ECONNRESET]
             if hasattr(errno, 'ETIME'):
-                errors.append[errno.ETIME]
+                errors.append(errno.ETIME)
             if (err in errors):
                 # problem sending such as busy with last message. save it for later
                 laters.append((tx, ta))
