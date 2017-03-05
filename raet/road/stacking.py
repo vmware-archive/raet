@@ -238,9 +238,10 @@ class RoadStack(stacking.KeepStack):
                 remote = None
         return remote
 
-    def createRemote(self, ha):
+    def createRemote(self, ha, fuid=0, sid=0, addRemote=True):
         '''
         Use for vacuous join to create new remote
+        Default is always 0 for join
         '''
         if not ha:
             console.terse("Invalid host address = {0} when creating remote.".format(ha))
@@ -248,16 +249,17 @@ class RoadStack(stacking.KeepStack):
             return None
 
         remote = estating.RemoteEstate(stack=self,
-                                       fuid=0, # vacuous join
-                                       sid=0, # always 0 for join
+                                       fuid=fuid,
+                                       sid=sid,
                                        ha=ha) #if ha is not None else dha
 
-        try:
-            self.addRemote(remote) #provisionally add .accepted is None
-        except raeting.StackError as ex:
-            console.terse(str(ex) + '\n')
-            self.incStat("failed_addremote")
-            return None
+        if addRemote:
+            try:
+                self.addRemote(remote) #provisionally add .accepted is None
+            except raeting.StackError as ex:
+                console.terse(str(ex) + '\n')
+                self.incStat("failed_addremote")
+                return None
 
         return remote
 
@@ -527,10 +529,9 @@ class RoadStack(stacking.KeepStack):
                             return
 
                         # create vacuous remote will be assigned to joinees in joinent
-                        remote = estating.RemoteEstate(stack=self,
-                                                       fuid=0,  # was fuid=se
-                                                       sid=rsid,
-                                                       ha=sha)
+                        remote = createRemote(fuid=0,  # was fuid=se
+                                              sid=rsid,
+                                              ha=sha)
 
                 else: # nonvacuous join match by nuid from .remotes
                     remote = self.remotes.get(de, None)
@@ -540,10 +541,11 @@ class RoadStack(stacking.KeepStack):
                                 " Renewing....\n".format( self.name, de, sha))
                         console.terse(emsg)
                         self.incStat('stale_nuid')
-                        remote = estating.RemoteEstate(stack=self,
-                                                        fuid=se,
-                                                        sid=rsid,
-                                                        ha=sha)
+                        remote = createRemote(fuid=se,
+                                              sid=rsid,
+                                              ha=sha)
+                        if not remote:
+                          return
                         self.replyStale(packet, remote, renew=True) # nack stale transaction
                         return
 
