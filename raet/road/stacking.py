@@ -248,9 +248,9 @@ class RoadStack(stacking.KeepStack):
             return None
 
         remote = self.newRemote(stack=self,
- 								fuid=0, # vacuous join
- 								sid=0, # always 0 for join
-								ha=ha) #if ha is not None else dha
+                                fuid=0, # vacuous join
+                                sid=0, # always 0 for join
+                                ha=ha) #if ha is not None else dha
         
         try:
             self.addRemote(remote) #provisionally add .accepted is None
