@@ -238,7 +238,7 @@ class RoadStack(stacking.KeepStack):
                 remote = None
         return remote
 
-    def createRemote(self, ha, data=dict(), addRemote=True):
+    def createRemote(self, ha):
         '''
         Use for vacuous join to create new remote
         '''
@@ -247,20 +247,22 @@ class RoadStack(stacking.KeepStack):
             self.incStat("failed_createremote")
             return None
 
-        defaults = dict(ha=ha, fuid=0, sid=0, stack=self)
-        defaults.update(data)
+        remote = self.newRemote(stack=self,
+ 								fuid=0, # vacuous join
+ 								sid=0, # always 0 for join
+								ha=ha) #if ha is not None else dha
 
-        remote = estating.RemoteEstate(**defaults) #if ha is not None else dha
-
-        if addRemote:
-            try:
-                self.addRemote(remote) #provisionally add .accepted is None
-            except raeting.StackError as ex:
-                console.terse(str(ex) + '\n')
-                self.incStat("failed_addremote")
-                return None
+        try:
+            self.addRemote(remote) #provisionally add .accepted is None
+        except raeting.StackError as ex:
+            console.terse(str(ex) + '\n')
+            self.incStat("failed_addremote")
+            return None
 
         return remote
+
+    def newRemote(self, **kwa):
+    	return estating.RemoteEstate(**kwa)
 
     def dumpLocalRole(self):
         '''
@@ -322,25 +324,23 @@ class RoadStack(stacking.KeepStack):
             if self.keep.verifyRemoteData(keepData):
                 ha = keepData['ha']
                 iha = keepData['iha']
-                remote = createRemote(ha=tuple(ha) if ha else ha,
-                                      data=dict(stack=self,
-                                                uid=keepData['uid'],
-                                                fuid=keepData['fuid'],
-                                                name=keepData['name'],
-                                                iha=tuple(iha) if iha else iha,
-                                                natted=keepData['natted'],
-                                                fqdn=keepData['fqdn'],
-                                                dyned=keepData['dyned'],
-                                                sid=keepData['sid'],
-                                                main=keepData['main'],
-                                                kind=keepData['kind'],
-                                                joined=keepData['joined'],
-                                                acceptance=keepData['acceptance'],
-                                                verkey=keepData['verhex'],
-                                                pubkey=keepData['pubhex'],
-                                                role=keepData['role']),
-                                      addRemote=False
-                                      )
+                remote = self.newRemote(ha=tuple(ha) if ha else ha,
+										stack=self,
+	                                    uid=keepData['uid'],
+	                                    fuid=keepData['fuid'],
+	                                    name=keepData['name'],
+	                                    iha=tuple(iha) if iha else iha,
+	                                    natted=keepData['natted'],
+	                                    fqdn=keepData['fqdn'],
+	                                    dyned=keepData['dyned'],
+	                                    sid=keepData['sid'],
+	                                    main=keepData['main'],
+	                                    kind=keepData['kind'],
+	                                    joined=keepData['joined'],
+	                                    acceptance=keepData['acceptance'],
+	                                    verkey=keepData['verhex'],
+	                                    pubkey=keepData['pubhex'],
+	                                    role=keepData['role'])
                 if remote:
                     self.addRemote(remote)
             else:
@@ -357,25 +357,23 @@ class RoadStack(stacking.KeepStack):
                 if self.keep.verifyRemoteData(keepData):
                     ha = keepData['ha']
                     iha = keepData['iha']
-                    remote = createRemote(ha=tuple(ha) if ha else ha,
-                                          data=dict(stack=self,
-                                                    uid=keepData['uid'],
-                                                    fuid=keepData['fuid'],
-                                                    name=keepData['name'],
-                                                    iha=tuple(iha) if iha else iha,
-                                                    natted=keepData['natted'],
-                                                    fqdn=keepData['fqdn'],
-                                                    dyned=keepData['dyned'],
-                                                    sid=keepData['sid'],
-                                                    main=keepData['main'],
-                                                    kind=keepData['kind'],
-                                                    joined=keepData['joined'],
-                                                    acceptance=keepData['acceptance'],
-                                                    verkey=keepData['verhex'],
-                                                    pubkey=keepData['pubhex'],
-                                                    role=keepData['role']),
-                                          addRemote=False
-                                          )
+                    remote = self.newRemote(ha=tuple(ha) if ha else ha,
+											stack=self,
+                                            uid=keepData['uid'],
+                                            fuid=keepData['fuid'],
+                                            name=keepData['name'],
+                                            iha=tuple(iha) if iha else iha,
+                                            natted=keepData['natted'],
+                                            fqdn=keepData['fqdn'],
+                                            dyned=keepData['dyned'],
+                                            sid=keepData['sid'],
+                                            main=keepData['main'],
+                                            kind=keepData['kind'],
+                                            joined=keepData['joined'],
+                                            acceptance=keepData['acceptance'],
+                                            verkey=keepData['verhex'],
+                                            pubkey=keepData['pubhex'],
+                                            role=keepData['role'])
                     if remote:
                         self.addRemote(remote)
                 else:
@@ -534,7 +532,10 @@ class RoadStack(stacking.KeepStack):
                             return
 
                         # create vacuous remote will be assigned to joinees in joinent
-                        remote = createRemote(ha=sha, addRemote=False)
+                        remote = self.newRemote(stack=self,
+                        						fuid=0,  # was fuid=se
+ 												sid=rsid,
+												ha=sha)
 
                 else: # nonvacuous join match by nuid from .remotes
                     remote = self.remotes.get(de, None)
@@ -544,7 +545,10 @@ class RoadStack(stacking.KeepStack):
                                 " Renewing....\n".format( self.name, de, sha))
                         console.terse(emsg)
                         self.incStat('stale_nuid')
-                        remote = createRemote(ha=sha, addRemote=False)
+                        remote = self.newRemote(stack=self,
+                        						fuid=se,
+ 												sid=rsid,
+												ha=sha)
                         if not remote:
                           return
                         self.replyStale(packet, remote, renew=True) # nack stale transaction
