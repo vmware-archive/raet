@@ -251,7 +251,6 @@ class RoadStack(stacking.KeepStack):
  								fuid=0, # vacuous join
  								sid=0, # always 0 for join
 								ha=ha) #if ha is not None else dha
-
         try:
             self.addRemote(remote) #provisionally add .accepted is None
         except raeting.StackError as ex:
@@ -551,6 +550,7 @@ class RoadStack(stacking.KeepStack):
 												ha=sha)
                         if not remote:
                           return
+
                         self.replyStale(packet, remote, renew=True) # nack stale transaction
                         return
 
