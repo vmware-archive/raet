@@ -251,6 +251,7 @@ class RoadStack(stacking.KeepStack):
  								fuid=0, # vacuous join
  								sid=0, # always 0 for join
 								ha=ha) #if ha is not None else dha
+        
         try:
             self.addRemote(remote) #provisionally add .accepted is None
         except raeting.StackError as ex:
@@ -324,7 +325,7 @@ class RoadStack(stacking.KeepStack):
                 ha = keepData['ha']
                 iha = keepData['iha']
                 remote = self.newRemote(ha=tuple(ha) if ha else ha,
-										stack=self,
+                                        stack=self,
 	                                    uid=keepData['uid'],
 	                                    fuid=keepData['fuid'],
 	                                    name=keepData['name'],
@@ -357,7 +358,7 @@ class RoadStack(stacking.KeepStack):
                     ha = keepData['ha']
                     iha = keepData['iha']
                     remote = self.newRemote(ha=tuple(ha) if ha else ha,
-											stack=self,
+                                            stack=self,
                                             uid=keepData['uid'],
                                             fuid=keepData['fuid'],
                                             name=keepData['name'],
@@ -532,9 +533,9 @@ class RoadStack(stacking.KeepStack):
 
                         # create vacuous remote will be assigned to joinees in joinent
                         remote = self.newRemote(stack=self,
-                        						fuid=0,  # was fuid=se
- 												sid=rsid,
-												ha=sha)
+                                                fuid=0,  # was fuid=se
+                                                sid=rsid,
+                                                ha=sha)
 
                 else: # nonvacuous join match by nuid from .remotes
                     remote = self.remotes.get(de, None)
@@ -545,9 +546,9 @@ class RoadStack(stacking.KeepStack):
                         console.terse(emsg)
                         self.incStat('stale_nuid')
                         remote = self.newRemote(stack=self,
-                        						fuid=se,
- 												sid=rsid,
-												ha=sha)
+                                                fuid=se,
+                                                sid=rsid,
+                                                ha=sha)
                         if not remote:
                           return
 
