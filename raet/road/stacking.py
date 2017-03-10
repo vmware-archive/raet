@@ -262,7 +262,10 @@ class RoadStack(stacking.KeepStack):
         return remote
 
     def newRemote(self, **kwa):
-      # override to add additional kwa validations
+      '''
+      Used as a wrapper to create new remotes
+      Override to add additional kwa validations
+      '''
     	return estating.RemoteEstate(**kwa)
 
     def dumpLocalRole(self):
