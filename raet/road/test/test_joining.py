@@ -13319,7 +13319,7 @@ class BasicTestCase(unittest.TestCase):
         beta.join() # join from beta to alpha
         self.serviceStacks([beta], duration=0.125) # beta: send join
         self.serviceStacks([alpha], duration=0.125) # alpha: process join, send ack
-        self.serviceStacks([beta], duration=0.125) # beta: send ack accept, remove
+        self.serviceStacks([beta], duration=0.15) # beta: send ack accept, remove
         self.flushReceives(alpha)
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
@@ -13590,9 +13590,9 @@ class BasicTestCase(unittest.TestCase):
 
         console.terse("\nTest joinent received ack accept twice *********\n")
         beta.join() # join from beta to alpha
-        self.serviceStacks([beta], duration=0.1) # Send join
-        self.serviceStacks([alpha], duration=0.1) # Send ack
-        self.serviceStacks([beta], duration=0.1) # Send ack accept
+        self.serviceStacks([beta], duration=0.125) # Send join
+        self.serviceStacks([alpha], duration=0.125) # Send ack
+        self.serviceStacks([beta], duration=0.125) # Send ack accept
         self.dupReceives(alpha) # duplicate response
         self.serviceStacks(stacks) # alpha: 1st accept, 2nd stale drop
 
@@ -14056,5 +14056,6 @@ if __name__ == '__main__' and __package__ is None:
 
     #runSome()#only run some
 
+    #runOne('testFirstJoinAckAcceptDropped')
     #runOne('testAllJoinAcceptDropped')
     #runOne('testJoinerAcceptMissingMode')
