@@ -210,8 +210,8 @@ class BasicTestCase(unittest.TestCase):
                 stack.serviceAll()
             if all([not stack.transactions for stack in stacks]):
                 break
-            self.store.advanceStamp(0.1)
-            time.sleep(0.1)
+            self.store.advanceStamp(0.05)
+            time.sleep(0.05)
 
     def serviceStacksDropRx(self, stacks, duration=1.0):
         '''
@@ -4573,8 +4573,8 @@ class BasicTestCase(unittest.TestCase):
         self.serviceStack(main, duration=0.25) # Send alive
         self.serviceStack(other, duration=0.25) # Send ack
         self.dupReceives(main) # duplicate response
-        self.serviceStacks(stacks, duration=0.25) # 1st accept, 2nd stale nack
-        self.serviceStacks(stacks, duration=0.25) # fix race condition
+        self.serviceStacks(stacks, duration=0.5) # 1st accept, 2nd stale nack
+        self.serviceStacks(stacks, duration=0.5) # fix race condition
 
         self.assertIn('stale_correspondent_attempt', main.stats)
         self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)

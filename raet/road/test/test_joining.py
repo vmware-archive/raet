@@ -199,10 +199,14 @@ class BasicTestCase(unittest.TestCase):
         while not self.timer.expired:
             for stack in stacks:
                 stack.serviceAll()
+            time.sleep(0.025)
+            for stack in stacks:
+                stack.serviceAll()
+            time.sleep(0.025)
             if all([not stack.transactions for stack in stacks]):
                 break
             self.store.advanceStamp(0.05)
-            time.sleep(0.05)
+            #time.sleep(0.05)
 
     def bootstrapJoinedRemotes(self, autoMode=raeting.AutoMode.once.value):
         alphaData = self.createRoadData(base=self.base,
@@ -12848,11 +12852,11 @@ class BasicTestCase(unittest.TestCase):
         beta.join() # initiate transaction
         beta.transactions[0].nack(kind=raeting.PcktKind.refuse.value)
 
-        self.serviceStacks([beta], duration=0.1) # send 2 packets
+        self.serviceStacks([beta], duration=0.125) # send 2 packets
         # receive 2 packets on alpha
         # 1. Create transaction, pend join
         # 2. Handle refuse
-        self.serviceStacks([alpha], duration=0.1)
+        self.serviceStacks([alpha], duration=0.125)
 
         self.assertIn('joinent_rx_refuse', alpha.stats) # Error handled
         self.assertEqual(alpha.stats['joinent_rx_refuse'], 1)
@@ -13319,7 +13323,8 @@ class BasicTestCase(unittest.TestCase):
         beta.join() # join from beta to alpha
         self.serviceStacks([beta], duration=0.125) # beta: send join
         self.serviceStacks([alpha], duration=0.125) # alpha: process join, send ack
-        self.serviceStacks([beta], duration=0.15) # beta: send ack accept, remove
+        self.serviceStacks([beta], duration=0.25) # beta: send ack accept, remove
+        time.sleep(0.125)
         self.flushReceives(alpha)
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
         self.serviceStacks(stacks, duration=2.0) # alpha: timeout, redo ack; beta: stale, refuse
@@ -13592,9 +13597,10 @@ class BasicTestCase(unittest.TestCase):
         beta.join() # join from beta to alpha
         self.serviceStacks([beta], duration=0.125) # Send join
         self.serviceStacks([alpha], duration=0.125) # Send ack
-        self.serviceStacks([beta], duration=0.125) # Send ack accept
+        self.serviceStacks([beta], duration=0.25) # Send ack accept
         self.dupReceives(alpha) # duplicate response
-        self.serviceStacks(stacks) # alpha: 1st accept, 2nd stale drop
+        time.sleep(0.125)
+        self.serviceStacks(stacks,  duration=0.25) # alpha: 1st accept, 2nd stale drop
 
         self.assertIn('stale_packet', alpha.stats)
         self.assertEqual(alpha.stats['stale_packet'], 1) # 1 stale drop on alpha (dup)
