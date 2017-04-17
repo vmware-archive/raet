@@ -140,7 +140,7 @@ The architecture of a RAET based application is shown in the figure below:
 
 ![Diagram 1](docs/images/RaetMetaphor.png?raw=true)
 
-##Naming Metaphor for Components
+## Naming Metaphor for Components
 
 The following naming metaphor is designed to consistent but not conflicting with Ioflo
 
