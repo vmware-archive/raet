@@ -65,6 +65,7 @@ setup(
     license=__license__,
     keywords=('UDP UXD Communications CurveCP Elliptic Curve Crypto'
               'Reliable Asynchronous Event Transport Protocol'),
+    include_package_data=True,
     packages=find_packages(exclude=['test', 'test.*',
                                       'docs', 'docs*',
                                       'log', 'log*']),
@@ -74,6 +75,7 @@ setup(
         'raet': ['flo/plan/*.flo', 'flo/plan/*/*.flo',
                   'flo/plan/*.txt', 'flo/plan/*/*.txt',],},
     install_requires=REQUIREMENTS,
+    setup_requires=["setuptools_git >= 1.1", ],
     extras_require={},
     scripts=['scripts/raetflo'],)
 

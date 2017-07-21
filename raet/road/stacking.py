@@ -54,6 +54,8 @@ class RoadStack(stacking.KeepStack):
         Flag indicating if the local estate is a main estate on the road
     mutable
         Flag indicating if credentials on road can be changed after initial join
+    veritive
+        Flag indicating if all received message transactions must be verified
     keep
         Pass in a keep object, this object can define how stack data
         including keys is persisted to disk
@@ -114,6 +116,7 @@ class RoadStack(stacking.KeepStack):
                  period=None,
                  offset=None,
                  interim=None,
+                 veritive=True,
                  **kwa
                  ):
         '''
@@ -131,7 +134,7 @@ class RoadStack(stacking.KeepStack):
         ha = ha if ha is not None else ("", raeting.RAET_PORT)
 
         local = local or estating.LocalEstate(stack=self,
-                                     name=name,
+                                              name=name,
                                      uid=uid,
                                      ha=eha or ha,
                                      iha=iha,
@@ -142,7 +145,7 @@ class RoadStack(stacking.KeepStack):
 
         self.aha = ha # init before server is initialized
 
-        # Remotes reference these in there init so create before super
+        # Remotes reference these in their init so create before super
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
         self.interim = interim if interim is not None else self.Interim
@@ -156,6 +159,7 @@ class RoadStack(stacking.KeepStack):
                                         **kwa)
         self.kind = kind # application kind associated with the local estate
         self.mutable = mutable # road data mutability
+        self.veritive = True if veritive else False  # rx message trans must be verified
         self.joinees = odict() # remotes for vacuous joins, keyed by ha
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name
@@ -188,7 +192,7 @@ class RoadStack(stacking.KeepStack):
         Create local listening server for stack
         '''
         server = nonblocking.SocketUdpNb(ha=self.ha,
-                        bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
+                                         bufsize=raeting.UDP_MAX_PACKET_SIZE * self.bufcnt)
         return server
 
     def addRemote(self, remote, dump=False):
@@ -198,7 +202,7 @@ class RoadStack(stacking.KeepStack):
         super(RoadStack, self).addRemote(remote=remote, dump=dump)
         if remote.timer.store is not self.store:
             raise raeting.StackError("Store reference mismatch between remote"
-                    " '{0}' and stack '{1}'".format(remote.name, stack.name))
+                                     " '{0}' and stack '{1}'".format(remote.name, stack.name))
         return remote
 
     def removeRemote(self, remote, clear=True):
@@ -251,7 +255,7 @@ class RoadStack(stacking.KeepStack):
                                 fuid=0, # vacuous join
                                 sid=0, # always 0 for join
                                 ha=ha) #if ha is not None else dha
-        
+
         try:
             self.addRemote(remote) #provisionally add .accepted is None
         except raeting.StackError as ex:
@@ -262,11 +266,11 @@ class RoadStack(stacking.KeepStack):
         return remote
 
     def newRemote(self, **kwa):
-      '''
-      Used as a wrapper to create new remotes
-      Override to add additional kwa validations
-      '''
-    	return estating.RemoteEstate(**kwa)
+        '''
+        Used as a wrapper to create new remotes
+        Override to add additional kwa validations
+        '''
+        return estating.RemoteEstate(**kwa)
 
     def dumpLocalRole(self):
         '''
@@ -287,7 +291,7 @@ class RoadStack(stacking.KeepStack):
                 iha = keepData['iha']
                 aha = keepData['aha']
                 local = estating.LocalEstate(stack=self,
-                                              uid=keepData['uid'],
+                                             uid=keepData['uid'],
                                               name=keepData['name'],
                                               ha=tuple(ha) if ha else ha,
                                               iha=tuple(iha) if iha else iha,
@@ -330,21 +334,21 @@ class RoadStack(stacking.KeepStack):
                 iha = keepData['iha']
                 remote = self.newRemote(ha=tuple(ha) if ha else ha,
                                         stack=self,
-	                                    uid=keepData['uid'],
-	                                    fuid=keepData['fuid'],
-	                                    name=keepData['name'],
-	                                    iha=tuple(iha) if iha else iha,
-	                                    natted=keepData['natted'],
-	                                    fqdn=keepData['fqdn'],
-	                                    dyned=keepData['dyned'],
-	                                    sid=keepData['sid'],
-	                                    main=keepData['main'],
-	                                    kind=keepData['kind'],
-	                                    joined=keepData['joined'],
-	                                    acceptance=keepData['acceptance'],
-	                                    verkey=keepData['verhex'],
-	                                    pubkey=keepData['pubhex'],
-	                                    role=keepData['role'])
+                                        uid=keepData['uid'],
+                                        fuid=keepData['fuid'],
+                                        name=keepData['name'],
+                                        iha=tuple(iha) if iha else iha,
+                                        natted=keepData['natted'],
+                                        fqdn=keepData['fqdn'],
+                                        dyned=keepData['dyned'],
+                                        sid=keepData['sid'],
+                                        main=keepData['main'],
+                                        kind=keepData['kind'],
+                                        joined=keepData['joined'],
+                                        acceptance=keepData['acceptance'],
+                                        verkey=keepData['verhex'],
+                                        pubkey=keepData['pubhex'],
+                                        role=keepData['role'])
                 if remote:
                     self.addRemote(remote)
             else:
@@ -455,7 +459,7 @@ class RoadStack(stacking.KeepStack):
         '''
         console.profuse("{0} received packet data\n{1}\n".format(self.name, packet.data))
         console.verbose("{0} received packet index: (rf={1[0]}, le={1[1]}, re={1[2]},"
-                " si={1[3]}, ti={1[4]}, bf={1[5]})\n".format(self.name, packet.index))
+                        " si={1[3]}, ti={1[4]}, bf={1[5]})\n".format(self.name, packet.index))
         try:
             tkname = TrnsKind(packet.data['tk'])
         except ValueError as ex:
@@ -484,7 +488,7 @@ class RoadStack(stacking.KeepStack):
             sha = (packet.data['sh'],  packet.data['sp'])
             if rsid != 0: # join  must use sid == 0
                 emsg = ("Stack '{0}'. Nonzero join sid '{1}' in packet from {2}."
-                       " Dropping...\n".format(self.name, rsid, sha))
+                        " Dropping...\n".format(self.name, rsid, sha))
                 console.terse(emsg)
                 self.incStat('join_invalid_sid')
                 return
@@ -500,7 +504,7 @@ class RoadStack(stacking.KeepStack):
                     remote = self.joinees.get(sha, None)  # match remote by rha from .joinees
                     if remote and remote.nuid != de: # prior different
                         emsg = ("Stack '{0}'. Invalid join correspondence from '{1}',"
-                            "nuid  {2} mismatch prior {3} . Dropping...\n".format(
+                                "nuid  {2} mismatch prior {3} . Dropping...\n".format(
                                 self.name, sha, de, remote.nuid))
                         self.incStat('join_mismatch_nuid') # drop inconsistent nuid
                         return
@@ -519,8 +523,8 @@ class RoadStack(stacking.KeepStack):
                     if remote and remote.fuid != se: # check if prior is stale
                         if remote.fuid != 0:  # stale
                             emsg = ("Stack '{0}'. Prior stale join initiatance from '{1}',"
-                                " fuid {2} mismatch prior {3}. Removing prior...\n".format(
-                                        self.name, sha, se, remote.fuid))
+                                    " fuid {2} mismatch prior {3}. Removing prior...\n".format(
+                                    self.name, sha, se, remote.fuid))
                             console.terse(emsg)
                             del self.joinees[sha] # remove prior stale vacuous joinee
                             remote = None # reset
@@ -529,8 +533,8 @@ class RoadStack(stacking.KeepStack):
                         # is it not first packet of join
                         if pk not in [PcktKind.request]:
                             emsg = ("Stack '{0}'. Stale join initiatance from '{1}',"
-                                " Not a request and no remote. Dropping...\n".format(
-                                        self.name, sha))
+                                    " Not a request and no remote. Dropping...\n".format(
+                                    self.name, sha))
                             console.terse(emsg)
                             self.incStat('join_stale')
                             return
@@ -554,7 +558,7 @@ class RoadStack(stacking.KeepStack):
                                                 sid=rsid,
                                                 ha=sha)
                         if not remote:
-                          return
+                            return
 
                         self.replyStale(packet, remote, renew=True) # nack stale transaction
                         return
@@ -562,7 +566,7 @@ class RoadStack(stacking.KeepStack):
         else: # not join transaction
             if rsid == 0: # cannot use sid == 0 on nonjoin transaction
                 emsg = ("Stack '{0}'. Invalid Zero sid '{1}' for transaction {2} packet"
-                       " {3}. Dropping...\n".format(self.name, rsid, tk, pk))
+                        " {3}. Dropping...\n".format(self.name, rsid, tk, pk))
                 console.terse(emsg)
                 self.incStat('invalid_sid')
                 return
@@ -583,7 +587,7 @@ class RoadStack(stacking.KeepStack):
                         emsg = ("Stack '{0}'. Invalid nonjoin from '{1}'. Invalid sid "
                                 " {2} in packet given prior sid {3}. "
                                 "Dropping...\n".format(self.name,
-                                                        remote.name,
+                                                       remote.name,
                                                         rsid,
                                                         remote.rsid))
                         console.terse(emsg)
@@ -622,22 +626,22 @@ class RoadStack(stacking.KeepStack):
         Create correspondent transaction remote and handle packet
         '''
         if (packet.data['tk'] == TrnsKind.join and
-                packet.data['pk'] == PcktKind.request):
+            packet.data['pk'] == PcktKind.request):
             self.replyJoin(packet, remote)
             return
 
         if (packet.data['tk'] == TrnsKind.allow and
-                packet.data['pk'] == PcktKind.hello):
+            packet.data['pk'] == PcktKind.hello):
             self.replyAllow(packet, remote)
             return
 
         if (packet.data['tk'] == TrnsKind.alive and
-                packet.data['pk'] == PcktKind.request):
+            packet.data['pk'] == PcktKind.request):
             self.replyAlive(packet, remote)
             return
 
         if (packet.data['tk'] == TrnsKind.message and
-                packet.data['pk'] == PcktKind.message):
+            packet.data['pk'] == PcktKind.message):
             # transaction with this ID already handled and removed packet is a stale resend
             if packet.data['af'] or packet.data['ti'] in remote.doneTransactions:
                 self.replyStale(packet, remote)
@@ -665,7 +669,7 @@ class RoadStack(stacking.KeepStack):
         try:
             packet.parseInner()
             console.verbose("Stack '{0}'. Received packet body\n{1}\n".format(
-                    self.name, packet.body.data))
+                self.name, packet.body.data))
         except raeting.PacketError as ex:
             console.terse(str(ex) + '\n')
             self.incStat('parsing_inner_error')
@@ -678,7 +682,7 @@ class RoadStack(stacking.KeepStack):
         but only for preexisting remotes
         '''
         if packet.data['pk'] in [PcktKind.nack,
-                                PcktKind.unjoined,
+                                 PcktKind.unjoined,
                                 PcktKind.unallowed,
                                 PcktKind.renew,
                                 PcktKind.refuse,
@@ -689,7 +693,7 @@ class RoadStack(stacking.KeepStack):
         remote = self.retrieveRemote(uid=uid)
         if not remote:
             emsg = "Stack '{0}'. Unknown remote id '{1}', fail to nack stale\n".format(
-                      self.name, uid)
+                self.name, uid)
             console.terse(emsg)
             self.incStat('invalid_remote_eid')
             return

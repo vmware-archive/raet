@@ -40,4 +40,4 @@ def run(start=None,  failfast=False):
     unittest.TextTestRunner(verbosity=2, failfast=failfast).run(suite)
 
 if __name__ == "__main__":
-    run()
+    run(failfast=True)

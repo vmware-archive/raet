@@ -204,8 +204,8 @@ class Staler(Initiator):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=CoatKind.nada.value,
-                            fk=FootKind.nada.value
+                            ck=self.rxPacket.data['ck'], # CoatKind.nada.value,
+                            fk=self.rxPacket.data['fk'], # FootKind.nada.value
                           )
 
     def nack(self):
@@ -283,8 +283,8 @@ class Stalent(Correspondent):
                             bf=self.bcst,
                             si=self.sid,
                             ti=self.tid,
-                            ck=CoatKind.nada.value,
-                            fk=FootKind.nada.value
+                            ck=self.rxPacket.data['ck'],  # CoatKind.nada.value
+                            fk=self.rxPacket.data['fk'],  # FootKind.nada.value
                            )
 
     def nack(self, kind=PcktKind.nack.value):
@@ -1848,7 +1848,7 @@ class Allower(Initiator):
 
     def refuse(self):
         '''
-        Process nack refule to packet
+        Process nack refuse to packet
         '''
         if not self.stack.parseInner(self.rxPacket):
             return
@@ -3077,7 +3077,10 @@ class Messengent(Correspondent):
                             bf=self.bcst,
                             wf=self.rxPacket.data['wf'],  # was self.wait
                             si=self.sid,
-                            ti=self.tid,)
+                            ti=self.tid,
+                            ck=self.rxPacket.data['ck'],  # so acks use same coat kind encrypted
+                            fk=self.rxPacket.data['fk'],  # so acks use same foot kind signed
+                          )
 
     def message(self):
         '''
@@ -3200,7 +3203,7 @@ class Messengent(Correspondent):
         self.remove()
         console.concise("Messengent {0}. Complete with {1} in {2} at {3}\n".format(
                 self.stack.name, self.remote.name, self.tid, self.stack.store.stamp))
-        self.stack.incStat("messagent_correspond_complete")
+        self.stack.incStat("messengent_correspond_complete")
 
     def done(self):
         '''

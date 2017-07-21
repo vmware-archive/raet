@@ -3,6 +3,28 @@ CHANGE LOG
 -------------------
 
 -----------
+20170721
+----------
+v0.6.8
+
+Added .veritive flag to RoadStack to enable better control of accepting signed
+packets
+
+
+-----------
+20170313
+----------
+v0.6.7
+
+Fixed tabs to spaces
+Added newRemote wrapper method aroung RemoteEstate() to allow for custom validation
+  of arguments  when creating a new remote
+Fixed some test race timing conditions on faster computer with python3.6
+Fixed typo in stacking.py bug
+
+
+
+-----------
 20161228
 ----------
 v0.6.6
