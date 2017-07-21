@@ -185,8 +185,8 @@ class BasicTestCase(unittest.TestCase):
             main.serviceAll()
             if not (main.transactions or other.transactions):
                 break
-            self.store.advanceStamp(0.1)
-            time.sleep(0.1)
+            self.store.advanceStamp(0.0625)
+            time.sleep(0.0625)
 
     def serviceStack(self, stack, duration=1.0):
         '''
@@ -197,8 +197,8 @@ class BasicTestCase(unittest.TestCase):
             stack.serviceAll()
             if not (stack.transactions):
                 break
-            self.store.advanceStamp(0.1)
-            time.sleep(0.1)
+            self.store.advanceStamp(0.0625)
+            time.sleep(0.0625)
 
     def serviceStacks(self, stacks, duration=1.0):
         '''
@@ -210,8 +210,8 @@ class BasicTestCase(unittest.TestCase):
                 stack.serviceAll()
             if all([not stack.transactions for stack in stacks]):
                 break
-            self.store.advanceStamp(0.05)
-            time.sleep(0.05)
+            self.store.advanceStamp(0.0625)
+            time.sleep(0.0625)
 
     def serviceStacksDropRx(self, stacks, duration=1.0):
         '''
@@ -4570,11 +4570,12 @@ class BasicTestCase(unittest.TestCase):
             self.assertIs(remote.alived,  None) #  Reset alived
 
         main.alive() # alive from main to other
-        self.serviceStack(main, duration=0.25) # Send alive
-        self.serviceStack(other, duration=0.25) # Send ack
+        self.serviceStack(main, duration=0.125) # Send alive
+        self.serviceStack(other, duration=0.125) # Send ack
+        time.sleep(0.3)
         self.dupReceives(main) # duplicate response
-        self.serviceStacks(stacks, duration=0.5) # 1st accept, 2nd stale nack
-        self.serviceStacks(stacks, duration=0.5) # fix race condition
+        self.serviceStacks(stacks, duration=0.25) # 1st accept, 2nd stale nack
+        self.serviceStacks(stacks, duration=1.0) # fix race condition
 
         self.assertIn('stale_correspondent_attempt', main.stats)
         self.assertEqual(main.stats['stale_correspondent_attempt'], 1) # 1 stale attempt (dup)

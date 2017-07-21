@@ -27,7 +27,8 @@ console = getConsole()
 # Import raet libs
 from ..abiding import *  # import globals
 from .. import raeting
-from ..raeting import PcktKind, TailSize, CoatKind, FootSize, FootKind, BodyKind, HeadKind
+from ..raeting import (PcktKind, TailSize, CoatKind, FootSize, FootKind,
+                       BodyKind, HeadKind, TrnsKind)
 
 class Part(object):
     '''
@@ -449,6 +450,7 @@ class RxFoot(Foot):
         '''
         fk = self.packet.data['fk']
         fl = self.packet.data['fl']
+        tk = self.packet.data['tk']
         self.packed = b''
 
         if fk not in list(FootKind):
@@ -461,6 +463,11 @@ class RxFoot(Foot):
             raise raeting.PacketError(emsg)
 
         self.packed = self.packet.packed[self.packet.size - fl:]
+
+        if self.packet.stack.veritive and tk == TrnsKind.message and fk != FootKind.nacl:
+            reason = "missing signature"
+            emsg = "Failed verification: {0}".format(reason)
+            raise raeting.PacketError(emsg)
 
         if fk == FootKind.nacl:
             if self.size != FootSize.nacl:

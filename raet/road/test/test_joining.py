@@ -11194,7 +11194,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11243,7 +11243,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11292,7 +11292,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11358,7 +11358,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11424,7 +11424,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11490,7 +11490,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11539,7 +11539,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11588,7 +11588,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -11714,7 +11714,7 @@ class BasicTestCase(unittest.TestCase):
         alpha.serviceReceives()
         raw, sa = alpha.rxes.popleft()
         console.verbose("{0} received packet\n{1}\n".format(alpha.name, raw))
-        packet = packeting.RxPacket(stack=self, packed=raw)
+        packet = packeting.RxPacket(stack=alpha, packed=raw)
         packet.parseOuter()
         sh, sp = sa
         packet.data.update(sh=sh, sp=sp)
@@ -14065,3 +14065,4 @@ if __name__ == '__main__' and __package__ is None:
     #runOne('testFirstJoinAckAcceptDropped')
     #runOne('testAllJoinAcceptDropped')
     #runOne('testJoinerAcceptMissingMode')
+    #runOne('testJoinerAcceptErrorParseInner')

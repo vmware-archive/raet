@@ -54,6 +54,8 @@ class RoadStack(stacking.KeepStack):
         Flag indicating if the local estate is a main estate on the road
     mutable
         Flag indicating if credentials on road can be changed after initial join
+    veritive
+        Flag indicating if all received message transactions must be verified
     keep
         Pass in a keep object, this object can define how stack data
         including keys is persisted to disk
@@ -114,6 +116,7 @@ class RoadStack(stacking.KeepStack):
                  period=None,
                  offset=None,
                  interim=None,
+                 veritive=True,
                  **kwa
                  ):
         '''
@@ -142,7 +145,7 @@ class RoadStack(stacking.KeepStack):
 
         self.aha = ha # init before server is initialized
 
-        # Remotes reference these in there init so create before super
+        # Remotes reference these in their init so create before super
         self.period = period if period is not None else self.Period
         self.offset = offset if offset is not None else self.Offset
         self.interim = interim if interim is not None else self.Interim
@@ -156,6 +159,7 @@ class RoadStack(stacking.KeepStack):
                                         **kwa)
         self.kind = kind # application kind associated with the local estate
         self.mutable = mutable # road data mutability
+        self.veritive = True if veritive else False  # rx message trans must be verified
         self.joinees = odict() # remotes for vacuous joins, keyed by ha
         self.alloweds = odict() # allowed remotes keyed by name
         self.aliveds =  odict() # alived remotes keyed by name

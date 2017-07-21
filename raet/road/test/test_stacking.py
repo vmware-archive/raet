@@ -276,7 +276,11 @@ class BasicTestCase(unittest.TestCase):
             console.terse("Estate '{0}' rxed:\n'{1}'\n".format(self.other.local.name, msg))
         self.assertDictEqual(body, self.other.rxMsgs[0][0])
 
-    def bidirectional(self, bk=raeting.BodyKind.json.value, mains=None, others=None, duration=3.0):
+    def bidirectional(self,
+                      bk=raeting.BodyKind.json.value,
+                      mains=None,
+                      others=None,
+                      duration=3.0,):
         '''
         Initialize
             main on port 7530 with uid of 1
@@ -380,6 +384,111 @@ class BasicTestCase(unittest.TestCase):
         mains.append(odict(house="Papa pia4", queue="run me"))
 
         self.bidirectional(bk=raeting.BodyKind.msgpack.value, mains=mains, others=others)
+
+    def testMsgVeritive(self):
+        '''
+        Test message transactions where one is not veritive
+        '''
+        console.terse("{0}\n".format(self.testMsgVeritive.__doc__))
+
+        others = []
+        others.append(odict(house="Mama mia1", queue="fix me"))
+        others.append(odict(house="Mama mia2", queue="help me"))
+        others.append(odict(house="Mama mia3", queue="stop me"))
+        others.append(odict(house="Mama mia4", queue="run me"))
+
+        mains = []
+        mains.append(odict(house="Papa pia1", queue="fix me"))
+        mains.append(odict(house="Papa pia2", queue="help me"))
+        mains.append(odict(house="Papa pia3", queue="stop me"))
+        mains.append(odict(house="Papa pia4", queue="run me"))
+
+        self.assertIs(self.main.veritive, True)
+        self.assertIs(self.other.veritive, True)
+        self.bootstrap()
+
+        self.assertEqual(len(self.main.transactions), 0)
+        self.assertEqual(len(self.main.rxMsgs), 1)
+        self.main.rxMsgs.popleft()
+
+        self.assertEqual(len(self.other.transactions), 0)
+        self.assertEqual(len(self.other.rxMsgs), 1)
+        self.other.rxMsgs.popleft()
+
+        self.main.Fk = raeting.FootKind.nada.value  # main does not sign its messages
+
+        msg = odict(house="Mama mia1", queue="fix me")
+        self.main.transmit(msg)
+        msg = odict(house="Papa pia1", queue="fix me")
+        self.other.transmit(msg)
+
+        self.service(duration=0.3)
+
+        # other will reject main's message because not signed
+
+        self.assertEqual(len(self.main.transactions), 1)
+        self.assertEqual(len(self.main.rxMsgs), 1)
+        self.main.rxMsgs.popleft()
+        self.assertEqual(len(self.other.transactions), 0)
+        self.assertEqual(len(self.other.rxMsgs), 0)
+
+        self.assertIn('parsing_outer_error', self.other.stats)
+        self.assertEqual(self.other.stats['parsing_outer_error'], 1)
+
+        remote = self.main.remotes.values()[0]
+        remote.transactions = odict()  # clear transactions
+        self.assertEqual(len(self.main.transactions), 0) # no initated transaction
+        self.service(duration=0.25)  # consume packet in UDP buffer
+
+        self.other.veritive = False  # Other will accept unsigned messages
+        self.assertIs(self.other.veritive, False)
+
+        msg = odict(house="Mama mia1", queue="fix me")
+        self.main.transmit(msg)
+        msg = odict(house="Papa pia1", queue="fix me")
+        self.other.transmit(msg)
+
+        self.service(duration=0.3)
+
+        # other will accept main's unsigned message but other's done ack will not
+        # be accepted by main because it won't be signed and main's veritive is True
+        # so mains transaction does not complete
+
+        self.assertEqual(len(self.main.transactions), 1)
+        self.assertEqual(len(self.main.rxMsgs), 1)
+        self.main.rxMsgs.popleft()
+        self.assertEqual(len(self.other.transactions), 0)
+        self.assertEqual(len(self.other.rxMsgs), 1)
+        self.other.rxMsgs.popleft()
+
+        self.assertIn('parsing_outer_error', self.main.stats)
+        self.assertEqual(self.main.stats['parsing_outer_error'], 1)
+
+        remote = self.main.remotes.values()[0]
+        remote.transactions = odict()  # clear transactions
+        self.assertEqual(len(self.main.transactions), 0) # no initated transaction
+        self.service(duration=0.5)  # consume packets in UDP
+
+        self.main.veritive = False  # main will accept unsigned messages
+        self.assertIs(self.main.veritive, False)
+
+        msg = odict(house="Mama mia1", queue="fix me")
+        self.main.transmit(msg)
+        msg = odict(house="Papa pia1", queue="fix me")
+        self.other.transmit(msg)
+
+        self.service(duration=0.3)
+
+        # main will now complete its transaction because it will accept unsigned acks
+        # other will accept unsigned but generates signed each message completes
+
+        self.assertEqual(len(self.main.transactions), 0)
+        self.assertEqual(len(self.main.rxMsgs), 1)
+        self.main.rxMsgs.popleft()
+        self.assertEqual(len(self.other.transactions), 0)
+        self.assertEqual(len(self.other.rxMsgs), 1)
+        self.other.rxMsgs.popleft()
+
 
     def testSegmentedJson(self):
         '''
@@ -702,7 +811,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertTrue(self.other.stats.get('stale_correspondent_attempt') >= 1)
         self.assertTrue(self.other.stats.get('stale_correspondent_nack') >= 1)
-        self.assertTrue(self.main.stats.get('messagent_correspond_complete') >= 1)
+        self.assertTrue(self.main.stats.get('messengent_correspond_complete') >= 1)
         self.assertTrue(self.main.stats.get('stale_packet') >= 1)
 
     def testBasicAlive(self):
@@ -766,6 +875,7 @@ def runSome():
              'testBootstrapMsgpack',
              'testMsgBothwaysJson',
              'testMsgBothwaysMsgpack',
+             'testMsgVeritive',
              'testSegmentedJson',
              'testSegmentedMsgpack',
              'testSegmentedJsonBurst',
@@ -799,3 +909,4 @@ if __name__ == '__main__' and __package__ is None:
     #runOne('testJoinForever')
     #runOne('testBootstrapJson')
     #runOne('testBootstrapMsgpack')
+    #runOne('testMsgVeritive')
